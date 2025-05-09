@@ -8,6 +8,39 @@ let rightObj = document.getElementById('rightMenu');
 let markdownObj = document.getElementById("md-content");
 let renderTxt = document.getElementById("plh-render");
 
+let editAreaUp = document.getElementById("edit-area-up");
+
+// 支持textarea和code同时滚动
+let txtArea = document.getElementById("real-edit");
+let codeArea = document.getElementById("real-show");
+
+function countFormerWrapLineNumber(str) {
+    /**
+     * 计数字符串最前面有几个换行符
+     */
+    let count = 0;
+    let i = 0;
+    while (i < str.length) {
+        if (str[i] === '\r') {
+            // 检查是否为 \r\n
+            if (i + 1 < str.length && str[i + 1] === '\n') {
+                count++;
+                i += 2;
+            } else {
+                count++;
+                i++;
+            }
+        } else if (str[i] === '\n') {
+            count++;
+            i++;
+        } else {
+            // 遇到非换行符，结束循环
+            break;
+        }
+    }
+    return count;
+}
+
 // 渲染语言
 async function loadLanguage() {
     let presentLangPackage = await window.lang.getLangIndexLangContent();
@@ -91,9 +124,56 @@ function hideAllAreaMenu(event) {
 }
 
 async function renderChange() {
+    let swDebug = await window.swDebug.switchDebuggingMode();
     // 更改渲染区的内容
+    let afterRenderedMd = await window.writeMarkdown.changeContent(markdownObj.value);
+
     document.getElementById("render-content").innerHTML
-        = await window.writeMarkdown.changeContent(markdownObj.value);
+        = afterRenderedMd[1];
+
+    console.log(swDebug);
+    if (swDebug) {
+        console.log("----PRINT START----");
+        console.log(afterRenderedMd[0]);
+        console.log(afterRenderedMd[1]);
+        console.log("----PRINT END----");
+    }
+    contentChangeEvent();
+}
+
+async function contentChangeEvent() {
+    // Render placeholder show/hide
+    let swDebug = await window.swDebug.switchDebuggingMode();
+    // 判断textarea是否有内容而选择性显示“Markdown渲染区”
+    let renderPlaceholderObj = document.getElementById("render-placeholder");
+    if (markdownObj.value !== "") renderPlaceholderObj.style.display = "none";
+    else renderPlaceholderObj.style.display = "block";
+
+    if (swDebug) {
+        console.log("textarea内容：" + markdownObj.value);
+    }
+
+    // 同步更新code area内容
+    // 支持编辑区语法高亮
+    let visualizer = document.getElementById("language-md");
+    visualizer.textContent = "\n" + markdownObj.value;  // 这里前面加一个换行符的目的是补上被prismjs吞掉的一个换行符。
+    Prism.plugins.NormalizeWhitespace.setDefaults({
+        'remove-trailing': false,
+        'remove-indent': false,
+        'left-trim': false,
+        'right-trim': false,
+        'remove-initial-line-feed': false,
+    });
+    Prism.highlightAll();
+
+    // 动态调整Textarea的高度（与code area同步）
+    markdownObj.style.height = (document.getElementById("code-area-down").scrollHeight + 5.7) + 'px';
+    // 使外面的div与里面的textarea等高
+    editAreaUp.style.height = markdownObj.style.height;
+
+    // 同步滚动
+    codeArea.scrollTop = txtArea.scrollTop;
+    // txtArea.scrollTop = codeArea.scrollTop;
 }
 
 function copy(keep) {
@@ -120,7 +200,7 @@ function copy(keep) {
     }
 }
 
-function paste() {
+function mdPaste() {
     let mdContent = markdownObj.value;
     // 获得光标位置
     let start = markdownObj.selectionStart;
@@ -128,7 +208,10 @@ function paste() {
         markdownObj.value = mdContent.substring(0, start) + content + mdContent.substring(start, mdContent.length);
         markdownObj.setSelectionRange(start + content.length, start + content.length);  // 光标移动到合适位置
         // 同时更改渲染区内容
+        markdownObj.focus();
         renderChange();
+
+        txtArea.scroll
     }).catch(function(error) {
         console.error("粘贴失败: ", error);
     });
@@ -150,6 +233,7 @@ document.getElementById("preview").addEventListener('contextmenu', (e) => {
 document.getElementById("editor").addEventListener('click', (e) => {
     e.preventDefault();
     hideAllAreaMenu(e);
+    markdownObj.focus();
 });
 
 // 渲染区监听左键
@@ -169,7 +253,7 @@ document.getElementById("leftMenu-copy").addEventListener('click', (e) => {
     copy(true);
 });
 document.getElementById("leftMenu-paste").addEventListener('click', (e) => {
-    paste();
+    mdPaste();
 });
 
 // 渲染区右键菜单点击事件
@@ -180,11 +264,8 @@ document.getElementById("rightMenu-copy").addEventListener('click', (e) => {
 
 });
 
-markdownObj.addEventListener("input", async () => {  // "change"事件，内容一改变就触发
-    // 判断textarea是否有内容而选择性显示“Markdown渲染区”
-    let renderPlaceholderObj = document.getElementById("render-placeholder");
-    if (markdownObj.value !== "") renderPlaceholderObj.style.display = "none";
-    else renderPlaceholderObj.style.display = "block";
+markdownObj.addEventListener("input", async () => {  // "input"事件，输入就触发
+    if (swDebug) console.log("触发输入事件...");
     // 同时更改渲染区内容
     renderChange();
 });
@@ -201,7 +282,7 @@ window.contentOperateCVA.copy((keep) => {
 
 // 粘贴
 window.contentOperateCVA.paste(() => {
-    paste();
+    mdPaste();
 });
 
 // 撤销
@@ -209,3 +290,11 @@ window.contentOperateCVA.undo(() => {});
 
 // 重做
 window.contentOperateCVA.redo(() => {});
+
+txtArea.addEventListener("scroll", function() {
+    codeArea.scrollTop = txtArea.scrollTop;
+});
+//
+// codeArea.addEventListener("scroll", function() {
+//     codeArea.scrollTop = txtArea.scrollTop;
+// });

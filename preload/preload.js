@@ -21,3 +21,9 @@ contextBridge.exposeInMainWorld('lang', {
         return ipcRenderer.invoke('load-lang');
     },
 });
+
+contextBridge.exposeInMainWorld('swDebug', {
+    switchDebuggingMode: () => {
+        return ipcRenderer.invoke('switch-debug');
+    }
+});

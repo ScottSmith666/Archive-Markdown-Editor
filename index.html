@@ -4,10 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport"
           content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';font-src 'self' data: ; img-src 'self' data: blob: *"/>
     <title id="app-title">Archive Markdown Editor - Untitled</title>
+    <link rel="stylesheet" href="./libs/third_party/prism/light/prism-full-scott.css">
     <link rel="stylesheet" href="./ui/css/index.css">
-    <link rel="stylesheet" href="./libs/third_party/prism/prism-full.css">
 </head>
 <body>
 <div id="app">
@@ -20,8 +19,22 @@
             <div class="content-wrap">
                 <!--Markdown编辑区-->
                 <div class="content-resize-edit content-like upper" id="editor">
-                    <div class="middle-content-edit">
-                        <label for="md-content"></label><textarea class="my-editor" id="md-content" placeholder="请在此处键入Markdown..."></textarea>
+                    <div class="middle-content-edit" style="position: relative;">
+                        <!--编辑区-->
+                        <div class='code-editor' id="real-edit" style="overflow: scroll;">
+                            <div class='edit-area-up' id="edit-area-up">
+                                <label for="md-content"></label>
+                                <textarea class="my-editor prism-live language-javascript" id="md-content" style="font-size: 15px;" placeholder="请在此处键入Markdown..."></textarea>
+                            </div>
+                        </div>
+                        <!--代码高亮区-->
+                        <div class='code-editor' id="real-show" style="overflow: scroll;">
+                            <div id="code-area-down">
+                                <pre class="line-numbers" style="background-color: #efefef !important; font-size: 15px !important; margin-top: 0; padding-top: 0; padding-right: 0;">
+                                    <code id="language-md" class="language-markdown"></code>
+                                </pre>
+                            </div>
+                        </div>
                     </div>
                     <div class="lower dp-menu fonts" id="leftMenu">
                         <div class="dp-menu-element" id="leftMenu-select-all">
@@ -41,11 +54,11 @@
 
                 <!--Markdown渲染区-->
                 <div class="content-resize-render content-like upper" id="preview">
-                    <div class="middle-content-render">
+                    <div class="middle-content-render" style="overflow: scroll;">
                         <div class="fonts" id="render-placeholder">
                             <h1 class="rend-area" id="plh-render">Markdown渲染区</h1>
                         </div>
-                        <div class="fonts" id="render-content">
+                        <div class="fonts line-numbers" id="render-content">
                             <!--所有的文档内容，均inject在该标签的内部，不可inject在其他地方！-->
                         </div>
                     </div>
@@ -63,6 +76,6 @@
     </div>
 </div>
 </body>
-<script src="./libs/third_party/prism/prism-full.js"></script>
+<script src="./libs/third_party/prism/light/prism-full.js"></script>
 <script src="./renderer/renderer.js"></script>
 </html>

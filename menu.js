@@ -1,4 +1,4 @@
-const {app, BrowserWindow, dialog, shell} = require("electron");
+const { app, BrowserWindow, dialog, shell} = require("electron");
 const LanguageLocale = require('./libs/languages');
 const GlobalVar = require('./libs/globalvar');
 const ConfirmDialog = require('./dialogs');
@@ -31,7 +31,8 @@ function GlobalMenu(mainWindow, aboutWindow) {
                 show: false,
                 webPreferences: {
                     preload: path.join(__dirname, 'preload/preload-about.js'),
-                }
+                },
+                devTools: gVar.DEBUG,
             });
             aboutWindow.loadFile("ui/about.html");
             aboutWindow.on('ready-to-show', function () {

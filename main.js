@@ -7,7 +7,12 @@ const GlobalVar = require("./libs/globalvar");
 const GlobalMenu = require("./menu");
 const SqliteMan = require("./libs/sqliteman");
 const LanguageLocale = require("./libs/languages");
+// Markdown核心解释模块导入
+const MdCoreInterpret = require("./libs/md-core-interpret");  // Commonmark
 
+
+// 建立全局Markdown核心解释模块对象
+let mdCoreInterpret = new MdCoreInterpret();
 
 // 建立全局变量模块对象
 let gVar = new GlobalVar();
@@ -24,7 +29,8 @@ const createWindow = () => {
         show: false,
         webPreferences: {
             preload: path.join(__dirname, 'preload/preload.js'),
-        }
+        },
+        devTools: gVar.DEBUG,
     });
     win.loadFile("index.html");
     win.on('ready-to-show', function () {
@@ -54,7 +60,7 @@ app.whenReady().then(() => {
         /**
          * 在这里开始处理Markdown并将其渲染为HTML
          */
-        return md;
+        return mdCoreInterpret.interpret(md, "marked");
     });
 
     ipcMain.handle('load-lang', async (event) => {
@@ -80,6 +86,13 @@ app.whenReady().then(() => {
             appLangObj.operationsInstructions().menu.aboutDialog,
             Number(languageConfigManagerObject.loadLangConfig()),
         ];
+    });
+
+    ipcMain.handle('switch-debug', async (event) => {
+        /**
+         * 开启/关闭DEBUG选项，便于调试
+         */
+        return gVar.DEBUG;
     });
 
     // 通过默认浏览器打开外部链接

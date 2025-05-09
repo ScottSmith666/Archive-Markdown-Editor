@@ -1,9 +1,32 @@
+const fs = require('fs');
+const { app } = require("electron");
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
+const path = require("node:path");
+const process = require('node:process');
+
+
+const packageJsonPath = path.join(__dirname, 'package.json');
+// 读取并解析package.json文件
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+// 获取包名
+const appName = packageJson.name;
+const RELEASE_MAC_ARM64_APP_DIR = path.join(__dirname, `./out/${appName}-${process.platform}-${process.arch}/${appName}.app`);
 
 module.exports = {
   packagerConfig: {
-    asar: true
+    asar: true,
+    overwrite: true,
+    ignore: [
+        "assets/dmg_bg",
+        ".git",
+        ".vscode",
+        ".idea",
+        "node_modules/.bin",
+        "src",
+        ".gitignore",
+        "packagr-lock.json",
+    ],
   },
   rebuildConfig: {},
   makers: [
@@ -13,7 +36,7 @@ module.exports = {
     },
     {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin'],
+      platform: ["darwin"],
     },
     {
       name: '@electron-forge/maker-deb',

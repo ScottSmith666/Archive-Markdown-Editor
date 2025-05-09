@@ -9,15 +9,30 @@ textarea {
     border: none;
     outline: none;
     resize: none;
-    width: 98%;
-    height: 98%;
+    /*width: 98%;*/
+    /*height: 98%;*/
     margin: 0 auto;
 
+    padding: 0;
+    background: transparent !important;
+
+    color: transparent !important;
+
+    caret-color: #000000 !important;
     /*background-color: #00bb33 !important;*/
 }
 
 textarea::-webkit-scrollbar {
     /*隐藏滚轮*/
+    display: none;
+}
+
+.middle-content-render::-webkit-scrollbar {
+    /*隐藏滚轮*/
+    display: none;
+}
+
+.code-editor::-webkit-scrollbar {
     display: none;
 }
 
@@ -38,7 +53,6 @@ textarea::-webkit-scrollbar {
     width: 100%;
     padding-bottom: 100%;
     vertical-align: middle;
-    overflow: hidden;
     object-fit: cover;
 }
 
@@ -94,16 +108,15 @@ textarea::-webkit-scrollbar {
 
 .middle-content-edit {
     width: 100%;
-    padding: 0;
 
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: center;
     background-color: #efefef !important;
 
     word-wrap: break-word !important;
     word-break: break-all !important;
+    border-radius: 8px;
 }
 
 .middle-content-render {
@@ -112,6 +125,7 @@ textarea::-webkit-scrollbar {
     word-wrap: break-word !important;
     word-break: break-all !important;
     background-color: #efefef !important;
+    margin: 20px;
 }
 
 .middle-content::-webkit-scrollbar {
@@ -188,10 +202,59 @@ textarea::-webkit-scrollbar {
     /* you must provide font-family font-size line-height. Example: */
     font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;
     font-size: 14px;
-    line-height: 1.5;
-    padding: 5px;
+    padding: 0;
     border-radius: 4px;
 
     word-wrap: break-word !important;
     word-break: break-all !important;
+    width: calc(100% - 3.8em);
+
+    margin-left: 3.8em;  /*适应prism的行号锁进*/
+    min-height: 400px;
+    line-height: 22.5px; /* 与字体大小等同 */
+}
+
+.code-editor {
+    display: block;
+    font-family: monospace;
+    /*line-height: 1.5;*/
+    width: 100%;
+    /*background-color: #efefef; !* default prismjs theme background color *!*/
+    border-radius: 8px !important;
+    word-wrap: break-word !important;
+    word-break: break-all !important;
+    overflow: hidden;
+}
+
+.code-editor code {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /*height: 100%;*/
+    /*padding: 10px;*/
+    margin: 0;
+    font-size: inherit;
+    font-family: inherit;
+    /*line-height: inherit;*/
+    background-color: transparent;
+    height: 100%;
+}
+
+#real-edit {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+}
+
+#real-show {
+    position: absolute;
+    z-index: 0;
+    height: 100%;
+}
+
+p {
+    word-break: break-all;
+    word-wrap: break-word;
 }

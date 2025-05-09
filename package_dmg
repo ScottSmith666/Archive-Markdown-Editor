@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+
+const path = require("node:path");
+const fs = require("fs");
+const process = require("node:process");
+
+
+const packageJsonPath = path.join(__dirname, 'package.json');
+// 读取并解析package.json文件
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+// 获取包名
+const appName = packageJson.name;
+const version = packageJson.version;
+const RELEASE_MAC_ARM64_APP_DIR = path.join(__dirname, `./out/${appName}-${process.platform}-${process.arch}/${appName}.app`);
+
+function runCommand(command) {
+    let exec = require('child_process').exec;
+    exec(command, function(err, stdout, stderr){
+        if(err) {
+            console.log('error:' + stderr);
+        } else {
+            console.log(stdout);
+        }
+    });
+}
+
+// 写入配置
+fs.writeFile('./appdmg_conf.json', JSON.stringify({
+    "title": appName.replace(" ", "").replace(" ", ""),
+    "background": path.join(__dirname, "./assets/dmg_bg/dmg_back.jpg"),
+    "icon-size": 120,
+    "contents": [
+        { "x": 173, "y": 274, "type": 'file', "path": RELEASE_MAC_ARM64_APP_DIR },
+        { "x": 600, "y": 278, "type": 'link', "path": '/Applications' },
+    ],
+    "window": {
+        "size": {
+            "width": 802,
+            "height": 608,
+        }
+    }
+}, null,"\t"), (err) => {
+    if (err) {
+        console.log('运行appdmg出错...');
+        throw err;
+    }
+    runCommand("rm -rf " + `"./out/${appName}-${version}-${process.platform}-${process.arch}.dmg"`);
+    console.log('配置文件已写入...');
+    // 调用appdmg命令
+    console.log("运行appdmg ./appdmg_conf.json " + `"./out/${appName}-${version}-${process.platform}-${process.arch}.dmg"...`)
+    runCommand("appdmg ./appdmg_conf.json " + `"./out/${appName}-${version}-${process.platform}-${process.arch}.dmg"`)
+});
