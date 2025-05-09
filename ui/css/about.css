@@ -1,0 +1,137 @@
+html, body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.confirm-button-position {
+    display: flex;
+    flex-direction: row;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.button {
+    cursor: pointer;
+    width: 90px;
+    height: 35px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    line-height: 35px;
+    background-color: #42b883;
+}
+
+.button:hover {
+    cursor: pointer;
+}
+
+.button:active {
+    filter: brightness(0.8);
+}
+
+
+.face {
+    overflow: auto;
+    width: 590px;
+    /*min-height: 310px;*/
+    border-radius: 10px;
+    background-color: #ffffff;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.title-flex {
+    -webkit-app-region: drag;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.exp-padding {
+    padding: 1rem;
+}
+
+.main-icon {
+    width: 160px;
+    height: 160px;
+}
+
+.mail-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.gap {
+    height: 15px;
+}
+
+.ln {
+    border-bottom: 2px rgba(60, 60, 60, .24) dotted;
+}
+
+.github-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.face-dark {
+    background-color: #242424 !important;
+    box-shadow: 0 12px 32px rgba(255, 255, 255, .1), 0 2px 6px rgba(255, 255, 255, .08) !important;
+}
+
+.fade-enter-active {
+    transition: opacity 0.3s;
+}
+
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-leave-active {
+    transition: opacity 0.3s;
+}
+
+.fade-leave-to {
+    opacity: 0;
+}
+
+@font-face {
+    /* 中文字体全局定义为“阿里巴巴普惠体” */
+    font-family: AlibabaPuHuiTi;
+    src: url("../../assets/fonts/AlibabaPuHuiTi/Alibaba-PuHuiTi-Regular.ttf");
+}
+
+.fonts {
+    font-family: Lato, AlibabaPuHuiTi;
+}
+
+.web-card-wrap {
+    padding: 1rem;
+    border-radius: 4px 4px 4px 4px;
+
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    cursor: pointer;
+    word-break: break-all;
+}
+
+.trans {
+    background-color: #eaeaea;
+    transition: background-color 0.5s;
+}
+
+.trans:hover {
+    background-color: #d5d5d5;
+    transition: background-color 0.5s;
+}
+
+.cre {
+    cursor: pointer;
+    color: #42b983;
+}

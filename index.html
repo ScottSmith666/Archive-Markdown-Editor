@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';font-src 'self' data: ; img-src 'self' data: blob: *"/>
+    <title id="app-title">Archive Markdown Editor - Untitled</title>
+    <link rel="stylesheet" href="./ui/css/index.css">
+    <link rel="stylesheet" href="./libs/third_party/prism/prism-full.css">
+</head>
+<body>
+<div id="app">
+    <div class="keep-head-tail">
+        <!--body-->
+        <div class="body-wrap">
+            <!--bg-->
+            <div class="bg-container bg-wrap"></div>
+            <!--content-->
+            <div class="content-wrap">
+                <!--Markdown编辑区-->
+                <div class="content-resize-edit content-like upper" id="editor">
+                    <div class="middle-content-edit">
+                        <label for="md-content"></label><textarea class="my-editor" id="md-content" placeholder="请在此处键入Markdown..."></textarea>
+                    </div>
+                    <div class="lower dp-menu fonts" id="leftMenu">
+                        <div class="dp-menu-element" id="leftMenu-select-all">
+                            <h6>&nbsp;&nbsp;&nbsp;全选</h6>
+                        </div>
+                        <div class="dp-menu-element" id="leftMenu-cut">
+                            <h6>&nbsp;&nbsp;&nbsp;剪切</h6>
+                        </div>
+                        <div class="dp-menu-element" id="leftMenu-copy">
+                            <h6>&nbsp;&nbsp;&nbsp;复制</h6>
+                        </div>
+                        <div class="dp-menu-element" id="leftMenu-paste">
+                            <h6>&nbsp;&nbsp;&nbsp;粘贴</h6>
+                        </div>
+                    </div>
+                </div>
+
+                <!--Markdown渲染区-->
+                <div class="content-resize-render content-like upper" id="preview">
+                    <div class="middle-content-render">
+                        <div class="fonts" id="render-placeholder">
+                            <h1 class="rend-area" id="plh-render">Markdown渲染区</h1>
+                        </div>
+                        <div class="fonts" id="render-content">
+                            <!--所有的文档内容，均inject在该标签的内部，不可inject在其他地方！-->
+                        </div>
+                    </div>
+                    <div class="lower dp-menu fonts" id="rightMenu">
+                        <div class="dp-menu-element" id="rightMenu-select-all">
+                            <h6>&nbsp;&nbsp;&nbsp;全选</h6>
+                        </div>
+                        <div class="dp-menu-element" id="rightMenu-copy">
+                            <h6>&nbsp;&nbsp;&nbsp;复制</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script src="./libs/third_party/prism/prism-full.js"></script>
+<script src="./renderer/renderer.js"></script>
+</html>

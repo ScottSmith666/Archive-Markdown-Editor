@@ -1,0 +1,197 @@
+html, body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+textarea {
+    border: none;
+    outline: none;
+    resize: none;
+    width: 98%;
+    height: 98%;
+    margin: 0 auto;
+
+    /*background-color: #00bb33 !important;*/
+}
+
+textarea::-webkit-scrollbar {
+    /*隐藏滚轮*/
+    display: none;
+}
+
+.rend-area {
+    color: #8e8e8e;
+}
+
+.keep-head-tail {
+    display: flex;
+    min-height: 100%;
+    flex-flow: column;
+}
+
+.bg-container {
+    top: 0;
+    margin-bottom: 0;
+    display: inline-block;
+    width: 100%;
+    padding-bottom: 100%;
+    vertical-align: middle;
+    overflow: hidden;
+    object-fit: cover;
+}
+
+.body-wrap {
+    position: relative;
+}
+
+.bg-wrap {
+    position: fixed;
+    z-index: -1;
+    height: 100%;
+}
+
+.content-wrap {
+    display: flex;
+    justify-content: center;
+}
+
+.content-resize-edit {
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-bottom: 20px;
+    margin-right: 10px;
+    width: 100%;
+    padding: 20px;
+    background-color: #efefef !important;
+}
+
+.content-resize-render {
+    margin-top: 20px;
+    margin-left: 10px;
+    margin-bottom: 20px;
+    margin-right: 20px;
+    width: 100%;
+    padding: 20px;
+    background-color: #efefef !important;
+}
+
+.content-like {
+    /*margin-top: 20px;*/
+    /*margin-bottom: 20px;*/
+    background-color: white;
+    border-radius: 8px;
+    opacity: 0.9;  /* 不要写百分数，否则webpack打包时会强制变成1% */
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 60px - 20px);
+}
+
+.content-like-dark {
+    background-color: #242424 !important;
+}
+
+.middle-content-edit {
+    width: 100%;
+    padding: 0;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    background-color: #efefef !important;
+
+    word-wrap: break-word !important;
+    word-break: break-all !important;
+}
+
+.middle-content-render {
+    width: 100%;
+    padding: 0;
+    word-wrap: break-word !important;
+    word-break: break-all !important;
+    background-color: #efefef !important;
+}
+
+.middle-content::-webkit-scrollbar {
+    display: none;
+}
+
+.dp-menu {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .1), 0 2px 6px rgba(0, 0, 0, .08);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    width: 200px;
+    background-color: white;
+    transition: opacity 0.2s;
+}
+
+#leftMenu {
+    opacity: 0;
+    display: none;
+}
+
+#rightMenu {
+    opacity: 0;
+    display: none;
+}
+
+.dp-menu-element {
+    /*width: 100%;*/
+    height: 30px;
+    display: flex;
+    align-items: center;
+    /*margin-left: 16px;*/
+    margin: 0;
+    border-radius: 6px;
+    transition: color 0.2s, background-color 0.2s;
+    cursor: pointer;
+    font-weight: bold !important;
+}
+
+.dp-menu-element:hover {
+    background-color: #fafafa;
+    color: #42b983;
+}
+
+.upper {
+    position: relative;
+}
+
+.lower {
+    position: absolute;
+    z-index: 1000;
+    right: 0;
+    top: 45px;
+}
+
+.dark-mode {
+
+}
+
+@font-face {
+    /* 中文字体全局定义为“阿里巴巴普惠体” */
+    font-family: AlibabaPuHuiTi;
+    src: url("../../assets/fonts/AlibabaPuHuiTi/Alibaba-PuHuiTi-Regular.ttf");
+}
+
+.fonts {
+    font-family: Lato, AlibabaPuHuiTi;
+}
+
+.my-editor {
+    /* we dont use `language-` classes anymore so thats why we need to add background and text color manually */
+    background: #efefef;
+    color: #5e5e5e;
+    /*color: #80118c;*/
+    /* you must provide font-family font-size line-height. Example: */
+    font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 5px;
+    border-radius: 4px;
+
+    word-wrap: break-word !important;
+    word-break: break-all !important;
+}

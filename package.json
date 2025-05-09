@@ -1,0 +1,32 @@
+{
+  "name": "Archive Markdown Editor",
+  "version": "1.0.0",
+  "description": "mdz file editor",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  },
+  "keywords": [
+    "arc_md"
+  ],
+  "author": "Scott Smith",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron-forge/cli": "^7.8.0",
+    "@electron-forge/maker-deb": "^7.8.0",
+    "@electron-forge/maker-rpm": "^7.8.0",
+    "@electron-forge/maker-squirrel": "^7.8.0",
+    "@electron-forge/maker-zip": "^7.8.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.0",
+    "@electron-forge/plugin-fuses": "^7.8.0",
+    "@electron/fuses": "^1.8.0",
+    "electron": "^36.1.0"
+  },
+  "dependencies": {
+    "commonmark": "^0.31.2",
+    "electron-squirrel-startup": "^1.0.1"
+  }
+}
