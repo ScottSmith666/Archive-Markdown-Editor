@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+
+const process = require("node:process");
+const DistributeWin32X64 = require("./deploy_app/Windows-x64-msi/gen_config_msi");
+const DistributeDarwinArm64 = require("./deploy_app/macOS-arm64-dmg/package_dmg");
+
+
+let distributeWin32X64 = new DistributeWin32X64();
+let distributeDarwinArm64 = new DistributeDarwinArm64();
+
+if (process.platform === "win32") {
+    console.log("检测到操作系统：Windows...");
+    if (process.arch === "x64") {
+        console.log("检测到系统架构：x64...");
+        distributeWin32X64.run();
+    }
+}
+
+if (process.platform === "darwin") {
+    console.log("检测到操作系统：macOS...");
+    if (process.arch === "arm64") {
+        console.log("检测到系统架构：arm64...");
+        distributeDarwinArm64.run();
+    }
+}

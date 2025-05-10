@@ -1,52 +1,40 @@
-const fs = require('fs');
-const { app } = require("electron");
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 const path = require("node:path");
-const process = require('node:process');
 
-
-const packageJsonPath = path.join(__dirname, 'package.json');
-// 读取并解析package.json文件
-const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-// 获取包名
-const appName = packageJson.name;
-const RELEASE_MAC_ARM64_APP_DIR = path.join(__dirname, `./out/${appName}-${process.platform}-${process.arch}/${appName}.app`);
 
 module.exports = {
   packagerConfig: {
     asar: true,
     overwrite: true,
-    ignore: [
-        "assets/dmg_bg",
+      download: {
+          mirror: `file://${ path.join(__dirname, './electron-cache/') }`,
+          cache: path.join(__dirname, './electron-cache/'),
+          force: false,
+      },
+      electronZipDir: path.join(__dirname, './electron-cache/electron/36.1.0/'),
+      ignore: [
+        "deploy_app",
         ".git",
         ".vscode",
         ".idea",
-        "node_modules/.bin",
-        "src",
         ".gitignore",
-        "packagr-lock.json",
+          "distribute",
+          "README.md",
     ],
   },
   rebuildConfig: {},
   makers: [
     {
-      name: '@electron-forge/maker-squirrel',
-      config: {},
-    },
-    {
       name: '@electron-forge/maker-zip',
-      platform: ["darwin"],
-    },
-    {
-      name: '@electron-forge/maker-deb',
       config: {},
-    },
-    {
-      name: '@electron-forge/maker-rpm',
-      config: {},
-    },
+    }
   ],
+    electronRebuildConfig: {
+        onlyModules: [],
+        force: false,
+        offline: true
+    },
   plugins: [
     {
       name: '@electron-forge/plugin-auto-unpack-natives',

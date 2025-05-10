@@ -1,0 +1,123 @@
+/**
+ * 打包Windows x64 msi文件
+ */
+
+let { exec } = require('child_process');
+const fs = require("fs");
+const path = require("node:path");
+const { MSICreator } = require('electron-wix-msi');
+const process = require("node:process");
+const xml2js = require("xml2js");
+
+
+function DistributeWin32X64() {
+
+    this.run = () => {
+        let builder = new xml2js.Builder();
+
+        function runCommand(command, afterDoing = () => 0) {
+            console.log("正在执行：" + command);
+
+            exec(command, function(err, stdout, stderr){
+                if(err) {
+                    console.log('error:' + stderr);
+                }
+                console.log(stdout);
+                afterDoing();
+            });
+        }
+
+        function saveFile(txtContent, path) {
+            fs.writeFile(path, txtContent, (err) => {
+                if (err) {
+                    console.log('文件保存出错...');
+                    throw err;
+                }
+            });
+        }
+
+        async function modifyWixXML(savedir, filePath, ...mediaPaths) {
+            // 先将WIX配置文件（XML格式）转为JSON
+            let WixConfigContentXML = fs.readFileSync(filePath, 'utf8');
+            xml2js.parseString(WixConfigContentXML, {explicitArray : false}, function(err, json) {
+                // 修改内容
+                json.Wix.Product.$.Name = "Archive Markdown Editor";
+                json.Wix.Product.$.Version = "1.0.0";
+                json.Wix.Product.WixVariable = [{
+                    "$": {
+                        "Id": "WixUIDialogBmp",
+                        "Value": mediaPaths[0],
+                    }
+                }, {
+                    "$": {
+                        "Id": "WixUIBannerBmp",
+                        "Value": mediaPaths[1],
+                    }
+                }];
+                json.Wix.Product.SetProperty[0].$.Value = "Archive Markdown Editor";
+                json.Wix.Product.SetProperty[1].$.Value = "Archive Markdown Editor";
+
+                let modifiedWixXMLContent = builder.buildObject(json);
+                modifiedWixXMLContent = modifiedWixXMLContent
+                    .replace(/MSIINSTALLPERUSER = \"1\"/g, "<![CDATA[MSIINSTALLPERUSER = \"1\"]]>");
+                // 保存文件
+                saveFile(JSON.stringify(json, null,"\t"), filePath + ".json");
+                saveFile(modifiedWixXMLContent, filePath + ".modified.wxs");
+                saveFile(modifiedWixXMLContent, savedir + "Product.wxs");
+            });
+            console.log("已生成WIX配置文件，接下来请用Visual Studio 2022打开vs_sln内的sln文件进行接下来的打包操作。正在打开Visual Studio...");
+            runCommand(`cd "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE" && start devenv.exe`);
+        }
+
+        const packageJsonPath = path.join(__dirname, '..\\..\\package.json');
+        // 读取并解析package.json文件
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+        // 获取包名
+        const appName = packageJson.name;
+        const RELEASE_WIN_X64_APP_DIR =
+            path.join(__dirname, `..\\..\\out\\${appName}-${process.platform}-${process.arch}`);
+
+        console.log(`正在生成Windows x64 MSI WIX配置文件...`);
+        const msiCreator = new MSICreator({
+            appDirectory: RELEASE_WIN_X64_APP_DIR,
+            description: 'Archive Markdown Editor is a lightweight, powerful Markdown editor.',
+            exe: 'ArchiveMarkdownEditor',
+            name: 'Archive Markdown Editor',
+            manufacturer: 'Scott Smith',
+            version: '1.0.0',
+            outputDirectory: path.join(__dirname, `.`),
+            ui: {
+                chooseDirectory: true,
+            },
+            language: 2052,
+            arch: "x64",
+        });
+
+        let compile = `cd ${ path.join(__dirname, "..\\..") } && set ELECTRON_ENABLE_OFFLINE_MODE=1 && electron-forge make --offline`;
+
+        runCommand(compile, async () => {
+            console.log("散装可执行程序编译完成，正在生成Wix MSI打包配置文件...");
+            const DEPLOY_NAME = appName + "-" + packageJson.version + "-" + process.platform + "-" + process.arch;
+            // 删除旧配置文件
+            try {
+                fs.unlinkSync(path.join(__dirname, ".\\" + appName + ".wxs.json"));
+                fs.unlinkSync(path.join(__dirname,".\\" + appName + ".wxs.modified.wxs"));
+                fs.unlinkSync(path.join(__dirname,".\\vs_sln\\" + "Product.wxs"));
+            } catch (err) {}
+            // 生成配置文件
+            await msiCreator.create();
+            // await msiCreator.compile();
+
+            // 修改
+            // 将自定义图片路径添加至Wix配置文件（XML）
+            modifyWixXML(
+                path.join(__dirname, ".\\vs_sln\\"),
+                path.join(__dirname, ".\\" + appName + ".wxs"),
+                path.join(__dirname, `.\\media\\msi_bg.jpg`),
+                path.join(__dirname, `.\\media\\banner.jpg`)
+            );
+        });
+    };
+}
+
+module.exports = DistributeWin32X64;
