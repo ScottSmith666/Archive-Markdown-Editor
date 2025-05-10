@@ -6,6 +6,8 @@
           content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
     <title id="app-title">Archive Markdown Editor - Untitled</title>
     <link rel="stylesheet" href="./libs/third_party/prism/light/prism-full-scott.css">
+    <link rel="stylesheet" href="./libs/third_party/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="./libs/third_party/codemirror/theme/juejin.css">
     <link rel="stylesheet" href="./ui/css/index.css">
 </head>
 <body>
@@ -21,19 +23,9 @@
                 <div class="content-resize-edit content-like upper" id="editor">
                     <div class="middle-content-edit" style="position: relative;">
                         <!--编辑区-->
-                        <div class='code-editor' id="real-edit" style="overflow: scroll;">
-                            <div class='edit-area-up' id="edit-area-up">
-                                <label for="md-content"></label>
-                                <textarea class="my-editor prism-live language-javascript" id="md-content" style="font-size: 15px;" placeholder="请在此处键入Markdown..."></textarea>
-                            </div>
-                        </div>
-                        <!--代码高亮区-->
-                        <div class='code-editor' id="real-show" style="overflow: scroll;">
-                            <div id="code-area-down">
-                                <pre class="line-numbers" style="background-color: #efefef !important; font-size: 15px !important; margin-top: 0; padding-top: 0; padding-right: 0;">
-                                    <code id="language-md" class="language-markdown"></code>
-                                </pre>
-                            </div>
+                        <div class='code-editor' id="real-edit" style="overflow: scroll; word-wrap: break-word; word-break: break-all;">
+                            <label for="md-content"></label>
+                            <textarea class="my-editor" id="md-content" placeholder=""></textarea>
                         </div>
                     </div>
                     <div class="lower dp-menu fonts" id="leftMenu">
@@ -77,5 +69,7 @@
 </div>
 </body>
 <script src="./libs/third_party/prism/light/prism-full.js"></script>
+<script src="./libs/third_party/codemirror/lib/codemirror.js"></script>
+<script src="./libs/third_party/codemirror/mode/markdown/markdown.js"></script>
 <script src="./renderer/renderer.js"></script>
 </html>

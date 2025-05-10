@@ -5,26 +5,59 @@ html, body {
     height: 100%;
 }
 
-textarea {
-    border: none;
-    outline: none;
-    resize: none;
-    /*width: 98%;*/
-    /*height: 98%;*/
-    margin: 0 auto;
-
-    padding: 0;
-    background: transparent !important;
-
-    color: transparent !important;
-
-    caret-color: #000000 !important;
-    /*background-color: #00bb33 !important;*/
+/* Markdown元素样式重设 */
+h1, h2, h3, h4, h5, h6 {
+    font-family: Lato, AlibabaPuHuiTiBold !important;
+    color: #213547
 }
 
-textarea::-webkit-scrollbar {
-    /*隐藏滚轮*/
-    display: none;
+table {
+    border-right: 0;
+    border-bottom: 1px solid #8e8e8e;
+    text-align: center;
+    border-spacing: 0;
+    width: 100%;
+}
+
+table th {
+    border-left: 0;
+    border-top: 1px solid #8e8e8e;
+    border-spacing: 0;
+    padding: 0.6rem;
+}
+
+th {
+    color: black;
+}
+
+tr:hover {
+    background-color: #1d1d1d;
+    transition: background-color 0.5s;
+}
+
+table td {
+    border-left: 0;
+    border-top: 1px solid #8e8e8e;
+    border-spacing: 0;
+    padding: 0.6rem;
+}
+/* END of Markdown元素样式重设 */
+
+.CodeMirror-cursor {
+    border-left: 2px solid #42b983; /* 将光标颜色更改为#42b983 */
+}
+
+.CodeMirror-selected {
+    background: rgba(66, 185, 131, 0.20);
+}
+.CodeMirror-focused .CodeMirror-selected { background: rgba(66, 185, 131, 0.20); }
+.CodeMirror-crosshair { cursor: crosshair; }
+.CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: rgba(66, 185, 131, 0.20); }
+.CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection { background: rgba(66, 185, 131, 0.20); }
+
+.CodeMirror {
+    /*border: 1px solid #eee;*/
+    height: auto;
 }
 
 .middle-content-render::-webkit-scrollbar {
@@ -37,7 +70,7 @@ textarea::-webkit-scrollbar {
 }
 
 .rend-area {
-    color: #8e8e8e;
+    color: #bababa;
 }
 
 .keep-head-tail {
@@ -78,7 +111,7 @@ textarea::-webkit-scrollbar {
     margin-right: 10px;
     width: 100%;
     padding: 20px;
-    background-color: #efefef !important;
+    background-color: #f8f9fa !important;
 }
 
 .content-resize-render {
@@ -88,7 +121,7 @@ textarea::-webkit-scrollbar {
     margin-right: 20px;
     width: 100%;
     padding: 20px;
-    background-color: #efefef !important;
+    background-color: #f8f9fa !important;
 }
 
 .content-like {
@@ -112,7 +145,7 @@ textarea::-webkit-scrollbar {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    background-color: #efefef !important;
+    background-color: #f8f9fa !important;
 
     word-wrap: break-word !important;
     word-break: break-all !important;
@@ -124,11 +157,19 @@ textarea::-webkit-scrollbar {
     padding: 0;
     word-wrap: break-word !important;
     word-break: break-all !important;
-    background-color: #efefef !important;
+    background-color: #f8f9fa !important;
     margin: 20px;
 }
 
 .middle-content::-webkit-scrollbar {
+    display: none;
+}
+
+#code-area-down::-webkit-scrollbar {
+    display: none;
+}
+
+.line-numbers::-webkit-scrollbar {
     display: none;
 }
 
@@ -194,25 +235,25 @@ textarea::-webkit-scrollbar {
     font-family: Lato, AlibabaPuHuiTi;
 }
 
-.my-editor {
-    /* we dont use `language-` classes anymore so thats why we need to add background and text color manually */
-    background: #efefef;
-    color: #5e5e5e;
-    /*color: #80118c;*/
-    /* you must provide font-family font-size line-height. Example: */
-    font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;
-    font-size: 14px;
-    padding: 0;
-    border-radius: 4px;
+/*.my-editor {*/
+/*    !* we dont use `language-` classes anymore so thats why we need to add background and text color manually *!*/
+/*    background: #efefef;*/
+/*    color: #5e5e5e;*/
+/*    !*color: #80118c;*!*/
+/*    !* you must provide font-family font-size line-height. Example: *!*/
+/*    font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;*/
+/*    font-size: 14px;*/
+/*    padding: 0;*/
+/*    border-radius: 4px;*/
 
-    word-wrap: break-word !important;
-    word-break: break-all !important;
-    width: calc(100% - 3.8em);
+/*    word-wrap: break-word !important;*/
+/*    word-break: break-all !important;*/
+/*    width: calc(100% - 3.8em);*/
 
-    margin-left: 3.8em;  /*适应prism的行号锁进*/
-    min-height: 400px;
-    line-height: 22.5px; /* 与字体大小等同 */
-}
+/*    margin-left: 3.8em;  !*适应prism的行号锁进*!*/
+/*    min-height: 400px;*/
+/*    line-height: 22.5px; !* 与字体大小等同 *!*/
+/*}*/
 
 .code-editor {
     display: block;
@@ -257,4 +298,8 @@ textarea::-webkit-scrollbar {
 p {
     word-break: break-all;
     word-wrap: break-word;
+}
+
+.my-editor {
+    display: none;
 }

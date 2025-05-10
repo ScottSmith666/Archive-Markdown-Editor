@@ -8,38 +8,13 @@ let rightObj = document.getElementById('rightMenu');
 let markdownObj = document.getElementById("md-content");
 let renderTxt = document.getElementById("plh-render");
 
-let editAreaUp = document.getElementById("edit-area-up");
-
-// 支持textarea和code同时滚动
-let txtArea = document.getElementById("real-edit");
-let codeArea = document.getElementById("real-show");
-
-function countFormerWrapLineNumber(str) {
-    /**
-     * 计数字符串最前面有几个换行符
-     */
-    let count = 0;
-    let i = 0;
-    while (i < str.length) {
-        if (str[i] === '\r') {
-            // 检查是否为 \r\n
-            if (i + 1 < str.length && str[i + 1] === '\n') {
-                count++;
-                i += 2;
-            } else {
-                count++;
-                i++;
-            }
-        } else if (str[i] === '\n') {
-            count++;
-            i++;
-        } else {
-            // 遇到非换行符，结束循环
-            break;
-        }
-    }
-    return count;
-}
+// 初始化编辑器
+let editor = CodeMirror.fromTextArea(document.getElementById("md-content"), { // 标识到textarea
+    lineWrapping: true,
+    lineNumbers: true,  // 显示行号
+    theme: 'juejin',
+    electricChars: true,  // 自动锁进
+});
 
 // 渲染语言
 async function loadLanguage() {
@@ -126,7 +101,7 @@ function hideAllAreaMenu(event) {
 async function renderChange() {
     let swDebug = await window.swDebug.switchDebuggingMode();
     // 更改渲染区的内容
-    let afterRenderedMd = await window.writeMarkdown.changeContent(markdownObj.value);
+    let afterRenderedMd = await window.writeMarkdown.changeContent(editor.getValue());
 
     document.getElementById("render-content").innerHTML
         = afterRenderedMd[1];
@@ -134,6 +109,7 @@ async function renderChange() {
     console.log(swDebug);
     if (swDebug) {
         console.log("----PRINT START----");
+        console.log(editor.getValue());
         console.log(afterRenderedMd[0]);
         console.log(afterRenderedMd[1]);
         console.log("----PRINT END----");
@@ -146,17 +122,13 @@ async function contentChangeEvent() {
     let swDebug = await window.swDebug.switchDebuggingMode();
     // 判断textarea是否有内容而选择性显示“Markdown渲染区”
     let renderPlaceholderObj = document.getElementById("render-placeholder");
-    if (markdownObj.value !== "") renderPlaceholderObj.style.display = "none";
+    if (editor.getValue() !== "") renderPlaceholderObj.style.display = "none";
     else renderPlaceholderObj.style.display = "block";
 
     if (swDebug) {
-        console.log("textarea内容：" + markdownObj.value);
+        console.log("textarea内容：" + editor.getValue());
     }
 
-    // 同步更新code area内容
-    // 支持编辑区语法高亮
-    let visualizer = document.getElementById("language-md");
-    visualizer.textContent = "\n" + markdownObj.value;  // 这里前面加一个换行符的目的是补上被prismjs吞掉的一个换行符。
     Prism.plugins.NormalizeWhitespace.setDefaults({
         'remove-trailing': false,
         'remove-indent': false,
@@ -165,53 +137,43 @@ async function contentChangeEvent() {
         'remove-initial-line-feed': false,
     });
     Prism.highlightAll();
-
-    // 动态调整Textarea的高度（与code area同步）
-    markdownObj.style.height = (document.getElementById("code-area-down").scrollHeight + 5.7) + 'px';
-    // 使外面的div与里面的textarea等高
-    editAreaUp.style.height = markdownObj.style.height;
-
-    // 同步滚动
-    codeArea.scrollTop = txtArea.scrollTop;
-    // txtArea.scrollTop = codeArea.scrollTop;
 }
 
 function copy(keep) {
-    let mdContent = markdownObj.value;
-    // 获得选中的起始位置和结束位置
-    let start = markdownObj.selectionStart;
-    let end = markdownObj.selectionEnd;
-
-    // 选择
-    markdownObj.focus();
     // 获得选中文本
-    let catchContent = mdContent.substring(start, end);
+    let catchContent = editor.getSelection();
     // 将选中文本送入剪贴板，完成复制
     navigator.clipboard.writeText(catchContent).then(function() {}).catch(function(error) {
         console.error("复制失败: ", error);
     });
-
     // 如果是剪贴(keep = false)，则将指定位置的字符串替换成空字符串，实现剪切效果
     if (!keep) {
-        markdownObj.value = mdContent.substring(0, start) + "" + mdContent.substring(end, mdContent.length);
-        markdownObj.setSelectionRange(start, start);  // 光标移动到选中部分前面的位置
+        editor.replaceSelection("", catchContent);
         // 同时更改渲染区内容
         renderChange();
     }
 }
 
-function mdPaste() {
-    let mdContent = markdownObj.value;
-    // 获得光标位置
-    let start = markdownObj.selectionStart;
-    navigator.clipboard.readText().then(function(content) {
-        markdownObj.value = mdContent.substring(0, start) + content + mdContent.substring(start, mdContent.length);
-        markdownObj.setSelectionRange(start + content.length, start + content.length);  // 光标移动到合适位置
-        // 同时更改渲染区内容
-        markdownObj.focus();
-        renderChange();
+async function selectAllContent() {
+    let swDebug = await window.swDebug.switchDebuggingMode();
+    if (swDebug) console.log("selectAll");
+    let allContentLine = editor.getValue().split("\n");
 
-        txtArea.scroll
+    let startSelection = { line: 0, ch: 0 };  // 最开头的选区
+    let endSelection = {
+        line: (allContentLine.length - 1),
+        ch: allContentLine[allContentLine.length - 1].length,
+    };
+    editor.setSelection(startSelection, endSelection);  // 执行设置选区操作
+}
+
+function mdPaste() {
+    // 获得光标位置
+    let start = editor.getSelection();
+    navigator.clipboard.readText().then(function(content) {
+        editor.replaceSelection(content, start);
+        // 同时更改渲染区内容
+        renderChange();
     }).catch(function(error) {
         console.error("粘贴失败: ", error);
     });
@@ -230,10 +192,20 @@ document.getElementById("preview").addEventListener('contextmenu', (e) => {
 });
 
 // 编辑区监听左键
-document.getElementById("editor").addEventListener('click', (e) => {
+document.getElementById("editor").addEventListener('click', async (e) => {
+    let swDebug = await window.swDebug.switchDebuggingMode();
     e.preventDefault();
     hideAllAreaMenu(e);
-    markdownObj.focus();
+    editor.focus();
+
+    if (swDebug) {
+        console.log("光标位置左: ");
+        console.log(editor.getCursor("from"));
+        console.log("光标位置右: ");
+        console.log(editor.getCursor("to"));
+        console.log("选区: ");
+        console.log(editor.getSelection());
+    }
 });
 
 // 渲染区监听左键
@@ -244,7 +216,7 @@ document.getElementById("preview").addEventListener('click', (e) => {
 
 // 编辑区右键菜单点击事件
 document.getElementById("leftMenu-select-all").addEventListener('click', (e) => {
-    markdownObj.select();
+    selectAllContent();
 });
 document.getElementById("leftMenu-cut").addEventListener('click', (e) => {
     copy(false);
@@ -264,15 +236,31 @@ document.getElementById("rightMenu-copy").addEventListener('click', (e) => {
 
 });
 
-markdownObj.addEventListener("input", async () => {  // "input"事件，输入就触发
-    if (swDebug) console.log("触发输入事件...");
+editor.on("change", async () => {
+    let swDebug = await window.swDebug.switchDebuggingMode();
+    // 如果在最后一行输入
+    let allContentLines = editor.getValue().split("\n");
+    let selectionLine = editor.getCursor().line;  // 最开头的选区
+    let endSelectionLine = allContentLines.length - 1;
+    if (selectionLine === endSelectionLine)
+        document.getElementById("real-edit").scrollTo({
+            behavior: "smooth",
+            top: 999999,
+        });
+
     // 同时更改渲染区内容
     renderChange();
+
+    if (swDebug) {
+        console.log("触发输入事件...");
+        console.log("开始滑动...");
+        console.log("两个光标的行：" + selectionLine + " " + endSelectionLine);
+    }
 });
 
 // 全选
-window.contentOperateCVA.selectAll(() => {
-    markdownObj.select();
+window.contentOperateCVA.selectAll(async () => {
+    selectAllContent();
 });
 
 // 复制&剪切
@@ -290,11 +278,3 @@ window.contentOperateCVA.undo(() => {});
 
 // 重做
 window.contentOperateCVA.redo(() => {});
-
-txtArea.addEventListener("scroll", function() {
-    codeArea.scrollTop = txtArea.scrollTop;
-});
-//
-// codeArea.addEventListener("scroll", function() {
-//     codeArea.scrollTop = txtArea.scrollTop;
-// });
