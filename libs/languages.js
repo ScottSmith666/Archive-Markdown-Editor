@@ -16,8 +16,8 @@ function LanguageLocale() {
         "display": {
             "index": {
                 // AME主界面placeholder
-                "markdownEditPlaceholder": ["请在此处键入Markdown...", "請在此鍵入Markdown...", "Insert Markdown here..."],
-                "markdownRenderPlaceholder": ["Markdown渲染区", "Markdown渲染區", "Markdown rendering area"],
+                "markdownEditPlaceholder": ["请在此处键入Markdown...", "請在此鍵入Markdown...", "Insert Markdown Here..."],
+                "markdownRenderPlaceholder": ["Markdown渲染区", "Markdown渲染區", "Markdown Rendering Area"],
                 // AME主界面右键菜单
                 "markdownEditRightMenu": [
                     ["全选", "剪切", "复制", "粘贴"],
@@ -108,21 +108,21 @@ function LanguageLocale() {
                     "description": "一款简易美观，功能强大的Markdown编辑器。",
                     "credit": "鸣谢开源项目",
                     "contact": "有事请联系",
-                    "github": "主页",
+                    "github": "项目地址",
                     "button": "确定",
                 },
                 {
                     "description": "一款簡易美觀，功能強大的Markdown編輯器。",
                     "credit": "鳴謝開源項目",
                     "contact": "有事請聯絡",
-                    "github": "首頁",
+                    "github": "項目地址",
                     "button": "確認",
                 },
                 {
                     "description": "A simple, beautiful and powerful Markdown editor.",
                     "credit": "Credit",
                     "contact": "Contact E-mail",
-                    "github": " Home page",
+                    "github": " project URL",
                     "button": "OK",
                 },
             ],

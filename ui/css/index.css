@@ -3,45 +3,8 @@ html, body {
     margin: 0;
     width: 100%;
     height: 100%;
+    background-color: rgba(66, 185, 131, 0.06);
 }
-
-/* Markdown元素样式重设 */
-h1, h2, h3, h4, h5, h6 {
-    font-family: Lato, AlibabaPuHuiTiBold !important;
-    color: #213547
-}
-
-table {
-    border-right: 0;
-    border-bottom: 1px solid #8e8e8e;
-    text-align: center;
-    border-spacing: 0;
-    width: 100%;
-}
-
-table th {
-    border-left: 0;
-    border-top: 1px solid #8e8e8e;
-    border-spacing: 0;
-    padding: 0.6rem;
-}
-
-th {
-    color: black;
-}
-
-tr:hover {
-    background-color: #1d1d1d;
-    transition: background-color 0.5s;
-}
-
-table td {
-    border-left: 0;
-    border-top: 1px solid #8e8e8e;
-    border-spacing: 0;
-    padding: 0.6rem;
-}
-/* END of Markdown元素样式重设 */
 
 .CodeMirror-cursor {
     border-left: 2px solid #42b983; /* 将光标颜色更改为#42b983 */
@@ -70,7 +33,8 @@ table td {
 }
 
 .rend-area {
-    color: #bababa;
+    /*color: #bababa;*/
+    color: rgba(66, 185, 131, 0.47);
 }
 
 .keep-head-tail {
@@ -87,6 +51,7 @@ table td {
     padding-bottom: 100%;
     vertical-align: middle;
     object-fit: cover;
+    opacity: 0.7;
 }
 
 .body-wrap {
@@ -109,7 +74,7 @@ table td {
     margin-left: 20px;
     margin-bottom: 20px;
     margin-right: 10px;
-    width: 100%;
+    width: 50%;
     padding: 20px;
     background-color: #f8f9fa !important;
 }
@@ -119,7 +84,7 @@ table td {
     margin-left: 10px;
     margin-bottom: 20px;
     margin-right: 20px;
-    width: 100%;
+    width: 50%;
     padding: 20px;
     background-color: #f8f9fa !important;
 }
@@ -147,8 +112,8 @@ table td {
     justify-content: center;
     background-color: #f8f9fa !important;
 
-    word-wrap: break-word !important;
-    word-break: break-all !important;
+    /*word-wrap: break-word !important;*/
+    /*word-break: break-all !important;*/
     border-radius: 8px;
 }
 
@@ -159,6 +124,7 @@ table td {
     word-break: break-all !important;
     background-color: #f8f9fa !important;
     margin: 20px;
+    scroll-behavior: smooth;
 }
 
 .middle-content::-webkit-scrollbar {
@@ -169,7 +135,7 @@ table td {
     display: none;
 }
 
-.line-numbers::-webkit-scrollbar {
+.line-num::-webkit-scrollbar {
     display: none;
 }
 
@@ -202,12 +168,13 @@ table td {
     border-radius: 6px;
     transition: color 0.2s, background-color 0.2s;
     cursor: pointer;
-    font-weight: bold !important;
+    font-size: 0.67em;
 }
 
 .dp-menu-element:hover {
     background-color: #fafafa;
     color: #42b983;
+    font-weight: bold;
 }
 
 .upper {
@@ -235,36 +202,17 @@ table td {
     font-family: Lato, AlibabaPuHuiTi;
 }
 
-/*.my-editor {*/
-/*    !* we dont use `language-` classes anymore so thats why we need to add background and text color manually *!*/
-/*    background: #efefef;*/
-/*    color: #5e5e5e;*/
-/*    !*color: #80118c;*!*/
-/*    !* you must provide font-family font-size line-height. Example: *!*/
-/*    font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;*/
-/*    font-size: 14px;*/
-/*    padding: 0;*/
-/*    border-radius: 4px;*/
-
-/*    word-wrap: break-word !important;*/
-/*    word-break: break-all !important;*/
-/*    width: calc(100% - 3.8em);*/
-
-/*    margin-left: 3.8em;  !*适应prism的行号锁进*!*/
-/*    min-height: 400px;*/
-/*    line-height: 22.5px; !* 与字体大小等同 *!*/
-/*}*/
-
 .code-editor {
     display: block;
-    font-family: monospace;
+    /*font-family: monospace;*/
     /*line-height: 1.5;*/
     width: 100%;
     /*background-color: #efefef; !* default prismjs theme background color *!*/
     border-radius: 8px !important;
-    word-wrap: break-word !important;
-    word-break: break-all !important;
-    overflow: hidden;
+    /*word-wrap: break-word !important;*/
+    /*word-break: break-all !important;*/
+    /*overflow: hidden;*/
+    /*scroll-behavior: smooth;*/
 }
 
 .code-editor code {
@@ -295,11 +243,10 @@ table td {
     height: 100%;
 }
 
-p {
-    word-break: break-all;
-    word-wrap: break-word;
-}
-
 .my-editor {
     display: none;
 }
+
+/*.CodeMirror pre.CodeMirror-placeholder {*/
+/*    color: rgba(66, 185, 131, 0.47);*/
+/*}*/

@@ -21,6 +21,7 @@ module.exports = {
         ".gitignore",
           "distribute",
           "README.md",
+          "electron-cache",
     ],
   },
   rebuildConfig: {},

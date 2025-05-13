@@ -93,7 +93,7 @@ function DistributeWin32X64() {
             arch: "x64",
         });
 
-        let compile = `cd ${ path.join(__dirname, "..\\..") } && set ELECTRON_ENABLE_OFFLINE_MODE=1 && electron-forge make --offline`;
+        let compile = `set ELECTRON_ENABLE_OFFLINE_MODE=1 && ${ path.join(__dirname + "..\\..\\..\\node_modules\\.bin\\electron-forge") } make --offline`;
 
         runCommand(compile, async () => {
             console.log("散装可执行程序编译完成，正在生成Wix MSI打包配置文件...");

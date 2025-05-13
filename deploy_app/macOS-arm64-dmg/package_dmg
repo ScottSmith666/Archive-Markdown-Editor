@@ -58,9 +58,9 @@ function DistributeDarwinArm64() {
             console.log('配置文件已写入...');
             runCommand(`rm -rf "` + path.join(__dirname, `./${appName}-${version}-${process.platform}-${process.arch}.dmg`) + `"`, () => {
                 // 先将代码编译成散装可执行程序
-                runCommand(`cd ${path.join(__dirname, "../..")} && export ELECTRON_ENABLE_OFFLINE_MODE=1 && electron-forge make --offline`, () => {
+                runCommand(`export ELECTRON_ENABLE_OFFLINE_MODE=1 && ${ path.join(__dirname + "../../../node_modules/.bin/electron-forge") } make --offline`, () => {
                     // 调用appdmg命令
-                    runCommand(`appdmg "` + path.join(__dirname, "./appdmg_conf.json")
+                    runCommand(`${ path.join(__dirname + "../../../node_modules/.bin/appdmg") } "` + path.join(__dirname, "./appdmg_conf.json")
                         + `" "` + path.join(__dirname, `./${appName}-${version}-${process.platform}-${process.arch}.dmg`) + `"`, () => {
                         console.log(`${appName}-${version}-${process.platform}-${process.arch}.dmg打包成功！`);
                     });

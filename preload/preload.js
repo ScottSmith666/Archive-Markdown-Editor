@@ -1,11 +1,11 @@
 const { contextBridge, ipcRenderer } = require('electron/renderer');
 
 
-contextBridge.exposeInMainWorld('writeMarkdown', {
-    changeContent: (md) => {
-        return ipcRenderer.invoke('change-content', md);
-    }  // 发送到主进程
-});
+// contextBridge.exposeInMainWorld('writeMarkdown', {
+//     changeContent: (md) => {
+//         return ipcRenderer.invoke('change-content', md);
+//     }  // 发送到主进程
+// });
 
 // 文本操作
 contextBridge.exposeInMainWorld('contentOperateCVA', {

@@ -5,6 +5,10 @@ html, body {
     height: 100%;
 }
 
+.main-title {
+    color: #42b983 !important;
+}
+
 .confirm-button-position {
     display: flex;
     flex-direction: row;
