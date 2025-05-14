@@ -7,12 +7,7 @@ const GlobalVar = require("./libs/globalvar");
 const GlobalMenu = require("./menu");
 const SqliteMan = require("./libs/sqliteman");
 const LanguageLocale = require("./libs/languages");
-// Markdown核心解释模块导入
-const MdCoreInterpret = require("./libs/md-core-interpret");  // Commonmark
 
-
-// 建立全局Markdown核心解释模块对象
-let mdCoreInterpret = new MdCoreInterpret();
 
 // 建立全局变量模块对象
 let gVar = new GlobalVar();
@@ -55,14 +50,6 @@ const createWindow = () => {
 
 // 开始运行
 app.whenReady().then(() => {
-
-    ipcMain.handle('change-content', async (event, md) => {
-        /**
-         * 在这里开始处理Markdown并将其渲染为HTML
-         */
-        return mdCoreInterpret.interpret(md, "marked");
-    });
-
     ipcMain.handle('load-lang', async (event) => {
         /**
          * 在这里加载并渲染index语言

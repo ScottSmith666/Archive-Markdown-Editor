@@ -6,10 +6,8 @@
           content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
     <title id="app-title">Archive Markdown Editor - Untitled</title>
     <link rel="stylesheet" href="./libs/third_party/prism/light/prism-full-scott.css">
-    <link rel="stylesheet" href="./libs/third_party/codemirror/lib/codemirror.css">
-    <link rel="stylesheet" href="./libs/third_party/codemirror/theme/juejin.css">
+    <link rel="stylesheet" href="./themes/spring.css">
     <link rel="stylesheet" href="./ui/css/index.css">
-    <link rel="stylesheet" href="./ui/css/index-markdown.css">
 </head>
 <body>
 <div id="app">
@@ -94,9 +92,6 @@
                         <div class='code-editor' id="real-edit"></div>
                     </div>
                     <div class="lower dp-menu fonts" id="leftMenu">
-                        <div class="dp-menu-element" id="leftMenu-select-all">
-                            <p>&nbsp;&nbsp;&nbsp;全选</p>
-                        </div>
                         <div class="dp-menu-element" id="leftMenu-cut">
                             <p>&nbsp;&nbsp;&nbsp;剪切</p>
                         </div>
@@ -110,21 +105,13 @@
                 </div>
 
                 <!--Markdown渲染区-->
-                <div class="content-resize-render content-like upper" id="preview">
+                <div tabindex="1" class="content-resize-render content-like upper" id="preview" >
                     <div class="middle-content-render" style="overflow: scroll;">
                         <div class="fonts" id="render-placeholder">
                             <h1 class="rend-area" id="plh-render">Markdown渲染区</h1>
                         </div>
                         <div class="fonts line-num" id="render-content">
                             <!--所有的文档内容，均inject在该标签的内部，不可inject在其他地方！-->
-                        </div>
-                    </div>
-                    <div class="lower dp-menu fonts" id="rightMenu">
-                        <div class="dp-menu-element" id="rightMenu-select-all">
-                            <p>&nbsp;&nbsp;&nbsp;全选</p>
-                        </div>
-                        <div class="dp-menu-element" id="rightMenu-copy">
-                            <p>&nbsp;&nbsp;&nbsp;复制</p>
                         </div>
                     </div>
                 </div>
@@ -134,11 +121,45 @@
 </div>
 </body>
 <script src="./libs/third_party/prism/light/prism-full.js"></script>
-<!--Marked.js-->
+<!--导入Markdown-渲染器-->
 <script src="./libs/third_party/marked/marked.min.js"></script>
 <!--导入微软Monaco editor组件-->
 <script src="./libs/third_party/monaco/min/vs/loader.js"></script>
-<!--导入Markdown-渲染器-->
+<!--导入Latex数学公式库-->
+<script>
+    MathJax = {
+        tex: {
+            inlineMath: [
+                ['$', '$'],
+                ['\\(', '\\)']
+            ],
+            displayMath: [
+                // displayMath是一个数组，用来指定行间公式的起始符号和结束符号
+                ['$$', '$$'],
+                ['\\[', '\\]'],
+            ],
+        },
+        load: [
+            'input/tex-base', // 必备基础库
+            'output/chtml', // 必备基础库，用来将tex转换成html
+            '[tex]/action', // [tex]/action库包含了\require等宏，可以用来加载其他的宏包
+            '[tex]/mhchem', // mhchem库用来输入化学方程式
+            '[tex]/ams', // [tex]/ams库包含了大量的数学符号和数学环境，比如\begin{align}等
+        ],
+        packages: ['base', 'action', 'mhchem', 'ams'],
+        PreviewHTML: {
+            scale: 120,
+            linebreaks: { automatic: true },
+        },
+        options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'a'],
+            ignoreHtmlClass: 'code-editor'
+        }
+    };
+</script>
+<script id="MathJax-script" async src="./libs/third_party/MathJax/es5/tex-svg-full.js"></script>
+<!--HTML预处理-->
+<script src="renderer/ref-for-renderer/styleApplyPreprocess.js"></script>
 <!--导入核心renderer-->
 <script src="./renderer/renderer.js"></script>
 </html>

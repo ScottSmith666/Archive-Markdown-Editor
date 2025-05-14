@@ -20,14 +20,14 @@ function LanguageLocale() {
                 "markdownRenderPlaceholder": ["Markdown渲染区", "Markdown渲染區", "Markdown Rendering Area"],
                 // AME主界面右键菜单
                 "markdownEditRightMenu": [
-                    ["全选", "剪切", "复制", "粘贴"],
-                    ["全選", "剪切", "拷貝", "貼上"],
-                    ["Select All", "Cut", "Copy", "Paste"]
+                    ["剪切", "复制", "粘贴"],
+                    ["剪切", "拷貝", "貼上"],
+                    ["Cut", "Copy", "Paste"]
                 ],
                 "markdownRenderRightMenu": [
-                    ["全选", "复制"],
-                    ["全選", "拷貝"],
-                    ["Select All", "Copy"]
+                    ["复制"],
+                    ["拷貝"],
+                    ["Copy"]
                 ],
             }
         },
@@ -49,9 +49,6 @@ function LanguageLocale() {
             // Menu 3
             "edit": ["编辑", "編輯", "Edit"],
             "import": ["插入...", "導入...", "Import..."],
-            "undo": ["撤销", "撤銷", "Undo"],
-            "redo": ["重做", "重做", "Redo"],
-            "selectAll": ["全选", "全選", "Select All"],
             "cut": ["剪切", "剪切", "Cut"],
             "copy": ["复制", "拷貝", "Copy"],
             "paste": ["粘贴", "貼上", "Paste"],

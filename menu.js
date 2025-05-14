@@ -144,30 +144,6 @@ function GlobalMenu(mainWindow, aboutWindow) {
                     type: 'separator',
                 },
                 {
-                    label: appLang().menu.undo[appLangOrder],
-                    accelerator: isMac ? 'command+z' : 'ctrl+z',
-                    click: () => {
-                        return mainWindow.webContents.send('undo');
-                    }
-                },
-                {
-                    label: appLang().menu.redo[appLangOrder],
-                    accelerator: isMac ? 'command+shift+z' : 'ctrl+y',
-                    click: () => {
-                        return mainWindow.webContents.send('redo');
-                    }
-                },
-                {
-                    type: 'separator',
-                },
-                {
-                    label: appLang().menu.selectAll[appLangOrder],
-                    accelerator: isMac ? 'command+a' : 'ctrl+a',
-                    click: () => {
-                        return mainWindow.webContents.send('select-all');
-                    }
-                },
-                {
                     label: appLang().menu.cut[appLangOrder],
                     accelerator: isMac ? 'command+x' : 'ctrl+x',
                     click: () => {
