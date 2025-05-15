@@ -65,8 +65,8 @@ html, body {
 }
 
 .content-wrap {
-    display: flex;
-    justify-content: center;
+    display: -webkit-box;
+    display: -moz-box;
 }
 
 .content-resize-edit {
@@ -74,7 +74,9 @@ html, body {
     margin-left: 20px;
     margin-bottom: 20px;
     margin-right: 10px;
-    width: 50%;
+    width: 50% !important;
+    -moz-box-flex: 1.0;
+    -webkit-box-flex: 1.0;
     padding: 20px;
     background-color: #f8f9fa !important;
 }
@@ -84,7 +86,9 @@ html, body {
     margin-left: 10px;
     margin-bottom: 20px;
     margin-right: 20px;
-    width: 50%;
+    width: 50% !important;
+    -moz-box-flex: 1.0;
+    -webkit-box-flex: 1.0;
     padding: 20px;
     background-color: #f8f9fa !important;
 }
@@ -250,3 +254,8 @@ html, body {
 /*.CodeMirror pre.CodeMirror-placeholder {*/
 /*    color: rgba(66, 185, 131, 0.47);*/
 /*}*/
+
+/*解决数学公式中的强制不换行*/
+.mjx-chtml{
+    white-space: normal!important;
+}

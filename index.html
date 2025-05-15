@@ -106,7 +106,7 @@
 
                 <!--Markdown渲染区-->
                 <div tabindex="1" class="content-resize-render content-like upper" id="preview" >
-                    <div class="middle-content-render" style="overflow: scroll;">
+                    <div class="middle-content-render" style="overflow: scroll; overflow-x: auto;">
                         <div class="fonts" id="render-placeholder">
                             <h1 class="rend-area" id="plh-render">Markdown渲染区</h1>
                         </div>
@@ -153,11 +153,12 @@
         },
         options: {
             skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'a'],
-            ignoreHtmlClass: 'code-editor'
+            ignoreHtmlClass: 'code-editor',
+            processEscapes: true,
         }
     };
 </script>
-<script id="MathJax-script" async src="./libs/third_party/MathJax/es5/tex-svg-full.js"></script>
+<script id="MathJax-script" async src="./libs/third_party/MathJax/es5/tex-chtml-full.js"></script>
 <!--HTML预处理-->
 <script src="renderer/ref-for-renderer/styleApplyPreprocess.js"></script>
 <!--导入核心renderer-->

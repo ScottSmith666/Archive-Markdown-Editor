@@ -225,6 +225,23 @@ alter:
     editor.onDidChangeModelContent(function(e){
         renderChange();
     });
+    editor.onDidScrollChange(() => {
+        // 获取编辑区滚动到哪里了
+        let rollProcess = (editor.getVisibleRanges()[0].startLineNumber + (editor.getVisibleRanges()[0].endLineNumber - editor.getVisibleRanges()[0].startLineNumber) / 2)
+            / (editor.getModel().getLineCount() - (editor.getVisibleRanges()[0].endLineNumber - editor.getVisibleRanges()[0].startLineNumber) / 2);
+        // console.log(`滚动进度：${ rollProcess * 100 }%`);
+
+        // 相应改变渲染区滚动位置
+        let getRenderAreaTotalHeight = document.getElementById("render-content").offsetHeight;
+        let parentGetRenderAreaTotalHeight = document.querySelector(".middle-content-render");
+        // console.log(`渲染区高度：${ getRenderAreaTotalHeight }`);
+        // console.log(editor.getVisibleRanges()[0].startLineNumber);
+        parentGetRenderAreaTotalHeight.scrollTo({
+            top: editor.getVisibleRanges()[0].startLineNumber !== 1 ? getRenderAreaTotalHeight * rollProcess : 0,
+            left: 0,
+            behavior: "smooth",
+        });
+    });
 
     // 编辑区右键菜单点击事件
     document.getElementById("leftMenu-cut").addEventListener('click', (e) => {
@@ -335,6 +352,10 @@ alter:
         if (editor.getValue() !== "") renderPlaceholderObj.style.display = "none";
         else renderPlaceholderObj.style.display = "block";
 
+        // 监视👀当前编辑区光标位置
+        // 获取编辑区滚动到哪里了
+        let presentLineProp = editor.getPosition().lineNumber / editor.getModel().getLineCount();
+
         // 渲染Markdown
         let mdParserList = marked.lexer(editor.getValue());
         let total = mdParserList.length;
@@ -365,6 +386,14 @@ alter:
                     console.log("文件读取完成...");
                     prism();
                     MathJax.typesetPromise();
+                    // 使渲染区滚动到相应位置
+                    let getRenderAreaTotalHeight = document.getElementById("render-content").offsetHeight;
+                    let parentGetRenderAreaTotalHeight = document.querySelector(".middle-content-render");
+                    parentGetRenderAreaTotalHeight.scrollTo({
+                        top: getRenderAreaTotalHeight * presentLineProp,
+                        left: 0,
+                        behavior: "instant",
+                    });
                     return 0;
                 }
                 loop();
