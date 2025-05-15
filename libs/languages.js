@@ -78,7 +78,7 @@ function LanguageLocale() {
                 {
                     "title": "Switch Language",
                     "description": "You have switched to " + args[0] + ". Please restart app to apply this language. Are you sure you want to restart?",
-                    "buttons": ["Not Now", "OK"],
+                    "buttons": ["Not Now", "Switch Now"],
                 },
             ],
             "LangNoNeedSwitchDialog": [

@@ -47,8 +47,7 @@ require(['vs/editor/editor.main'], function () {
         formatOnPaste: true,
     });
 
-    // preset value
-    editor.setValue(`---
+    let preset = `---
 title: Lorem ipsum
 author: SprInec
 references: typora-theme-Jinxiu
@@ -71,7 +70,7 @@ description: 这个 block 块是 YAML front matters
 
 内联样式支持**粗体**、*斜体*、\`code\`、<u>下划线</u>、~~删除线~~、:smile:、$\\LaTeX$、X^2^、H~2~O、==高亮==、[链接](typora.io)和图像：
 
-![img](https://w.wallhaven.cc/full/3l/wallhaven-3lpymv.png)
+![img](https://picx.zhimg.com/v2-6ca9e1a5c977ad26a53fcc11a7ba9f57_720w.jpg?source=172ae18b)
 
 层级标题：
 
@@ -201,8 +200,10 @@ alter:
 [TOC]
 
 [^1]: 从 https://en.wikipedia.org/wiki/Lorem_ipsum 整理得到
+`;
 
-`);
+    // preset value
+    editor.setValue(preset);
 
     // 初始化渲染
     renderChange();
@@ -264,7 +265,6 @@ alter:
 
     // 渲染区监听左键
     document.getElementById("preview").addEventListener('click', (e) => {
-        console.log(window.getSelection().toString());
         hideAllAreaMenu(e);
     });
 
@@ -293,12 +293,20 @@ alter:
     // ----菜单栏 END----
 
     function copy(keep, rightMenuNeed = false) {
+
+        let editorAreaHasFocus = editor.hasTextFocus();  // 编辑器是否聚焦
+
         // 将选中文本送入剪贴板，完成复制
-        if (rightMenuNeed) editor.focus();
-        navigator.clipboard.writeText(window.getSelection().toString()).then(async function() {
-            let swDebug = await window.swDebug.switchDebuggingMode();
-            if (swDebug) console.log(window.getSelection().toString());
-        }).catch(function(error) {
+        if (rightMenuNeed) {
+            editor.focus();
+            editorAreaHasFocus = editor.hasTextFocus();
+        }
+
+        console.log(editorAreaHasFocus);
+
+        // Editor获得选区内容
+        let editorSelectionContent = editorAreaHasFocus ? editor.getModel().getValueInRange(editor.getSelection()) : window.getSelection().toString();
+        navigator.clipboard.writeText(editorSelectionContent).then(function() {}).catch(function(error) {
             console.error("复制失败: ", error);
         });
         // 如果是剪贴(keep = false)，则将指定位置的字符串替换成空字符串，实现剪切效果
@@ -362,10 +370,13 @@ alter:
         let chunk = 200;
         let countOfRender = 0;
         let status = true;
+
+        let isMermaid = false;
+
         function loop(){
             // 浏览器单线程，一次性渲染大量的DOM，会阻塞用户操作，阻塞CSS渲染，有较长白屏事件等问题
             // 所以我们只需要每次渲染少量的DOM不会阻塞用户操作即可解决这些问题
-            requestAnimationFrame(()=> {
+            requestAnimationFrame(async ()=> {
                 let fragment = document.createDocumentFragment();
                 // 每次只渲染chunk条数据
                 for (let i = 0; i < chunk; i++) {
@@ -377,14 +388,17 @@ alter:
                     }
                     temp.setAttribute("id", ("block" + countOfRender));
                     let afterBlock = marked.parser([mdParserList[countOfRender]]);
-                    let afterProcessedHTML = processHTML(afterBlock);
+
+                    if (mdParserList[countOfRender].type === "code") {
+                        if (mdParserList[countOfRender].lang === "mermaid") isMermaid = true;
+                    }
+
+                    let afterProcessedHTML = processHTML(afterBlock, mdParserList[countOfRender]);
                     fragment.appendChild(afterProcessedHTML);  // 对HTML进行处理
                     countOfRender++;
                 }
                 document.getElementById("render-content").appendChild(fragment);
                 if (!status) {
-                    console.log("文件读取完成...");
-                    prism();
                     MathJax.typesetPromise();
                     // 使渲染区滚动到相应位置
                     let getRenderAreaTotalHeight = document.getElementById("render-content").offsetHeight;
@@ -394,6 +408,12 @@ alter:
                         left: 0,
                         behavior: "instant",
                     });
+                    // 重新渲染mermaid
+                    await mde.mermaid.run({
+                        querySelector: '.mermaid',
+                    });
+                    // 重新渲染prism
+                    prism();
                     return 0;
                 }
                 loop();

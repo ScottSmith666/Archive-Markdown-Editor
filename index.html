@@ -110,6 +110,7 @@
                         <div class="fonts" id="render-placeholder">
                             <h1 class="rend-area" id="plh-render">Markdown渲染区</h1>
                         </div>
+
                         <div class="fonts line-num" id="render-content">
                             <!--所有的文档内容，均inject在该标签的内部，不可inject在其他地方！-->
                         </div>
@@ -157,10 +158,21 @@
             processEscapes: true,
         }
     };
+
+    const mde = {};
 </script>
 <script id="MathJax-script" async src="./libs/third_party/MathJax/es5/tex-chtml-full.js"></script>
+<!--Mermaid 图形库-->
+<script type="module">
+    import mermaid from './libs/third_party/mermaid/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+        startOnLoad: false,
+    });
+
+    mde.mermaid = mermaid;
+</script>
 <!--HTML预处理-->
-<script src="renderer/ref-for-renderer/styleApplyPreprocess.js"></script>
+<script src="./renderer/ref-for-renderer/styleApplyPreprocess.js"></script>
 <!--导入核心renderer-->
 <script src="./renderer/renderer.js"></script>
 </html>
