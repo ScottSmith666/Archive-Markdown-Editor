@@ -1,4 +1,4 @@
-:root {
+:root {  /* 定义全局变量 */
 
     /********************************* Text alignment 文本对齐方式 *************************************
      **************************************************************************************************
@@ -94,9 +94,11 @@
      /*--selection-color: #def2e8;*/
     --selection-color: #6cffbc;
 
-     --write-h1-before-bg: linear-gradient(90deg, rgba(152, 251, 152, 0), #e8f4ee, rgba(152, 251, 152, 0));
+     /*--write-h1-before-bg: linear-gradient(90deg, rgba(152, 251, 152, 0), #e8f4ee, rgba(152, 251, 152, 0));*/
+    --write-h1-before-bg: linear-gradient(90deg, #e8f4ee, #e8f4ee30);  /* 修改H1背景色渐变 */
 
-     --write-h2-after-bg: linear-gradient(90deg, rgba(106, 158, 69, 0), #3ea174, rgba(106, 158, 69, 0));
+     /*--write-h2-after-bg: linear-gradient(90deg, rgba(106, 158, 69, 0), #3ea174, rgba(106, 158, 69, 0));*/
+    --write-h2-after-bg: linear-gradient(90deg, #3ea174, #e8f4ee30);
 
      --p-hover-bg-color: rgba(123, 181, 147, calc(0.1 * var(--p-hover-effect) * var(--use-dynamic-effect)));
      
@@ -345,7 +347,8 @@ content #write>h5.md-focus:before {
 
 #write h1,
 #write h2 {
-    text-align: center;
+    /*text-align: center;*/
+    text-align: left;
     margin-top: 2rem;
     margin-bottom: 1rem;
 }
@@ -355,6 +358,7 @@ content #write>h5.md-focus:before {
     position: relative;
     overflow: hidden;
     transition: transform 0.4s ease;
+    transform-origin: left;  /* 加上这条，文字就会从右往左缩小 */
 }
 
 #write h1:before {
@@ -367,13 +371,19 @@ content #write>h5.md-focus:before {
     background: var(--write-h1-before-bg);
     transition: transform 0.4s ease;
     transform: scaleX(0);
-    transform-origin: center;
+    transform-origin: left;
+    /*transform-origin: center;*/
     z-index: -1;
     display: calc(var(--h1-hover-effect) * var(--use-dynamic-effect));
 }
 
-#write h1:hover {
+/*#write h1:hover {*/
+/*    transform: scale(calc(1 + 0.1 * var(--h1-hover-effect) * var(--use-dynamic-effect)));*/
+/*}*/
+
+#write h1:hover {  /* 修改文字放大动效 */
     transform: scale(calc(1 + 0.1 * var(--h1-hover-effect) * var(--use-dynamic-effect)));
+    transform-origin: left;  /* 设置起点 */
 }
 
 #write h1:hover:before {
@@ -381,43 +391,58 @@ content #write>h5.md-focus:before {
 }
 
 #write h2 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     position: relative;
-    padding-bottom: 0rem;
+    padding-bottom: 0;
     font-weight: bold;
-    margin-bottom: 0rem;
+    margin-bottom: 0;
+    transition: transform 0.3s ease;
+    transform-origin: left;  /* 设置起点 */
 }
 
 #write h2:after {
     content: "";
     display: block;
-    width: 30rem;
+    /*width: 30rem;*/
+    width: 100%;
     height: 2.5px;
     margin: 0.5rem auto 0;
+    margin-left: 0 !important;
     background: var(--write-h2-after-bg);
     border-radius: 10px;
     transform: scaleX(0);
     transition: transform 0.4s ease, background 0.4s ease;
+    transform-origin: left;  /* 设置起点 */
 }
 
 #write h2:hover:after {
     transform: scaleX(calc(1 * var(--h2-after-effect) * var(--use-dynamic-effect)));
+    transform-origin: left;  /* 设置起点 */
+}
+
+#write h2:hover {
+    transform: scale(calc(1 + 0.1 * var(--use-dynamic-effect)));
+    transform-origin: left;  /* 设置起点 */
 }
 
 #write h3 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+    transform-origin: left;  /* 设置起点 */
 }
 
 #write h4 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    transform-origin: left;  /* 设置起点 */
 }
 
 #write h5 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    transform-origin: left;  /* 设置起点 */
 }
 
 #write h6 {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    transform-origin: left;  /* 设置起点 */
 }
 
 #write h3,
@@ -428,13 +453,15 @@ content #write>h5.md-focus:before {
     margin-top: 1.0rem;
     margin-bottom: 0.5rem;
     transition: transform 0.3s ease;
+    transform-origin: left;  /* 设置起点 */
 }
 
 #write h3:hover,
 #write h4:hover,
 #write h5:hover,
 #write h6:hover {
-    transform: scale(calc(1 + 0.01 * var(--h3-6-hover-effect) * var(--use-dynamic-effect)));
+    transform: scale(calc(1 + 0.1 * var(--h3-6-hover-effect) * var(--use-dynamic-effect)));
+    transform-origin: left;  /* 设置起点 */
 }
 
 /* image */
@@ -552,7 +579,8 @@ blockquote {
 }
 
 blockquote {
-    margin: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 blockquote p {
@@ -848,6 +876,7 @@ table,
     border-radius: 10px;
     border-collapse: separate;
     overflow: hidden;
+    width: 100%;
 }
 
 table th,
@@ -1772,4 +1801,37 @@ a img {
 
 html {
     font-size: 17px;
+}
+
+.md-alert-text svg {
+    fill: currentcolor;
+    position: relative;
+    top: 0.125em;
+    margin-right: 1ch;
+    overflow: visible;
+}
+
+.md-alert-text-note {
+    color: rgb(9, 105, 218);
+}
+
+.md-alert-text-important {
+    color: rgb(130, 80, 223);
+}
+
+.md-alert-text-warning {
+    color: rgb(154, 103, 0);
+}
+
+.md-alert-text-tip {
+    color: rgb(31, 136, 61);
+}
+
+.md-alert-text-caution {
+    color: rgb(207, 34, 46);
+}
+
+.md-alert-text {
+    font-size: 0.9rem;
+    font-weight: 700;
 }

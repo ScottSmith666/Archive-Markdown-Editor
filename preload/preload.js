@@ -19,3 +19,7 @@ contextBridge.exposeInMainWorld('swDebug', {
         return ipcRenderer.invoke('switch-debug');
     }
 });
+
+contextBridge.exposeInMainWorld('openOutLink', {
+    openLink: (url) => ipcRenderer.send('open-url', url),
+});

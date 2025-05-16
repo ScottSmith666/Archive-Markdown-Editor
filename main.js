@@ -11,7 +11,7 @@ const LanguageLocale = require("./libs/languages");
 
 // 建立全局变量模块对象
 let gVar = new GlobalVar();
-let win = null, aboutWin = null;
+let win = null, aboutWin = null, settingsWin = null;
 const createWindow = () => {
     win = new BrowserWindow({
         backgroundColor: '#ffffff',
@@ -39,7 +39,7 @@ const createWindow = () => {
     });
 
     // 创建菜单对象
-    let menuObj = new GlobalMenu(win, aboutWin);
+    let menuObj = new GlobalMenu(win, aboutWin, settingsWin);
     // 从对象引入菜单模版
     let template = menuObj.menu;
     //载入模板

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+  <title id="about-title">Settings</title>
+  <link rel="stylesheet" href="./css/settings.css">
+</head>
+<body>
+<div class="window">
+  <!--弹窗标题-->
+  <div style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag;">
+    <div style="width: 6px; height: 25px; background-color: #42b883; margin-right: 6px;"></div>
+    <div class="window-title fonts">设置</div>
+  </div>
+  <!--设置项-->
+  <div style="display: flex; flex-direction: column; margin-top: 20px; width: 100%;">
+    <!--修改显示名称-->
+    <div v-if="loginStatus" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div class="window-title fonts" style="font-size: medium;">编辑显示名称</div>
+      <div style="width: 70px;">
+        <input style="width: 100%;"
+               placeholder="输入新名称" class="input-info fonts" placeholder-class="input-info" type="text" />
+      </div>
+    </div>
+
+    <div v-if="loginStatus" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div class="window-title fonts" style="font-size: medium;">选择用户角色</div>
+      <select class="fonts" style="border: none; outline: none;">
+        <option value="students">学生</option>
+        <option value="parents">家长</option>
+      </select>
+    </div>
+
+    <!--朗读声音-->
+    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div class="window-title fonts" style="font-size: medium;">选择朗读声音</div>
+      <select class="fonts" style="border: none; outline: none;">
+        <option value="english">英音</option>
+        <option value="american">美音</option>
+      </select>
+    </div>
+
+    <!--修改练习题数-->
+    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div class="window-title fonts" style="font-size: medium;">修改练习题数</div>
+      <div style="width: 70px;">
+        <input style="width: 100%;" placeholder="输入正整数" class="input-info fonts" placeholder-class="input-info" type="number" />
+      </div>
+    </div>
+
+    <!--背单词模式-->
+    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div class="window-title fonts" style="font-size: medium;">背单词模式</div>
+      <div>
+        <label class="switch">
+          <input type="checkbox">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+
+    <!--修改显示页数-->
+    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div class="window-title fonts" style="font-size: medium;">修改显示页数</div>
+      <div style="width: 70px;">
+        <input style="width: 100%;" placeholder="输入正整数"
+               class="input-info fonts" type="number" max="100" min="10" />
+      </div>
+    </div>
+  </div>
+  <!--按钮组-->
+  <div style="display: flex; width: 100%; flex-direction: row; margin-top: 20px; justify-content: flex-end;">
+    <div class="button fonts"
+         style="width: 90px; background-color: rgba(0, 0, 0, 0); color: #c75f5f;">重置设置</div>
+    <div class="button-cancel fonts" id="close" style="margin-right: 10px;">取消</div>
+    <div class="button fonts" style="width: 90px;">应用更改</div>
+  </div>
+</div>
+</body>
+<script src="../renderer/renderer-settings.js"></script>
+</html>

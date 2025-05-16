@@ -16,7 +16,7 @@ let appLangObj = new LanguageLocale();
 let langList = appLangObj.languageObject;
 let appLang = appLangObj.operationsInstructions;
 
-function GlobalMenu(mainWindow, aboutWindow) {
+function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
     const isMac = process.platform === 'darwin';
 
     let aboutPage = () => {
@@ -49,6 +49,36 @@ function GlobalMenu(mainWindow, aboutWindow) {
         }
     }
 
+    let settingsPage = () => {
+        if (!settingsWindow) {  // 判断“关于”窗口是否已打开，防止重复打开同一个窗口
+            settingsWindow = new BrowserWindow({  // 创建“关于”窗口对象
+                backgroundColor: '#ffffff',
+                width: 630,
+                height: 620,
+                frame: false,  // 无边框
+                resizable: false,  // 不可调节大小
+                parent: mainWindow,
+                show: false,
+                webPreferences: {
+                    preload: path.join(__dirname, 'preload/preload-about.js'),
+                },
+                devTools: gVar.DEBUG,
+            });
+            settingsWindow.loadFile("ui/settings.html");
+            settingsWindow.on('ready-to-show', function () {
+                settingsWindow.show();  // 初始化后再显示
+            });
+            settingsWindow.setAlwaysOnTop(true, 'screen-saver');
+            if (gVar.DEBUG) settingsWindow.webContents.openDevTools();  // 打开开发者工具
+            settingsWindow.on('closed', () => {
+                // 当窗口被关闭时，将 aboutWin 设置为 null
+                settingsWindow = null;
+            });
+        } else {
+            settingsWindow.show();
+        }
+    };
+
     this.menu = [
         ...(isMac ? [{  // 如果是Mac，则显示苹果标志右边的那个特殊菜单栏
                 label: app.name,
@@ -63,6 +93,7 @@ function GlobalMenu(mainWindow, aboutWindow) {
                         label: appLang().menu.settings[appLangOrder],
                         accelerator: 'command+,',
                         click: () => {
+                            settingsPage();
                         }
                     },
                     {

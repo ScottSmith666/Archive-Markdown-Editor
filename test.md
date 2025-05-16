@@ -1,9 +1,10 @@
----
-title: Lorem ipsum
-author: SprInec
-references: typora-theme-Jinxiu
-description: 这个 block 块是 YAML front matters
----
+> title: Lorem ipsum
+>
+> author: SprInec
+>
+> references: typora-theme-Jinxiu
+>
+> description: 这个 block 块是 YAML front matters
 
 # Lorem ipsum
 
@@ -21,7 +22,7 @@ description: 这个 block 块是 YAML front matters
 
 内联样式支持**粗体**、*斜体*、`code`、<u>下划线</u>、~~删除线~~、:smile:、$\LaTeX$、X^2^、H~2~O、==高亮==、[链接](typora.io)和图像：
 
-![img](https://w.wallhaven.cc/full/3l/wallhaven-3lpymv.png)
+![img](https://picx.zhimg.com/v2-6ca9e1a5c977ad26a53fcc11a7ba9f57_720w.jpg?source=172ae18b)
 
 层级标题：
 
@@ -47,20 +48,20 @@ description: 这个 block 块是 YAML front matters
 1.  有序列表项
 2.   有序列表项2
     +   无序列表项1
-    +   无序列表项2. 
+    +   无序列表项2.
         *   [x] 表示已完成。
         *   [ ] 表示未完成。
 
-*   项目1 
-    - 项目2 
-    
-    -   项目3 
+*   项目1
+    - 项目2
 
-1. 项目1 
-2. 项目2 
-    1. 项目2.1 
-    2. 项目2.2 
-        1. 项目2.2.1 
+    -   项目3
+
+1. 项目1
+2. 项目2
+    1. 项目2.1
+    2. 项目2.2
+        1. 项目2.2.1
         2. 项目2.2.2
 
 代码块：
@@ -85,7 +86,6 @@ document.getElementById("demo").innerHTML = x;
 ```
 
 mermaid  图形：
-
 ```mermaid
 graph LR
 A(开始) -->
@@ -100,16 +100,12 @@ $$
 \iint\limits_{x^2 + y^2 \leq R^2} f(x,y)\,\mathrm{d}x\,\mathrm{d}y = \int_{\theta=0}^{2\pi} \mathrm{d}\theta\int_{r=0}^R f(r\cos\theta,r\sin\theta) r\,\mathrm{d}r\, \tag{1}
 $$
 
-alter:
+---
 
 > [!tip]
 >
 > Inline styles support **strong**, *Emphasis*, `code`, :smile:, $\LaTeX$, X^2^, H~2~O, table, [Link](typora.io), and code block:
 >
-> ```bash
->echo "警告框代码块示例"
-> ```
-> 
 > |  TITLE  |  title  |
 > | :-----: | :-----: |
 > | content | content |
@@ -145,10 +141,3 @@ alter:
 > |  TITLE  |  title  |
 > | :-----: | :-----: |
 > | content | content |
-
-目录：
-
-[TOC]
-
-[^1]: 从 https://en.wikipedia.org/wiki/Lorem_ipsum 整理得到
-
