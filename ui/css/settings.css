@@ -1,3 +1,10 @@
+html, body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
 @font-face {
     /* 中文字体全局定义为“阿里巴巴普惠体” */
     font-family: AlibabaPuHuiTi;
@@ -8,97 +15,16 @@
     font-family: Lato, AlibabaPuHuiTi;
 }
 
-.content-like {
-    /*margin-top: 20px;*/
-    /*margin-bottom: 20px;*/
-    background-color: #dffff1;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    width: 100%;
-    align-items: center;
-}
-
-.user-head {
-    background-color: #ffffff;
-    padding: 5px;
-    box-sizing: border-box;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: left;
-    margin-top: 20px;
-    width: 500px;
-}
-
-.user-nickname {
-    font-weight: bold;
-    font-size: large;
-    color: rgb(71, 71, 71);
-}
-
-.user-status {
-    color: rgb(71, 71, 71);
-    font-size: x-small;
-}
-
-.app-content {
-    width: 500px;
-    background-color: #ffffff;
-    box-sizing: border-box;
-    border-radius: 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.unit {
-    width: 100%;
-    padding: 12px;
-    box-sizing: border-box;
-    background-color: #ffffff;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.unit:active {
-    background-color: #F4F4F4;
-}
-
-.mod {
-    position: absolute;
-    z-index: 251;
-    display: block;
-    overflow: auto;
-    width: 100%;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.3);
-    position: fixed;
-    margin: 0 auto;
-}
-
 .window {
     padding: 20px;
     z-index: 252;
-    width: 500px;
-    /* height: 220px; */
+    width: 100%;
     background-color: #ffffff;
     border-radius: 15px;
-    position: fixed;
-    margin: 0 auto;
-    left: 0;
-    right: 0;
-    /* bottom: 0; */
-    top: 30%;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    box-sizing: border-box;
 }
 
 .window-title {
@@ -150,22 +76,6 @@
 
 .button:active {
     background-color: #2d815c;
-}
-
-.fade-enter-active {
-    transition: opacity 0.3s;
-}
-
-.fade-enter {
-    opacity: 0;
-}
-
-.fade-leave-active {
-    transition: opacity 0.3s;
-}
-
-.fade-leave-to {
-    opacity: 0;
 }
 
 /* switch button */
@@ -235,4 +145,98 @@ input:checked + .slider:before {
     justify-content: space-between;
     align-items: center;
     margin: 0 auto;
+}
+
+/* 设置界面菜单栏 */
+.options-items {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-radius: 5px;
+}
+
+.options-items:hover {
+    background-color: #42b98320;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.options-items:hover .options-items-txt {
+    color: #42b983;
+    font-weight: bold;
+    transition: color, font-weight 0.3s ease;
+}
+
+.options-items:hover .options-items-bar {
+    display: block;
+}
+
+.options-items-bar {
+    width: 3px;
+    height: 1em;
+    background-color: #42b883;
+    border-radius: 2px;
+    display: none;
+}
+
+.options-items-txt {
+    margin-right: 10px;
+    padding: 5px;
+    color: rgb(71, 71, 71);
+    font-size: 0.8em;
+}
+
+.items-separate {
+    height: 0.5em;
+}
+
+.side-item-set {
+    padding-left: 0 !important;
+}
+
+/* 动态修改item style start*/
+.side-item-focused-for-js {
+    background-color: #42b98320;
+}
+
+/* 选择父元素却更改子元素 */
+.side-item-focused-for-js > .options-items-bar { /* change block style */
+    width: 3px;
+    height: 1em;
+    background-color: #42b883;
+    border-radius: 2px;
+    display: block;
+}
+
+.side-item-focused-for-js > .options-items-txt { /* change txt style */
+    color: #42b983;
+    font-weight: bold;
+}
+
+/* 动态修改item style end*/
+
+/* 设置项内容页面 */
+.settings-item-content {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.settings-item-content-package {
+    display: flex;
+    flex-direction: column;
+    width: 82%;
+}
+
+.settings-item-in-content-items {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.hide-content {
+    display: none;
 }

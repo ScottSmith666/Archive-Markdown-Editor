@@ -171,9 +171,9 @@ require(['vs/editor/editor.main'], function () {
                         ),
                         text: "",
                     }
-                ], true);
-            // 同时更改渲染区内容
-            renderChange();
+                ],
+                true,
+            );
         }
     }
 
@@ -194,7 +194,6 @@ require(['vs/editor/editor.main'], function () {
                         text: content,
                     }
                 ], true);
-            // 同时更改渲染区内容
         }).catch(function(error) {
             console.error("粘贴失败: ", error);
         });

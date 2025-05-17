@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, Tray, shell, nativeImage } = require("electron");
 const path = require("node:path");
 
 // 全局变量模块引入
@@ -9,11 +9,23 @@ const SqliteMan = require("./libs/sqliteman");
 const LanguageLocale = require("./libs/languages");
 
 
+// function traySettings() {
+//     appIcon = new Tray(path.join(__dirname, "./assets/app_icon/tmp.iconset/icon_16x16.png"));
+//     const contextMenu = Menu.buildFromTemplate([
+//         { label: 'Item1', type: 'radio' },
+//         { label: 'Item2', type: 'radio' }
+//     ]);
+//     // Make a change to the context menu
+//     contextMenu.items[1].checked = false;
+//     // Call this again for Linux because we modified the context menu
+//     appIcon.setContextMenu(contextMenu);
+// }
+
 // 建立全局变量模块对象
 let gVar = new GlobalVar();
 let win = null, aboutWin = null, settingsWin = null;
 const createWindow = () => {
-    win = new BrowserWindow({
+    win = new BrowserWindow({  // 主窗口
         backgroundColor: '#ffffff',
         width: 1600,
         height: 1000,
@@ -22,6 +34,7 @@ const createWindow = () => {
         x: 0,
         y: 0,
         show: false,
+        icon: path.join(__dirname, "./assets/app_icon/tmp.iconset/icon_256x256.png"),
         webPreferences: {
             preload: path.join(__dirname, 'preload/preload.js'),
         },
@@ -50,6 +63,8 @@ const createWindow = () => {
 
 // 开始运行
 app.whenReady().then(() => {
+    // traySettings();
+
     ipcMain.handle('load-lang', async (event) => {
         /**
          * 在这里加载并渲染index语言

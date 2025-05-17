@@ -65,6 +65,35 @@ function processHTML(htmlStr, rawContent = null) {
                     out.insertBefore(head, out.children[0]);
                 }
             }
+        } else if (/(\!\[)([\S\s]*)(\]\()([\S\s]+)(\))/.test(rawContent.raw)) {  // Markdown扩展语法，![${video}:title](file_path)作为视频插入语句，其他文件类型同理
+            let regList = /(\!\[)([\S\s]*)(\]\()([\S\s]+)(\))/.exec(rawContent.raw);
+            let identifier = regList[2];  // ![]内的部分
+            let filePath = regList[4];  // ()内的部分
+            if (/(\$\{)(\S+)(\})(:)([\S\s]*)/.test(identifier)) {
+                out = document.createElement("div");
+                let identifierRegObj = /(\$\{)(\S+)(\})(:)([\S\s]*)/.exec(identifier);
+                let fileKind = identifierRegObj[2];
+                let note = identifierRegObj[4];
+                if (fileKind === "video") {
+                    out.innerHTML = `<video controls><source src="${ filePath }"></video>`;
+                    return out;
+                } else if (fileKind === "audio") {
+                    out.innerHTML = `<audio style="width: 100%;" controls src="${ filePath }"></audio>`;
+                    return out;
+                } else if (fileKind in ["docx", "xlsx", "pptx"]) {
+                    out.innerHTML += ``;
+                    return out;
+                } else if (fileKind === "pdf") {
+                    out.innerHTML += ``;
+                    return out;
+                } else if (fileKind === "compressed") {
+                    out.innerHTML += ``;
+                    return out;
+                } else {  // 不符合的文件格式
+                    out.innerHTML = `<strong style="color: red;">“${fileKind}”不是Archive Markdown Editor支持的格式，本编辑器仅支持"video" "audio" "docx" "xlsx" "pptx" "pdf" "compressed"。</strong>`;
+                    return out;
+                }
+            }
         }
         return out;
     } else return document.createElement("div");

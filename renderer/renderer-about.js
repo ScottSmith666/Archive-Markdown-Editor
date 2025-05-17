@@ -17,3 +17,6 @@ openContact.addEventListener('click', () => {
 openGitHub.addEventListener('click', () => {
     window.openOutLink.openLink("https://github.com/ScottSmith666/Archive-Markdown-Editor");
 });
+
+// version
+// document.getElementById("about-version").innerText = "版本 " +
