@@ -1,3 +1,5 @@
+"use strict";
+
 let generalItem = document.getElementById('general');
 let editItem = document.getElementById('edit');
 let updateItem = document.getElementById('update');
@@ -28,3 +30,16 @@ closeButton.addEventListener('click', () => {
 settingsItemClickEvent(0, generalItem, editItem, updateItem);
 settingsItemClickEvent(1, generalItem, editItem, updateItem);
 settingsItemClickEvent(2, generalItem, editItem, updateItem);
+
+// ---- 设置表单监听事件，并将更改值写入内存sqlite START ----
+// 开启行号：enable_line_num: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
+let enableLineNumButton = document.getElementById("enable-line-num");
+let enableLineNum = null;
+enableLineNumButton.addEventListener('change', (event) => {
+    // 获得checkBox值
+    if (enableLineNumButton.checked) enableLineNum = 1;
+    else enableLineNum = 0;
+    // 将值写入内存sqlite
+    
+});
+// ---- 设置表单监听事件，并将更改值写入内存sqlite END ----

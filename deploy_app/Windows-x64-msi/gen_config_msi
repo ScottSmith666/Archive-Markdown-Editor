@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * 打包Windows x64 msi文件
  */

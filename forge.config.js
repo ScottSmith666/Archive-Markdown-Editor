@@ -1,3 +1,5 @@
+"use strict";
+
 const {FusesPlugin} = require('@electron-forge/plugin-fuses');
 const {FuseV1Options, FuseVersion} = require('@electron/fuses');
 const path = require("node:path");
@@ -21,7 +23,20 @@ module.exports = {
             ".gitignore",
             "distribute",
             "README.md",
+            "test.md",
             "electron-cache",
+            "package-lock.json",
+            "node_modules/electron",
+            "node_modules/appdmg",
+            "libs/third_party/monaco/CHANGELOG.md",
+            "libs/third_party/monaco/dev",
+            "libs/third_party/monaco/esm",
+            "libs/third_party/monaco/LICENSE",
+            "libs/third_party/monaco/min-maps",
+            "libs/third_party/monaco/monaco.d.ts",
+            "libs/third_party/monaco/package.json",
+            "libs/third_party/monaco/README.md",
+            "libs/third_party/monaco/ThirdPartyNotices.txt",
         ],
         icon: path.join(__dirname, './assets/app_icon/icon'),
     },

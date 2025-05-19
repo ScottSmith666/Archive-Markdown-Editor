@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict";
+
 const process = require("node:process");
 const DistributeWin32X64 = require("./deploy_app/Windows-x64-msi/gen_config_msi");
 const DistributeDarwinArm64 = require("./deploy_app/macOS-arm64-dmg/package_dmg");

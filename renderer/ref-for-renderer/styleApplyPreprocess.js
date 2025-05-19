@@ -1,3 +1,5 @@
+"use strict";
+
 let CLASS_TABLE_FIGURE = "table-figure"
 let CLASS_LI_FINISHED_DEL = "md-task-list-item task-list-item task-list-done";
 let KIND_OF_TIPS_FOR_COLORS_SVGS = {
@@ -83,14 +85,17 @@ function processHTML(htmlStr, rawContent = null) {
                 } else if (fileKind in ["docx", "xlsx", "pptx"]) {
                     out.innerHTML += ``;
                     return out;
-                } else if (fileKind === "pdf") {
-                    out.innerHTML += ``;
-                    return out;
-                } else if (fileKind === "compressed") {
-                    out.innerHTML += ``;
-                    return out;
-                } else {  // 不符合的文件格式
-                    out.innerHTML = `<strong style="color: red;">“${fileKind}”不是Archive Markdown Editor支持的格式，本编辑器仅支持"video" "audio" "docx" "xlsx" "pptx" "pdf" "compressed"。</strong>`;
+                }
+                // 后续版本再考虑加上别的文档文件，首先解决文件安全性问题
+                // else if (fileKind === "pdf") {
+                //     out.innerHTML += ``;
+                //     return out;
+                // } else if (fileKind === "compressed") {
+                //     out.innerHTML += ``;
+                //     return out;
+                // }
+                else {  // 不符合的文件格式
+                    out.innerHTML = `<strong style="color: red;">“${fileKind}”不是Archive Markdown Editor支持的格式标记，本扩展语法仅支持"video" "audio"两个标记。</strong>`;
                     return out;
                 }
             }

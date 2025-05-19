@@ -1,3 +1,5 @@
+"use strict";
+
 const { app, BrowserWindow, ipcMain, Menu, Tray, shell, nativeImage } = require("electron");
 const path = require("node:path");
 
@@ -88,6 +90,14 @@ app.whenReady().then(() => {
             appLangObj.operationsInstructions().menu.aboutDialog,
             Number(languageConfigManagerObject.loadLangConfig()),
         ];
+    });
+
+    ipcMain.handle('load-edit-settings', async (event) => {
+        /**
+         * 从本地Sqlite数据库读取edit settings
+         */
+        const editConfigManager = new SqliteMan.EditConfigManager();
+        return editConfigManager.loadEditConfig();
     });
 
     ipcMain.handle('switch-debug', async (event) => {

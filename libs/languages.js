@@ -1,3 +1,5 @@
+"use strict";
+
 const { app } = require("electron");
 
 
@@ -54,14 +56,22 @@ function LanguageLocale() {
             "paste": ["粘贴", "貼上", "Paste"],
 
             // Menu 4
+            "view": ["视图", "視圖", "View"],
             "theme": ["主题", "主題", "Theme"],
             "lightMode": ["明亮", "明亮", "Light Mode"],
             "darkMode": ["暗黑", "暗黑", "Dark Mode"],
+            "mode": ["模式", "模式", "Mode"],
+            "viewMode": ["预览模式", "預覽模式", "View Mode"],
+            "editMode": ["编辑模式", "編輯模式", "Edit Mode"],
+            "mixMode": ["混合模式", "混合模式", " Mix Mode"],
 
             // Menu 5
             "help": ["帮助", "幫助", "Help"],
             "moreInfo": ["了解更多...", "瞭解更多...", "More Info..."],
-            "donate": ["捐赠给Scott Smith...", "捐贈給Scott Smith...", "Donate To Scott Smith..."],
+
+            // Menu 6
+            "donate": ["打赏", "打賞", "Donate"],
+            "donateToSS": ["打赏给Scott Smith...", "打賞給Scott Smith...", "Donate To Scott Smith..."],
 
             // Language switch confirm dialog
             "LangSwitchConfirmDialog": [

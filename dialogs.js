@@ -1,3 +1,5 @@
+"use strict";
+
 const {dialog} = require("electron");
 
 function Dialogs(windowObject, type, buttonList, defaultButtonIndex, title, content, cancelButtonIndex) {

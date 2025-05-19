@@ -1,3 +1,5 @@
+"use strict";
+
 const { contextBridge, ipcRenderer } = require('electron/renderer');
 
 
@@ -8,18 +10,26 @@ contextBridge.exposeInMainWorld('contentOperateCVA', {
     paste: (callback) => ipcRenderer.on('paste', (_event) => callback()),  // 粘贴
 });
 
+// 设置语言
 contextBridge.exposeInMainWorld('lang', {
     getLangIndexLangContent: () => {
         return ipcRenderer.invoke('load-lang');
     },
 });
 
+// 传递debug信号
 contextBridge.exposeInMainWorld('swDebug', {
     switchDebuggingMode: () => {
         return ipcRenderer.invoke('switch-debug');
     }
 });
 
+// 打开外部链接
 contextBridge.exposeInMainWorld('openOutLink', {
     openLink: (url) => ipcRenderer.send('open-url', url),
+});
+
+// 设置edit
+contextBridge.exposeInMainWorld('editSettings', {
+    getEditSettings: () => ipcRenderer.invoke('load-edit-settings'),
 });

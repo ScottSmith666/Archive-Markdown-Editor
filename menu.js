@@ -1,3 +1,5 @@
+"use strict";
+
 const { app, BrowserWindow, dialog, shell} = require("electron");
 const LanguageLocale = require('./libs/languages');
 const GlobalVar = require('./libs/globalvar');
@@ -235,13 +237,13 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
             settingsWindow = new BrowserWindow({  // 创建“关于”窗口对象
                 backgroundColor: '#ffffff',
                 width: 630,
-                height: 380,
+                height: 470,
                 frame: false,  // 无边框
                 resizable: false,  // 不可调节大小
                 parent: mainWindow,
                 show: false,
                 webPreferences: {
-                    preload: path.join(__dirname, 'preload/preload-about.js'),
+                    preload: path.join(__dirname, 'preload/preload-settings.js'),
                 },
                 devTools: gVar.DEBUG,
             });
@@ -347,19 +349,40 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
             submenu: windowsSettingsInFileList(),
         },
         {
-            label: appLang().menu.theme[appLangOrder],
+            label: appLang().menu.view[appLangOrder],
             submenu: [
                 {
-                    label: appLang().menu.lightMode[appLangOrder],
-                    click: () => {}
+                    label: appLang().menu.theme[appLangOrder],
+                    submenu: [
+                        {
+                            label: appLang().menu.lightMode[appLangOrder],
+                            click: () => {},
+                        },
+                        {
+                            label: appLang().menu.darkMode[appLangOrder],
+                            click: () => {},
+                        },
+                    ],
                 },
                 {
-                    label: appLang().menu.darkMode[appLangOrder],
-                    click: () => {}
+                    label: appLang().menu.mode[appLangOrder],
+                    submenu: [
+                        {
+                            label: appLang().menu.viewMode[appLangOrder],
+                            click: () => {},
+                        },
+                        {
+                            label: appLang().menu.editMode[appLangOrder],
+                            click: () => {},
+                        },
+                        {
+                            label: appLang().menu.mixMode[appLangOrder],
+                            click: () => {},
+                        },
+                    ],
                 },
             ],
         },
-
         ...(isMac ? [{
             label: appLang().menu.help[appLangOrder],
             submenu: [
@@ -370,11 +393,6 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
                         await shell.openExternal("url");
                     }
                 },
-                {
-                    label: appLang().menu.donate[appLangOrder],
-                    click: () => {
-                    }
-                }
             ]
         }] : [{
             label: appLang().menu.help[appLangOrder],
@@ -392,13 +410,17 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
                         await shell.openExternal("url");
                     }
                 },
-                {
-                    label: appLang().menu.donate[appLangOrder],
-                    click: () => {
-                    }
-                }
             ]
         }]),
+        {
+            label: appLang().menu.donate[appLangOrder],
+            submenu: [
+                {
+                    label: appLang().menu.donateToSS[appLangOrder],
+                    click: () => {},
+                },
+            ],
+        },
     ];
 }
 

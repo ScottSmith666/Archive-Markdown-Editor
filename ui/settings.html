@@ -17,7 +17,7 @@
     <!--设置界面-->
     <div style="display: flex; flex-direction: column; width: 100%;">
         <!--操作界面-->
-        <div style="display: flex; flex-direction: row; align-items: start; height: 250px;">
+        <div style="display: flex; flex-direction: row; align-items: start; height: 340px;">
             <!--侧边栏-->
             <div class="side-item-set" style="width: 18%; padding: 8px; margin-right:8px;">
                 <div class="items-separate"></div>
@@ -54,15 +54,14 @@
                 </div>
                 <!--设置项-edit-->
                 <div class="settings-item-content hide-content" id="settings-item-edit-content">
-                    <!--修改字体-->
+                    <!--修改Tab缩进空格数-->
                     <div class="settings-item-in-content-items">
-                        <div class="window-title fonts" style="font-size: medium;">编辑区字体</div>
-                        <label>
-                            <select class="fonts" style="border: none; outline: none;">
-                                <option value="students">学生</option>
-                                <option value="parents">家长</option>
-                            </select>
-                        </label>
+                        <div class="window-title fonts" style="font-size: medium;">编辑区Tab缩进长度</div>
+                        <div style="width: 70px;">
+                            <label>
+                                <input style="width: 100%;" class="input-info fonts" value="4" type="number" id="tab-size"/>
+                            </label>
+                        </div>
                     </div>
                     <!--修改字体大小-->
                     <div class="settings-item-in-content-items">
@@ -70,7 +69,7 @@
                         <div style="width: 70px;">
                             <div style="display: flex; flex-direction: row;">
                                 <label>
-                                    <input style="width: 100%;" class="input-info fonts" value="12" type="number"/>
+                                    <input style="width: 100%;" class="input-info fonts" value="12" type="number" id="font-size"/>
                                 </label>
                                 <div>px</div>
                             </div>
@@ -81,27 +80,58 @@
                         <div class="window-title fonts" style="font-size: medium;">开启行号</div>
                         <div>
                             <label class="switch">
-                                <input type="checkbox">
+                                <input type="checkbox" id="enable-line-num">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <!--开/关代码折叠-->
+                    <div class="settings-item-in-content-items">
+                        <div class="window-title fonts" style="font-size: medium;">开启代码折叠</div>
+                        <div>
+                            <label class="switch">
+                                <input type="checkbox" id="enable-code-fold">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <!--开/关自动折行-->
+                    <div class="settings-item-in-content-items">
+                        <div class="window-title fonts" style="font-size: medium;">开启自动折行</div>
+                        <div>
+                            <label class="switch">
+                                <input type="checkbox" id="enable-wrap-line">
                                 <span class="slider round"></span>
                             </label>
                         </div>
                     </div>
                     <!--开启输入自动闭合引号/括号和成对删除引号/括号-->
                     <div class="settings-item-in-content-items">
-                        <div class="window-title fonts" style="font-size: medium;">开启输入自动闭合引号/括号和成对删除引号/括号</div>
+                        <div class="window-title fonts" style="font-size: medium;">
+                            开启输入自动闭合引号/括号和成对删除引号/括号
+                        </div>
                         <div>
                             <label class="switch">
-                                <input type="checkbox">
+                                <input type="checkbox" id="enable-closure">
                                 <span class="slider round"></span>
                             </label>
                         </div>
                     </div>
                     <!--显示滚动条-->
                     <div class="settings-item-in-content-items">
-                        <div class="window-title fonts" style="font-size: medium;">显示滚动条</div>
+                        <div class="window-title fonts" style="font-size: medium;">显示垂直滚动条</div>
                         <div>
                             <label class="switch">
-                                <input type="checkbox">
+                                <input type="checkbox" id="display-vertical-scrollbar">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-item-in-content-items">
+                        <div class="window-title fonts" style="font-size: medium;">显示水平滚动条</div>
+                        <div>
+                            <label class="switch">
+                                <input type="checkbox" id="display-horizon-scrollbar">
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -111,7 +141,7 @@
                         <div class="window-title fonts" style="font-size: medium;">显示代码缩略图</div>
                         <div>
                             <label class="switch">
-                                <input type="checkbox">
+                                <input type="checkbox" id="display-code-scale">
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -121,7 +151,7 @@
                         <div class="window-title fonts" style="font-size: medium;">启用编辑器动画效果</div>
                         <div>
                             <label class="switch">
-                                <input type="checkbox">
+                                <input type="checkbox" id="display-editor-animation">
                                 <span class="slider round"></span>
                             </label>
                         </div>

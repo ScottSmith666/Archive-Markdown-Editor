@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict";
+
 /**
  * 打包macOS arm64 dmg文件
  * @type {path.PlatformPath | path}

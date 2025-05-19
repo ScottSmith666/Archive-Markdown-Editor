@@ -1,3 +1,5 @@
+"use strict";
+
 // 渲染语言
 async function loadLanguage() {
     let presentLangPackage = await window.aboutDialogLang.getAboutDialogLangContent();

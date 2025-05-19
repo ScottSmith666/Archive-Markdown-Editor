@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * 获取textarea内部的Markdown内容并发送给preload.js
  * 中间层，负责同时与渲染层与底层沟通
@@ -13,7 +15,56 @@ loadLanguage();
 // 初始化编辑器
 require.config({ paths: { vs: './libs/third_party/monaco/min/vs' } });
 require.config({ 'vs/nls': { availableLanguages: { '*': 'zh-cn' } } });
-require(['vs/editor/editor.main'], function () {
+require(['vs/editor/editor.main'], async function () {
+    /**
+     * 设置表
+     * ----编辑----
+     * 编辑区Tab缩进长度：editor_font_kind: <number>，初始化默认为4
+     * 编辑区字体大小：editor_font_size: <number>，初始化默认为12
+     * 开启行号：enable_line_num: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
+     * 开启代码折叠：enable_code_fold: 1 || 0，1代表true，0代表false，初始化默认为1
+     * 开启自动折行：enable_auto_wrap_line: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
+     * 开启自动输入闭合引号/括号和成对删除引号/括号: enable_auto_closure: 1 || 0，1代表"always"，0代表"never"，初始化默认为1
+     * 显示垂直滚动条：display_vertical_scrollbar: 0 || 1 || 2，0代表"visible"，1代表"auto"，2代表"hidden"，初始化默认为0
+     * 显示水平滚动条：display_horizon_scrollbar: 0 || 1 || 2，0代表"visible"，1代表"auto"，2代表"hidden"，初始化默认为0
+     * 显示代码缩略图：display_code_scale: 1 || 0，1代表true，0代表false，初始化默认为0
+     * 启用编辑器动画效果：display_editor_animation:  1 || 0，1代表true，0代表false，初始化默认为1
+     */
+
+    let editorSettings = await window.editSettings.getEditSettings();  // 引入edit settings
+    let editorTabSize = editorSettings[0].settings_value;
+    let editorFontSize = editorSettings[1].settings_value;
+    let enableLineNum = (editorSettings[2].settings_value === 1) ? "on" : "off";
+    let enableCodeFold = (editorSettings[3].settings_value === 1);
+    let enableAutoWrapLine = (editorSettings[4].settings_value === 1) ? "on" : "off";
+    let enableAutoClosure = (editorSettings[5].settings_value === 1) ? "always" : "never";
+    let displayVerticalScrollbar = "";
+    switch (editorSettings[6].settings_value) {
+        case 0:
+            displayVerticalScrollbar = "visible";
+            break;
+        case 1:
+            displayVerticalScrollbar = "auto";
+            break;
+        case 2:
+            displayVerticalScrollbar = "hidden";
+            break;
+    }
+    let displayHorizonScrollbar = "";
+    switch (editorSettings[7].settings_value) {
+        case 0:
+            displayHorizonScrollbar = "visible";
+            break;
+        case 1:
+            displayHorizonScrollbar = "auto";
+            break;
+        case 2:
+            displayHorizonScrollbar = "hidden";
+            break;
+    }
+    let displayCodeScale = (editorSettings[8].settings_value === 1);
+    let displayEditorAnimation = (editorSettings[9].settings_value === 1);
+
     // 定义自定义主题
     monaco.editor.defineTheme('myEditorTheme', {
         base: "vs",
@@ -29,22 +80,40 @@ require(['vs/editor/editor.main'], function () {
     //设置刚刚定义的自定义主题
     monaco.editor.setTheme('myEditorTheme');
 
+    // 设置智能提示
+    monaco.languages.registerCompletionItemProvider("markdown", {
+        provideCompletionItems: function (model, position) {
+            return {
+                suggestions: suggestions("markdown"),
+            };
+        },
+    });
+
     let editor = monaco.editor.create(document.getElementById('real-edit'), {
         value: "",
         language: "markdown",
-        autoClosingBrackets: 'always',
-        autoClosingDelete: 'always',
-        autoClosingQuotes: 'always',
+        autoClosingBrackets: enableAutoClosure,
+        autoClosingDelete: enableAutoClosure,
+        autoClosingQuotes: enableAutoClosure,
         autoIndent: "advanced",
+        folding: enableCodeFold,
         contextmenu: false,
         automaticLayout: true,
         scrollbar: {
-            "vertical": "hidden",
+            "vertical": displayVerticalScrollbar,
+            "horizontal": displayHorizonScrollbar,
         },
-        cursorSmoothCaretAnimation: true,
-        wordWrap: "on",
+        minimap: {
+            enabled: displayCodeScale,
+        },
+        cursorSmoothCaretAnimation: displayEditorAnimation,
+        wordWrap: enableAutoWrapLine,
         scrollBeyondLastLine: false,
         formatOnPaste: true,
+        dragAndDrop: true,
+        lineNumbers: enableLineNum,
+        tabSize: editorTabSize,
+        fontSize: editorFontSize,
     });
 
     // let preset = `# 编辑Markdown从此开始...`;
@@ -217,8 +286,6 @@ require(['vs/editor/editor.main'], function () {
         let countOfRender = 0;
         let status = true;
 
-        let isMermaid = false;
-
         function loop(){
             // 浏览器单线程，一次性渲染大量的DOM，会阻塞用户操作，阻塞CSS渲染，有较长白屏事件等问题
             // 所以我们只需要每次渲染少量的DOM不会阻塞用户操作即可解决这些问题
@@ -234,10 +301,6 @@ require(['vs/editor/editor.main'], function () {
                     }
                     temp.setAttribute("id", ("block" + countOfRender));
                     let afterBlock = marked.parser([mdParserList[countOfRender]]);
-
-                    if (mdParserList[countOfRender].type === "code") {
-                        if (mdParserList[countOfRender].lang === "mermaid") isMermaid = true;
-                    }
 
                     let afterProcessedHTML = processHTML(afterBlock, mdParserList[countOfRender]);
                     fragment.appendChild(afterProcessedHTML);  // 对HTML进行处理

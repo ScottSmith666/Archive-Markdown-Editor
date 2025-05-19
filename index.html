@@ -150,7 +150,9 @@
         packages: ['base', 'action', 'mhchem', 'ams'],
         PreviewHTML: {
             scale: 120,
-            linebreaks: { automatic: true },
+            linebreaks: {
+                automatic: true
+            },
         },
         options: {
             skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'a'],
@@ -173,6 +175,8 @@
 </script>
 <!--HTML预处理-->
 <script src="./renderer/ref-for-renderer/styleApplyPreprocess.js"></script>
+<!--Editor智能提示配置-->
+<script src="./renderer/ref-for-renderer/editorSuggestions.js"></script>
 <!--导入核心renderer-->
 <script src="./renderer/renderer.js"></script>
 </html>

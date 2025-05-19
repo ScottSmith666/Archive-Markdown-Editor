@@ -1,3 +1,5 @@
+"use strict";
+
 loadLanguage();
 
 const closeButton = document.getElementById('close');
