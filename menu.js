@@ -9,11 +9,11 @@ const SqliteMan = require('./libs/sqliteman');
 const path = require("node:path");
 
 
-// 加载配置文件中的Language Index对象
-const languageConfigManagerObject = new SqliteMan.LanguageConfigManager();
+// 加载设置文件内容
+const settingsConfigManager = new SqliteMan.SettingsConfigManager();
 
 let gVar = new GlobalVar();
-let appLangOrder = Number(languageConfigManagerObject.loadLangConfig());
+let appLangOrder = Number(settingsConfigManager.getSettings("lang_index"));
 let appLangObj = new LanguageLocale();
 let langList = appLangObj.languageObject;
 let appLang = appLangObj.operationsInstructions;
@@ -22,6 +22,51 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
     const isMac = process.platform === 'darwin';
 
     let windowsSettingsInFileList = () => {
+        let langMenuList = [];
+        for (let langI = 0; langI < langList.length; langI++) {
+            langMenuList.push({
+                label: langList[langI].description,
+                click: () => {
+                    let dialogTxtPackage = appLang(langList[langI].description).menu;
+                    let dialogNoNeedTxt =
+                        dialogTxtPackage.LangNoNeedSwitchDialog;
+                    let dialogTxt =
+                        dialogTxtPackage.LangSwitchConfirmDialog;
+                    if (langI === appLangOrder)
+                        new ConfirmDialog(
+                            mainWindow,
+                            "warning",
+                            dialogNoNeedTxt[appLangOrder].buttons,
+                            0,
+                            dialogNoNeedTxt[appLangOrder].title,
+                            dialogNoNeedTxt[appLangOrder].description,
+                            0
+                        );
+                    else {
+                        settingsConfigManager.setSettings("lang_index", langI);
+                        let warningConfirmDialogChosen =
+                            new ConfirmDialog(
+                                mainWindow,
+                                "warning",
+                                dialogTxt[appLangOrder].buttons,
+                                1,
+                                dialogTxt[appLangOrder].title,
+                                dialogTxt[appLangOrder].description,
+                                0
+                            );
+                        if (warningConfirmDialogChosen.confirm) {
+                            console.log("选择了" + langList[langI].description);
+                            // 重启应用
+                            app.relaunch();
+                            app.quit();
+                        } else {  // 确定
+                            console.log("取消");
+                        }
+                    }
+                }
+            });
+        }
+
         let subMenu = [
             {
                 label: appLang().menu.settings[appLangOrder],
@@ -66,138 +111,10 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
             },
             {
                 label: appLang().menu.language[appLangOrder],
-                submenu: [
-                    {
-                        label: langList[0].description,
-                        click: () => {
-                            let chosenLang = 0;
-                            let dialogTxtPackage = appLang(langList[chosenLang].description).menu;
-                            let dialogNoNeedTxt =
-                                dialogTxtPackage.LangNoNeedSwitchDialog;
-                            let dialogTxt =
-                                dialogTxtPackage.LangSwitchConfirmDialog;
-                            if (chosenLang === appLangOrder)
-                                new ConfirmDialog(
-                                    mainWindow,
-                                    "warning",
-                                    dialogNoNeedTxt[appLangOrder].buttons,
-                                    0,
-                                    dialogNoNeedTxt[appLangOrder].title,
-                                    dialogNoNeedTxt[appLangOrder].description,
-                                    0
-                                );
-                            else {
-                                languageConfigManagerObject.setLangConfig(chosenLang);
-                                let warningConfirmDialogChosen =
-                                    new ConfirmDialog(
-                                        mainWindow,
-                                        "warning",
-                                        dialogTxt[appLangOrder].buttons,
-                                        1,
-                                        dialogTxt[appLangOrder].title,
-                                        dialogTxt[appLangOrder].description,
-                                        0
-                                    );
-                                if (warningConfirmDialogChosen.confirm) {
-                                    console.log("选择了" + langList[chosenLang].description);
-                                    // 重启应用
-                                    app.relaunch();
-                                    app.quit();
-                                } else {  // 确定
-                                    console.log("取消");
-                                }
-                            }
-                        }
-                    },
-                    {
-                        label: langList[1].description,
-                        click: () => {
-                            let chosenLang = 1;
-                            let dialogTxtPackage = appLang(langList[chosenLang].description).menu;
-                            let dialogNoNeedTxt =
-                                dialogTxtPackage.LangNoNeedSwitchDialog;
-                            let dialogTxt =
-                                dialogTxtPackage.LangSwitchConfirmDialog;
-
-                            if (chosenLang === appLangOrder)
-                                new ConfirmDialog(
-                                    mainWindow,
-                                    "warning",
-                                    dialogNoNeedTxt[appLangOrder].buttons,
-                                    0,
-                                    dialogNoNeedTxt[appLangOrder].title,
-                                    dialogNoNeedTxt[appLangOrder].description,
-                                    0
-                                );
-                            else {
-                                languageConfigManagerObject.setLangConfig(chosenLang);
-                                let warningConfirmDialogChosen =
-                                    new ConfirmDialog(
-                                        mainWindow,
-                                        "warning",
-                                        dialogTxt[appLangOrder].buttons,
-                                        1,
-                                        dialogTxt[appLangOrder].title,
-                                        dialogTxt[appLangOrder].description,
-                                        0
-                                    );
-                                if (warningConfirmDialogChosen.confirm) {
-                                    console.log("选择了" + langList[chosenLang].description);
-                                    // 重启应用
-                                    app.relaunch();
-                                    app.quit();
-                                } else {  // 确定
-                                    console.log("取消");
-                                }
-                            }
-                        }
-                    },
-                    {
-                        label: langList[2].description,
-                        click: () => {
-                            let chosenLang = 2;
-                            let dialogTxtPackage = appLang(langList[chosenLang].description).menu;
-                            let dialogNoNeedTxt =
-                                dialogTxtPackage.LangNoNeedSwitchDialog;
-                            let dialogTxt =
-                                dialogTxtPackage.LangSwitchConfirmDialog;
-
-                            if (chosenLang === appLangOrder)
-                                new ConfirmDialog(
-                                    mainWindow,
-                                    "warning",
-                                    dialogNoNeedTxt[appLangOrder].buttons,
-                                    0,
-                                    dialogNoNeedTxt[appLangOrder].title,
-                                    dialogNoNeedTxt[appLangOrder].description,
-                                    0
-                                );
-                            else {
-                                languageConfigManagerObject.setLangConfig(chosenLang);
-                                let warningConfirmDialogChosen =
-                                    new ConfirmDialog(
-                                        mainWindow,
-                                        "warning",
-                                        dialogTxt[appLangOrder].buttons,
-                                        1,
-                                        dialogTxt[appLangOrder].title,
-                                        dialogTxt[appLangOrder].description,
-                                        0
-                                    );
-                                if (warningConfirmDialogChosen.confirm) {
-                                    console.log("选择了" + langList[chosenLang].description);
-                                    // 重启应用
-                                    app.relaunch();
-                                    app.quit();
-                                } else {  // 确定
-                                    console.log("取消");
-                                }
-                            }
-                        }
-                    }
-                ]
+                submenu: langMenuList,
             },
         ];
+
         if (isMac) subMenu.shift();  // 去掉menu列表中处于第一位的“设置”单元
         return subMenu;
     }

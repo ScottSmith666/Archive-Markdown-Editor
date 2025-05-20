@@ -9,13 +9,10 @@ async function loadLanguage() {
     let githubID = document.getElementById("github");
     let closeID = document.getElementById("close");
 
-    // Edit&Render placeholder language
-    let presentLangIndex = presentLangPackage[1];
-    let presentLangAboutDialog = presentLangPackage[0][presentLangIndex];
-    descID.innerHTML = presentLangAboutDialog.description + `
+    descID.innerHTML = presentLangPackage.description + `
             <small>
                 <span class="cre">
-                    <span>${ presentLangAboutDialog.credit }</span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px"
+                    <span>${ presentLangPackage.credit }</span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px"
                                  viewBox="0 0 100 100"
                                  width="15" height="15" class="icon outbound">
                         <path fill="currentColor"
@@ -25,7 +22,7 @@ async function loadLanguage() {
                     </svg>
                 </span>
             </small>`;
-    contactID.innerText = presentLangAboutDialog.contact + " - scottsmith666@163.com";
-    githubID.innerText = "Archive Markdown Editor - GitHub" + presentLangAboutDialog.github;
-    closeID.innerText = presentLangAboutDialog.button;
+    contactID.innerText = presentLangPackage.contact + " - scottsmith666@163.com";
+    githubID.innerText = "Archive Markdown Editor - GitHub" + presentLangPackage.github;
+    closeID.innerText = presentLangPackage.button;
 }

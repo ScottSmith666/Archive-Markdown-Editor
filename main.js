@@ -67,37 +67,61 @@ const createWindow = () => {
 app.whenReady().then(() => {
     // traySettings();
 
-    ipcMain.handle('load-lang', async (event) => {
+    ipcMain.handle('load-storage-settings', async (event, instruction) => {
         /**
-         * 在这里加载并渲染index语言
-         * @type {LanguageConfigManager}
+         * 从硬盘上的本地Sqlite数据库读取settings
          */
-        const languageConfigManagerObject = new SqliteMan.LanguageConfigManager();
-        let appLangObj = new LanguageLocale();
-        return [
-            appLangObj.operationsInstructions().display.index,
-            Number(languageConfigManagerObject.loadLangConfig()),
-        ];
+        const settingsConfigManager = new SqliteMan.SettingsConfigManager();
+        return Number(settingsConfigManager.getSettings(instruction));
     });
 
-    ipcMain.handle('load-lang-for-about-dialog', async (event) => {
+    ipcMain.handle('load-memory-settings', async (event, instruction, query) => {
         /**
-         * 在这里加载并渲染about dialog语言
+         * 从内存上的本地Sqlite数据库读取settings（query = true时返回第一个结果，query为false时返回总记录条数）
          */
-        const languageConfigManagerObject = new SqliteMan.LanguageConfigManager();
-        let appLangObj = new LanguageLocale();
-        return [
-            appLangObj.operationsInstructions().menu.aboutDialog,
-            Number(languageConfigManagerObject.loadLangConfig()),
-        ];
+        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
+        return Number(settingsMemoryConfigManager.getSettings(instruction, query));
     });
 
-    ipcMain.handle('load-edit-settings', async (event) => {
+    ipcMain.on('set-storage-settings', (event, instruction, value) => {
         /**
-         * 从本地Sqlite数据库读取edit settings
+         * 修改硬盘上的本地Sqlite数据库settings
          */
-        const editConfigManager = new SqliteMan.EditConfigManager();
-        return editConfigManager.loadEditConfig();
+        const settingsConfigManager = new SqliteMan.SettingsConfigManager();
+        settingsConfigManager.setSettings(instruction, value);
+    });
+
+    ipcMain.on('set-memory-settings', (event, instruction, value, type) => {
+        /**
+         * 修改内存上的本地Sqlite数据库settings
+         */
+        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
+        settingsMemoryConfigManager.setSettings(instruction, value, type);
+    });
+
+    ipcMain.handle('memory-sqlite-table-init', async (event) => {
+        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
+        settingsMemoryConfigManager.initSettingsConfig();
+        return 0;
+    });
+
+    ipcMain.handle('memory-sqlite-table-delete', async (event) => {
+        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
+        settingsMemoryConfigManager.deleteSettingsConfig();
+        return 0;
+    });
+
+    ipcMain.handle('memory-settings-inst-exists', async (event, inst) => {
+        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
+        settingsMemoryConfigManager.settingsInstructionsIsExists(inst);
+        return settingsMemoryConfigManager.deleteSettingsConfig();
+    });
+
+    ipcMain.handle('load-language-user-surface', async (event, part) => {
+        /**
+         * 载入用户语言界面
+         */
+        return new LanguageLocale().operationsInstructions()[part];
     });
 
     ipcMain.handle('switch-debug', async (event) => {

@@ -19,7 +19,7 @@ require(['vs/editor/editor.main'], async function () {
     /**
      * 设置表
      * ----编辑----
-     * 编辑区Tab缩进长度：editor_font_kind: <number>，初始化默认为4
+     * 编辑区Tab缩进长度：editor_tab_size: <number>，初始化默认为4
      * 编辑区字体大小：editor_font_size: <number>，初始化默认为12
      * 开启行号：enable_line_num: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
      * 开启代码折叠：enable_code_fold: 1 || 0，1代表true，0代表false，初始化默认为1
@@ -31,15 +31,14 @@ require(['vs/editor/editor.main'], async function () {
      * 启用编辑器动画效果：display_editor_animation:  1 || 0，1代表true，0代表false，初始化默认为1
      */
 
-    let editorSettings = await window.editSettings.getEditSettings();  // 引入edit settings
-    let editorTabSize = editorSettings[0].settings_value;
-    let editorFontSize = editorSettings[1].settings_value;
-    let enableLineNum = (editorSettings[2].settings_value === 1) ? "on" : "off";
-    let enableCodeFold = (editorSettings[3].settings_value === 1);
-    let enableAutoWrapLine = (editorSettings[4].settings_value === 1) ? "on" : "off";
-    let enableAutoClosure = (editorSettings[5].settings_value === 1) ? "always" : "never";
+    let editorTabSize = await window.settings.getEditorTabSize();
+    let editorFontSize = await window.settings.getEditorFontSize();
+    let enableLineNum = ((await window.settings.getEnableLineNum()) === 1) ? "on" : "off";
+    let enableCodeFold = ((await window.settings.getEnableCodeFold()) === 1);
+    let enableAutoWrapLine = ((await window.settings.getEnableAutoWrapLine()) === 1) ? "on" : "off";
+    let enableAutoClosure = ((await window.settings.getEnableAutoClosure()) === 1) ? "always" : "never";
     let displayVerticalScrollbar = "";
-    switch (editorSettings[6].settings_value) {
+    switch ((await window.settings.getDisplayVerticalScrollbar())) {
         case 0:
             displayVerticalScrollbar = "visible";
             break;
@@ -51,7 +50,7 @@ require(['vs/editor/editor.main'], async function () {
             break;
     }
     let displayHorizonScrollbar = "";
-    switch (editorSettings[7].settings_value) {
+    switch ((await window.settings.getDisplayHorizonScrollbar())) {
         case 0:
             displayHorizonScrollbar = "visible";
             break;
@@ -62,8 +61,8 @@ require(['vs/editor/editor.main'], async function () {
             displayHorizonScrollbar = "hidden";
             break;
     }
-    let displayCodeScale = (editorSettings[8].settings_value === 1);
-    let displayEditorAnimation = (editorSettings[9].settings_value === 1);
+    let displayCodeScale = ((await window.settings.getDisplayCodeScale()) === 1);
+    let displayEditorAnimation = ((await window.settings.getDisplayEditorAnimation()) === 1);
 
     // 定义自定义主题
     monaco.editor.defineTheme('myEditorTheme', {
@@ -218,8 +217,6 @@ require(['vs/editor/editor.main'], async function () {
             editorAreaHasFocus = editor.hasTextFocus();
         }
 
-        console.log(editorAreaHasFocus);
-
         // Editor获得选区内容
         let editorSelectionContent = editorAreaHasFocus ? editor.getModel().getValueInRange(editor.getSelection()) : window.getSelection().toString();
         navigator.clipboard.writeText(editorSelectionContent).then(function() {}).catch(function(error) {
@@ -228,7 +225,6 @@ require(['vs/editor/editor.main'], async function () {
         // 如果是剪贴(keep = false)，则将指定位置的字符串替换成空字符串，实现剪切效果
         if (!keep) {
             let selection = editor.getSelection();
-            console.log(selection.startLineNumber);
             editor.executeEdits("number-scrubber",
                 [
                     {
@@ -365,18 +361,18 @@ require(['vs/editor/editor.main'], async function () {
 
 // 渲染语言
 async function loadLanguage() {
-    let presentLangPackage = await window.lang.getLangIndexLangContent();
+    let presentLangIndex = await window.settings.getLangSettings();
+    let rightMenu = await window.userSurface.getRightMenuSurface();
+    let renderPlaceholder = await window.userSurface.getRenderPlaceholderSurface();
 
     // Edit&Render placeholder language
-    let presentLangIndex = presentLangPackage[1];
-    renderTxt.innerText = presentLangPackage[0].markdownRenderPlaceholder[presentLangIndex];
+    renderTxt.innerText = renderPlaceholder[presentLangIndex];
 
     // Right menu language
     // Edit area right menu
-    let presentLangEditRightMenu = presentLangPackage[0].markdownEditRightMenu[presentLangIndex];
-    leftObj.children[0].children[0].innerHTML = "&nbsp;&nbsp;&nbsp;" + presentLangEditRightMenu[0];
-    leftObj.children[1].children[0].innerHTML = "&nbsp;&nbsp;&nbsp;" + presentLangEditRightMenu[1];
-    leftObj.children[2].children[0].innerHTML = "&nbsp;&nbsp;&nbsp;" + presentLangEditRightMenu[2];
+    leftObj.children[0].children[0].innerHTML = "&nbsp;&nbsp;&nbsp;" + rightMenu[presentLangIndex][0];
+    leftObj.children[1].children[0].innerHTML = "&nbsp;&nbsp;&nbsp;" + rightMenu[presentLangIndex][1];
+    leftObj.children[2].children[0].innerHTML = "&nbsp;&nbsp;&nbsp;" + rightMenu[presentLangIndex][2];
 }
 
 function showLeftAreaMenu(event) {
