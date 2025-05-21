@@ -4,6 +4,9 @@ let generalItem = document.getElementById('general');
 let editItem = document.getElementById('edit');
 let updateItem = document.getElementById('update');
 
+// 初始化更改设置列表
+let changeSettingsList = [];
+
 function settingsItemClickEvent(indexOfItems, ...itemsDom) {
     let shouldApplyItem = itemsDom[indexOfItems];  // 定义点击就应用style的Item
     shouldApplyItem.addEventListener('click', () => {  // 通用
@@ -21,11 +24,6 @@ function settingsItemClickEvent(indexOfItems, ...itemsDom) {
     });
 }
 
-const closeButton = document.getElementById('close');
-closeButton.addEventListener('click', () => {
-    window.close();
-});
-
 // 设置菜单栏点击事件
 settingsItemClickEvent(0, generalItem, editItem, updateItem);
 settingsItemClickEvent(1, generalItem, editItem, updateItem);
@@ -33,9 +31,6 @@ settingsItemClickEvent(2, generalItem, editItem, updateItem);
 
 // ---- 读取硬盘中sqlite设置，以保持设置界面的状态一致性 START ----
 (async () => {
-    // 自动创建内存sqlite表
-    window.settings.initMemorySettings();
-
     // 设置表
     // ----通用----
     // 选择界面语言：lang_index: 0 || 1 || 2，0代表简体中文，1代表繁体中文，2代表English，初始化默认为0
@@ -59,14 +54,14 @@ settingsItemClickEvent(2, generalItem, editItem, updateItem);
     document.getElementById("display_horizon_scrollbar").value = await window.settings.getDisplayHorizonScrollbar();
 
     // 显示代码缩略图：display_code_scale: 1 || 0，1代表true，0代表false，初始化默认为0
-    document.getElementById("display_code_scale").checked = ((await window.settings.getDisplayCodeScale()) === 0);
+    document.getElementById("display_code_scale").checked = ((await window.settings.getDisplayCodeScale()) === 1);
     // 启用编辑器动画效果：display_editor_animation:  1 || 0，1代表true，0代表false，初始化默认为1
     document.getElementById("display_editor_animation").checked = ((await window.settings.getDisplayEditorAnimation()) === 1);
 })();
 // ---- 读取硬盘中sqlite设置，以保持设置界面的状态一致性 END ----
 
 
-// ---- 设置表单监听事件，并将更改值写入内存sqlite START ----
+// ---- 设置表单监听事件，并将更改值写入list ----
 function changeCheckButtonValue(instruction, type = "check") {
     /**
      * 将对应CheckButton的值写入内存sqlite
@@ -80,20 +75,51 @@ function changeCheckButtonValue(instruction, type = "check") {
         } else if (type === "values") {
             settingsValue = buttonElement.value;
         }
-        // 将值写入内存sqlite
-        window.settings.setMemorySettings(instruction, settingsValue);
+        // 将值写入更改列表
+        // 检查列表内是否已有instruction
+        let canUseInsert = true;
+        for (let i = 0; i < changeSettingsList.length; i++) {
+            if (instruction === changeSettingsList[i].instructions) {
+                changeSettingsList[i].settings_value = settingsValue;
+                canUseInsert = false;
+                break;
+            }
+        }
+        console.log(`inst: ${instruction}`);
+        console.log(`canUse: ${canUseInsert}`);
+
+        if (canUseInsert) changeSettingsList.push({
+            "instructions": instruction,
+            "settings_value": settingsValue,
+        });
     });
 }
 
-changeCheckButtonValue("lang_index");
-changeCheckButtonValue("editor_tab_size");
-changeCheckButtonValue("editor_font_size");
+changeCheckButtonValue("lang_index", "values");
+changeCheckButtonValue("editor_tab_size", "values");
+changeCheckButtonValue("editor_font_size", "values");
 changeCheckButtonValue("enable_line_num");
 changeCheckButtonValue("enable_code_fold");
 changeCheckButtonValue("enable_auto_wrap_line");
 changeCheckButtonValue("enable_auto_closure");
-changeCheckButtonValue("display_vertical_scrollbar");
-changeCheckButtonValue("display_horizon_scrollbar");
+changeCheckButtonValue("display_vertical_scrollbar", "values");
+changeCheckButtonValue("display_horizon_scrollbar", "values");
 changeCheckButtonValue("display_code_scale");
 changeCheckButtonValue("display_editor_animation");
 // ---- 设置表单监听事件，并将更改值写入内存sqlite END ----
+
+// 应用更改
+document.getElementById("apply").addEventListener("click", async () => {
+    if ((await window.settings.getSettingsConfirmOption(changeSettingsList))) window.settings.reloadSettings();
+});
+// 取消应用更改
+document.getElementById("close").addEventListener("click", async () => {
+    if (changeSettingsList.length !== 0) {
+        let confirmClose = await window.settings.getSettingsCancelOption();
+        if (confirmClose) window.close();
+    } else window.close();
+});
+// 重置设置
+document.getElementById("reset").addEventListener("click", async () => {
+    if ((await window.settings.getSettingsResetOption())) window.settings.reloadSettings();
+});

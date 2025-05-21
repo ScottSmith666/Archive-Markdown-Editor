@@ -94,7 +94,7 @@ const INIT_SETTINGS_ITEMS_KEY_VALUES = [
 const SETTINGS_DIR_PATH = os.homedir() + path.sep + ".archivemdconf";  // 配置文件置于$HOME目录
 const SQLITE_FILE_PATH = SETTINGS_DIR_PATH + path.sep + "settings.db";
 
-function SettingsConfigManager(memory = false) {
+function SettingsConfigManager() {
     /**
      * 初始化、读取和写入硬盘上的“设置”sqlite数据库
      */
@@ -107,24 +107,20 @@ function SettingsConfigManager(memory = false) {
      * Step2. 在Step1成立的前提下（即存在放sqliteDB文件的路径），判断有没有sqliteDB（settings.db），没有则创建一个
      * Step3. 在Step2成立的前提下，判断有没有sqlite数据表（AME_SETTINGS_CONF），没有则创建一个
      * Step4. 在Step3成立的前提下，判断表中“instructions”有没有相应的设置指令，没有则创建一个，并指定默认值。
-     * 注1. 当数据库路径为“:memory:”时，不需要判断数据库文件路径存在与否。
      */
-
-    let dbPath = memory ? ":memory:" : SQLITE_FILE_PATH;
 
     this.initConfigDir = () => {
         /**
-         * Step1: 初始化配置文件保存路径（在用户目录，文件夹名称：.archivemdconf），只能在memory = false的时候起作用
+         * Step1: 初始化配置文件保存路径（在用户目录，文件夹名称：.archivemdconf）
          */
-        if (!memory) fs.mkdirSync(SETTINGS_DIR_PATH);
-        else console.log("当数据库路径为“:memory:”时调用this.initConfigDir()函数不合适！");
+        fs.mkdirSync(SETTINGS_DIR_PATH);
     }
 
     this.initSettingsDB = () => {
         /**
          * Step2: 初始化配置文件数据库
          */
-        const db = new DatabaseSync(dbPath);
+        const db = new DatabaseSync(SQLITE_FILE_PATH);
         db.close();
     };
 
@@ -132,7 +128,7 @@ function SettingsConfigManager(memory = false) {
         /**
          * Step3: 初始化配置文件数据表 in 数据库
          */
-        const db = new DatabaseSync(dbPath);
+        const db = new DatabaseSync(SQLITE_FILE_PATH);
         const create = db.prepare(
             `CREATE TABLE ${ SETTINGS_TABLE_NAME } ( ${ PART_OF_SETTINGS_TABLE_CREATE } );`
         );
@@ -144,29 +140,25 @@ function SettingsConfigManager(memory = false) {
         /**
          * Step4: 初始化默认设置
          */
-        if (!memory) {
-            if (!this.dirIsExists()) this.initConfigDir();  // 存放sqliteDB文件的路径不存在，则创建
-            if (!this.dbFileIsExists()) this.initSettingsDB();  // 如果sqliteDB文件不存在，则新建db并读取，如存在，则正常读取
-            if (!this.settingsTableIsExists()) this.initSettingsTable();  // 如果sqlite数据表不存在，则新建一个
-            // 开始写入设置部分默认值
-            const db = new DatabaseSync(dbPath);
-            let insert = db.prepare(
-                `INSERT INTO ${ SETTINGS_TABLE_NAME } (${ PART_OF_SETTINGS_TABLE_INSERT }) VALUES (?, ?);`
-            );
-            for (let set of INIT_SETTINGS_ITEMS_KEY_VALUES) {  // settings记录循环写入
-                if (!this.settingsInstructionsIsExists(set.instructions)) insert.run(set.instructions, set.settings_value);
-            }
-            db.close();
-        } else {
-            if (!this.settingsTableIsExists()) this.initSettingsTable();  // 如果sqlite数据表不存在，则新建一个
+        if (!this.dirIsExists()) this.initConfigDir();  // 存放sqliteDB文件的路径不存在，则创建
+        if (!this.dbFileIsExists()) this.initSettingsDB();  // 如果sqliteDB文件不存在，则新建db并读取，如存在，则正常读取
+        if (!this.settingsTableIsExists()) this.initSettingsTable();  // 如果sqlite数据表不存在，则新建一个
+        // 开始写入设置部分默认值
+        const db = new DatabaseSync(SQLITE_FILE_PATH);
+        let insert = db.prepare(
+            `INSERT INTO ${ SETTINGS_TABLE_NAME } (${ PART_OF_SETTINGS_TABLE_INSERT }) VALUES (?, ?);`
+        );
+        for (let set of INIT_SETTINGS_ITEMS_KEY_VALUES) {  // settings记录循环写入
+            if (!this.settingsInstructionsIsExists(set.instructions)) insert.run(set.instructions, set.settings_value);
         }
+        db.close();
     };
 
     this.deleteSettingsConfig = () => {
         /**
          * 删除数据表
          */
-        const db = new DatabaseSync(dbPath);
+        const db = new DatabaseSync(SQLITE_FILE_PATH);
         let deleteTable = db.prepare(`DROP TABLE ${ SETTINGS_TABLE_NAME };`);
         deleteTable.run();
         db.close();
@@ -184,14 +176,14 @@ function SettingsConfigManager(memory = false) {
      */
     this.dirIsExists = () => fs.existsSync(SETTINGS_DIR_PATH);  // 判断存放sqliteDB文件的路径是否存在
 
-    this.dbFileIsExists = () => fs.existsSync(dbPath);  // 判断sqliteDB文件是否存在
+    this.dbFileIsExists = () => fs.existsSync(SQLITE_FILE_PATH);  // 判断sqliteDB文件是否存在
 
     this.settingsTableIsExists = () => {
         /**
          * 判断sqlite数据表是否存在
          * @type {module:node:sqlite.DatabaseSync}
          */
-        const db = new DatabaseSync(dbPath);
+        const db = new DatabaseSync(SQLITE_FILE_PATH);
         const tableExists = db.prepare(`PRAGMA table_info(${ SETTINGS_TABLE_NAME });`).all();
         db.close();
         return (tableExists.length !== 0);
@@ -201,7 +193,7 @@ function SettingsConfigManager(memory = false) {
         /**
          * 判断表中是否存在“instructions”相应的设置指令
          */
-        const db = new DatabaseSync(dbPath);
+        const db = new DatabaseSync(SQLITE_FILE_PATH);
         const query =
             // SETTINGS_TABLE_COL_AND_TYPES[0].colName表示选表中第一个列作为筛选条件
             db.prepare(`SELECT * FROM ${ SETTINGS_TABLE_NAME } WHERE ${ SETTINGS_TABLE_COL_AND_TYPES[0].colName }='${ instructionName }';`).all();
@@ -217,7 +209,7 @@ function SettingsConfigManager(memory = false) {
         let condition
             = applyCondition ? ` WHERE ${ SETTINGS_TABLE_COL_AND_TYPES[0].colName }='${ instruction }'` : '';
         this.initSettingsConfig();  // 如不存在则初始化
-        const db = new DatabaseSync(dbPath);
+        const db = new DatabaseSync(SQLITE_FILE_PATH);
         const query =
             db.prepare(`SELECT * FROM ${ (SETTINGS_TABLE_NAME + condition) };`).all();
         db.close();
@@ -229,7 +221,7 @@ function SettingsConfigManager(memory = false) {
          * 写入新设置内容
          */
         this.initSettingsConfig();  // 如不存在则初始化
-        const db = new DatabaseSync(dbPath);
+        const db = new DatabaseSync(SQLITE_FILE_PATH);
         let inst = (type === "update")
             ? db.prepare(`UPDATE ${ SETTINGS_TABLE_NAME } SET settings_value = ${ value } WHERE ${ SETTINGS_TABLE_COL_AND_TYPES[0].colName }='${ instruction }';`)
             : db.prepare(`INSERT INTO ${ SETTINGS_TABLE_NAME } VALUES (${ instruction }, ${ value });`);

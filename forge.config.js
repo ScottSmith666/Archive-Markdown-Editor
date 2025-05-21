@@ -27,7 +27,6 @@ module.exports = {
             "electron-cache",
             "package-lock.json",
             "node_modules/electron",
-            "node_modules/appdmg",
             "libs/third_party/monaco/CHANGELOG.md",
             "libs/third_party/monaco/dev",
             "libs/third_party/monaco/esm",

@@ -9,6 +9,7 @@ const GlobalVar = require("./libs/globalvar");
 const GlobalMenu = require("./menu");
 const SqliteMan = require("./libs/sqliteman");
 const LanguageLocale = require("./libs/languages");
+const ConfirmDialog = require("./dialogs");
 
 
 // function traySettings() {
@@ -75,46 +76,94 @@ app.whenReady().then(() => {
         return Number(settingsConfigManager.getSettings(instruction));
     });
 
-    ipcMain.handle('load-memory-settings', async (event, instruction, query) => {
+    ipcMain.handle('settings-cancel-option', (event) => {
         /**
-         * 从内存上的本地Sqlite数据库读取settings（query = true时返回第一个结果，query为false时返回总记录条数）
+         * 点击“取消”时弹出确认关闭不保存设置弹框
          */
-        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
-        return Number(settingsMemoryConfigManager.getSettings(instruction, query));
+        win.focus();
+        let warningConfirmDialogChosen = new ConfirmDialog(
+                                                            win,
+                                                            "warning",
+                                                            ["不关闭", "关闭"],
+                                                            1,
+                                                            '设置未应用',
+                                                            '您有设置未应用，要直接关闭“设置”窗口吗？如选择“关闭”，改动将不会应用。',
+                                                            0
+                                                        );
+        return warningConfirmDialogChosen.confirm;  // 返回true则直接关闭设置对话框
     });
 
-    ipcMain.on('set-storage-settings', (event, instruction, value) => {
+    ipcMain.handle('settings-confirm-option', (event, instructionList) => {
         /**
-         * 修改硬盘上的本地Sqlite数据库settings
+         * 点击“应用更改”时弹出确认应用设置弹框
          */
-        const settingsConfigManager = new SqliteMan.SettingsConfigManager();
-        settingsConfigManager.setSettings(instruction, value);
+        win.focus();
+        if (instructionList.length > 0) {  // 有更改的设置
+            let warningConfirmDialogChosen = new ConfirmDialog(
+                win,
+                "warning",
+                ["取消", "应用"],
+                1,
+                '确认应用',
+                '您确定应用刚才更改的设置吗？如选择“应用”，程序将重新启动，请注意保存您的数据。',
+                0
+            );
+            if (warningConfirmDialogChosen.confirm) {  // 返回true则应用重启应用设置
+                let settingsConfigManager = new SqliteMan.SettingsConfigManager();
+                // 写入sqlite
+                for (let instruction of instructionList) {
+                    settingsConfigManager.setSettings(
+                        instruction.instructions,
+                        instruction.settings_value,
+                        settingsConfigManager.settingsInstructionsIsExists(instruction.instructions) ? "update" : "insert",
+                    );
+                }
+                return true;
+            }
+        } else {  // 没有更改的设置，提示不需要应用
+            new ConfirmDialog(
+                win,
+                "warning",
+                ["确定"],
+                1,
+                '应用提示',
+                '您未更改任何设置，无需进行应用。',
+                0
+            );
+        }
+        return false;
     });
 
-    ipcMain.on('set-memory-settings', (event, instruction, value, type) => {
+    ipcMain.handle('settings-reset-option', (event) => {
         /**
-         * 修改内存上的本地Sqlite数据库settings
+         * 点击“重置”时弹出确认应用设置弹框
          */
-        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
-        settingsMemoryConfigManager.setSettings(instruction, value, type);
+        win.focus();
+        let warningConfirmDialogChosen = new ConfirmDialog(
+            win,
+            "warning",
+            ["取消", "重置"],
+            1,
+            '确认重置',
+            '您确定重置本程序的所有设置吗？',
+            0
+        );
+        if (warningConfirmDialogChosen.confirm) {  // 返回true则应用重置设置
+            // 写入sqlite
+            let settingsConfigManager = new SqliteMan.SettingsConfigManager();
+            settingsConfigManager.deleteSettingsConfig();
+            settingsConfigManager.initSettingsConfig();
+            return true;
+        }
+        return false;
     });
 
-    ipcMain.handle('memory-sqlite-table-init', async (event) => {
-        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
-        settingsMemoryConfigManager.initSettingsConfig();
-        return 0;
-    });
-
-    ipcMain.handle('memory-sqlite-table-delete', async (event) => {
-        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
-        settingsMemoryConfigManager.deleteSettingsConfig();
-        return 0;
-    });
-
-    ipcMain.handle('memory-settings-inst-exists', async (event, inst) => {
-        const settingsMemoryConfigManager = new SqliteMan.SettingsConfigManager(true);
-        settingsMemoryConfigManager.settingsInstructionsIsExists(inst);
-        return settingsMemoryConfigManager.deleteSettingsConfig();
+    ipcMain.on('reload-app', (event) => {
+        /**
+         * 重启整个应用
+         */
+        app.relaunch();
+        app.quit();
     });
 
     ipcMain.handle('load-language-user-surface', async (event, part) => {
