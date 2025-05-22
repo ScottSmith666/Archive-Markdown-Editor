@@ -120,9 +120,6 @@ require(['vs/editor/editor.main'], async function () {
     // preset value
     // editor.setValue(preset);
 
-    // 初始化渲染
-    renderChange();
-
     // Ctrl/Cmd + C快捷键
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, function() {
         copy(true);
@@ -138,8 +135,10 @@ require(['vs/editor/editor.main'], async function () {
         console.log('剪切');
     });
     // Monaco Editor内容改变事件
+    let oldValue = editor.getValue();
     editor.onDidChangeModelContent(function(e){
-        renderChange();
+        renderChange(oldValue);  // 参数“oldValue”是上一次的渲染内容，便于前后比对以进行局部更新
+        oldValue = editor.getValue();
     });
     editor.onDidScrollChange(() => {
         // 获取编辑区滚动到哪里了
@@ -155,7 +154,7 @@ require(['vs/editor/editor.main'], async function () {
         parentGetRenderAreaTotalHeight.scrollTo({
             top: editor.getVisibleRanges()[0].startLineNumber !== 1 ? getRenderAreaTotalHeight * rollProcess : 0,
             left: 0,
-            behavior: "smooth",
+            behavior: "instant",
         });
     });
 
@@ -211,7 +210,6 @@ require(['vs/editor/editor.main'], async function () {
 
         let editorAreaHasFocus = editor.hasTextFocus();  // 编辑器是否聚焦
 
-        // 将选中文本送入剪贴板，完成复制
         if (rightMenuNeed) {
             editor.focus();
             editorAreaHasFocus = editor.hasTextFocus();
@@ -264,11 +262,16 @@ require(['vs/editor/editor.main'], async function () {
         });
     }
 
-    function renderChange() {
+    function renderChange(oldEditorValue) {
+        /**
+         * 参数“oldEditorValue”是上一次的渲染内容，便于前后比对以进行局部更新
+         * @type {null}
+         */
         // 判断textarea是否有内容而选择性显示“Markdown渲染区”
-        document.getElementById("write").innerHTML = null;  // 初始化渲染区
+
+        let newEditorValue = editor.getValue();
         let renderPlaceholderObj = document.getElementById("render-placeholder");
-        if (editor.getValue() !== "") renderPlaceholderObj.style.display = "none";
+        if (newEditorValue !== "") renderPlaceholderObj.style.display = "none";
         else renderPlaceholderObj.style.display = "block";
 
         // 监视👀当前编辑区光标位置
@@ -276,57 +279,123 @@ require(['vs/editor/editor.main'], async function () {
         let presentLineProp = editor.getPosition().lineNumber / editor.getModel().getLineCount();
 
         // 渲染Markdown
-        let mdParserList = marked.lexer(editor.getValue());
+        let mdParserList = marked.lexer(newEditorValue);  // 获得整个Markdown文档的抽象语法树
+        let mdParserListOld = marked.lexer(oldEditorValue);  // 获得上一次编辑的整个Markdown文档的抽象语法树
+
         let total = mdParserList.length;
         let chunk = 200;
         let countOfRender = 0;
         let status = true;
 
-        function loop(){
-            // 浏览器单线程，一次性渲染大量的DOM，会阻塞用户操作，阻塞CSS渲染，有较长白屏事件等问题
-            // 所以我们只需要每次渲染少量的DOM不会阻塞用户操作即可解决这些问题
-            requestAnimationFrame(async ()=> {
-                let fragment = document.createDocumentFragment();
-                // 每次只渲染chunk条数据
-                for (let i = 0; i < chunk; i++) {
-                    let temp = document.createElement("div");
-                    // 当DOM渲染完就退出
-                    if (countOfRender >= total) {
-                        status = false;
-                        break;
-                    }
-                    temp.setAttribute("id", ("block" + countOfRender));
-                    let afterBlock = marked.parser([mdParserList[countOfRender]]);
+        if (oldEditorValue === "") {  // 如果检测到前一次编辑器内部没有内容，后面的内容就全量更新
+            function loop() {
+                // 浏览器单线程，一次性渲染大量的DOM，会阻塞用户操作，阻塞CSS渲染，有较长白屏事件等问题
+                // 所以我们只需要每次渲染少量的DOM不会阻塞用户操作即可解决这些问题
+                // 递归进行
+                requestAnimationFrame(async () => {
+                    let fragment = document.createDocumentFragment();
+                    // 每次只渲染chunk条数据
+                    for (let i = 0; i < chunk; i++) {
+                        let temp = document.createElement("div");
+                        // 当DOM渲染完就退出
+                        if (countOfRender >= total) {
+                            status = false;
+                            break;
+                        }
+                        temp.setAttribute("id", ("block" + countOfRender));
+                        let afterBlock = marked.parser([mdParserList[countOfRender]]);
 
-                    let afterProcessedHTML = processHTML(afterBlock, mdParserList[countOfRender]);
-                    fragment.appendChild(afterProcessedHTML);  // 对HTML进行处理
-                    countOfRender++;
+                        let afterProcessedHTML = processHTML(afterBlock, mdParserList[countOfRender]);
+                        fragment.appendChild(afterProcessedHTML);  // 对HTML进行处理
+                        countOfRender++;
+                    }
+                    document.getElementById("write").appendChild(fragment);
+                    if (!status) {
+                        // 整个文档已经渲染完成
+                        MathJax.typesetPromise();
+                        // 使渲染区滚动到相应位置
+                        let getRenderAreaTotalHeight = document.getElementById("write").offsetHeight;
+                        let parentGetRenderAreaTotalHeight = document.querySelector(".middle-content-render");
+                        parentGetRenderAreaTotalHeight.scrollTo({
+                            top: getRenderAreaTotalHeight * presentLineProp,
+                            left: 0,
+                            behavior: "instant",
+                        });
+                        // 重新渲染mermaid
+                        await mde.mermaid.run({
+                            querySelector: '.mermaid',
+                        });
+                        // 重新渲染prism
+                        prism();
+                        watchATags(document.getElementById('write'));
+                        return 0;
+                    }
+                    loop();
+                });
+            }
+            loop();
+        } else {
+            if (editor.getValue() === "") {
+                // 如果当前编辑器内容为空，则清空渲染区所有DOM，以显示placeholder
+                document.getElementById("write").innerHTML = null;  // 初始化渲染区
+            } else {
+                // 前一次编辑器内部有内容，且当前编辑器内容不为空，说明只改动了部分，则进行局部更新
+                function getHash(obj) {
+                    function sortObjectKeys(o) {
+                        if (o === null || typeof o !== 'object') {
+                            return o;
+                        }
+                        if (Array.isArray(o)) {
+                            return o.map(sortObjectKeys);
+                        }
+                        const sorted = {};
+                        Object.keys(o).sort().forEach(key => {
+                            sorted[key] = sortObjectKeys(o[key]);
+                        });
+                        return sorted;
+                    }
+                    const sortedObj = sortObjectKeys(obj);
+                    return JSON.stringify(sortedObj);
                 }
-                document.getElementById("write").appendChild(fragment);
-                if (!status) {
-                    // 整个文档已经渲染完成
-                    MathJax.typesetPromise();
-                    // 使渲染区滚动到相应位置
-                    let getRenderAreaTotalHeight = document.getElementById("write").offsetHeight;
-                    let parentGetRenderAreaTotalHeight = document.querySelector(".middle-content-render");
-                    parentGetRenderAreaTotalHeight.scrollTo({
-                        top: getRenderAreaTotalHeight * presentLineProp,
-                        left: 0,
-                        behavior: "instant",
+                // 计算出需要局部更新时的文档列表元素
+                function computeDiff(oldArray, newArray) {
+                    const oldMap = new Map();
+                    oldArray.forEach((obj, index) => {
+                        const hash = getHash(obj);
+                        if (!oldMap.has(hash)) {
+                            oldMap.set(hash, []);
+                        }
+                        oldMap.get(hash).push(index);
                     });
-                    // 重新渲染mermaid
-                    await mde.mermaid.run({
-                        querySelector: '.mermaid',
+
+                    const matchedOldIndices = new Set();
+                    const added = [];
+
+                    newArray.forEach((newObj, newIndex) => {
+                        const hash = getHash(newObj);
+                        if (oldMap.has(hash) && oldMap.get(hash).length > 0) {
+                            const oldIndex = oldMap.get(hash).shift();
+                            matchedOldIndices.add(oldIndex);
+                        } else {
+                            added.push({ added_object: newObj, in_new_index: newIndex });
+                        }
                     });
-                    // 重新渲染prism
-                    prism();
-                    watchATags(document.getElementById('write'));
-                    return 0;
+
+                    const deleted = [];
+                    oldArray.forEach((oldObj, oldIndex) => {
+                        if (!matchedOldIndices.has(oldIndex)) {
+                            deleted.push({ deleted_object: oldObj, in_old_index: oldIndex });
+                        }
+                    });
+
+                    return [...deleted, ...added];
                 }
-                loop();
-            });
+
+                console.log(mdParserListOld);
+                console.log(mdParserList);
+                console.log(computeDiff(mdParserListOld, mdParserList));
+            }
         }
-        loop();
     }
 
     function prism() {

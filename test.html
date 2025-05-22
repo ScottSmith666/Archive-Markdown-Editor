@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>实时Markdown预览</title>
+    <script src="./libs/third_party/marked/marked.min.js"></script>
+</head>
+<body>
+
+<script>
+    function getHash(obj) {
+        function sortObjectKeys(o) {
+            if (o === null || typeof o !== 'object') {
+                return o;
+            }
+            if (Array.isArray(o)) {
+                return o.map(sortObjectKeys);
+            }
+            const sorted = {};
+            Object.keys(o).sort().forEach(key => {
+                sorted[key] = sortObjectKeys(o[key]);
+            });
+            return sorted;
+        }
+        const sortedObj = sortObjectKeys(obj);
+        return JSON.stringify(sortedObj);
+    }
+
+    function computeDiff(oldArray, newArray) {
+        const oldMap = new Map();
+        oldArray.forEach((obj, index) => {
+            const hash = getHash(obj);
+            if (!oldMap.has(hash)) {
+                oldMap.set(hash, []);
+            }
+            oldMap.get(hash).push(index);
+        });
+
+        const matchedOldIndices = new Set();
+        const added = [];
+
+        newArray.forEach((newObj, newIndex) => {
+            const hash = getHash(newObj);
+            if (oldMap.has(hash) && oldMap.get(hash).length > 0) {
+                const oldIndex = oldMap.get(hash).shift();
+                matchedOldIndices.add(oldIndex);
+            } else {
+                added.push({ added_object: newObj, in_new_index: newIndex });
+            }
+        });
+
+        const deleted = [];
+        oldArray.forEach((oldObj, oldIndex) => {
+            if (!matchedOldIndices.has(oldIndex)) {
+                deleted.push({ deleted_object: oldObj, in_old_index: oldIndex });
+            }
+        });
+
+        return [...deleted, ...added];
+    }
+
+    let oldArr = [{"a": 1}, {"b": 2}, {"c": 3}];
+    let newArr = [{"a": 1}, {"bbb": 2}, {"c": 3}];
+    console.log(oldArr);
+    console.log(newArr);
+    console.log(computeDiff(oldArr, newArr));
+</script>
+</body>
+</html>
