@@ -113,6 +113,7 @@
 
                         <div class="fonts line-num" id="write">
                             <!--所有的文档内容，均inject在该标签的内部，不可inject在其他地方！-->
+                            <div v-for="(item, index) in mdResult" v-html="renderExecute(item)" :key="'marked-' + index"></div>
                         </div>
                     </div>
                 </div>
@@ -127,57 +128,30 @@
 <script src="./libs/third_party/marked/marked.min.js"></script>
 <!--导入微软Monaco editor组件-->
 <script src="./libs/third_party/monaco/min/vs/loader.js"></script>
-<!--导入Latex数学公式库-->
-<script>
-    MathJax = {
-        tex: {
-            inlineMath: [
-                ['$', '$'],
-                ['\\(', '\\)']
-            ],
-            displayMath: [
-                // displayMath是一个数组，用来指定行间公式的起始符号和结束符号
-                ['$$', '$$'],
-                ['\\[', '\\]'],
-            ],
-        },
-        load: [
-            'input/tex-base', // 必备基础库
-            'output/chtml', // 必备基础库，用来将tex转换成html
-            '[tex]/action', // [tex]/action库包含了\require等宏，可以用来加载其他的宏包
-            '[tex]/mhchem', // mhchem库用来输入化学方程式
-            '[tex]/ams', // [tex]/ams库包含了大量的数学符号和数学环境，比如\begin{align}等
-        ],
-        packages: ['base', 'action', 'mhchem', 'ams'],
-        PreviewHTML: {
-            scale: 120,
-            linebreaks: {
-                automatic: true
-            },
-        },
-        options: {
-            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'a'],
-            ignoreHtmlClass: 'code-editor',
-            processEscapes: true,
-        }
-    };
-
-    const mde = {};
-</script>
-<script id="MathJax-script" async src="./libs/third_party/MathJax/es5/tex-chtml-full.js"></script>
+<!--导入Vue3库（性能优化用）-->
+<script src="./libs/third_party/vue3/vue.global.js"></script>
 <!--Mermaid 图形库-->
 <script type="module">
     import mermaid from './libs/third_party/mermaid/dist/mermaid.esm.min.mjs';
     mermaid.initialize({
         startOnLoad: false,
     });
-
     mde.mermaid = mermaid;
+    // console.log("mermaid")
 </script>
-<!--HTML预处理-->
-<script src="./renderer/ref-for-renderer/styleApplyPreprocess.js"></script>
+
+<!--导入Latex数学公式库-->
+<script src="./mathjax-config.js" defer></script>
+<script id="MathJax-script" async></script>
 <!--Editor智能提示配置-->
 <script src="./renderer/ref-for-renderer/editorSuggestions.js"></script>
 <!--导入核心renderer-->
-<script src="./renderer/renderer.js"></script>
+<script src="./renderer/ref-for-renderer/coreMarkdownRender.js"></script>
+<script>
+    let mde = {};
+    const { createApp, nextTick } = Vue;
+    const app = createApp(renderProcess);
+    app.mount("#write");
+</script>
+<!--<script src="./renderer/renderer.js"></script>-->
 </html>

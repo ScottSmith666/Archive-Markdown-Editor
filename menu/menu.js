@@ -1,22 +1,19 @@
 "use strict";
 
-const { app, BrowserWindow, dialog, shell} = require("electron");
-const LanguageLocale = require('./libs/languages');
-const GlobalVar = require('./libs/globalvar');
-const ConfirmDialog = require('./dialogs');
-
-const SqliteMan = require('./libs/sqliteman');
 const path = require("node:path");
-
+const { app, BrowserWindow } = require("electron");
+const LanguageLocale = require(path.join(__dirname, '../libs/languages'));
+const SqliteMan = require(path.join(__dirname, '../libs/sqliteman'));
+const Windows = require(path.join(__dirname, '../multi-windows/windows'));
+const LittleWindows = require(path.join(__dirname, '../multi-windows/littlewindows'));
 
 // 加载设置文件内容
 const settingsConfigManager = new SqliteMan.SettingsConfigManager();
 
-let gVar = new GlobalVar();
 let appLangOrder = Number(settingsConfigManager.getSettings("lang_index"));
 let appLangObj = new LanguageLocale();
-let langList = appLangObj.languageObject;
 let appLang = appLangObj.operationsInstructions;
+let littleWindows = new LittleWindows();
 
 function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
     const isMac = process.platform === 'darwin';
@@ -27,7 +24,7 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
                 label: appLang().menu.settings[appLangOrder],
                 accelerator: 'command+,',
                 click: () => {
-                    settingsPage();
+                    settingsWindow = littleWindows.settingsPage(mainWindow, settingsWindow);
                 }
             },
             {
@@ -67,66 +64,6 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
         return subMenu;
     }
 
-    let aboutPage = () => {
-        if (!aboutWindow) {  // 判断“关于”窗口是否已打开，防止重复打开同一个窗口
-            aboutWindow = new BrowserWindow({  // 创建“关于”窗口对象
-                backgroundColor: '#ffffff',
-                width: 630,
-                height: 620,
-                frame: false,  // 无边框
-                resizable: false,  // 不可调节大小
-                parent: mainWindow,
-                show: false,
-                webPreferences: {
-                    preload: path.join(__dirname, 'preload/preload-about.js'),
-                },
-                devTools: gVar.DEBUG,
-            });
-            aboutWindow.loadFile("ui/about.html");
-            aboutWindow.on('ready-to-show', function () {
-                aboutWindow.show();  // 初始化后再显示
-            });
-            aboutWindow.setAlwaysOnTop(true, 'screen-saver');
-            if (gVar.DEBUG) aboutWindow.webContents.openDevTools();  // 打开开发者工具
-            aboutWindow.on('closed', () => {
-                // 当窗口被关闭时，将 aboutWin 设置为 null
-                aboutWindow = null;
-            });
-        } else {
-            aboutWindow.show();
-        }
-    }
-
-    let settingsPage = () => {
-        if (!settingsWindow) {  // 判断“关于”窗口是否已打开，防止重复打开同一个窗口
-            settingsWindow = new BrowserWindow({  // 创建“关于”窗口对象
-                backgroundColor: '#ffffff',
-                width: 630,
-                height: 470,
-                frame: false,  // 无边框
-                resizable: false,  // 不可调节大小
-                parent: mainWindow,
-                show: false,
-                webPreferences: {
-                    preload: path.join(__dirname, 'preload/preload-settings.js'),
-                },
-                devTools: gVar.DEBUG,
-            });
-            settingsWindow.loadFile("ui/settings.html");
-            settingsWindow.on('ready-to-show', function () {
-                settingsWindow.show();  // 初始化后再显示
-            });
-            settingsWindow.setAlwaysOnTop(true, 'screen-saver');
-            if (gVar.DEBUG) settingsWindow.webContents.openDevTools();  // 打开开发者工具
-            settingsWindow.on('closed', () => {
-                // 当窗口被关闭时，将 aboutWin 设置为 null
-                settingsWindow = null;
-            });
-        } else {
-            settingsWindow.show();
-        }
-    };
-
     this.menu = [
         ...(isMac ? [{  // 如果是Mac，则显示苹果标志右边的那个特殊菜单栏
                 label: app.name,
@@ -134,14 +71,14 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
                     {
                         label: appLang().menu.about[appLangOrder],
                         click: () => {
-                            aboutPage();
+                            aboutWindow = littleWindows.aboutPage(mainWindow, aboutWindow);
                         }
                     },
                     {
                         label: appLang().menu.settings[appLangOrder],
                         accelerator: 'command+,',
                         click: () => {
-                            settingsPage();
+                            settingsWindow = littleWindows.settingsPage(mainWindow, settingsWindow);
                         }
                     },
                     {
@@ -164,7 +101,8 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
                     label: appLang().menu.new[appLangOrder],
                     accelerator: isMac ? 'command+n' : 'ctrl+n', //绑定快捷键
                     click: () => {
-                        console.log('打开文件');
+                        let newFileWindow = new Windows();
+                        newFileWindow.mainWindow(mainWindow);
                     }
                 },
                 {
@@ -286,6 +224,22 @@ function GlobalMenu(mainWindow, aboutWindow, settingsWindow) {
                 },
             ],
         },
+    ];
+
+    this.menuSimple = [
+        ...(isMac ? [{  // 如果是Mac，则显示苹果标志右边的那个特殊菜单栏
+                label: app.name,
+                submenu: [
+                    {
+                        label: appLang().menu.quit[appLangOrder],
+                        accelerator: "command+q",
+                        click: () => {
+                            app.quit();
+                        }
+                    }
+                ]
+            }] : []
+        ),
     ];
 }
 
