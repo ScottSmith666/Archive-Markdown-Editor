@@ -1,21 +1,21 @@
-const {ipcMain, app, shell} = require("electron");
+const { ipcMain } = require("electron");
 const path = require("node:path");
 const SqliteMan = require(path.join(__dirname, "../libs/sqliteman"));
 const ConfirmDialog = require(path.join(__dirname, "../dialogs"));
-const LanguageLocale = require(path.join(__dirname, "../libs/languages"));
-const GlobalVar = require(path.join(__dirname, "../libs/globalvar"));
 
-function ForMain() {
-    this.mainIpcMain = (mainWin) => {
-        let gVar = new GlobalVar();
-        ipcMain.handle('load-storage-settings', async (event, instruction) => {
+
+function ForWork() {
+    this.workIpcMain = (mainWin) => {
+        let windowId = mainWin.id;  // 获取window Id，使创建的ipc唯一
+
+        ipcMain.handle('load-storage-settings' + windowId, async (event, instruction) => {
             /**
              * 从硬盘上的本地Sqlite数据库读取settings
              */
             const settingsConfigManager = new SqliteMan.SettingsConfigManager();
             return Number(settingsConfigManager.getSettings(instruction));
         });
-        ipcMain.handle('settings-cancel-option', (event) => {
+        ipcMain.handle('settings-cancel-option' + windowId, (event) => {
             /**
              * 点击“取消”时弹出确认关闭不保存设置弹框
              */
@@ -31,7 +31,7 @@ function ForMain() {
             );
             return warningConfirmDialogChosen.confirm;  // 返回true则直接关闭设置对话框
         });
-        ipcMain.handle('settings-confirm-option', (event, instructionList) => {
+        ipcMain.handle('settings-confirm-option' + windowId, (event, instructionList) => {
             /**
              * 点击“应用更改”时弹出确认应用设置弹框
              */
@@ -71,7 +71,7 @@ function ForMain() {
             }
             return false;
         });
-        ipcMain.handle('settings-reset-option', (event) => {
+        ipcMain.handle('settings-reset-option' + windowId, (event) => {
             /**
              * 点击“重置”时弹出确认应用设置弹框
              */
@@ -94,30 +94,7 @@ function ForMain() {
             }
             return false;
         });
-        ipcMain.on('reload-app', (event) => {
-            /**
-             * 重启整个应用
-             */
-            app.relaunch();
-            app.quit();
-        });
-        ipcMain.handle('load-language-user-surface', async (event, part) => {
-            /**
-             * 载入用户语言界面
-             */
-            return new LanguageLocale().operationsInstructions()[part];
-        });
-        ipcMain.handle('switch-debug', async (event) => {
-            /**
-             * 开启/关闭DEBUG选项，便于调试
-             */
-            return gVar.DEBUG;
-        });
-        // 通过默认浏览器打开外部链接
-        ipcMain.on('open-url', (event, url) => {
-            shell.openExternal(url);
-        });
     };
 }
 
-module.exports = ForMain;
+module.exports = ForWork;

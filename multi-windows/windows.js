@@ -4,9 +4,9 @@ const path = require("node:path");
 const GlobalVar = require(path.join(__dirname, "../libs/globalvar"));
 
 function Windows() {
-    this.mainWindow = (win) => {
+    this.workSpaceWindow = () => {
         let gVar = new GlobalVar();
-        win = new BrowserWindow({  // 主窗口
+        let win = new BrowserWindow({  // 主窗口
             backgroundColor: '#ffffff',
             autoHideMenuBar: true,
             width: 1600,
@@ -18,15 +18,15 @@ function Windows() {
             show: false,
             icon: path.join(__dirname, "../assets/app_icon/tmp.iconset/icon_256x256.png"),
             webPreferences: {
-                preload: path.join(__dirname, '../preload/preload.js'),
+                preload: path.join(__dirname, '../preload/preload-work.js'),
             },
             devTools: gVar.DEBUG,
         });
-        win.loadFile(path.join(__dirname, '../index.html'));
+        const url = `file://${ __dirname }/../ui/workspace.html?windowId=${win.id}`;  // 传递应用打开生命周期内窗口唯一ID
+        win.loadURL(url);
         win.on('ready-to-show', function () {
             win.show();  // 初始化后再显示
         });
-
         if (gVar.DEBUG) win.webContents.openDevTools();  // 打开开发者工具
         win.on('closed', () => {
             // 当窗口被关闭时，将 mainWindow 设置为 null

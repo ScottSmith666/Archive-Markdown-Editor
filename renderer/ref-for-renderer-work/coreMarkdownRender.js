@@ -9,8 +9,19 @@ let renderProcess = {
         // 载入UI语言
         this.loadLanguage();
 
+        // new 快捷键事件
+        window.addEventListener("keydown", function(event) {
+            // 判断是否按下了Ctrl/Command键和 N 键
+            if (event.ctrlKey && event.key === "n") {  // Windows
+                window.openNewWindow.openNew();
+            }
+            if (event.metaKey && event.key === "n") {  // macOS
+                window.openNewWindow.openNew();
+            }
+        });
+
         // 初始化编辑器
-        require.config({paths: {vs: './libs/third_party/monaco/min/vs'}});
+        require.config({paths: {vs: '../libs/third_party/monaco/min/vs'}});
         require.config({'vs/nls': {availableLanguages: {'*': 'zh-cn'}}});
         require(['vs/editor/editor.main'], async () => {
 
@@ -115,6 +126,8 @@ let renderProcess = {
 
             // 初始化值
             this.renderChange(editor);
+            // 初始化聚焦
+            editor.focus();
 
             // Ctrl/Cmd + C快捷键
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC,  () => {
@@ -185,19 +198,235 @@ let renderProcess = {
                 }
             });
 
-            // ----菜单栏 START----
-            // 复制 || 剪切
-            window.contentOperateCVA.copy((keep) => {
-                this.copy(editor, keep);
+            this.mainManuHoverIn("file");
+            this.mainManuHoverOut("file");
+
+            this.mainManuHoverIn("edit");
+            this.mainManuHoverOut("edit");
+
+            this.mainManuHoverIn("view");
+            this.mainManuHoverOut("view");
+
+            this.mainManuHoverIn("help");
+            this.mainManuHoverOut("help");
+
+            document.getElementById("cnt").addEventListener('mouseenter', (e) => {
+                this.mainManuAllHide("file", "edit", "view", "help");
             });
-            // 粘贴
-            window.contentOperateCVA.paste(() => {
+
+            // main menu点击事件
+
+            // cut
+            document.getElementById("main-menu-cut").addEventListener('click', (e) => {
+                this.copy(editor, false, true);
+                this.mainManuAllHide("file", "edit", "view", "help");
+            });
+            // copy
+            document.getElementById("main-menu-copy").addEventListener('click', (e) => {
+                this.copy(editor, true, true);
+                this.mainManuAllHide("file", "edit", "view", "help");
+            });
+            // paste
+            document.getElementById("main-menu-paste").addEventListener('click', (e) => {
                 this.mdPaste(editor);
+                this.mainManuAllHide("file", "edit", "view", "help");
             });
-            // ----菜单栏 END----
+
+            // about
+            document.getElementById("about").addEventListener("click", (e) => {
+                this.mainManuAllHide("file", "edit", "view", "help");
+                document.getElementById("about-modal").style.display = "block";  // 先出现
+                document.styleSheets[0].insertRule(
+                    `@keyframes aboutin {
+                               0% {opacity: 0;}
+                               100% {opacity: 1;} 
+                           }`,
+                    0
+                );
+                document.getElementById("about-modal-face").style.animation = "aboutin 0.3s ease";
+            });
+            // settings
+            document.getElementById("settings").addEventListener("click", (e) => {
+                this.mainManuAllHide("file", "edit", "view", "help");
+                document.getElementById("settings-modal").style.display = "block";
+            });
+
+            // about内部按钮关闭监听
+            document.getElementById("confirm-button-close-about").addEventListener("click", (e) => {
+                this.mainManuAllHide("file", "edit", "view", "help");
+                document.styleSheets[0].insertRule(
+                    `@keyframes aboutout {
+                               0% {opacity: 1;}
+                               100% {opacity: 0;} 
+                           }`,
+                    0
+                );
+                document.getElementById("about-modal-face").style.animation = "aboutout 0.3s ease";
+                document.getElementById("about-modal").style.display = "none";  // 最后消失
+            });
+            // 点击about模态框其他地方关闭
+            document.getElementById("about-modal-surface").addEventListener("click", (e) => {
+                document.styleSheets[0].insertRule(
+                    `@keyframes aboutout {
+                               0% {opacity: 1;}
+                               100% {opacity: 0;} 
+                           }`,
+                    0
+                );
+                document.getElementById("about-modal-face").style.animation = "aboutout 0.3s ease";
+                document.getElementById("about-modal").style.display = "none";  // 最后消失
+            });
+
+            // settings内部其他事件
+            let generalItem = document.getElementById('general');
+            let editItem = document.getElementById('set-edit');
+            let updateItem = document.getElementById('update');
+
+            // 初始化更改设置列表
+            let changeSettingsList = [];
+
+            function settingsItemClickEvent(indexOfItems, ...itemsDom) {
+                let shouldApplyItem = itemsDom[indexOfItems];  // 定义点击就应用style的Item
+                shouldApplyItem.addEventListener('click', () => {  // 通用
+                    itemsDom.forEach((item) => {
+                        console.log(item);
+                        let applyClass = (item === shouldApplyItem) ? "options-items side-item-focused-for-js" : "options-items";
+                        let showApplyClass = (item === shouldApplyItem) ? "" : " hide-content";
+                        let itemDomId = item.getAttribute('id');
+                        item.removeAttribute("class");
+                        item.setAttribute("class", applyClass);
+                        // 设置各项对应页面内容显示
+                        let pageDom = document.getElementById(`settings-item-${ itemDomId }-content`);
+                        pageDom.removeAttribute("class");
+                        pageDom.setAttribute("class", `settings-item-content${ showApplyClass }`);
+                    });
+                });
+            }
+
+            // 设置菜单栏点击事件
+            settingsItemClickEvent(0, generalItem, editItem, updateItem);
+            settingsItemClickEvent(1, generalItem, editItem, updateItem);
+            settingsItemClickEvent(2, generalItem, editItem, updateItem);
+
+            // ---- 读取硬盘中sqlite设置，以保持设置界面的状态一致性 START ----
+            (async () => {
+                // 设置表
+                // ----通用----
+                // 选择界面语言：lang_index: 0 || 1 || 2，0代表简体中文，1代表繁体中文，2代表English，初始化默认为0
+                document.getElementById("lang_index").value = await window.settings.getLangSettings();
+                // ----编辑----
+                // 编辑区Tab缩进长度：editor_tab_size: <number>，初始化默认为4
+                document.getElementById("editor_tab_size").value = await window.settings.getEditorTabSize();
+                // 编辑区字体大小：editor_font_size: <number>，初始化默认为12
+                document.getElementById("editor_font_size").value = await window.settings.getEditorFontSize();
+                // 开启行号：enable_line_num: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
+                document.getElementById("enable_line_num").checked = ((await window.settings.getEnableLineNum()) === 1);
+                // 开启代码折叠：enable_code_fold: 1 || 0，1代表true，0代表false，初始化默认为1
+                document.getElementById("enable_code_fold").checked = ((await window.settings.getEnableCodeFold()) === 1);
+                // 开启自动折行：enable_auto_wrap_line: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
+                document.getElementById("enable_auto_wrap_line").checked = ((await window.settings.getEnableAutoWrapLine()) === 1);
+                // 开启自动输入闭合引号/括号和成对删除引号/括号: enable_auto_closure: 1 || 0，1代表"always"，0代表"never"，初始化默认为1
+                document.getElementById("enable_auto_closure").checked = ((await window.settings.getEnableAutoClosure()) === 1);
+                // 显示垂直滚动条：display_vertical_scrollbar: 0 || 1 || 2，0代表"visible"，1代表"auto"，2代表"hidden"，初始化默认为0
+                document.getElementById("display_vertical_scrollbar").value = await window.settings.getDisplayVerticalScrollbar();
+                // 显示水平滚动条：display_horizon_scrollbar: 0 || 1 || 2，0代表"visible"，1代表"auto"，2代表"hidden"，初始化默认为0
+                document.getElementById("display_horizon_scrollbar").value = await window.settings.getDisplayHorizonScrollbar();
+
+                // 显示代码缩略图：display_code_scale: 1 || 0，1代表true，0代表false，初始化默认为0
+                document.getElementById("display_code_scale").checked = ((await window.settings.getDisplayCodeScale()) === 1);
+                // 启用编辑器动画效果：display_editor_animation:  1 || 0，1代表true，0代表false，初始化默认为1
+                document.getElementById("display_editor_animation").checked = ((await window.settings.getDisplayEditorAnimation()) === 1);
+            })();
+            // ---- 读取硬盘中sqlite设置，以保持设置界面的状态一致性 END ----
+
+            // ---- 设置表单监听事件，并将更改值写入list ----
+            function changeCheckButtonValue(instruction, type = "check") {
+                /**
+                 * 将对应CheckButton的值写入内存sqlite
+                 */
+                let buttonElement = document.getElementById(instruction);
+                let settingsValue = null;
+                buttonElement.addEventListener('change', (event) => {
+                    if (type === "check") {
+                        if (buttonElement.checked) settingsValue = 1;
+                        else settingsValue = 0;
+                    } else if (type === "values") {
+                        settingsValue = buttonElement.value;
+                    }
+                    // 将值写入更改列表
+                    // 检查列表内是否已有instruction
+                    let canUseInsert = true;
+                    for (let i = 0; i < changeSettingsList.length; i++) {
+                        if (instruction === changeSettingsList[i].instructions) {
+                            changeSettingsList[i].settings_value = settingsValue;
+                            canUseInsert = false;
+                            break;
+                        }
+                    }
+                    console.log(`inst: ${instruction}`);
+                    console.log(`canUse: ${canUseInsert}`);
+
+                    if (canUseInsert) changeSettingsList.push({
+                        "instructions": instruction,
+                        "settings_value": settingsValue,
+                    });
+                });
+            }
+
+            changeCheckButtonValue("lang_index", "values");
+            changeCheckButtonValue("editor_tab_size", "values");
+            changeCheckButtonValue("editor_font_size", "values");
+            changeCheckButtonValue("enable_line_num");
+            changeCheckButtonValue("enable_code_fold");
+            changeCheckButtonValue("enable_auto_wrap_line");
+            changeCheckButtonValue("enable_auto_closure");
+            changeCheckButtonValue("display_vertical_scrollbar", "values");
+            changeCheckButtonValue("display_horizon_scrollbar", "values");
+            changeCheckButtonValue("display_code_scale");
+            changeCheckButtonValue("display_editor_animation");
+            // ---- 设置表单监听事件，并将更改值写入内存sqlite END ----
+
+            // 应用更改
+            document.getElementById("apply").addEventListener("click", async () => {
+                if ((await window.settings.getSettingsConfirmOption(changeSettingsList))) window.settings.reloadSettings();
+            });
+            // 取消应用更改
+            document.getElementById("settings-close").addEventListener("click", async () => {
+                if (changeSettingsList.length !== 0) {
+                    let confirmClose = await window.settings.getSettingsCancelOption();
+                    if (confirmClose) {
+                        changeSettingsList = [];  // 关闭页面时清除临时列表中的内容
+                        document.getElementById("settings-modal").style.display = "none";
+                    }
+                } else document.getElementById("settings-modal").style.display = "none";
+            });
+            // 重置设置
+            document.getElementById("reset").addEventListener("click", async () => {
+                if ((await window.settings.getSettingsResetOption())) window.settings.reloadSettings();
+            });
         });
     },
     methods: {
+        mainManuHoverIn(id) {
+            // 先初始化菜单栏下拉
+            let menuUnit = document.getElementById(id);
+            menuUnit.addEventListener('mouseenter', (evt) => {
+                this.mainManuAllHide("file", "edit", "view", "help");
+                document.getElementById(`${ id }-expand`).style.display = 'block';
+            });
+        },
+        mainManuHoverOut(id) {
+            let menuUnit = document.getElementById(id);
+            let menuExpandUnit = document.getElementById(`${ id }-expand`);
+            menuExpandUnit.addEventListener('mouseleave', (evt) => {
+                document.getElementById(`${ id }-expand`).style.display = 'none';
+            });
+        },
+        mainManuAllHide(...ids) {
+            for (let id of ids) {
+                document.getElementById(`${ id }-expand`).style.display = 'none';
+            }
+        },
         copy(monacoEditorObj, keep, rightMenuNeed = false) {
 
             let editorAreaHasFocus = monacoEditorObj.hasTextFocus();  // 编辑器是否聚焦
@@ -250,6 +479,8 @@ let renderProcess = {
                             text: content,
                         }
                     ], true);
+                // 聚焦
+                editor.focus();
             }).catch((error) => {
                 console.error("粘贴失败: ", error);
             });
@@ -294,7 +525,8 @@ let renderProcess = {
                 // 重新渲染prism
                 this.prism();
                 // 重新渲染mathjax
-                document.getElementById("MathJax-script").setAttribute("src", "./libs/third_party/MathJax/es5/tex-chtml-full.js");
+                document.getElementById("MathJax-script").setAttribute(
+                    "src", "../libs/third_party/MathJax/es5/tex-svg-full.js");
                 MathJax.typesetPromise();
             });
         },
@@ -338,7 +570,7 @@ let renderProcess = {
             leftObj.style.left = (event.clientX + menuWidth) <= (document.body.clientWidth / 2 - 20)
                 ? (event.clientX - 20) + 'px' : (document.body.clientWidth / 2 - 40 - menuWidth) + 'px';
             leftObj.style.top = (event.clientY + menuHeight + 30) <= document.body.clientHeight
-                ? (event.clientY - 20) + 'px' : (document.body.clientHeight - menuHeight - 60) + 'px';
+                ? (event.clientY - 20 - 30) + 'px' : (document.body.clientHeight - menuHeight - 60 - 30) + 'px';
 
             leftObj.style.display = "block";
             setTimeout(() => {
@@ -357,9 +589,17 @@ let renderProcess = {
             setTimeout(() => {
                 leftObj.style.display = "none";
             }, 200);
-        }
+        },
     },
     created() {
+        // 获得本窗口唯一ID
+        const queryParams = new URLSearchParams(window.location.search);
+        const windowId = queryParams.get('windowId');
+
+        // 加载窗口Title
+
+        document.getElementById("app-title").innerText = `Archive Markdown Editor - Untitled ${ windowId }`;
+
         const KIND_OF_TIPS_FOR_COLORS_SVGS = {
             "tip": '<span class="md-alert-text md-alert-text-tip"><svg viewBox="0 0 16 16" version="1.1" width="1em" height="1em" aria-hidden="true"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"></path></svg>Tip</span>',
             "important": '<span class="md-alert-text md-alert-text-important"><svg viewBox="0 0 16 16" version="1.1" width="1em" height="1em" aria-hidden="true"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>Important</span>',

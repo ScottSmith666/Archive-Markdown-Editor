@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+    <title id="app-title"></title>
+    <link rel="stylesheet" href="../libs/third_party/prism/light/prism-full-scott.css">
+    <link rel="stylesheet" href="../themes/theme.css">
+    <link rel="stylesheet" href="css/workspace.css">
+</head>
+<body>
+<div id="app">
+    <!--about模态框-->
+    <div class="fonts" id="about-modal">
+        <div id="about-modal-surface" class="modal"></div>
+        <div id="about-modal-face" class="face">
+            <!--图标与名称并排-->
+            <div style="display: flex; flex-direction: row; align-items: center;">
+                <svg viewBox="0 0 1002 927" style="width: 160px; height: 160px;" width="1002" height="927"
+                     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve"
+                     overflow="hidden"><defs><clipPath id="clip0"><rect x="743" y="380" width="1002" height="927"/></clipPath></defs>
+                    <g clip-path="url(#clip0)" transform="translate(-743 -380)"><path d="M1035.17 963.18 1038.78 961.052 1146.35 1080.68 1143.85 1084.04C1110.48 1114.05 1059.09 1111.32 1029.08 1077.95 999.072 1044.58 1001.8 993.191 1035.17 963.18Z" stroke="#000000" stroke-width="27.5" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
+                        <path
+                                d="M1116.5 516C1246.56 516 1352 621.355 1352 751.316 1352 881.278 1246.56 986.633 1116.5 986.633L1110.01 985.979 1110.01 1078 983.565 971.177C937.995 932.679 907.372 883.073 892.314 829.699L887.992 805.846 885.785 798.741 884.629 787.283 882.465 775.342 882.535 769.548 882.839 769.548 881 751.316C881 621.355 986.437 516 1116.5 516Z"
+                                stroke="#000000" stroke-width="27.5" stroke-miterlimit="8" fill="#FFC000"
+                                fill-rule="evenodd"/>
+                        <path
+                                d="M1021.61 579.196 1116.22 625.818 1199.93 579.638 1220.77 597.062 1220.77 597.062C1280.66 657.859 1281.77 753.861 1223.27 811.487L1117.33 915.83 1008.9 805.747C949.02 744.95 947.905 648.948 1006.41 591.322Z"
+                                stroke="#000000" stroke-width="27.5" stroke-miterlimit="8" fill="#FFC000"
+                                fill-rule="evenodd"/>
+                        <path
+                                d="M1170.83 610.286 1183.96 621.182 1183.96 621.182C1221.56 659.357 1221.1 720.788 1182.92 758.39L1113.8 826.474 1045.71 757.35C1008.11 719.174 1008.58 657.744 1046.75 620.142L1056.64 612.195 1116.65 640.871Z"
+                                fill="#FFE699" fill-rule="evenodd"/>
+                        <path
+                                d="M1121.36 1097 1119 1096.17 1119 934.831 1121.36 934C1147.12 934 1168 970.489 1168 1015.5 1168 1060.51 1147.12 1097 1121.36 1097Z"
+                                stroke="#000000" stroke-width="27.5" stroke-miterlimit="8" fill-rule="evenodd"/>
+                        <path d="M0 51.4799 38.8601 0 166.423 0 127.563 51.4799Z" fill-rule="evenodd"
+                              transform="matrix(-0.75471 -0.656059 -0.656059 0.75471 1167.02 1043.57)"/>
+                        <path d="M0 51.4799 38.8601 0 95.037 0 56.1769 51.4799Z" fill-rule="evenodd"
+                              transform="matrix(-0.674622 -0.738163 -0.738163 0.674622 1168.19 991.865)"/>
+                        <path
+                                d="M1173.28 967.595 1209.89 938.244C1229.62 919.964 1249.93 898.704 1269.78 875.152 1289.63 851.599 1307.14 827.985 1321.81 805.449L1336.13 779.588 1333.5 809.536C1326.47 836.201 1309.87 867.231 1285.37 896.307 1260.86 925.382 1233.09 946.997 1208 958.44Z"
+                                fill="#FFFFFF" fill-rule="evenodd"/>
+                        <path
+                                d="M54.01 81.1547C46.8068 108.539 29.582 119.353 15.5372 105.308 13.6532 103.424 11.8824 101.138 10.2574 98.4908Z"
+                                fill="#FFFFFF" fill-rule="evenodd"
+                                transform="matrix(0.793383 -0.608722 -0.608722 -0.793383 1226.57 1049.41)"/>
+                        <path d="M1200.88 757.851 1129.5 742.5" stroke="#000000" stroke-width="4.58333"
+                              stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+                        <path d="M1193.3 772.783 1129.5 749.5" stroke="#000000" stroke-width="4.58333"
+                              stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+                        <path d="M1184.96 791.022 1129.5 757.5" stroke="#000000" stroke-width="4.58333"
+                              stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
+                        <path d="M0 0 0.000360892 56.8777" stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8"
+                              fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 1113.5 783.378)"/>
+                        <path
+                                d="M1113.62 781.714C1110.26 789.493 1100.31 791.096 1091.39 785.293 1089.68 784.185 1088.09 782.847 1086.67 781.332"
+                                stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8" fill="none"
+                                fill-rule="evenodd"/>
+                        <path
+                                d="M10.204 0.974339C17.9753-2.40357 26.3347 3.23468 28.8752 13.5677 29.3606 15.5423 29.608 17.6066 29.608 19.684"
+                                stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8" fill="none"
+                                fill-rule="evenodd"
+                                transform="matrix(0.729652 0.683818 0.683818 -0.729652 1103.27 775.638)"/>
+                        <path d="M0 0 71.3805 15.3513" stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8"
+                              fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 1025.5 757.851)"/>
+                        <path d="M0 0 63.7968 23.283" stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8"
+                              fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 1033.5 773.783)"/>
+                        <path d="M0 0 55.4551 33.5219" stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8"
+                              fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 1041.5 792.022)"/>
+                        <path
+                                d="M1166.58 699.926C1159.06 707.618 1146.73 707.756 1139.04 700.235 1134.4 695.696 1129.75 691.157 1125.11 686.617 1129.65 681.975 1134.19 677.332 1138.73 672.689 1146.25 664.997 1158.58 664.859 1166.27 672.38 1173.97 679.901 1174.11 692.234 1166.58 699.926Z"
+                                fill="#FFFFFF" fill-rule="evenodd"/>
+                        <path
+                                d="M1141.45 671.248C1149.76 664.424 1162.04 665.635 1168.86 673.952 1172.98 678.972 1177.1 683.992 1181.22 689.012 1176.2 693.13 1171.18 697.248 1166.16 701.367 1157.84 708.19 1145.57 706.979 1138.74 698.662 1131.92 690.345 1133.13 678.071 1141.45 671.248Z"
+                                fill="#FFFFFF" fill-rule="evenodd"/>
+                        <path
+                                d="M0 19.5001C-1.01849e-15 8.73049 3.58168-2.48262e-15 7.9999-4.96525e-15 12.4181-9.93049e-15 15.9998 8.73049 15.9998 19.5001 15.9998 30.2697 12.4181 39.0002 7.9999 39.0002 3.58168 39.0002-5.09247e-15 30.2697 0 19.5001Z"
+                                fill-rule="evenodd" transform="matrix(-1 0 0 1 1162 668)"/>
+                        <path
+                                d="M1086.56 697.594C1079.04 705.286 1066.71 705.425 1059.02 697.904 1054.37 693.364 1049.73 688.825 1045.09 684.285 1049.63 679.643 1054.17 675 1058.71 670.358 1066.23 662.666 1078.56 662.527 1086.25 670.048 1093.95 677.569 1094.08 689.902 1086.56 697.594Z"
+                                fill="#FFFFFF" fill-rule="evenodd"/>
+                        <path
+                                d="M1061.43 668.916C1069.74 662.092 1082.02 663.303 1088.84 671.62 1092.96 676.64 1097.08 681.66 1101.2 686.68 1096.18 690.798 1091.16 694.917 1086.14 699.035 1077.82 705.859 1065.55 704.648 1058.72 696.331 1051.9 688.013 1053.11 675.74 1061.43 668.916Z"
+                                fill="#FFFFFF" fill-rule="evenodd"/>
+                        <path
+                                d="M0 19.0001C-1.01852e-15 8.50663 3.58176-2.41896e-15 8.00008-4.83793e-15 12.4184-9.67586e-15 16.0002 8.50663 16.0002 19.0001 16.0002 29.4935 12.4184 38.0002 8.00008 38.0002 3.58176 38.0002-5.09259e-15 29.4935 0 19.0001Z"
+                                fill-rule="evenodd" transform="matrix(-1 0 0 1 1082 666)"/>
+                        <text font-family="Inconsolata,Inconsolata_MSFontService,sans-serif" font-weight="700"
+                              font-size="83" transform="matrix(1 0 0 1 1191.01 1047)">cott<tspan font-size="83"
+                                                                                                 x="206.25"
+                                                                                                 y="0">Smith</tspan>
+                            <tspan font-size="83" x="0" y="99">is</tspan>
+                            <tspan fill="#C00000" font-size="83" x="103.125" y="99">HERE</tspan></text>
+                    </g>
+                </svg>
+                <div style="display: flex; flex-direction: column;">
+                    <h2 class="main-title">Archive Markdown Editor</h2>
+                    <small id="about-version">版本 1.0.0</small>
+                </div>
+            </div>
+            <!--项目说明-->
+            <div>
+                <h4 id="desc">一款简易美观、功能强大的Markdown编辑器。
+                    <small>
+                <span class="cre">
+                    <span>鸣谢开源项目</span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px"
+                                                  viewBox="0 0 100 100"
+                                                  width="15" height="15" class="icon outbound">
+                        <path fill="currentColor"
+                              d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path>
+                        <polygon fill="currentColor"
+                                 points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon>
+                    </svg>
+                </span>
+                    </small>
+                </h4>
+                <h4 id="self">2025 - 2025 Designed & Developed by Scott Smith</h4>
+                <div style="padding: 1rem; border-radius: 4px 4px 4px 4px; display: flex; flex-direction: row;
+                 align-content: center; cursor: pointer; word-break: break-all;" class="fonts trans" id="contact-card">
+                    <svg t="1661344597482" style="width: 50px; height: 50px; margin-right: 10px;"
+                         viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2341"
+                         width="200" height="200">
+                        <path d="M512 576a32 32 0 0 1-17.184-4.992L128 337.568v430.656A64 64 0 0 0 192.064 832h639.872A64 64 0 0 0 896 768.224V337.888l-366.816 233.12A32.096 32.096 0 0 1 512 576"
+                              p-id="2342"></path>
+                        <path d="M831.936 192H192.064A64 64 0 0 0 128 255.808v4.896l384 245.376 384-244.032v-6.24A64 64 0 0 0 831.936 192"
+                              p-id="2343"></path>
+                    </svg>
+                    <div>
+                        <div>mail.163.com
+                            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px"
+                                 viewBox="0 0 100 100" width="15" height="15" class="icon outbound">
+                                <path fill="currentColor"
+                                      d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path>
+                                <polygon fill="currentColor"
+                                         points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon>
+                            </svg>
+                        </div><!--url-->
+                        <div style="font-weight: bold;" id="contact">有事请联系 - scottsmith666@163.com</div><!--网页描述-->
+                    </div>
+                </div>
+                <div>
+                    <div class="gap"></div>
+                    <div class="ln"></div>
+                    <div class="gap"></div>
+                </div>
+                <div style="padding: 1rem; border-radius: 4px 4px 4px 4px; display: flex; flex-direction: row;
+                 align-content: center; cursor: pointer; word-break: break-all;" class="fonts trans" id="github-card">
+                    <svg t="1661344671105" style="width: 50px; height: 50px; margin-right: 10px;"
+                         viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3244"
+                         width="200" height="200">
+                        <path d="M511.6 76.3C264.3 76.2 64 276.4 64 523.5 64 718.9 189.3 885 363.8 946c23.5 5.9 19.9-10.8 19.9-22.2v-77.5c-135.7 15.9-141.2-73.9-150.3-88.9C215 726 171.5 718 184.5 703c30.9-15.9 62.4 4 98.9 57.9 26.4 39.1 77.9 32.5 104 26 5.7-23.5 17.9-44.5 34.7-60.8-140.6-25.2-199.2-111-199.2-213 0-49.5 16.3-95 48.3-131.7-20.4-60.5 1.9-112.3 4.9-120 58.1-5.2 118.5 41.6 123.2 45.3 33-8.9 70.7-13.6 112.9-13.6 42.4 0 80.2 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.3-43.9 2.9 7.7 24.7 58.3 5.5 118 32.4 36.8 48.9 82.7 48.9 132.3 0 102.2-59 188.1-200 212.9 23.5 23.2 38.1 55.4 38.1 91v112.5c0.8 9 0 17.9 15 17.9 177.1-59.7 304.6-227 304.6-424.1 0-247.2-200.4-447.3-447.5-447.3z"
+                              p-id="3245"></path>
+                    </svg>
+                    <div>
+                        <div>github.com/ScottSmith666/Archive-Markdown-Editor
+                            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px"
+                                 viewBox="0 0 100 100" width="15" height="15" class="icon outbound">
+                                <path fill="currentColor"
+                                      d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path>
+                                <polygon fill="currentColor"
+                                         points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon>
+                            </svg>
+                        </div><!--url-->
+                        <div style="font-weight: bold;" id="github">GitHub主页</div><!--网页描述-->
+                    </div>
+                </div>
+                <div class="confirm-button-position" id="confirm-button-close-about">
+                    <div id="close-about" class="button fonts">确定</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--settings模态框-->
+    <div class="fonts" id="settings-modal">
+        <div id="settings-modal-surface" class="modal"></div>
+        <div class="face-settings">
+            <div class="window">
+                <!--弹窗标题-->
+                <div style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
+                    <div style="width: 6px; height: 25px; background-color: #42b883; margin-right: 6px;"></div>
+                    <div class="window-title fonts" style="color: #42b983; font-size: 1.4em">首选项</div>
+                </div>
+                <!--设置界面-->
+                <div style="display: flex; flex-direction: column; width: 100%;">
+                    <!--操作界面-->
+                    <div style="display: flex; flex-direction: row; align-items: start; height: 340px;">
+                        <!--侧边栏-->
+                        <div class="side-item-set" style="width: 18%; padding: 8px; margin-right:8px;">
+                            <div class="items-separate"></div>
+                            <div id="general" class="options-items side-item-focused-for-js">
+                                <div class="options-items-bar"></div>
+                                <div class="options-items-txt">通用</div>
+                            </div>
+                            <div class="items-separate"></div>
+                            <div id="set-edit" class="options-items">
+                                <div class="options-items-bar"></div>
+                                <div class="options-items-txt">编辑</div>
+                            </div>
+                            <div class="items-separate"></div>
+                            <div id="update" class="options-items">
+                                <div class="options-items-bar"></div>
+                                <div class="options-items-txt">更新</div>
+                            </div>
+                        </div>
+                        <!--内容-->
+                        <div class="settings-item-content-package">
+                            <!--设置项-general-->
+                            <div class="settings-item-content" id="settings-item-general-content">
+                                <!--修改界面语言-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">选择界面语言</div>
+                                    <label>
+                                        <select id="lang_index" class="fonts" style="border: none; outline: none;">
+                                            <option value="0">中文（简体）</option>
+                                            <option value="1">中文（繁體）</option>
+                                            <option value="2">English</option>
+                                        </select>
+                                    </label>
+                                </div>
+                            </div>
+                            <!--设置项-edit-->
+                            <div class="settings-item-content hide-content" id="settings-item-set-edit-content">
+                                <!--修改Tab缩进空格数-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">编辑区Tab缩进长度</div>
+                                    <div style="width: 70px;">
+                                        <label>
+                                            <input style="width: 100%;" class="input-info fonts" type="number"
+                                                   id="editor_tab_size"/>
+                                        </label>
+                                    </div>
+                                </div>
+                                <!--修改字体大小-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">编辑区字体大小</div>
+                                    <div style="width: 70px;">
+                                        <div style="display: flex; flex-direction: row;">
+                                            <label>
+                                                <input style="width: 100%;" class="input-info fonts" type="number"
+                                                       id="editor_font_size"/>
+                                            </label>
+                                            <div>px</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--开/关行号显示-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">开启行号</div>
+                                    <div>
+                                        <label class="switch">
+                                            <input class="swi" type="checkbox" id="enable_line_num">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <!--开/关代码折叠-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">开启代码折叠</div>
+                                    <div>
+                                        <label class="switch">
+                                            <input class="swi" type="checkbox" id="enable_code_fold">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <!--开/关自动折行-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">开启自动折行</div>
+                                    <div>
+                                        <label class="switch">
+                                            <input class="swi" type="checkbox" id="enable_auto_wrap_line">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <!--开启输入自动闭合引号/括号和成对删除引号/括号-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">
+                                        开启输入自动闭合引号/括号和成对删除引号/括号
+                                    </div>
+                                    <div>
+                                        <label class="switch">
+                                            <input class="swi" type="checkbox" id="enable_auto_closure">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <!--显示滚动条-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">显示垂直滚动条</div>
+                                    <label>
+                                        <select id="display_vertical_scrollbar" class="fonts"
+                                                style="border: none; outline: none;">
+                                            <option value="0">显示</option>
+                                            <option value="1">自动显示/隐藏</option>
+                                            <option value="2">隐藏</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">显示水平滚动条</div>
+                                    <label>
+                                        <select id="display_horizon_scrollbar" class="fonts"
+                                                style="border: none; outline: none;">
+                                            <option value="0">显示</option>
+                                            <option value="1">自动显示/隐藏</option>
+                                            <option value="2">隐藏</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <!--显示代码缩略图-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">显示代码缩略图</div>
+                                    <div>
+                                        <label class="switch">
+                                            <input class="swi" type="checkbox" id="display_code_scale">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <!--启用编辑器动画效果-->
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">启用编辑器动画效果</div>
+                                    <div>
+                                        <label class="switch">
+                                            <input class="swi" type="checkbox" id="display_editor_animation">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--设置项-update-->
+                            <div class="settings-item-content hide-content" id="settings-item-update-content">
+                                <div class="settings-item-in-content-items">
+                                    <div class="settings-button fonts" style="width: 90px;">检查更新</div>
+                                    <div>当前版本：1.0.0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--按钮组-->
+                    <div style="display: flex; width: 100%; flex-direction: row; margin-top: 20px; justify-content: flex-end;">
+                        <div class="settings-button fonts" id="reset"
+                             style="width: 90px; background-color: rgba(0, 0, 0, 0); color: #c75f5f;">重置设置
+                        </div>
+                        <div class="settings-button-cancel fonts" id="settings-close" style="margin-right: 10px;">取消</div>
+                        <div class="settings-button fonts" id="apply" style="width: 90px;">应用更改</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--nav-->
+    <div class="keep-head nav" id="nav">
+        <div class="nav-ico-position">
+            <div class="nav-ico-wrap">
+                <svg class="icon nav-ico" id="图层_1" data-name="图层 1" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 160.22 143.74"><title>未标题-1</title>
+                    <path d="M36.86,100.11l.78-.47,23.47,26.1-.54.74a17.73,17.73,0,0,1-23.71-26.37Z"
+                          transform="translate(0.06 0.01)" style="fill:#fff;fill-rule:evenodd"/>
+                    <path d="M36.86,100.11l.78-.47,23.47,26.1-.54.74a17.73,17.73,0,0,1-23.71-26.37Z"
+                          transform="translate(0.06 0.01)"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8;stroke-width:6px"/>
+                    <path
+                            d="M54.5,3a51.09,51.09,0,0,1,1.43,102.17c-.48,0-1,0-1.43,0L53.08,105v20L25.43,101.81a62.22,62.22,0,0,1-20-30.71l-.94-5.18L4,64.38l-.26-2.49L3.28,59.3V58h.06l-.4-4A51.29,51.29,0,0,1,54.48,3Z"
+                            transform="translate(0.06 0.01)" style="fill:#f5ba1a;fill-rule:evenodd"/>
+                    <path
+                            d="M54.5,3a51.09,51.09,0,0,1,1.43,102.17c-.48,0-1,0-1.43,0L53.08,105v20L25.43,101.81a62.22,62.22,0,0,1-20-30.71l-.94-5.18L4,64.38l-.26-2.49L3.28,59.3V58h.06l-.4-4A51.29,51.29,0,0,1,54.48,3Z"
+                            transform="translate(0.06 0.01)"
+                            style="fill:none;stroke:#040000;stroke-miterlimit:8;stroke-width:6px"/>
+                    <path
+                            d="M33.9,16.37,54.54,26.54,72.8,16.47l4.55,3.8c13.07,13.26,13.31,34.21.54,46.78L54.78,89.82l-23.66-24C18.06,52.55,17.82,31.61,30.58,19Z"
+                            transform="translate(0.06 0.01)" style="fill:#f5ba1a;fill-rule:evenodd"/>
+                    <path
+                            d="M33.9,16.37,54.54,26.54,72.8,16.47l4.55,3.8h0c13.07,13.26,13.31,34.21.54,46.78L54.78,89.82l-23.66-24C18.06,52.55,17.82,31.61,30.58,19Z"
+                            transform="translate(0.06 0.01)"
+                            style="fill:none;stroke:#040000;stroke-miterlimit:8;stroke-width:6px"/>
+                    <path
+                            d="M66.45,23.11l2.87,2.38h0a21.18,21.18,0,0,1-.23,29.94L54,70.32,39.15,55.24a21.17,21.17,0,0,1,.22-29.94h0l2.16-1.73,13.09,6.26Z"
+                            transform="translate(0.06 0.01)" style="fill:#f9e198;fill-rule:evenodd"/>
+                    <path d="M55.53,129l-.53-.18V94.18l.53-.18C61.31,94,66,101.84,66,111.5S61.31,129,55.53,129Z"
+                          transform="translate(0.06 0.01)" style="fill:#040000;fill-rule:evenodd"/>
+                    <path d="M55.53,129l-.53-.18V94.18l.53-.18C61.31,94,66,101.84,66,111.5S61.31,129,55.53,129Z"
+                          transform="translate(0.06 0.01)"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8;stroke-width:6px"/>
+                    <polygon points="58.31 126.17 59.28 112.14 38.28 93.88 37.31 107.92 58.31 126.17"
+                             style="fill:#040000"/>
+                    <polygon points="57.65 113.98 60.22 100.16 51.95 91.11 49.38 104.94 57.65 113.98"
+                             style="fill:#040000"/>
+                    <path
+                            d="M67,101.11l8-6.4a161.64,161.64,0,0,0,24.42-29l3.12-5.64L102,66.61c-1.54,5.81-5.16,12.58-10.51,18.93S80,96.62,74.56,99.11Z"
+                            transform="translate(0.06 0.01)" style="fill:#fff;fill-rule:evenodd"/>
+                    <path d="M77.19,97.74c-4.89-3.78-9.31-3.37-9.87.93a7.39,7.39,0,0,0,0,1.88Z"
+                          transform="translate(0.06 0.01)" style="fill:#fff"/>
+                    <line x1="73.13" y1="55.86" x2="57.56" y2="52.51"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
+                    <line x1="71.48" y1="58.59" x2="57.56" y2="53.51"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
+                    <line x1="69.66" y1="62.82" x2="57.56" y2="55.51"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
+                    <line x1="54.56" y1="60.92" x2="54.56" y2="48.51"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
+                    <path d="M54,60.56c-.73,1.69-2.9,2-4.85.78a5.89,5.89,0,0,1-1-.87"
+                          transform="translate(0.06 0.01)"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
+                    <path d="M53.48,60.6c.74,1.69,2.91,2,4.86.78a5.53,5.53,0,0,0,1-.87"
+                          transform="translate(0.06 0.01)"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
+                    <line x1="35.56" y1="55.86" x2="51.13" y2="52.51"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
+                    <line x1="36.56" y1="59.59" x2="50.48" y2="54.51"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
+                    <line x1="38.56" y1="62.82" x2="50.66" y2="55.51"
+                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
+                    <path d="M65.53,42.71a4.26,4.26,0,0,1-6,.07l-3-3,3-3a4.25,4.25,0,1,1,6.08,5.94h-.08Z"
+                          transform="translate(0.06 0.01)" style="fill:#fff"/>
+                    <path d="M60,36.45A4.27,4.27,0,0,1,66,37h0l2.7,3.29L65.41,43A4.25,4.25,0,0,1,60,36.45Z"
+                          transform="translate(0.06 0.01)" style="fill:#fff"/>
+                    <ellipse cx="63.06" cy="40.01" rx="2" ry="4" style="fill:#040000"/>
+                    <path d="M48.07,42.2a4.26,4.26,0,0,1-6,.07l-3-3,3-3a4.25,4.25,0,0,1,6.08,5.94h-.08Z"
+                          transform="translate(0.06 0.01)" style="fill:#fff"/>
+                    <path d="M42.58,36a4.25,4.25,0,0,1,6,.57l0,0,2.69,3.28L48,42.52A4.25,4.25,0,1,1,42.59,36Z"
+                          transform="translate(0.06 0.01)" style="fill:#fff"/>
+                    <ellipse cx="45.06" cy="39.51" rx="2" ry="4.5" style="fill:#040000"/>
+                    <text transform="translate(70.92 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        c
+                    </text>
+                    <text transform="translate(70.92 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        c
+                    </text>
+                    <text transform="translate(81.67 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        o
+                    </text>
+                    <text transform="translate(81.67 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        o
+                    </text>
+                    <text transform="translate(92.54 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        t
+                    </text>
+                    <text transform="translate(92.54 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        t
+                    </text>
+                    <text transform="translate(98.92 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        t
+                    </text>
+                    <text transform="translate(98.92 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        t
+                    </text>
+                    <text transform="translate(109.79 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        S
+                    </text>
+                    <text transform="translate(109.79 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        S
+                    </text>
+                    <text transform="translate(121.79 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        m
+                    </text>
+                    <text transform="translate(121.79 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        m
+                    </text>
+                    <text transform="translate(137.66 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        i
+                    </text>
+                    <text transform="translate(137.66 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        i
+                    </text>
+                    <text transform="translate(142.54 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        t
+                    </text>
+                    <text transform="translate(142.54 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        t
+                    </text>
+                    <text transform="translate(148.92 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        h
+                    </text>
+                    <text transform="translate(148.92 118.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        h
+                    </text>
+                    <text transform="translate(70.92 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        i
+                    </text>
+                    <text transform="translate(70.92 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        i
+                    </text>
+                    <text transform="translate(75.79 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        s
+                    </text>
+                    <text transform="translate(75.79 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        s
+                    </text>
+                    <text transform="translate(90.04 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#b41d23;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        H
+                    </text>
+                    <text transform="translate(90.04 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#b41d23;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        H
+                    </text>
+                    <text transform="translate(103.67 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#b41d23;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        E
+                    </text>
+                    <text transform="translate(103.67 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#b41d23;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        E
+                    </text>
+                    <text transform="translate(115.67 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#b41d23;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        R
+                    </text>
+                    <text transform="translate(115.67 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#b41d23;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        R
+                    </text>
+                    <text transform="translate(128.66 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:#b41d23;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        E
+                    </text>
+                    <text transform="translate(128.66 139.59) scale(1.02 1)"
+                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#b41d23;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
+                        E
+                    </text>
+                </svg>
+            </div>
+            <div class="break"></div>
+            <div class="bar-menu-position">
+                <div class="bar-menu-element upper">
+                    <h6 id="file" class="bar-menu-element-txt fonts">文件</h6>
+                    <div id="file-expand" class="lower dp-menu" style="margin-left: -10px;">
+                        <div class="dp-menu-element" id="main-menu-new" onclick="window.openNewWindow.openNew();">
+                            <p class="fonts">新建</p>
+                        </div>
+                        <div class="dp-menu-element" id="main-menu-open">
+                            <p class="fonts">打开...</p>
+                        </div>
+                        <div class="dp-menu-element" id="main-menu-save">
+                            <p class="fonts">保存</p>
+                        </div>
+                        <div class="dp-menu-element" id="main-menu-save-as">
+                            <p class="fonts">另存为...</p>
+                        </div>
+                        <div class="dp-menu-element" id="main-menu-export">
+                            <p class="fonts">导出...</p>
+                        </div>
+                    </div>
+
+                    <div class="main-menu-separator"></div>
+
+                    <h6 id="edit" class="bar-menu-element-txt fonts">编辑</h6>
+                    <div id="edit-expand" class="lower dp-menu" style="margin-left: calc(1 * (25px + 15px));">
+                        <div class="dp-menu-element" id="main-menu-cut">
+                            <p class="fonts">剪切</p>
+                        </div>
+                        <div class="dp-menu-element" id="main-menu-copy">
+                            <p class="fonts">复制</p>
+                        </div>
+                        <div class="dp-menu-element" id="main-menu-paste">
+                            <p class="fonts">粘贴</p>
+                        </div>
+                        <div class="dp-menu-element" id="settings">
+                            <p class="fonts">首选项...</p>
+                        </div>
+                    </div>
+
+                    <div class="main-menu-separator"></div>
+
+                    <h6 id="view" class="bar-menu-element-txt fonts">视图</h6>
+                    <div id="view-expand" class="lower dp-menu" style="margin-left: calc(2 * (25px + 18px));">
+                        <div class="dp-menu-element" id="main-menu-light">
+                            <p class="fonts">白昼模式</p>
+                        </div>
+                        <div class="dp-menu-element" id="main-menu-dark">
+                            <p class="fonts">暗黑模式</p>
+                        </div>
+                    </div>
+
+                    <div class="main-menu-separator"></div>
+
+                    <h6 id="help" class="bar-menu-element-txt fonts">帮助</h6>
+                    <div id="help-expand" class="lower dp-menu" style="margin-left: calc(3 * (25px + 18px));">
+                        <div class="dp-menu-element" id="about">
+                            <p class="fonts">关于Archive Markdown Editor...</p>
+                        </div>
+                        <div class="dp-menu-element">
+                            <p class="fonts">了解更多...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--content-->
+    <div class="keep-head-tail">
+        <!--body-->
+        <div class="body-wrap">
+            <!--bg-->
+            <div class="bg-container bg-wrap">
+                <svg id="_图层_1" style="width: 100%; height: 100%" xmlns="http://www.w3.org/2000/svg"
+                     xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 1603 785">
+                    <!-- Generator: Adobe Illustrator 29.3.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 146)  -->
+                    <defs>
+                        <style>
+                            .st0 {
+                                isolation: isolate;
+                                opacity: .1;
+                            }
+
+                            .st1 {
+                                fill: #42b983;
+                            }
+
+                            .st2 {
+                                fill: #d6d6e3;
+                            }
+
+                            .st3 {
+                                fill: #ffb6b6;
+                            }
+
+                            .st4 {
+                                fill: #010102;
+                            }
+
+                            .st5 {
+                                fill: #090814;
+                            }
+
+                            .st6 {
+                                fill: #f2f2f2;
+                            }
+                        </style>
+                    </defs>
+                    <rect class="st2" x="1373.2" y="613.1" width="21.5" height="71.1"/>
+                    <polygon class="st2"
+                             points="1250.4 530.2 1232 542.5 1225.9 560.9 1462.2 643.8 1471.5 610 1250.4 530.2"/>
+                    <polygon class="st6" points="1316.4 163.4 1232 542.5 1471.5 610 1540.5 117.4 1316.4 163.4"/>
+                    <path class="st2"
+                          d="M1528.4,129l-218,43c-5.3,1-10-3.5-9.2-8.8l1-6.8c.5-3.2,2.9-5.8,6.1-6.5l220.5-46.7c5.9-1.2,10.9,4.4,9,10.1l-3.5,10.4c-.9,2.7-3.1,4.6-5.9,5.2h0Z"/>
+                    <rect class="st1" x="1363.5" y="236" width="2.6" height="111.8"
+                          transform="translate(1070.5 1656.2) rotate(-89.9)"/>
+                    <rect class="st1" x="1367.8" y="235.8" width="95.5" height="2.6"
+                          transform="translate(-16.9 146.8) rotate(-5.9)"/>
+                    <path class="st1" d="M1072.4,354.3l-33.5,114.4c-4.4,15.2,6.1,30.6,21.9,32l36.5,3.2-24.9-149.6h0Z"/>
+                    <path class="st0" d="M1072.4,354.3l-33.5,114.4c-4.4,15.2,6.1,30.6,21.9,32l36.5,3.2-24.9-149.6h0Z"/>
+                    <path class="st5"
+                          d="M1335.7,302.9v-11.8s79.8-5.1,88.4-2.4c0,0,3.5,6-14.4,6.9,0,0-55.8,8.4-74,7.2h0Z"/>
+                    <path class="st3"
+                          d="M1376.1,333.2l-44.8,74-21.1-26.7,41.2-64.5c-1.5-7.5.3-16.2,5.5-23.7,9.2-13.2,25.4-17.7,36.3-10.1s12.3,24.4,3.1,37.6c-5.2,7.5-12.8,12.2-20.3,13.4h.1Z"/>
+                    <path class="st5"
+                          d="M1097,512.7l-5.4,18.3.2,18.5s-35.4,42.5-22.3,134.5l165.7-2.1-19.7-148-118.4-21.2h0Z"/>
+                    <path class="st3"
+                          d="M1115.7,259.3c0-25.9,21-47,47-47s47,21,47,47-13.8,38.8-32.9,44.8l-7,5.6,12.6,44-14.7,10.4-46.3-38.6s10-12.7,15.4-27.1c-12.7-8.4-21-22.8-21-39.2h0Z"/>
+                    <path class="st1"
+                          d="M1342.1,330.9c-16.6-.3-47.2,53-47.2,53l-25.2-8.9-51.8-18.3-39.7-16.3.2,1.2c-.2-.4-.3-.8-.5-1.1-4.2-8.6-16.3-18.7-50.7-16.7l-16.2,12.8-2.2,1.8s-10.2-.9-20.4,3.2c-7.4,3-14.7,8.5-18.2,18.8-1.8,5.3-1.8,16.4-.7,30.4,3.9,50.7,22.2,158.5,22.2,158.5l115.4-15.3,8.5.2s1-11.6,1.9-26.8c.6-8.9,1.1-19.1,1.4-28.8.2-7.2.3-14.1,0-20.2v-1.1c-.3-11.1-1.5-19.2-3.9-20.1,0,0,7.5-.2,18.2-.6,26-1,71.4-3.2,77.8-6.7,9.1-5,57.1-71.7,57.1-71.7,0,0-9.3-26.7-25.9-27h0l-.2-.3Z"/>
+                    <path class="st4"
+                          d="M1211,262.8c-3.5-17.4-5.3-26.3-18.1-38.5-3.1.4.8,16.3-16.1,38.4-24.5,32.1-22.1,2.7-29.3,12.6-1.6,2.1-1.9,9.9-1.4,12.6,2,10.5,14.1.2,1.4,36.3-1.9,2.8-4.1,2.1-7,2.1s1.2-.3-4.2-1.4c-2.6-.5-6.2-1.2-10.5-1.9-50.4-8.5-68.2-72.1-29.2-105.2,8.9-7.5,17.6-13.2,25.1-15.9,22.7-8,74.6-2.8,84.5,23.1,4.7,12.3,6.3,25,4.9,37.8h-.1Z"/>
+                    <circle class="st4" cx="1107.2" cy="328.9" r="35.9"/>
+                    <rect class="st2" x="202.6" y="608" width="21.5" height="77.6"/>
+                    <polygon class="st2"
+                             points="346.9 525.1 365.3 537.4 371.4 555.8 135.1 638.7 125.9 604.9 346.9 525.1"/>
+                    <polygon class="st6" points="280.9 158.3 365.3 537.4 125.9 604.9 56.8 112.2 280.9 158.3"/>
+                    <path class="st2"
+                          d="M68.9,123.9l218,43c5.3,1,10-3.5,9.2-8.8l-1-6.8c-.5-3.2-2.9-5.8-6.1-6.5l-220.5-46.7c-5.9-1.2-10.9,4.4-9,10.1l3.5,10.4c.9,2.7,3.1,4.6,5.9,5.2h0Z"/>
+                    <path class="st1"
+                          d="M236.8,258.6c-6,0-12-2.5-17.3-7.3-6.4-5.8-10.9-14.3-12.8-23.8-3.9-19.9,5.1-38.4,20-41.4,7.3-1.4,14.9,1,21.4,6.9,6.4,5.8,10.9,14.3,12.8,23.8,3.9,19.9-5.1,38.4-20,41.4-1.4.3-2.7.4-4.1.4h0ZM230.8,188.3c-1.2,0-2.4.1-3.6.3-13.5,2.7-21.5,19.8-17.9,38.3,1.8,9,6,17,12,22.4,5.8,5.3,12.6,7.6,19.1,6.3,13.5-2.7,21.5-19.8,17.9-38.3h0c-1.8-9-6-17-12-22.4-4.8-4.4-10.2-6.6-15.5-6.6h0Z"/>
+                    <rect class="st1" x="246.5" y="209.8" width="2.6" height="28.7"
+                          transform="translate(-19.5 424.7) rotate(-79)"/>
+                    <path class="st5"
+                          d="M346.7,238.3v-11.8s-79.8-5.1-88.4-2.4c0,0-3.5,6,14.4,6.9,0,0,55.8,8.4,74,7.2h0Z"/>
+                    <path class="st3"
+                          d="M331.1,241.5l50.7,76.4-35.1,8.1-43.2-68.7c-7.9-2-15.4-7.6-20.2-16.1-8.5-14.7-5.4-32.4,6.8-39.4,12.2-7,29-.7,37.4,14,4.8,8.4,5.9,17.8,3.7,25.6h0Z"/>
+                    <path class="st3"
+                          d="M582.9,252.9c0-33.5-27.2-60.7-60.7-60.7s-60.7,27.2-60.7,60.7,17.9,50.2,42.5,57.9l9.1,7.3-16.3,56.9,18.9,13.4,59.8-49.9s-12.9-16.5-19.9-35c16.4-10.9,27.2-29.5,27.2-50.6h.1Z"/>
+                    <path class="st3"
+                          d="M411.3,571.9l71.4-57.5,11.3,34.2-64.4,49.3c-1.3,8-6.2,16-14.1,21.6-13.9,9.8-31.7,8.4-39.8-3.1-8.1-11.5-3.4-28.8,10.5-38.5,7.9-5.6,17.2-7.5,25.1-6h0Z"/>
+                    <polygon class="st1"
+                             points="595.5 485.9 595.6 486.2 434.1 599.7 411.1 557.8 488.6 478.9 595.5 485.9"/>
+                    <polygon class="st0"
+                             points="595.5 485.9 595.6 486.2 434.1 599.7 411.1 557.8 488.6 478.9 595.5 485.9"/>
+                    <polygon class="st5" points="600.4 575.5 467.5 606.7 470.1 682.9 616.1 682.9 600.4 575.5"/>
+                    <path class="st1"
+                          d="M561.8,316.3s-24.4,4.4-50.5,20.1c-26.2,15.7-46.4,85.5-46.4,85.5,0,0-21.5,165.2,2.2,184.4l133.3-30.8s17.4-13.6,24.6-60.6c6.9-45.2-20.3-202-63.2-198.5h0Z"/>
+                    <path class="st1"
+                          d="M541.8,352.3l-96.4-7.2-102.1-82.2s-42.5,19.2-38.4,29.3,51.4,95.3,51.4,95.3c0,0,140.3,51.8,157.2,54s28.3-89.1,28.3-89.1h0Z"/>
+                    <path class="st5"
+                          d="M545.4,297.7l18.7,1.7c.7,3.8,25.3-28.4,25.9-48.3,0-4.7,4-59-48.2-71.7s-93.4,26.1-83.5,31.6,37.1,9.2,37.1,9.2c0,0-20.3,33.2,5.1,44.1,0,0,1,16.3,8.7,17s27.9-10.7,31.9,2.9l4,13.6"/>
+                    <rect class="st1" x="169.5" y="358" width="109.3" height="2.6"
+                          transform="translate(-31.1 21.4) rotate(-5.1)"/>
+                </svg>
+            </div>
+            <!--content-->
+            <div class="content-wrap" id="cnt">
+                <!--Markdown编辑区-->
+                <div class="content-resize-edit content-like upper" id="editor">
+                    <div class="middle-content-edit" style="position: relative;">
+                        <div class='code-editor' id="real-edit"></div>
+                    </div>
+                    <div class="lower dp-menu fonts" id="leftMenu">
+                        <div class="dp-menu-element" id="leftMenu-cut">
+                            <p>&nbsp;&nbsp;&nbsp;剪切</p>
+                        </div>
+                        <div class="dp-menu-element" id="leftMenu-copy">
+                            <p>&nbsp;&nbsp;&nbsp;复制</p>
+                        </div>
+                        <div class="dp-menu-element" id="leftMenu-paste">
+                            <p>&nbsp;&nbsp;&nbsp;粘贴</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!--Markdown渲染区-->
+                <div tabindex="1" class="content-resize-render content-like upper" id="preview">
+                    <div class="middle-content-render" style="overflow: scroll; overflow-x: auto;">
+                        <div class="fonts" id="render-placeholder">
+                            <h1 class="rend-area" id="plh-render">Markdown渲染区</h1>
+                        </div>
+
+                        <div class="fonts line-num" id="write">
+                            <!--所有的文档内容，均inject在该标签的内部，不可inject在其他地方！-->
+                            <div v-for="(item, index) in mdResult" v-html="renderExecute(item)"
+                                 :key="'marked-' + index"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--代码块美化组件-->
+<script src="../libs/third_party/prism/light/prism-full.js"></script>
+<!--导入Markdown-渲染器-->
+<script src="../libs/third_party/marked/marked.min.js"></script>
+<!--导入微软Monaco editor组件-->
+<script id="monaco" src="../libs/third_party/monaco/min/vs/loader.js"></script>
+<!--导入Vue3库（性能优化用）-->
+<script src="../libs/third_party/vue3/vue.global.js"></script>
+<!--Mermaid 图形库-->
+<script type="module">
+    import mermaid from '../libs/third_party/mermaid/dist/mermaid.esm.min.mjs';
+
+    mermaid.initialize({
+        startOnLoad: false,
+    });
+    mde.mermaid = mermaid;
+</script>
+
+<!--导入Latex数学公式库-->
+<script src="../mathjax-config.js" defer></script>
+<script id="MathJax-script" async></script>
+<!--Editor智能提示配置-->
+<script src="../renderer/ref-for-renderer-work/editorSuggestions.js"></script>
+<!--导入核心renderer-->
+<script src="../renderer/ref-for-renderer-work/coreMarkdownRender.js"></script>
+<script>
+    let mde = {};
+    const {createApp, nextTick} = Vue;
+    const app = createApp(renderProcess);
+    app.mount("#write");
+</script>
+</html>

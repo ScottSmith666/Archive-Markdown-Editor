@@ -25,6 +25,7 @@ module.exports = {
             "README.md",
             "test.md",
             "electron-cache",
+            "examples",
             "package-lock.json",
             "node_modules/electron",
             "libs/third_party/monaco/CHANGELOG.md",
