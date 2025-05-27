@@ -53,6 +53,7 @@ contextBridge.exposeInMainWorld('settings', {
 contextBridge.exposeInMainWorld('userSurface', {
     getRightMenuSurface: async () => (await ipcRenderer.invoke('load-language-user-surface', "display")).index.markdownEditRightMenu,
     getRenderPlaceholderSurface: async () => (await ipcRenderer.invoke('load-language-user-surface', "display")).index.markdownRenderPlaceholder,
+    getEditorPlaceholderSurface: async () => (await ipcRenderer.invoke('load-language-user-surface', "display")).index.markdownEditPlaceholder,
 });
 
 // 打开新窗口

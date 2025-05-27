@@ -15,7 +15,8 @@ const createMainWindow = () => {
     /**
      * 创建主窗口（欢迎+新建）
      */
-    return null;
+    let windowsObject = new Windows();
+    windowsObject.mainWindow();
 };
 
 const createWorkSpaceWindow = () => {
@@ -32,13 +33,13 @@ const createWorkSpaceWindow = () => {
 // 开始运行
 app.whenReady().then(() => {
     Menu.setApplicationMenu(menu);  //主进程设置应用菜单
-    createWorkSpaceWindow();
+    createMainWindow();
     // 加载通用ipc
     let commonIpc = new CommonIpc();
     commonIpc.commonIpcMain(createWorkSpaceWindow);
     app.on("activate", () => {
         console.log(BrowserWindow.getAllWindows());
-        if (BrowserWindow.getAllWindows().length === 0) createWorkSpaceWindow();
+        if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
     });
 });
 

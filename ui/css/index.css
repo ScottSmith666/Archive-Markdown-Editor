@@ -1,0 +1,99 @@
+@font-face {
+    /* 中文字体全局定义为“阿里巴巴普惠体” */
+    font-family: AlibabaPuHuiTi;
+    src: url("../../assets/fonts/AlibabaPuHuiTi/Alibaba-PuHuiTi-Regular.ttf");
+}
+
+.fonts {
+    font-family: AlibabaPuHuiTi, Lato, serif;
+}
+
+#main {
+    display: flex;
+    flex-direction: row;
+
+}
+
+.side {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    width: 35%;
+}
+
+.title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.separator {
+    height: 10px;
+}
+
+.options {
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.options:hover {
+    background-color: #42b98330;
+    cursor: pointer;
+    font-weight: bold;
+    color: #42b983;
+}
+
+.recent-file-unit {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.recent-file-unit:hover {
+    background-color: #42b98330;
+}
+
+#access-file:hover {
+    color: #42b983;
+    cursor: pointer;
+}
+
+#recent-file-list {
+    padding: 15px;
+    width: 65%;
+}
+
+.block {
+    background-color: #42b983;
+    width: 5px;
+    height: 20px;
+}
+
+.recent-file-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.file-info-block {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#access-file {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+#access-file-path {
+    font-size: 12px;
+    color: #8c8c8c;
+}
+
+#last-open-date-time {
+    font-size: 12px;
+}

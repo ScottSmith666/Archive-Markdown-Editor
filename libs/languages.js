@@ -4,16 +4,7 @@ const { app } = require("electron");
 
 
 function LanguageLocale() {
-    this.languageObject = [
-            {
-                "description": "中文（简体）",
-            }, {
-                "description": "中文（繁體）",
-            }, {
-                "description": "English",
-            }
-    ];
-
+    // [简体中文, 繁体中文, English] 该列表的index对应语言类型
     this.operationsInstructions = (...args) => ({
         "display": {
             "index": {
