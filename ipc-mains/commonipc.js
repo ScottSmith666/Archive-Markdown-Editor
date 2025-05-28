@@ -36,7 +36,15 @@ function CommonIpc() {
             shell.openExternal(url);
         });
         ipcMain.on('open-new', (event) => {
+            /**
+             * 打开新窗口
+             */
             workWindow();
+        });
+        ipcMain.on('open-file', (event) => {
+            /**
+             * 打开窗口时便新建一个文件
+             */
         });
     };
 }
