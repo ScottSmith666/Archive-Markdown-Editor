@@ -56,7 +56,13 @@ contextBridge.exposeInMainWorld('userSurface', {
     getEditorPlaceholderSurface: async () => (await ipcRenderer.invoke('load-language-user-surface', "display")).index.markdownEditPlaceholder,
 });
 
-// 打开新窗口
+// 打开新窗口&文件窗口
 contextBridge.exposeInMainWorld('openNewWindow', {
     openNew: () => ipcRenderer.send('open-new'),
+    openFile: () => ipcRenderer.send('open-file'),
+});
+
+// 加载文件内容
+contextBridge.exposeInMainWorld('loadFileContent', {
+    loadFileContent: (path, platform) => ipcRenderer.invoke('load-file-content', path, platform),
 });

@@ -5,8 +5,9 @@
 ## 一. 软件简介
 Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非所见即所得）的Markdown编辑器，相较于其他Markdown编辑器，Archive Markdown Editor具有其他编辑器所没有的特性。如：
 1. 独创性推出基于Markdown的拓展格式：mdz。可方便进行多媒体归档，设置密码等操作。
-2. 在遵循原有Markdown语法规范（CommonMark和GitHub Flavored Markdown）不变的情况下，支持通过Archive Markdown Editor特有的拓展语法插入视频和音频，后续会加入PDF、docx、pptx、xlsx等常见类型文件的支持。
-3. **注意⚠️！如果您有跨编辑器编辑Markdown文档的需求，请不要在Markdown内容中使用Archive Markdown Editor特有的拓展语法，保存文件时请不要保存为mdz格式！**
+2. 在遵循原有Markdown语法规范（CommonMark和GitHub Flavored Markdown）不变的情况下，支持通过Archive Markdown Editor特有的拓展语法插入视频和音频（后续版本会加入PDF、docx、pptx、xlsx等常见类型文件的支持）。
+3. 智能提示，使您编写Markdown时更舒适。
+4. **注意⚠️！如果您有跨编辑器编辑Markdown文档的需求，请不要在Markdown内容中使用Archive Markdown Editor特有的拓展语法，保存文件时请不要保存为mdz格式！**
 
 另外，通过页面局部更新，减小渲染压力，可顺利打开10000-20000行的Markdown并进行查看&编辑，性能强于Mark Text和Typora。
 
@@ -32,12 +33,12 @@ Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非�
 
 ```text
 file_name
-    ├── checksum
+    ├── file_type.json
     └── mdz_contents
         ├── file_name.md
-        ├── media_src
-        │        └── media.jpg
-        └── file_type.json
+        └── media_src
+                 └── media.jpg
+    
 ```
 其中“file_name.md”是我们熟悉的Markdown文件，要求该文件的名字和原来的mdz文件名一致。media_src文件用于存放多媒体，接下来看到“file_type.json”文件，其内容如下：
 

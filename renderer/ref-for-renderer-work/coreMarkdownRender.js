@@ -2,10 +2,22 @@ let renderProcess = {
     data() {
         return {
             mdResult: [],
+            windowId: null,
+            windowTitle: null,
+            openFilePath: null,
+            openFileName: null,
+            openFileContent: null,
+            platform: null,
         }
     },
     async mounted() {
-        // 等DOM加载完成后再应用
+        /**
+         * 等DOM加载完成后再应用
+         */
+
+        // 加载窗口Title
+        document.getElementById("app-title").innerText = this.windowTitle;
+
         // 载入UI语言
         let editorPlaceholder = await this.loadLanguage();
 
@@ -125,6 +137,9 @@ let renderProcess = {
                 fontSize: editorFontSize,
             });
 
+            // 初始化editor value
+            if (this.fileContent) editor.setValue(this.fileContent);
+
             // 初始化值
             this.renderChange(editor);
             // 初始化聚焦
@@ -216,7 +231,6 @@ let renderProcess = {
             });
 
             // main menu点击事件
-
             // cut
             document.getElementById("main-menu-cut").addEventListener('click', (e) => {
                 this.copy(editor, false, true);
@@ -332,7 +346,6 @@ let renderProcess = {
                 document.getElementById("display_vertical_scrollbar").value = await window.settings.getDisplayVerticalScrollbar();
                 // 显示水平滚动条：display_horizon_scrollbar: 0 || 1 || 2，0代表"visible"，1代表"auto"，2代表"hidden"，初始化默认为0
                 document.getElementById("display_horizon_scrollbar").value = await window.settings.getDisplayHorizonScrollbar();
-
                 // 显示代码缩略图：display_code_scale: 1 || 0，1代表true，0代表false，初始化默认为0
                 document.getElementById("display_code_scale").checked = ((await window.settings.getDisplayCodeScale()) === 1);
                 // 启用编辑器动画效果：display_editor_animation:  1 || 0，1代表true，0代表false，初始化默认为1
@@ -389,7 +402,8 @@ let renderProcess = {
 
             // 应用更改
             document.getElementById("apply").addEventListener("click", async () => {
-                if ((await window.settings.getSettingsConfirmOption(changeSettingsList))) window.settings.reloadSettings();
+                if ((await window.settings.getSettingsConfirmOption(changeSettingsList)))
+                    window.settings.reloadSettings();
             });
             // 取消应用更改
             document.getElementById("settings-close").addEventListener("click", async () => {
@@ -596,14 +610,21 @@ let renderProcess = {
             }, 200);
         },
     },
-    created() {
+    async created() {
         // 获得本窗口唯一ID
         const queryParams = new URLSearchParams(window.location.search);
-        const windowId = queryParams.get('windowId');
+        let windowId = queryParams.get('windowId');
+        this.windowId = windowId;
+        let platform = queryParams.get('platform');
+        this.platform = platform;
+        // 获得相应窗口title
+        this.windowTitle = queryParams.get('name') === 'NEW_FILE' ? `Archive Markdown Editor - Untitled ${ this.windowId - 1 }` : queryParams.get('name');
+        // 获得打开的文件路径
+        let openFilePath = queryParams.get('path') !== 'NO_PATH' ? queryParams.get('path') : false;
+        this.openFilePath = openFilePath;
 
-        // 加载窗口Title
-
-        document.getElementById("app-title").innerText = `Archive Markdown Editor - Untitled ${ windowId - 1 }`;
+        // 加载文件内容
+        this.fileContent = openFilePath ? (await window.loadFileContent.loadFileContent(openFilePath, platform)) : false;
 
         const KIND_OF_TIPS_FOR_COLORS_SVGS = {
             "tip": '<span class="md-alert-text md-alert-text-tip"><svg viewBox="0 0 16 16" version="1.1" width="1em" height="1em" aria-hidden="true"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"></path></svg>Tip</span>',
@@ -612,6 +633,30 @@ let renderProcess = {
             "warning": '<span class="md-alert-text md-alert-text-warning"><svg viewBox="0 0 16 16" version="1.1" width="1em" height="1em" aria-hidden="true"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>Warning</span>',
             "caution": '<span class="md-alert-text md-alert-text-caution"><svg viewBox="0 0 16 16" version="1.1" width="1em" height="1em" aria-hidden="true"><path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Caution</span>',
         };
+
+        function getAbsoluteMediaPath(platform, originFilePath, originMediaPath) {
+            /**
+             * 根据Markdown媒体文件的相对路径生成绝对路径
+             * 参数“mdz”：确认是否为mdz文件，以启用不同的路径转化
+             * 要求：相对路径开头为“./”
+             */
+            let sep = (platform === 'win32') ? '\\' : '/';
+            let filePathList = originFilePath ? originFilePath.split(sep) : [];
+            let fullFileName = filePathList.pop();  // 去掉列表最后一个元素
+            let fileNameList = originFilePath ? fullFileName.split(".") : [];
+            fileNameList.pop();  // 去掉扩展名元素
+            let fileName = fileNameList.join(".");
+            let rootPath = filePathList.join(sep);
+
+            if (/(\.)(\/)(\S|\s)+/.test(originMediaPath)) {  // 如果是相对路径（以“./”开头）
+                if (!originFilePath) return false;  // 未保存文件，无法使用相对路径引用多媒体
+                return rootPath + sep + originMediaPath;
+            }
+
+            if (/(\$MDZ_MEDIA\/)(\S|\s)+/.test(originMediaPath))   // 如果是mdz文件引用媒体（形如“$MDZ_MEDIA/test.jpg”）
+                return rootPath + sep + "._mdz_content." + fileName + sep + "mdz_contents" + sep + "media_src" + sep + originMediaPath.split("/").pop();
+            return originMediaPath;
+        }
 
         const escapeReplacements = {
             '&': '&amp;',
@@ -687,10 +732,18 @@ let renderProcess = {
                         text = this.parser.parseInline(tokens, this.parser.textRenderer);  // “![]”内的字符
                     }
 
-                    const cleanHref = cleanUrl(href);  // 多媒体链接（URL或文件路径）
+                    if (!(/(http\:\/\/)(\S|\s)+/.test(href) || /(https\:\/\/)(\S|\s)+/.test(href))) {
+                        href = getAbsoluteMediaPath(platform, openFilePath, href);
+                        href = href.replaceAll('\\', '/');  // 如果不是URL，且包含反斜杠（普通文件名里面基本没这个符号，可以放心全部替换），说明是Windows文件路径，将其替换成正斜杠
+                        if (!href) return `<p style="color: red; font-weight: bold;">错误：未保存文件，无法使用相对路径引用多媒体！</psty>`
+                    }
+
+                    let cleanHref = cleanUrl(href);  // 多媒体链接（URL或文件路径）
+
                     if (cleanHref === null) {
                         return escape(text);
                     }
+
                     href = cleanHref;
                     let out = `<img src="${href}" alt="${text}"`;
                     if (title) {
@@ -698,8 +751,8 @@ let renderProcess = {
                     }
                     out += '>';
 
-                    if (/(\$\{)(\S+)(\})(:)([\S\s]*)/.test(text)) {  // 匹配指定多媒体的字符格式
-                        let identifierRegObj = /(\$\{)(\S+)(\})(:)([\S\s]*)/.exec(text);
+                    if (/(\$\{)(\S+)(\})(:)([\S|\s]*)/.test(text)) {  // 匹配指定多媒体的字符格式
+                        let identifierRegObj = /(\$\{)(\S+)(\})(:)([\S|\s]*)/.exec(text);
                         let fileKind = identifierRegObj[2];
                         let note = identifierRegObj[4];
                         if (fileKind === "video") {

@@ -103,7 +103,7 @@
         <!--New File-->
         <div class="options" id="new">新建文件</div>
         <!--Open-->
-        <div class="options" id="open">打开文件</div>
+        <div class="options" id="open" @click="openFile">打开文件</div>
     </div>
     <!--Main area is showing recent files, 8 files max-->
     <div id="recent-file-list">
@@ -153,7 +153,10 @@
             };
         },
         methods: {
-
+            openFile() {
+                window.openNewWindow.openFile();
+                window.close();
+            }
         },
         created() {
         },

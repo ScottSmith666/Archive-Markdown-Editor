@@ -1,11 +1,15 @@
 const { BrowserWindow, Menu } = require("electron");
 const path = require("node:path");
+const querystring = require('querystring');
+const process = require("node:process");
+
+
 // 全局变量模块引入
 const GlobalVar = require(path.join(__dirname, "../libs/globalvar"));
 let gVar = new GlobalVar();
 
 function Windows() {
-    this.workSpaceWindow = () => {
+    this.workSpaceWindow = (filePath) => {
         let win = new BrowserWindow({  // 工作窗口
             backgroundColor: '#ffffff',
             autoHideMenuBar: true,
@@ -22,7 +26,16 @@ function Windows() {
             },
             devTools: gVar.DEBUG,
         });
-        const url = `file://${ __dirname }/../ui/workspace.html?windowId=${win.id}`;  // 传递应用打开生命周期内窗口唯一ID
+        let fileName;
+        if (!filePath) {  // 传入“NEW_FILE”字符串使App以新建文件的方式打开窗口，注意不要让用户将文件重命名为“NEW_FILE”
+            fileName = `NEW_FILE`;
+            filePath = "NO_PATH";
+        } else fileName = filePath.split(path.sep).pop();
+        let encodedQuery = querystring.stringify({
+            name: fileName,
+            path: filePath,
+        });
+        const url = `file://${ __dirname }/../ui/workspace.html?windowId=${win.id}&${encodedQuery}&platform=${process.platform}`;  // windowId：传递应用打开生命周期内窗口唯一ID，platform：传递系统类型，以便于处理文件路径
         win.loadURL(url);
         win.on('ready-to-show', function () {
             win.center();

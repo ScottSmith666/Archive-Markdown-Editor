@@ -19,13 +19,13 @@ const createMainWindow = () => {
     windowsObject.mainWindow();
 };
 
-const createWorkSpaceWindow = () => {
+const createWorkSpaceWindow = (filePath = false) => {
     /**
      * 创建工作窗口（编辑器）
      */
     let windowsObject = new Windows();
     // 建立属于自己窗口的ipc通信
-    let workWindow = windowsObject.workSpaceWindow();
+    let workWindow = windowsObject.workSpaceWindow(filePath);
     let forWorkIpcMain = new ForWorkIpcMain();
     forWorkIpcMain.workIpcMain(workWindow);
 };

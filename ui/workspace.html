@@ -557,7 +557,7 @@
                         <div class="dp-menu-element" id="main-menu-new" onclick="window.openNewWindow.openNew();">
                             <p class="fonts">新建</p>
                         </div>
-                        <div class="dp-menu-element" id="main-menu-open">
+                        <div class="dp-menu-element" id="main-menu-open" onclick="window.openNewWindow.openFile();">
                             <p class="fonts">打开...</p>
                         </div>
                         <div class="dp-menu-element" id="main-menu-save">
@@ -782,7 +782,7 @@
 <script src="../renderer/ref-for-renderer-work/coreMarkdownRender.js"></script>
 <script>
     let mde = {};
-    const {createApp, nextTick} = Vue;
+    const { createApp } = Vue;
     const app = createApp(renderProcess);
     app.mount("#write");
 </script>

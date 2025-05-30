@@ -25,7 +25,11 @@
   },
   "dependencies": {
     "@electron-forge/maker-squirrel": "^7.8.1",
+    "adm-zip": "^0.5.16",
     "appdmg": "^0.6.6",
+    "archiver": "^7.0.1",
+    "archiver-zip-encrypted": "^2.0.0",
+    "fs-extra": "^11.3.0",
     "xml2js": "^0.6.2"
   }
 }
