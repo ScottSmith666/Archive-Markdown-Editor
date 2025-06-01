@@ -2,10 +2,20 @@
     /* 中文字体全局定义为“阿里巴巴普惠体” */
     font-family: AlibabaPuHuiTi;
     src: url("../../assets/fonts/AlibabaPuHuiTi/Alibaba-PuHuiTi-Regular.ttf");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    /* 中文字体全局定义为“阿里巴巴普惠体” */
+    font-family: AlibabaPuHuiTi;
+    src: url("../../assets/fonts/AlibabaPuHuiTi/Alibaba-PuHuiTi-Bold.ttf");
+    font-weight: bold;
+    font-style: normal;
 }
 
 .fonts {
-    font-family: AlibabaPuHuiTi, Lato, serif;
+    font-family: AlibabaPuHuiTi, serif;
 }
 
 #main {

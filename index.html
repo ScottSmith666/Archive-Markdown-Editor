@@ -166,6 +166,17 @@
                 window.openNewWindow.openNew();
                 window.close();
             });
+
+            // 快捷键关闭页面
+            window.addEventListener("keydown", function(event) {
+                // 判断是否按下了Ctrl/Command键和 W 键
+                if (event.ctrlKey && event.key === "w") {  // Windows
+                    window.close();
+                }
+                if (event.metaKey && event.key === "w") {  // macOS
+                    window.close();
+                }
+            });
         }
     });
     app.mount("#main");

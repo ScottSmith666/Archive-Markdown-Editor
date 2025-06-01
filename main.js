@@ -38,11 +38,10 @@ app.whenReady().then(() => {
     let commonIpc = new CommonIpc();
     commonIpc.commonIpcMain(createWorkSpaceWindow);
     app.on("activate", () => {
-        console.log(BrowserWindow.getAllWindows());
         if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
     });
 });
 
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+    app.quit();
 });

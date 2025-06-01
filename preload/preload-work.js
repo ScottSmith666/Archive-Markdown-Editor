@@ -66,3 +66,8 @@ contextBridge.exposeInMainWorld('openNewWindow', {
 contextBridge.exposeInMainWorld('loadFileContent', {
     loadFileContent: (path, platform) => ipcRenderer.invoke('load-file-content', path, platform),
 });
+
+// 设置当前窗口保存状态
+contextBridge.exposeInMainWorld('setSaveStatus', {
+    setSaveStatus: (saveStatus) => ipcRenderer.invoke('change-save-status' + windowId, saveStatus),
+});

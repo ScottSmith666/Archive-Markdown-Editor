@@ -45,11 +45,6 @@ function CommonIpc() {
              */
             workWindow();
         });
-        ipcMain.on('new-file', (event) => {
-            /**
-             * 打开窗口时便新建一个文件
-             */
-        });
         ipcMain.on('open-file', (event) => {
             const dialogs = new Dialogs();
             let filePath = dialogs.openFileDialog();  // 获得打开的文件路径
@@ -72,6 +67,13 @@ function CommonIpc() {
             /**
              * 检测对应path的文件是否已被打开，如已被打开则弹窗警告禁止再次打开
              */
+
+        });
+        ipcMain.handle('save-file', (event) => {
+            /**
+             * 保存文件
+             */
+
         });
     };
 }

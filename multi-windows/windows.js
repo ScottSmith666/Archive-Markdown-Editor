@@ -1,5 +1,6 @@
-const { BrowserWindow, Menu } = require("electron");
+const { BrowserWindow, Menu, ipcMain} = require("electron");
 const path = require("node:path");
+const ConfirmDialog = require(path.join(__dirname, "../dialogs/dialogs"));
 const querystring = require('querystring');
 const process = require("node:process");
 
@@ -10,6 +11,7 @@ let gVar = new GlobalVar();
 
 function Windows() {
     this.workSpaceWindow = (filePath) => {
+        let saveStatusMap = {};
         let win = new BrowserWindow({  // 工作窗口
             backgroundColor: '#ffffff',
             autoHideMenuBar: true,
@@ -27,7 +29,7 @@ function Windows() {
             devTools: gVar.DEBUG,
         });
         let fileName;
-        if (!filePath) {  // 传入“NEW_FILE”字符串使App以新建文件的方式打开窗口，注意不要让用户将文件重命名为“NEW_FILE”
+        if (!filePath) {  // 传入“NEW_FILE”和“NO_PATH”字符串使App以新建文件的方式打开窗口，注意不要让用户将文件重命名为“NEW_FILE”
             fileName = `NEW_FILE`;
             filePath = "NO_PATH";
         } else fileName = filePath.split(path.sep).pop();
@@ -35,7 +37,8 @@ function Windows() {
             name: fileName,
             path: filePath,
         });
-        const url = `file://${ __dirname }/../ui/workspace.html?windowId=${win.id}&${encodedQuery}&platform=${process.platform}`;  // windowId：传递应用打开生命周期内窗口唯一ID，platform：传递系统类型，以便于处理文件路径
+        // windowId：传递应用打开生命周期内窗口唯一ID，platform：传递系统类型，以便于处理文件路径，name：打开文件的文件名，path：打开文件的完整文件路径
+        const url = `file://${ __dirname }/../ui/workspace.html?windowId=${win.id}&${encodedQuery}&platform=${process.platform}`;
         win.loadURL(url);
         win.on('ready-to-show', function () {
             win.center();
@@ -45,6 +48,29 @@ function Windows() {
         win.on('closed', () => {
             // 当窗口被关闭时，将 mainWindow 设置为 null
             win = null;
+        });
+        // 接收保存信号并存储至WeakMap
+        ipcMain.handle('change-save-status' + win.id, (e, saveStatus) => {
+            saveStatusMap[`Window_${ win.id }`] = saveStatus;
+        });
+        win.on('close', e => {  // 检测本窗口是否未保存
+            e.preventDefault(); // 先阻止一下默认行为，不然直接关了，提示框只会闪一下
+            if (saveStatusMap[`Window_${ win.id }`]) {  // 如果已保存，不弹框直接关闭窗口
+                win.destroy();
+            } else {
+                let warningConfirmDialogChosen = new ConfirmDialog();
+                if (warningConfirmDialogChosen.confirm(
+                    win,
+                    "warning",
+                    ["取消", "确定"],
+                    1,
+                    '确认关闭',
+                    '您有项目未保存，如果直接关闭，当前进度将不会保存，确认要直接关闭吗？',
+                    0
+                )) {
+                    win.destroy();
+                }
+            }
         });
         return win;
     };

@@ -8,6 +8,7 @@ let renderProcess = {
             openFileName: null,
             openFileContent: null,
             platform: null,
+            saveStatus: true,
         }
     },
     async mounted() {
@@ -36,9 +37,8 @@ let renderProcess = {
         require.config({paths: {vs: '../libs/third_party/monaco/min/vs'}});
         require.config({'vs/nls': {availableLanguages: {'*': 'zh-cn'}}});
         require(['vs/editor/editor.main'], async () => {
-
             /**
-             * 设置表
+             * ---- 设置表 START ----
              * ----编辑----
              * 编辑区Tab缩进长度：editor_tab_size: <number>，初始化默认为4
              * 编辑区字体大小：editor_font_size: <number>，初始化默认为12
@@ -51,7 +51,6 @@ let renderProcess = {
              * 显示代码缩略图：display_code_scale: 1 || 0，1代表true，0代表false，初始化默认为0
              * 启用编辑器动画效果：display_editor_animation:  1 || 0，1代表true，0代表false，初始化默认为1
              */
-
             let editorTabSize = await window.settings.getEditorTabSize();
             let editorFontSize = await window.settings.getEditorFontSize();
             let enableLineNum = ((await window.settings.getEnableLineNum()) === 1) ? "on" : "off";
@@ -84,6 +83,7 @@ let renderProcess = {
             }
             let displayCodeScale = ((await window.settings.getDisplayCodeScale()) === 1);
             let displayEditorAnimation = ((await window.settings.getDisplayEditorAnimation()) === 1);
+            // ---- 设置表 END ----
 
             // 定义自定义主题
             monaco.editor.defineTheme('myEditorTheme', {
@@ -109,6 +109,7 @@ let renderProcess = {
                 },
             });
 
+            // 创建Editor对象
             let editor = monaco.editor.create(document.getElementById('real-edit'), {
                 value: "",
                 language: "markdown",
@@ -157,15 +158,25 @@ let renderProcess = {
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX,  () => {
                 this.copy(editor, false);
             });
+            // Ctrl/Cmd + S
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,  () => {
+                this.saveFile(editor);
+                document.getElementById('app-title').innerText = this.windowTitle;
+                this.saveStatus = true;
+                window.setSaveStatus.setSaveStatus(true);
+            });
             // Monaco Editor内容改变事件
             editor.onDidChangeModelContent((e) => {
+                // 更改标题
+                document.getElementById('app-title').innerText = "(未保存) " + this.windowTitle;
                 this.renderChange(editor);
+                this.saveStatus = false;
+                window.setSaveStatus.setSaveStatus(false);
             });
             editor.onDidScrollChange(() => {
                 // 获取编辑区滚动到哪里了
                 let rollProcess = (editor.getVisibleRanges()[0].startLineNumber + (editor.getVisibleRanges()[0].endLineNumber - editor.getVisibleRanges()[0].startLineNumber) / 2)
                     / (editor.getModel().getLineCount() - (editor.getVisibleRanges()[0].endLineNumber - editor.getVisibleRanges()[0].startLineNumber) / 2);
-                // console.log(`滚动进度：${ rollProcess * 100 }%`);
 
                 // 相应改变渲染区滚动位置
                 let getRenderAreaTotalHeight = document.getElementById("write").offsetHeight;
@@ -247,6 +258,18 @@ let renderProcess = {
                 this.mainManuAllHide("file", "edit", "view", "help");
             });
 
+            // save
+            document.getElementById("main-menu-save").addEventListener('click', (e) => {
+                if (!this.openFileName && !this.openFilePath) this.saveFile(editor, true);  // 说明是新建的文件，保存即另存为
+                else this.saveFile(editor);
+                this.mainManuAllHide("file", "edit", "view", "help");
+            });
+            // save as
+            document.getElementById("main-menu-save-as").addEventListener('click', (e) => {
+                this.saveFile(editor, true);
+                this.mainManuAllHide("file", "edit", "view", "help");
+            });
+
             // about
             document.getElementById("about").addEventListener("click", (e) => {
                 this.mainManuAllHide("file", "edit", "view", "help");
@@ -324,33 +347,31 @@ let renderProcess = {
             settingsItemClickEvent(2, generalItem, editItem, updateItem);
 
             // ---- 读取硬盘中sqlite设置，以保持设置界面的状态一致性 START ----
-            (async () => {
-                // 设置表
-                // ----通用----
-                // 选择界面语言：lang_index: 0 || 1 || 2，0代表简体中文，1代表繁体中文，2代表English，初始化默认为0
-                document.getElementById("lang_index").value = await window.settings.getLangSettings();
-                // ----编辑----
-                // 编辑区Tab缩进长度：editor_tab_size: <number>，初始化默认为4
-                document.getElementById("editor_tab_size").value = await window.settings.getEditorTabSize();
-                // 编辑区字体大小：editor_font_size: <number>，初始化默认为12
-                document.getElementById("editor_font_size").value = await window.settings.getEditorFontSize();
-                // 开启行号：enable_line_num: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
-                document.getElementById("enable_line_num").checked = ((await window.settings.getEnableLineNum()) === 1);
-                // 开启代码折叠：enable_code_fold: 1 || 0，1代表true，0代表false，初始化默认为1
-                document.getElementById("enable_code_fold").checked = ((await window.settings.getEnableCodeFold()) === 1);
-                // 开启自动折行：enable_auto_wrap_line: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
-                document.getElementById("enable_auto_wrap_line").checked = ((await window.settings.getEnableAutoWrapLine()) === 1);
-                // 开启自动输入闭合引号/括号和成对删除引号/括号: enable_auto_closure: 1 || 0，1代表"always"，0代表"never"，初始化默认为1
-                document.getElementById("enable_auto_closure").checked = ((await window.settings.getEnableAutoClosure()) === 1);
-                // 显示垂直滚动条：display_vertical_scrollbar: 0 || 1 || 2，0代表"visible"，1代表"auto"，2代表"hidden"，初始化默认为0
-                document.getElementById("display_vertical_scrollbar").value = await window.settings.getDisplayVerticalScrollbar();
-                // 显示水平滚动条：display_horizon_scrollbar: 0 || 1 || 2，0代表"visible"，1代表"auto"，2代表"hidden"，初始化默认为0
-                document.getElementById("display_horizon_scrollbar").value = await window.settings.getDisplayHorizonScrollbar();
-                // 显示代码缩略图：display_code_scale: 1 || 0，1代表true，0代表false，初始化默认为0
-                document.getElementById("display_code_scale").checked = ((await window.settings.getDisplayCodeScale()) === 1);
-                // 启用编辑器动画效果：display_editor_animation:  1 || 0，1代表true，0代表false，初始化默认为1
-                document.getElementById("display_editor_animation").checked = ((await window.settings.getDisplayEditorAnimation()) === 1);
-            })();
+            // 设置表
+            // ----通用----
+            // 选择界面语言：lang_index: 0 || 1 || 2，0代表简体中文，1代表繁体中文，2代表English，初始化默认为0
+            document.getElementById("lang_index").value = await window.settings.getLangSettings();
+            // ----编辑----
+            // 编辑区Tab缩进长度：editor_tab_size: <number>，初始化默认为4
+            document.getElementById("editor_tab_size").value = await window.settings.getEditorTabSize();
+            // 编辑区字体大小：editor_font_size: <number>，初始化默认为12
+            document.getElementById("editor_font_size").value = await window.settings.getEditorFontSize();
+            // 开启行号：enable_line_num: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
+            document.getElementById("enable_line_num").checked = ((await window.settings.getEnableLineNum()) === 1);
+            // 开启代码折叠：enable_code_fold: 1 || 0，1代表true，0代表false，初始化默认为1
+            document.getElementById("enable_code_fold").checked = ((await window.settings.getEnableCodeFold()) === 1);
+            // 开启自动折行：enable_auto_wrap_line: 1 || 0，1代表"on"，0代表"off"，初始化默认为1
+            document.getElementById("enable_auto_wrap_line").checked = ((await window.settings.getEnableAutoWrapLine()) === 1);
+            // 开启自动输入闭合引号/括号和成对删除引号/括号: enable_auto_closure: 1 || 0，1代表"always"，0代表"never"，初始化默认为1
+            document.getElementById("enable_auto_closure").checked = ((await window.settings.getEnableAutoClosure()) === 1);
+            // 显示垂直滚动条：display_vertical_scrollbar: 0 || 1 || 2，0代表"visible"，1代表"auto"，2代表"hidden"，初始化默认为0
+            document.getElementById("display_vertical_scrollbar").value = await window.settings.getDisplayVerticalScrollbar();
+            // 显示水平滚动条：display_horizon_scrollbar: 0 || 1 || 2，0代表"visible"，1代表"auto"，2代表"hidden"，初始化默认为0
+            document.getElementById("display_horizon_scrollbar").value = await window.settings.getDisplayHorizonScrollbar();
+            // 显示代码缩略图：display_code_scale: 1 || 0，1代表true，0代表false，初始化默认为0
+            document.getElementById("display_code_scale").checked = ((await window.settings.getDisplayCodeScale()) === 1);
+            // 启用编辑器动画效果：display_editor_animation:  1 || 0，1代表true，0代表false，初始化默认为1
+            document.getElementById("display_editor_animation").checked = ((await window.settings.getDisplayEditorAnimation()) === 1);
             // ---- 读取硬盘中sqlite设置，以保持设置界面的状态一致性 END ----
 
             // ---- 设置表单监听事件，并将更改值写入list ----
@@ -377,9 +398,6 @@ let renderProcess = {
                             break;
                         }
                     }
-                    console.log(`inst: ${instruction}`);
-                    console.log(`canUse: ${canUseInsert}`);
-
                     if (canUseInsert) changeSettingsList.push({
                         "instructions": instruction,
                         "settings_value": settingsValue,
@@ -431,7 +449,6 @@ let renderProcess = {
             });
         },
         mainManuHoverOut(id) {
-            let menuUnit = document.getElementById(id);
             let menuExpandUnit = document.getElementById(`${ id }-expand`);
             menuExpandUnit.addEventListener('mouseleave', (evt) => {
                 document.getElementById(`${ id }-expand`).style.display = 'none';
@@ -499,6 +516,12 @@ let renderProcess = {
             }).catch((error) => {
                 console.error("粘贴失败: ", error);
             });
+        },
+
+        saveFile(editor, saveAs = false) {
+            /**
+             * 保存文件
+             */
         },
 
         renderChange(editor) {
@@ -613,18 +636,21 @@ let renderProcess = {
     async created() {
         // 获得本窗口唯一ID
         const queryParams = new URLSearchParams(window.location.search);
-        let windowId = queryParams.get('windowId');
-        this.windowId = windowId;
+        this.windowId = queryParams.get('windowId');
         let platform = queryParams.get('platform');
         this.platform = platform;
+        let openFileName = queryParams.get('name') !== 'NEW_FILE' ? queryParams.get('name') : false;
+        this.openFileName = openFileName;
         // 获得相应窗口title
-        this.windowTitle = queryParams.get('name') === 'NEW_FILE' ? `Archive Markdown Editor - Untitled ${ this.windowId - 1 }` : queryParams.get('name');
+        this.windowTitle = openFileName ? `Archive Markdown Editor - Untitled ${ this.windowId - 1 }` : `Archive Markdown Editor - ${ openFileName }`;
         // 获得打开的文件路径
         let openFilePath = queryParams.get('path') !== 'NO_PATH' ? queryParams.get('path') : false;
         this.openFilePath = openFilePath;
 
         // 加载文件内容
         this.fileContent = openFilePath ? (await window.loadFileContent.loadFileContent(openFilePath, platform)) : false;
+
+        window.setSaveStatus.setSaveStatus(true);  // 初始化本页面保存状态为true
 
         const KIND_OF_TIPS_FOR_COLORS_SVGS = {
             "tip": '<span class="md-alert-text md-alert-text-tip"><svg viewBox="0 0 16 16" version="1.1" width="1em" height="1em" aria-hidden="true"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"></path></svg>Tip</span>',
@@ -638,7 +664,7 @@ let renderProcess = {
             /**
              * 根据Markdown媒体文件的相对路径生成绝对路径
              * 参数“mdz”：确认是否为mdz文件，以启用不同的路径转化
-             * 要求：相对路径开头为“./”
+             * 要求：相对路径开头为“./”，不支持“../”
              */
             let sep = (platform === 'win32') ? '\\' : '/';
             let filePathList = originFilePath ? originFilePath.split(sep) : [];

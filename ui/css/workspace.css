@@ -189,7 +189,7 @@ html, body {
     position: absolute;
     z-index: 1000;
     /*right: 0;*/
-    top: 45px;
+    top: 20px;
 }
 
 .dark-mode {
@@ -200,10 +200,20 @@ html, body {
     /* 中文字体全局定义为“阿里巴巴普惠体” */
     font-family: AlibabaPuHuiTi;
     src: url("../../assets/fonts/AlibabaPuHuiTi/Alibaba-PuHuiTi-Regular.ttf");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    /* 中文字体全局定义为“阿里巴巴普惠体” */
+    font-family: AlibabaPuHuiTi;
+    src: url("../../assets/fonts/AlibabaPuHuiTi/Alibaba-PuHuiTi-Bold.ttf");
+    font-weight: bold;
+    font-style: normal;
 }
 
 .fonts {
-    font-family: Lato, AlibabaPuHuiTi, serif;
+    font-family: AlibabaPuHuiTi, serif;
 }
 
 .code-editor {
@@ -284,15 +294,16 @@ html, body {
     display: flex;
     align-items: center;
     width: 100%;
-    font-weight: bold;
 }
 
 .bar-menu-element-txt {
+    font-size: 0.67em;
     transition: color 0.2s;
 }
 
 .bar-menu-element-txt:hover {
     color: #42b983;
+    font-weight: bold;
 }
 
 .nav-ico-wrap {
@@ -430,10 +441,13 @@ html, body {
     height: 35px;
     border-radius: 10px;
     color: white;
-    font-weight: bold;
     text-align: center;
     line-height: 35px;
     background-color: #42b883;
+}
+
+.button:hover {
+    font-weight: bold;
 }
 
 #about-modal {
@@ -468,22 +482,19 @@ html, body {
     font-size: x-small;
 }
 
-.dev-txt {
-    font-weight: bold;
-    color: rgb(107, 107, 107);
-    font-size: small;
-}
-
 .settings-button {
     width: 60px;
     height: 35px;
     border-radius: 10px;
     background-color: #42b883;
     color: white;
-    font-weight: bold;
     text-align: center;
     line-height: 35px;
     cursor: pointer;
+}
+
+.settings-button:hover {
+    font-weight: bold;
 }
 
 .settings-button-cancel {
@@ -492,10 +503,13 @@ html, body {
     border-radius: 10px;
     background-color: #c75f5f;
     color: white;
-    font-weight: bold;
     text-align: center;
     line-height: 35px;
     cursor: pointer;
+}
+
+.settings-button-cancel:hover {
+    font-weight: bold;
 }
 
 .input-info {
@@ -583,7 +597,7 @@ html, body {
     transition: background-color 0.3s ease;
 }
 
-.options-items:hover .options-items-txt {
+.options-items:hover > .options-items-txt {
     color: #42b983;
     font-weight: bold;
     transition: color, font-weight 0.3s ease;
