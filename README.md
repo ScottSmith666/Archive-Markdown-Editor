@@ -70,3 +70,5 @@ file_name
 编辑器会在原mdz目录中新建形如“file_name.media_src”文件夹，然后会将mdz文件中用专属路径引用的多媒体拷贝至“file_name.media_src”文件夹，然后将mdz文件中用专属路径改为“./file_name.media_src/media.png”相对路径。插入的绝对/相对路径不改变。
 #### 6.6. 打开已有的mdz文件，插入路径指定方式为绝对/相对路径的多媒体，最后保存为mdz文件：
 同6.2，且mdz文件中用专属路径不改变。
+#### 6.7. 注意事项⚠️
+任何通过在线URL进行标记的多媒体，无论保存为Markdown还是mdz，编辑器均不会更改其内容。

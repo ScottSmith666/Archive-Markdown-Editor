@@ -5,11 +5,13 @@ const Windows = require("./multi-windows/windows");
 const ForWorkIpcMain = require("./ipc-mains/forwork");
 const CommonIpc = require("./ipc-mains/commonipc");
 const GlobalMenu = require("./menu/menu");
+const SqliteMan = require("./libs/sqliteman");
 
 
 let menuObj = new GlobalMenu();  // 创建菜单对象
 let template = menuObj.menuSimple;  // 从对象引入菜单模版
 const menu = Menu.buildFromTemplate(template);  //载入模板
+const settingsConfigManager = new SqliteMan.SettingsConfigManager();
 
 const createMainWindow = () => {
     /**
@@ -32,6 +34,8 @@ const createWorkSpaceWindow = (filePath = false) => {
 
 // 开始运行
 app.whenReady().then(() => {
+    settingsConfigManager.initSettingsConfig();  // 初始化配置
+    settingsConfigManager.deleteInstantHistoryRecords("", true);  // 初始化打开历史记录
     Menu.setApplicationMenu(menu);  //主进程设置应用菜单
     createMainWindow();
     // 加载通用ipc
@@ -39,6 +43,10 @@ app.whenReady().then(() => {
     commonIpc.commonIpcMain(createWorkSpaceWindow);
     app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+    });
+
+    app.on('will-quit', () => {
+        settingsConfigManager.deleteInstantHistoryRecords("", true);
     });
 });
 

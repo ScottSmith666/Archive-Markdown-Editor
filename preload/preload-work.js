@@ -65,9 +65,15 @@ contextBridge.exposeInMainWorld('openNewWindow', {
 // 加载文件内容
 contextBridge.exposeInMainWorld('loadFileContent', {
     loadFileContent: (path, platform) => ipcRenderer.invoke('load-file-content', path, platform),
+    verifyFileIsOpen: (filePath) => ipcRenderer.invoke('verify-file-was-opened', filePath),  // 检查该路径的文件是否已打开
 });
 
 // 设置当前窗口保存状态
 contextBridge.exposeInMainWorld('setSaveStatus', {
     setSaveStatus: (saveStatus) => ipcRenderer.invoke('change-save-status' + windowId, saveStatus),
+});
+
+// 保存文件
+contextBridge.exposeInMainWorld('save', {
+    saveFile: (path) => ipcRenderer.send('save-file', path),
 });

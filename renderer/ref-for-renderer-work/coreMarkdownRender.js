@@ -160,10 +160,8 @@ let renderProcess = {
             });
             // Ctrl/Cmd + S
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,  () => {
-                this.saveFile(editor);
-                document.getElementById('app-title').innerText = this.windowTitle;
-                this.saveStatus = true;
-                window.setSaveStatus.setSaveStatus(true);
+                if (!this.openFileName && !this.openFilePath) this.saveFile(editor, true);
+                else this.saveFile(editor);
             });
             // Monaco Editor内容改变事件
             editor.onDidChangeModelContent((e) => {
@@ -206,12 +204,10 @@ let renderProcess = {
             document.getElementById("editor").addEventListener('contextmenu', (e) => {
                 this.showLeftAreaMenu(e);
             });
-
             // 渲染区监听左键
             document.getElementById("preview").addEventListener('click', (e) => {
                 this.hideAllAreaMenu(e);
             });
-
             // 编辑区监听左键
             document.getElementById("real-edit").addEventListener('click', async (e) => {
                 let swDebug = await window.swDebug.switchDebuggingMode();
@@ -494,7 +490,6 @@ let renderProcess = {
                 );
             }
         },
-
         mdPaste(editor) {
             // 获得光标位置
             let selection = editor.getSelection();
@@ -517,11 +512,21 @@ let renderProcess = {
                 console.error("粘贴失败: ", error);
             });
         },
-
         saveFile(editor, saveAs = false) {
             /**
              * 保存文件
              */
+            if (!saveAs) {
+                // 已存在的文件更改后的保存
+                window.save.saveFile(this.openFilePath);
+            } else {
+                // 新建文件编辑后保存，fullPath为false
+                window.save.saveFile(!saveAs);
+            }
+            // 设置保存状态
+            window.setSaveStatus.setSaveStatus(true);
+            // 设置窗口标题为新
+            document.getElementById('app-title').innerText = this.windowTitle;
         },
 
         renderChange(editor) {
@@ -642,13 +647,16 @@ let renderProcess = {
         let openFileName = queryParams.get('name') !== 'NEW_FILE' ? queryParams.get('name') : false;
         this.openFileName = openFileName;
         // 获得相应窗口title
-        this.windowTitle = openFileName ? `Archive Markdown Editor - Untitled ${ this.windowId - 1 }` : `Archive Markdown Editor - ${ openFileName }`;
+        this.windowTitle = !openFileName ? `Archive Markdown Editor - Untitled ${ this.windowId - 1 }` : `Archive Markdown Editor - ${ openFileName }`;
         // 获得打开的文件路径
         let openFilePath = queryParams.get('path') !== 'NO_PATH' ? queryParams.get('path') : false;
         this.openFilePath = openFilePath;
 
         // 加载文件内容
-        this.fileContent = openFilePath ? (await window.loadFileContent.loadFileContent(openFilePath, platform)) : false;
+        if ((await window.loadFileContent.verifyFileIsOpen(openFilePath))) {
+            alert(`文件“${ openFilePath }”已打开，请勿再次打开！`);
+            window.close();
+        } else this.fileContent = openFilePath ? (await window.loadFileContent.loadFileContent(openFilePath, platform)) : false;
 
         window.setSaveStatus.setSaveStatus(true);  // 初始化本页面保存状态为true
 

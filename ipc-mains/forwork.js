@@ -88,7 +88,7 @@ function ForWork() {
             )) {  // 返回true则应用重置设置
                 // 写入sqlite
                 let settingsConfigManager = new SqliteMan.SettingsConfigManager();
-                settingsConfigManager.deleteSettingsConfig();
+                settingsConfigManager.deleteTable();
                 settingsConfigManager.initSettingsConfig();
                 return true;
             }

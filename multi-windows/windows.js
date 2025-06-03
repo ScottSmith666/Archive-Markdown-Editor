@@ -1,13 +1,14 @@
 const { BrowserWindow, Menu, ipcMain} = require("electron");
 const path = require("node:path");
 const ConfirmDialog = require(path.join(__dirname, "../dialogs/dialogs"));
+const SqliteMan = require(path.join(__dirname, "../libs/sqliteman"));
 const querystring = require('querystring');
 const process = require("node:process");
+const GlobalVar = require(path.join(__dirname, "../libs/globalvar"));  // 全局变量模块引入
 
 
-// 全局变量模块引入
-const GlobalVar = require(path.join(__dirname, "../libs/globalvar"));
 let gVar = new GlobalVar();
+const settingsConfigManager = new SqliteMan.SettingsConfigManager();
 
 function Windows() {
     this.workSpaceWindow = (filePath) => {
@@ -56,6 +57,7 @@ function Windows() {
         win.on('close', e => {  // 检测本窗口是否未保存
             e.preventDefault(); // 先阻止一下默认行为，不然直接关了，提示框只会闪一下
             if (saveStatusMap[`Window_${ win.id }`]) {  // 如果已保存，不弹框直接关闭窗口
+                if (filePath !== 'NO_PATH') settingsConfigManager.deleteInstantHistoryRecords(filePath);  // 删除临时历史记录
                 win.destroy();
             } else {
                 let warningConfirmDialogChosen = new ConfirmDialog();
@@ -68,6 +70,7 @@ function Windows() {
                     '您有项目未保存，如果直接关闭，当前进度将不会保存，确认要直接关闭吗？',
                     0
                 )) {
+                    if (filePath !== 'NO_PATH') settingsConfigManager.deleteInstantHistoryRecords(filePath);  // 删除临时历史记录
                     win.destroy();
                 }
             }
