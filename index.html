@@ -9,7 +9,7 @@
 </head>
 <body>
 <!--主界面-->
-<div id="main" class="fonts">
+<div id="main" class="fonts" style="height: 420px;">
     <!--Sidebar includes "App Name" "New File" "Edit"-->
     <div class="side">
         <!--Archive Markdown Editor Title-->
@@ -104,63 +104,115 @@
         <div class="options" id="new">新建文件</div>
         <!--Open-->
         <div class="options" id="open" @click="openFile">打开文件</div>
+        <!--Quit-->
+        <div class="options-quit" id="quit" @click="quitApp">退出Archive Markdown Editor</div>
     </div>
     <!--Main area is showing recent files, 8 files max-->
-    <div id="recent-file-list">
-        <!--Recent file title-->
-        <div class="recent-file-title">
-            <div class="block"></div>
-            <div style="width: 6px;"></div>
-            <div style="font-weight: bold; font-size: 20px;">历史记录</div>
-        </div>
-        <!--Separator-->
-        <div class="separator"></div>
-        <!--Recent file unit-->
-        <div class="recent-file-unit">
-            <div class="file-info-block">
-                <!--File icon-->
-                <div>
-                    <svg style="width: 40px; height: 40px;" t="1748343387536" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="11531" width="200" height="200"><path d="M554.666667 384 554.666667 149.333333 789.333333 384M256 85.333333C208.64 85.333333 170.666667 123.306667 170.666667 170.666667L170.666667 853.333333C170.666667 900.266667 209.066667 938.666667 256 938.666667L768 938.666667C814.933333 938.666667 853.333333 900.266667 853.333333 853.333333L853.333333 341.333333 597.333333 85.333333 256 85.333333Z" p-id="11532" data-spm-anchor-id="a313x.search_index.0.i0.3f013a81s5EGQ2" class="selected" fill="#42b883"></path></svg>
+    <div id="recent-file-list" style="overflow: scroll; height: 100%;">
+        <div>
+            <!--Recent file title-->
+            <div class="recent-file-title">
+                <div class="recent-file-title-body">
+                    <div class="block"></div>
+                    <div style="width: 6px;"></div>
+                    <div style="font-weight: bold; font-size: 20px;">历史记录</div>
                 </div>
-                <div style="width: 10px;"></div>
-                <!--Info-->
-                <div>
-                    <div>
-                        <!--File name-->
-                        <div id="access-file">test.md</div>
-                        <!--File path-->
-                        <div id="access-file-path">/Users/scottsmith/Desktop/test.md</div>
+                <div v-if="histories.length !== 0" class="clear-all-history" @click="clearAllHistory();">清空</div>
+            </div>
+            <!--Separator-->
+            <div class="separator"></div>
+            <!--Recent file unit-->
+            <template v-if="histories.length === 0">
+                <div style="color: #6a737d;">曾打开的文件将显示于此处。</div>
+            </template>
+            <template v-else>
+                <div class="recent-file-unit" v-for="(item, index) in histories" :key="index">
+                    <div class="file-info-block">
+                        <!--File icon-->
+                        <div>
+                            <svg style="width: 40px; height: 40px;" t="1748343387536" class="icon" viewBox="0 0 1024 1024"
+                                 version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="11531" width="200" height="200">
+                                <path d="M554.666667 384 554.666667 149.333333 789.333333 384M256 85.333333C208.64 85.333333 170.666667 123.306667 170.666667 170.666667L170.666667 853.333333C170.666667 900.266667 209.066667 938.666667 256 938.666667L768 938.666667C814.933333 938.666667 853.333333 900.266667 853.333333 853.333333L853.333333 341.333333 597.333333 85.333333 256 85.333333Z"
+                                      p-id="11532" data-spm-anchor-id="a313x.search_index.0.i0.3f013a81s5EGQ2" class="selected"
+                                      fill="#42b883"></path>
+                            </svg>
+                        </div>
+                        <div style="width: 10px;"></div>
+                        <!--Info-->
+                        <div>
+                            <div>
+                                <!--File name-->
+                                <div class="access-file" @click="openFileFromHistory(item.opened_file_path);">
+                                    {{ item.opened_file_path.split(sep).pop() }}
+                                </div>
+                                <!--File path-->
+                                <div class="access-file-path">{{ item.opened_file_path }}</div>
+                            </div>
+                            <!--Date and time-->
+                            <div class="last-open-date-time">上次打开时间: {{ item.open_datetime }}</div>
+                        </div>
                     </div>
-                    <!--Date and time-->
-                    <div id="last-open-date-time">上次打开时间: 2025-10-01 19:02:30</div>
+                    <!--Delete icon-->
+                    <div style="cursor: pointer;" @click="deleteHistory(item.opened_file_path);">
+                        <svg style="width: 30px; height: 30px;" t="1748343561453" class="icon" viewBox="0 0 1024 1024"
+                             version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="14232" width="200" height="200">
+                            <path d="M256 810.666667c0 46.933333 38.4 85.333333 85.333333 85.333333l341.333333 0c46.933333 0 85.333333-38.4 85.333333-85.333333L768 298.666667 256 298.666667 256 810.666667zM810.666667 170.666667l-149.333333 0-42.666667-42.666667-213.333333 0-42.666667 42.666667L213.333333 170.666667l0 85.333333 597.333333 0L810.666667 170.666667z"
+                                  p-id="14233" data-spm-anchor-id="a313x.search_index.0.i5.3f013a81s5EGQ2" class="selected"
+                                  fill="#c21f0a"></path>
+                        </svg>
+                    </div>
                 </div>
-            </div>
-            <!--Delete icon-->
-            <div style="cursor: pointer;">
-                <svg style="width: 30px; height: 30px;" t="1748343561453" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="14232" width="200" height="200"><path d="M256 810.666667c0 46.933333 38.4 85.333333 85.333333 85.333333l341.333333 0c46.933333 0 85.333333-38.4 85.333333-85.333333L768 298.666667 256 298.666667 256 810.666667zM810.666667 170.666667l-149.333333 0-42.666667-42.666667-213.333333 0-42.666667 42.666667L213.333333 170.666667l0 85.333333 597.333333 0L810.666667 170.666667z" p-id="14233" data-spm-anchor-id="a313x.search_index.0.i5.3f013a81s5EGQ2" class="selected" fill="#c21f0a"></path></svg>
-            </div>
+            </template>
         </div>
     </div>
 </div>
 </body>
 <script src="./libs/third_party/vue3/vue.global.prod.js"></script>
 <script>
-    const { createApp } = Vue;
+    const {createApp} = Vue;
     const app = createApp({
         data() {
             return {
-
+                histories: [],
+                sep: '',
             };
         },
         methods: {
+            quitApp() {
+                window.qt.quit();
+            },
             openFile() {
                 window.openNewWindow.openFile();
                 window.close();
-            }
+            },
+            openFileFromHistory(path) {
+                window.openNewWindow.openFileFromPath(path);
+                window.close();
+            },
+            async deleteHistory(path) {
+                window.histories.delHistory(path, false);
+                let historiesAndSystem = await window.histories.getPermanentHistory();
+                this.histories = this.rankHistory(historiesAndSystem[0]);
+            },
+            async clearAllHistory() {
+                window.histories.delHistory("", true);
+                let historiesAndSystem = await window.histories.getPermanentHistory();
+                this.histories = this.rankHistory(historiesAndSystem[0]);
+            },
+            rankHistory(historyList) {
+                historyList.sort((a, b) => (b.open_timestamp - a.open_timestamp));
+                return historyList;
+            },
         },
-        created() {
+        async created() {
+            // 获取并展示文件打开历史记录
+            let historiesAndSystem = await window.histories.getPermanentHistory();
+            // 对获取的历史记录列表以时间进行排序，保证最新的记录处于靠前的位置
+
+            this.histories = this.rankHistory(historiesAndSystem[0]);
+            this.sep = historiesAndSystem[1];
         },
-        mounted() {
+        async mounted() {
             // 新建文件，打开新的Work窗口，并关闭主窗口
             document.getElementById("new").addEventListener("click", () => {
                 window.openNewWindow.openNew();
@@ -168,7 +220,7 @@
             });
 
             // 快捷键关闭页面
-            window.addEventListener("keydown", function(event) {
+            window.addEventListener("keydown", function (event) {
                 // 判断是否按下了Ctrl/Command键和 W 键
                 if (event.ctrlKey && event.key === "w") {  // Windows
                     window.close();
@@ -177,7 +229,7 @@
                     window.close();
                 }
             });
-        }
+        },
     });
     app.mount("#main");
 </script>

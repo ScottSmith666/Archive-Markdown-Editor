@@ -43,6 +43,10 @@ function SettingsConfigManager() {
     ];
     this.INSTANT_AND_PERMANENT_OPEN_HISTORY_COL_AND_TYPES = [  // 定义AME_INSTANT_AND_PERMANENT_OPEN_HISTORY表的数据类型
         {
+            "colName": "open_timestamp",
+            "colType": "BIGINT",
+        },
+        {
             "colName": "open_datetime",
             "colType": "VARCHAR(100)",
         },
@@ -215,6 +219,41 @@ function SettingsConfigManager() {
         db.close();
     };
 
+    this.deletePermanentHistoryRecords = (path, allPath = false) => {
+        /**
+         * 删除持久化历史记录
+         */
+        const db = new DatabaseSync(this.SQLITE_FILE_PATH);
+        if (allPath) {
+            let deleteRecords =
+                db.prepare(`DELETE
+                            FROM ${this.INSTANT_AND_PERMANENT_OPEN_HISTORY}
+                            WHERE type = ?;`);
+            deleteRecords.run('permanent');
+        } else {
+            let deleteRecords =
+                db.prepare(`DELETE
+                            FROM ${this.INSTANT_AND_PERMANENT_OPEN_HISTORY}
+                            WHERE type = ?
+                              AND opened_file_path = ?;`);
+            deleteRecords.run('permanent', path);
+        }
+        db.close();
+    };
+
+    this.getAllPermanentHistoryRecords = () => {
+        /**
+         * 获得所有持久化历史记录
+         */
+        const db = new DatabaseSync(this.SQLITE_FILE_PATH);
+        const query =
+            // SETTINGS_TABLE_COL_AND_TYPES[0].colName表示选表中第一个列作为筛选条件
+            db.prepare(`SELECT * FROM ${ this.INSTANT_AND_PERMANENT_OPEN_HISTORY } WHERE type=?;`);
+        let queryResult = query.all('permanent');
+        db.close();
+        return queryResult;
+    }
+
     // ---- 数据库操作部分END ----
 
     // ---- 判断部分START ----
@@ -252,11 +291,22 @@ function SettingsConfigManager() {
         return (query.length !== 0);
     }
 
+    this.recentPermanentHistoryIsExists = (path) => {
+        /**
+         * 判断以前的历史记录有没有同路径，返回true则说明有同路径
+         */
+        const db = new DatabaseSync(this.SQLITE_FILE_PATH);
+        const query =
+            db.prepare(`SELECT * FROM ${ this.INSTANT_AND_PERMANENT_OPEN_HISTORY } WHERE opened_file_path=? AND type=?;`);
+        let queryResult = query.all(path, 'permanent');
+        db.close();
+        return (queryResult.length !== 0);
+    };
+
     this.openHistoryIsExists = (path) => {
         /**
          * 判断历史记录表中是否存在即时打开记录，如果没有则插入path
          */
-        console.log(path);
         if (!path) return path;
         const db = new DatabaseSync(this.SQLITE_FILE_PATH);
         const query =
@@ -267,10 +317,13 @@ function SettingsConfigManager() {
             db.close();
             return true;
         } else {
-            let date = new Date();
-            let insertRecord = db.prepare(`INSERT INTO ${ this.INSTANT_AND_PERMANENT_OPEN_HISTORY } VALUES (?, ?, ?);`);
-            insertRecord.run(`${ date.getFullYear() }-${ date.getMonth() + 1 }-${ date.getDate() } ${ date.getHours() }:${ date.getMinutes() }:${ date.getSeconds() }`, path, 'instant');
-            insertRecord.run(`${ date.getFullYear() }-${ date.getMonth() + 1 }-${ date.getDate() } ${ date.getHours() }:${ date.getMinutes() }:${ date.getSeconds() }`, path, 'permanent');
+            let dateStr = new Date().toLocaleString();
+            let tms = new Date().getTime();
+            let insertRecord = db.prepare(`INSERT INTO ${ this.INSTANT_AND_PERMANENT_OPEN_HISTORY } VALUES (?, ?, ?, ?);`);
+            let updateRecord = db.prepare(`UPDATE ${ this.INSTANT_AND_PERMANENT_OPEN_HISTORY } SET open_timestamp=?, open_datetime=? WHERE opened_file_path=?;`);
+            insertRecord.run(tms, dateStr, path, 'instant');
+            if (this.recentPermanentHistoryIsExists(path)) updateRecord.run(tms, dateStr, path);
+            else insertRecord.run(tms, dateStr, path, 'permanent');
             db.close();
             return false;
         }

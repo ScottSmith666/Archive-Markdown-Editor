@@ -46,11 +46,23 @@
     border-radius: 5px;
 }
 
+.options-quit {
+    padding: 10px;
+    border-radius: 5px;
+}
+
 .options:hover {
     background-color: #42b98330;
     cursor: pointer;
     font-weight: bold;
     color: #42b983;
+}
+
+.options-quit:hover {
+    background-color: #b41d2330;
+    cursor: pointer;
+    font-weight: bold;
+    color: #b41d23;
 }
 
 .recent-file-unit {
@@ -66,7 +78,7 @@
     background-color: #42b98330;
 }
 
-#access-file:hover {
+.access-file:hover {
     color: #42b983;
     cursor: pointer;
 }
@@ -86,6 +98,13 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
+}
+
+.recent-file-title-body {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .file-info-block {
@@ -94,16 +113,29 @@
     align-items: center;
 }
 
-#access-file {
+.clear-all-history {
+    color: #b41d23;
+}
+
+.clear-all-history:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.access-file {
     font-weight: bold;
     font-size: 20px;
 }
 
-#access-file-path {
+.access-file-path {
     font-size: 12px;
     color: #8c8c8c;
 }
 
-#last-open-date-time {
+.last-open-date-time {
     font-size: 12px;
+}
+
+::-webkit-scrollbar {
+    width: 0;
 }

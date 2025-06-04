@@ -253,6 +253,10 @@ let renderProcess = {
                 this.mdPaste(editor);
                 this.mainManuAllHide("file", "edit", "view", "help");
             });
+            // quit
+            document.getElementById("app-quit").addEventListener('click', (e) => {
+                window.qt.quit();
+            });
 
             // save
             document.getElementById("main-menu-save").addEventListener('click', (e) => {

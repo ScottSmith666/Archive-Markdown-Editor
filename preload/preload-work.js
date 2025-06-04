@@ -77,3 +77,8 @@ contextBridge.exposeInMainWorld('setSaveStatus', {
 contextBridge.exposeInMainWorld('save', {
     saveFile: (path) => ipcRenderer.send('save-file', path),
 });
+
+// 退出应用
+contextBridge.exposeInMainWorld('qt', {
+    quit: () => ipcRenderer.send('quit'),
+});

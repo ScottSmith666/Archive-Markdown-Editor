@@ -14,6 +14,12 @@ const settingsConfigManager = new SqliteMan.SettingsConfigManager();
 
 function CommonIpc() {
     this.commonIpcMain = (workWindow) => {
+        ipcMain.on('quit', (event) => {
+            /**
+             * 退出整个应用
+             */
+            app.quit();
+        });
         ipcMain.on('reload-app', (event) => {
             /**
              * 重启整个应用
@@ -55,6 +61,9 @@ function CommonIpc() {
                 workWindow(filePath[0]);
             }
         });
+        ipcMain.on('open-file-from-path', (event, path) => {
+            workWindow(path);
+        });
         ipcMain.handle('load-file-content', (event, path, platform) => {
             /**
              * 加载文件内容
@@ -92,6 +101,14 @@ function CommonIpc() {
             } else {
                 // 旧文件
             }
+        });
+        ipcMain.handle('get-permanent-history', (event) => {
+            return [settingsConfigManager.getAllPermanentHistoryRecords(), process.platform === 'win32' ? '\\' : '/'];
+        });
+        ipcMain.handle('delete-permanent-history', (event, path, all) => {
+            if (!all) settingsConfigManager.deletePermanentHistoryRecords(path);
+            else settingsConfigManager.deletePermanentHistoryRecords(path, all);
+            return 0;
         });
     };
 }
