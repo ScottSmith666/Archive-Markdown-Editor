@@ -8,6 +8,9 @@ const path = require("node:path");
 module.exports = {
     packagerConfig: {
         asar: true,
+        extraResource: [
+            path.join(__dirname, './libs/dylibs')
+        ],
         overwrite: true,
         download: {
             mirror: `file://${path.join(__dirname, './electron-cache/')}`,
@@ -27,7 +30,7 @@ module.exports = {
             "electron-cache",
             "examples",
             "package-lock.json",
-            "node_modules/electron",
+            "node_modules",
             "libs/third_party/monaco/CHANGELOG.md",
             "libs/third_party/monaco/dev",
             "libs/third_party/monaco/esm",
@@ -37,6 +40,7 @@ module.exports = {
             "libs/third_party/monaco/package.json",
             "libs/third_party/monaco/README.md",
             "libs/third_party/monaco/ThirdPartyNotices.txt",
+            "libs/xc_mdz"
         ],
         icon: path.join(__dirname, './assets/app_icon/icon'),
     },

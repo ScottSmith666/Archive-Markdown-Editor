@@ -5,7 +5,7 @@
 import * as strings from '../../../base/common/strings.js';
 /**
  * A column in a position is the gap between two adjacent characters. The methods here
- * work with a concept called "visible column". A visible column is a very rough approximation
+ * work with a concept called "visible column". A visible column is a very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md rough approximation
  * of the horizontal screen position of a column. For example, using a tab size of 4:
  * ```txt
  * |<TAB>|<TAB>|T|ext

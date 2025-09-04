@@ -273,7 +273,7 @@ let CommandsHistory = class CommandsHistory extends Disposable {
         this._register(this.configurationService.onDidChangeConfiguration(e => this.updateConfiguration(e)));
         this._register(this.storageService.onWillSaveState(e => {
             if (e.reason === WillSaveStateReason.SHUTDOWN) {
-                // Commands history is very dynamic and so we limit impact
+                // Commands history is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md dynamic and so we limit impact
                 // on storage to only save on shutdown. This helps reduce
                 // the overhead of syncing this data across machines.
                 this.saveState();

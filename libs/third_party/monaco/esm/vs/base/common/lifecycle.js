@@ -5,7 +5,7 @@ import { Iterable } from './iterator.js';
  * Enables logging of potentially leaked disposables.
  *
  * A disposable is considered leaked if it is not disposed or not registered as the child of
- * another disposable. This tracking is very simple an only works for classes that either
+ * another disposable. This tracking is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md simple an only works for classes that either
  * extend Disposable or use a DisposableStore. This means there are a lot of false positives.
  */
 const TRACK_DISPOSABLES = false;

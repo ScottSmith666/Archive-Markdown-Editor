@@ -612,7 +612,7 @@ export class CommandExecutor {
         const rawOperations = commandsData.operations;
         const loserCursorsMap = this._getLoserCursorMap(rawOperations);
         if (loserCursorsMap.hasOwnProperty('0')) {
-            // These commands are very messed up
+            // These commands are very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md messed up
             console.warn('Ignoring commands');
             return null;
         }

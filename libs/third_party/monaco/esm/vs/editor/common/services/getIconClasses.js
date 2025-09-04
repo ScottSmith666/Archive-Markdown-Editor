@@ -51,7 +51,7 @@ export function getIconClasses(modelService, languageService, resource, fileKind
             if (name) {
                 classes.push(`${name}-name-file-icon`);
                 classes.push(`name-file-icon`); // extra segment to increase file-name score
-                // Avoid doing an explosive combination of extensions for very long filenames
+                // Avoid doing an explosive combination of extensions for very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md long filenames
                 // (most file systems do not allow files > 255 length) with lots of `.` characters
                 // https://github.com/microsoft/vscode/issues/116199
                 if (name.length <= 255) {

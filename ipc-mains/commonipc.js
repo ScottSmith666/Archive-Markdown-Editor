@@ -92,16 +92,22 @@ function CommonIpc() {
             settingsConfigManager.deleteInstantHistoryRecords(path);
             return 0;
         });
-        ipcMain.handle('save-file', (event, fullFilePath) => {
+        ipcMain.handle('auto-save-file', (event, content, fullFilePath) => {
             /**
-             * 保存文件
+             * 保存旧文件（即点击按钮或按下热键时直接按照之前的路径默认保存）
              */
-            if (!fullFilePath) {
-                // 新文件
-            } else {
-                // 旧文件
-            }
+
         });
+
+        ipcMain.handle('custom-save-file', (event, content) => {
+            /**
+             * 保存新文件（即保存时弹出保存框选择路径保存）
+             */
+            let newFileName = "";
+            let fullFilePath = "";
+            return [newFileName, fullFilePath];
+        });
+
         ipcMain.handle('get-permanent-history', (event) => {
             return [settingsConfigManager.getAllPermanentHistoryRecords(), process.platform === 'win32' ? '\\' : '/'];
         });

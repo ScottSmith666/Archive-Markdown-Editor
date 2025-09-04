@@ -522,10 +522,12 @@ let renderProcess = {
              */
             if (!saveAs) {
                 // 已存在的文件更改后的保存
-                window.save.saveFile(this.openFilePath);
+                window.save.autoSaveFile(editor.getValue(), this.openFilePath);
             } else {
                 // 新建文件编辑后保存，fullPath为false
-                window.save.saveFile(!saveAs);
+                window.save.customSaveFile(editor.getValue());
+                // 文件另存为后返回新文件的文件名和路径
+
             }
             // 设置保存状态
             window.setSaveStatus.setSaveStatus(true);
@@ -648,12 +650,12 @@ let renderProcess = {
         this.windowId = queryParams.get('windowId');
         let platform = queryParams.get('platform');
         this.platform = platform;
-        let openFileName = queryParams.get('name') !== 'NEW_FILE' ? queryParams.get('name') : false;
+        let openFileName = queryParams.get('name') !== '' ? queryParams.get('name') : false;
         this.openFileName = openFileName;
         // 获得相应窗口title
         this.windowTitle = !openFileName ? `Archive Markdown Editor - Untitled ${ this.windowId - 1 }` : `Archive Markdown Editor - ${ openFileName }`;
         // 获得打开的文件路径
-        let openFilePath = queryParams.get('path') !== 'NO_PATH' ? queryParams.get('path') : false;
+        let openFilePath = queryParams.get('path') !== '' ? queryParams.get('path') : false;
         this.openFilePath = openFilePath;
 
         // 加载文件内容
@@ -769,26 +771,21 @@ let renderProcess = {
                     if (tokens) {
                         text = this.parser.parseInline(tokens, this.parser.textRenderer);  // “![]”内的字符
                     }
-
                     if (!(/(http\:\/\/)(\S|\s)+/.test(href) || /(https\:\/\/)(\S|\s)+/.test(href))) {
                         href = getAbsoluteMediaPath(platform, openFilePath, href);
                         href = href.replaceAll('\\', '/');  // 如果不是URL，且包含反斜杠（普通文件名里面基本没这个符号，可以放心全部替换），说明是Windows文件路径，将其替换成正斜杠
                         if (!href) return `<p style="color: red; font-weight: bold;">错误：未保存文件，无法使用相对路径引用多媒体！</psty>`
                     }
-
                     let cleanHref = cleanUrl(href);  // 多媒体链接（URL或文件路径）
-
                     if (cleanHref === null) {
                         return escape(text);
                     }
-
                     href = cleanHref;
                     let out = `<img src="${href}" alt="${text}"`;
                     if (title) {
                         out += ` title="${escape(title)}"`;
                     }
                     out += '>';
-
                     if (/(\$\{)(\S+)(\})(:)([\S|\s]*)/.test(text)) {  // 匹配指定多媒体的字符格式
                         let identifierRegObj = /(\$\{)(\S+)(\})(:)([\S|\s]*)/.exec(text);
                         let fileKind = identifierRegObj[2];

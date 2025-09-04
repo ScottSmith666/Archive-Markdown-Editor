@@ -4,3 +4,8 @@ out
 node_modules
 electron-cache
 examples
+libs/dylibs/
+libs/xc_mdz/node_modules
+libs/xc_mdz/.idea
+libs/invisible_dir_creator/node_modules
+libs/invisible_dir_creator/.idea

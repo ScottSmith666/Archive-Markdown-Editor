@@ -14,7 +14,7 @@ export class HoverResult {
     }
 }
 /**
- * Computing the hover is very fine tuned.
+ * Computing the hover is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md fine tuned.
  *
  * Suppose the hover delay is 300ms (the default). Then, when resting the mouse at an anchor:
  * - at 150ms, the async computation is triggered (i.e. semantic hover)

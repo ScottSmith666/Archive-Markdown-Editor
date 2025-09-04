@@ -30,15 +30,16 @@ function Windows() {
             devTools: gVar.DEBUG,
         });
         let fileName;
-        if (!filePath) {  // 传入“NEW_FILE”和“NO_PATH”字符串使App以新建文件的方式打开窗口，注意不要让用户将文件重命名为“NEW_FILE”
-            fileName = `NEW_FILE`;
-            filePath = "NO_PATH";
+        if (!filePath) {  // 传入空字符串使App以新建文件的方式打开窗口
+            fileName = "";
+            filePath = "";
         } else fileName = filePath.split(path.sep).pop();
         let encodedQuery = querystring.stringify({
             name: fileName,
             path: filePath,
         });
         // windowId：传递应用打开生命周期内窗口唯一ID，platform：传递系统类型，以便于处理文件路径，name：打开文件的文件名，path：打开文件的完整文件路径
+        console.log(encodedQuery);
         const url = `file://${ __dirname }/../ui/workspace.html?windowId=${win.id}&${encodedQuery}&platform=${process.platform}`;
         win.loadURL(url);
         win.on('ready-to-show', function () {

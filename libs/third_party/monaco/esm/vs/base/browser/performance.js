@@ -120,8 +120,8 @@ export var inputLatency;
      *
      * We schedule tasks (A and B):
      *    - we schedule a task A (via a `setTimeout` call) when the input starts in `markInputStart`.
-     *      If the animation frame task is scheduled quickly by the browser, then task A has a very good
-     *      chance of being the very first task after the animation frame and thus will record the input latency.
+     *      If the animation frame task is scheduled quickly by the browser, then task A has a very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md good
+     *      chance of being the very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md first task after the animation frame and thus will record the input latency.
      *    - however, if the animation frame task is scheduled a bit later, then task A might execute
      *      before the animation frame task. We therefore schedule another task B from `markRenderStart`.
      *
