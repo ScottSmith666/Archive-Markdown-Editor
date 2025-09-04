@@ -11,7 +11,7 @@ class CodeLensViewZone {
     constructor(afterLineNumber, heightInPx, onHeight) {
         /**
          * We want that this view zone, which reserves space for a code lens appears
-         * as close as possible to the next line, so we use a very large value here.
+         * as close as possible to the next line, so we use a very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md large value here.
          */
         this.afterColumn = 1073741824 /* Constants.MAX_SAFE_SMALL_INTEGER */;
         this.afterLineNumber = afterLineNumber;

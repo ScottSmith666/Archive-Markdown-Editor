@@ -152,7 +152,7 @@ export class Button extends Disposable {
             // Don't include outer `<p>`
             const root = rendered.element.querySelector('p')?.innerHTML;
             if (root) {
-                // Only allow a very limited set of inline html tags
+                // Only allow a very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md limited set of inline html tags
                 const sanitized = sanitize(root, { ADD_TAGS: ['b', 'i', 'u', 'code', 'span'], ALLOWED_ATTR: ['class'], RETURN_TRUSTED_TYPE: true });
                 labelElement.innerHTML = sanitized;
             }

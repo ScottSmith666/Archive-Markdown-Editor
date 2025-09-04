@@ -196,7 +196,7 @@ class NonPeekableTextBufferTokenizer {
             }
             if (lengthHeuristic > 1500) {
                 // Eventually break regardless of the line length so that
-                // very long lines do not cause bad performance.
+                // very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md long lines do not cause bad performance.
                 // This effective limits max indentation to 500, as
                 // indentation is not computed across multiple text nodes.
                 break;

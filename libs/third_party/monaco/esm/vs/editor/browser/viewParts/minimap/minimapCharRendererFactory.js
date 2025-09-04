@@ -72,7 +72,7 @@ export class MinimapCharRendererFactory {
         let brightest = 0;
         // This is essentially an ad-hoc rescaling algorithm. Standard approaches
         // like bicubic interpolation are awesome for scaling between image sizes,
-        // but don't work so well when scaling to very small pixel values, we end
+        // but don't work so well when scaling to very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md small pixel values, we end
         // up with blurry, indistinct forms.
         //
         // The approach taken here is simply mapping each source pixel to the target

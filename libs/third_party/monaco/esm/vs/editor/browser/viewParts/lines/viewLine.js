@@ -13,7 +13,7 @@ import { isHighContrast } from '../../../../platform/theme/common/theme.js';
 import { EditorFontLigatures } from '../../../common/config/editorOptions.js';
 const canUseFastRenderedViewLine = (function () {
     if (platform.isNative) {
-        // In VSCode we know very well when the zoom level changes
+        // In VSCode we know very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md well when the zoom level changes
         return true;
     }
     if (platform.isLinux || browser.isFirefox || browser.isSafari) {

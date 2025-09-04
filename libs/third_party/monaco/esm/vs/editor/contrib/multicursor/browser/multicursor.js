@@ -821,7 +821,7 @@ let SelectionHighlighter = class SelectionHighlighter extends Disposable {
             return null;
         }
         if (r.searchText.length > 200) {
-            // very long selection
+            // very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md long selection
             return null;
         }
         // TODO: better handling of this case

@@ -64,8 +64,10 @@ contextBridge.exposeInMainWorld('openNewWindow', {
 
 // 加载文件内容
 contextBridge.exposeInMainWorld('loadFileContent', {
-    loadFileContent: (path, platform) => ipcRenderer.invoke('load-file-content', path, platform),
+    loadFileContent: (path) => ipcRenderer.invoke('load-file-content', path),
     verifyFileIsOpen: (filePath) => ipcRenderer.invoke('verify-file-was-opened', filePath),  // 检查该路径的文件是否已打开
+    verifyFileExists: (path) => ipcRenderer.invoke('verify-file-is-exists', path),  // 验证文件存在
+    verifyFileNameValid: (path) => ipcRenderer.invoke('verify-file-name-is-valid', path),  // 验证文件名合法
 });
 
 // 设置当前窗口保存状态
@@ -75,10 +77,13 @@ contextBridge.exposeInMainWorld('setSaveStatus', {
 
 // 保存文件
 contextBridge.exposeInMainWorld('save', {
-    saveFile: (path) => ipcRenderer.send('save-file', path),
+    autoSaveFile: (content, path) => ipcRenderer.send('auto-save-file', content, path),
+    customSaveFile: (content) => ipcRenderer.invoke('custom-save-file', content),
 });
 
 // 退出应用
 contextBridge.exposeInMainWorld('qt', {
     quit: () => ipcRenderer.send('quit'),
+    // 关闭当前窗口
+    closeThisWindow: (windowId) => ipcRenderer.send('close-window', windowId),
 });

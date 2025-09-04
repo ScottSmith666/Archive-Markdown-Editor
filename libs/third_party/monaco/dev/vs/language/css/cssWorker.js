@@ -20689,7 +20689,7 @@ ${trimLeft(value)}`;
           },
           {
             "name": "pixelated",
-            "description": "When scaling the image up, the 'nearest neighbor' or similar algorithm must be used, so that the image appears to be simply composed of very large pixels."
+            "description": "When scaling the image up, the 'nearest neighbor' or similar algorithm must be used, so that the image appears to be simply composed of very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md large pixels."
           }
         ],
         "syntax": "auto | crisp-edges | pixelated",

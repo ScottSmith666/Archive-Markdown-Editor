@@ -1,4 +1,10 @@
-const AdmZip = require('adm-zip');  // （解）压缩zip库
+const path = require("node:path");
+const { app } = require("electron");
+
+// 打包后动态链接库并不在原位置，需要更改为打包后的路径
+let xc_mdz;
+if (app.isPackaged) xc_mdz = require(path.join(process.resourcesPath, "app.asar", "libs", "rust_libraries", "xc_mdz.node"));
+else xc_mdz = require(path.join(__dirname, "rust_libraries", "xc_mdz.node"));
 
 
 const FORBIDDEN_FILES_FOLDERS = ['__MACOSX', '.DS_Store'];
@@ -7,22 +13,13 @@ function RwMdz() {
     /**
      * 读取/写入mdz文件
      */
-    this.readMdz = (mdzPath, platform) => {
+    this.readMdz = (mdzPath) => {
         /**
          * 读取mdz文件
          */
-        let sep = (platform === 'win32') ? '\\' : '/';
-        let mdzPathList = mdzPath.split(sep);
-        let fullFileName = mdzPathList.pop();
-        let fileNameList = fullFileName.split(".");
-        fileNameList.pop();  // 去掉扩展名元素
-        let fileName = fileNameList.join(".");
-        let adzUncompressedPath = mdzPathList.join(sep);
 
-        let mdz = AdmZip(mdzPath);
-        mdz.extractAllTo(adzUncompressedPath, true);
         // 返回mdz文件内md核心文件的路径
-        return adzUncompressedPath + sep + "._mdz_content." + fileName + sep + "mdz_contents" + sep + fileName + ".md";
+        return "";
     };
 
     this.writeMdz = (mdzPath) => {

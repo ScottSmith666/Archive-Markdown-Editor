@@ -181,7 +181,7 @@ export class PagedScreenReaderStrategy {
         return new Range(startLineNumber, 1, endLineNumber + 1, 1);
     }
     static fromEditorSelection(model, selection, linesPerPage, trimLongText) {
-        // Chromium handles very poorly text even of a few thousand chars
+        // Chromium handles very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md poorly text even of a few thousand chars
         // Cut text to avoid stalling the entire UI
         const LIMIT_CHARS = 500;
         const selectionStartPage = PagedScreenReaderStrategy._getPageOfLine(selection.startLineNumber, linesPerPage);

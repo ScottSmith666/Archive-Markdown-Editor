@@ -134,7 +134,7 @@ let InlineEditController = class InlineEditController extends Disposable {
                 return;
             }
             editorBlurSingal.read(reader);
-            // This is a hidden setting very useful for debugging
+            // This is a hidden setting very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md useful for debugging
             if (this._configurationService.getValue('editor.experimentalInlineEdit.keepOnBlur') || editor.getOption(63 /* EditorOption.inlineEdit */).keepOnBlur) {
                 return;
             }

@@ -4226,7 +4226,7 @@ define(__m[8/*vs/base/common/lifecycle*/], __M([0/*require*/,1/*exports*/,18/*vs
      * Enables logging of potentially leaked disposables.
      *
      * A disposable is considered leaked if it is not disposed or not registered as the child of
-     * another disposable. This tracking is very simple an only works for classes that either
+     * another disposable. This tracking is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md simple an only works for classes that either
      * extend Disposable or use a DisposableStore. This means there are a lot of false positives.
      */
     const TRACK_DISPOSABLES = false;
@@ -6144,7 +6144,7 @@ define(__m[9/*vs/base/common/event*/], __M([0/*require*/,1/*exports*/,3/*vs/base
                 // It is bad to have listeners at the time of disposing an emitter, it is worst to have listeners keep the emitter
                 // alive via the reference that's embedded in their disposables. Therefore we loop over all remaining listeners and
                 // unset their subscriptions/disposables. Looping and blaming remaining listeners is done on next tick because the
-                // the following programming pattern is very popular:
+                // the following programming pattern is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md popular:
                 //
                 // const someModel = this._disposables.add(new ModelObject()); // (1) create and register model
                 // this._disposables.add(someModel.onDidChange(() => { ... }); // (2) subscribe and register model-event listener
@@ -16485,7 +16485,7 @@ define(__m[69/*vs/editor/common/standalone/standaloneEnums*/], __M([0/*require*/
     })(TextEditorCursorStyle || (exports.TextEditorCursorStyle = TextEditorCursorStyle = {}));
     /**
      * Describes the behavior of decorations when typing/editing near their edges.
-     * Note: Please do not edit the values, as they very carefully match `DecorationRangeBehavior`
+     * Note: Please do not edit the values, as they very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md carefully match `DecorationRangeBehavior`
      */
     var TrackedRangeStickiness;
     (function (TrackedRangeStickiness) {
@@ -18204,7 +18204,7 @@ define(__m[37/*vs/base/common/path*/], __M([0/*require*/,1/*exports*/,72/*vs/bas
             // Make sure that the joined path doesn't start with two slashes, because
             // normalize() will mistake it for a UNC path then.
             //
-            // This step is skipped when it is very clear that the user actually
+            // This step is skipped when it is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md clear that the user actually
             // intended to point at a UNC path. This is assumed when the first
             // non-empty string arguments starts with exactly two slashes followed by
             // at least one more non-slash character.

@@ -63,7 +63,7 @@ let AbstractGotoSymbolQuickAccessProvider = class AbstractGotoSymbolQuickAccessP
         this.provideLabelPick(picker, localize('cannotRunGotoSymbolWithoutSymbolProvider', "The active text editor does not provide symbol information."));
         // Wait for changes to the registry and see if eventually
         // we do get symbols. This can happen if the picker is opened
-        // very early after the model has loaded but before the
+        // very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md early after the model has loaded but before the
         // language registry is ready.
         // https://github.com/microsoft/vscode/issues/70607
         (async () => {

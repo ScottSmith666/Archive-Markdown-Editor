@@ -945,7 +945,7 @@ export var TextEditorCursorStyle;
 })(TextEditorCursorStyle || (TextEditorCursorStyle = {}));
 /**
  * Describes the behavior of decorations when typing/editing near their edges.
- * Note: Please do not edit the values, as they very carefully match `DecorationRangeBehavior`
+ * Note: Please do not edit the values, as they very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md carefully match `DecorationRangeBehavior`
  */
 export var TrackedRangeStickiness;
 (function (TrackedRangeStickiness) {

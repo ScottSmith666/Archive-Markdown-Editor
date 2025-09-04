@@ -1,6 +1,9 @@
 .idea
 .DS_Store
+__MACOSX
 out
 node_modules
 electron-cache
 examples
+libs/xc_mdz/node_modules
+libs/xc_mdz/.idea

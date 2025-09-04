@@ -359,7 +359,7 @@ function transformAndRemoveOverflowing(lineContent, lineContainsRTL, tokens, fau
 }
 /**
  * See https://github.com/microsoft/vscode/issues/6885.
- * It appears that having very large spans causes very slow reading of character positions.
+ * It appears that having very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md large spans causes very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md slow reading of character positions.
  * So here we try to avoid that.
  */
 function splitLargeTokens(lineContent, tokens, onlyAtSpaces) {
