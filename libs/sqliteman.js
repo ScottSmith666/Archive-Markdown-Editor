@@ -28,6 +28,7 @@ const fs = require("fs");
 function SettingsConfigManager() {
     /**
      * 初始化、读取和写入硬盘上的“设置”sqlite数据库
+     * “AME”是“Archive Markdown Editor”的缩写
      */
     this.SETTINGS_TABLE_NAME = 'AME_SETTINGS_CONF';  // 放置“设置”内容的数据表
     this.INSTANT_AND_PERMANENT_OPEN_HISTORY = 'AME_INSTANT_AND_PERMANENT_OPEN_HISTORY';  // 放置“打开的文件路径”历史记录的数据表
@@ -56,7 +57,7 @@ function SettingsConfigManager() {
         },
         {
             // type是区分“临时历史记录”和“持久化历史记录”的字段
-            // “临时历史记录”用于指示文件是否打开，用于判断文件是否打开，改进用户体验
+            // “临时历史记录”用于指示文件是否打开，文件关闭时立即删除，用于判断文件是否打开，改进用户体验
             // “持久化历史记录”用于在主页面显示打开记录
             // Optional values: "instant" and "permanent"
             "colName": "type",

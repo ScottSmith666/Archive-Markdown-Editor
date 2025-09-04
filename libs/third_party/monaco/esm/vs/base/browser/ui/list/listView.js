@@ -127,7 +127,7 @@ class ListViewAccessibilityProvider {
  * The {@link ListView} is a virtual scrolling engine.
  *
  * Given that it only renders elements within its viewport, it can hold large
- * collections of elements and stay very performant. The performance bottleneck
+ * collections of elements and stay very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md performant. The performance bottleneck
  * usually lies within the user's rendering code for each element.
  *
  * @remarks It is a low-level widget, not meant to be used directly. Refer to the

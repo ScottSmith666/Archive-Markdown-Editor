@@ -3,25 +3,68 @@
 "use strict";
 
 const process = require("node:process");
-const DistributeWin32X64 = require("./deploy_app/Windows-x64-msi/gen_config_msi");
-const DistributeDarwinArm64 = require("./deploy_app/macOS-arm64-dmg/package_dmg");
+const path = require("node:path");
 
+const BASE_PATH = path.join(__dirname);
+
+const DistributeWin32X64 = require(path.join(BASE_PATH, "deploy_app", "Windows-x64-msi", "gen_config_msi"));
+const DistributeDarwinArm64 = require(path.join(BASE_PATH, "deploy_app", "macOS-arm64-dmg", "package_dmg"));
+
+
+let arg = process.argv[2];
+
+function runCommand(command, afterDoing = () => 0) {
+    console.log("正在执行：" + command);
+    let exec = require('child_process').exec;
+    exec(command, function (err, stdout, stderr) {
+        if (err) {
+            console.log('error:' + stderr);
+        } else {
+            console.log(stdout);
+            afterDoing();
+        }
+    });
+}
+
+// if (arg === "clean") runCommand();
 
 let distributeWin32X64 = new DistributeWin32X64();
 let distributeDarwinArm64 = new DistributeDarwinArm64();
 
-if (process.platform === "win32") {
-    console.log("检测到操作系统：Windows...");
-    if (process.arch === "x64") {
-        console.log("检测到系统架构：x64...");
+// 开始编译Rust部分代码
+// Archive Markdown Editor用到的所有Rust项目列举于此
+let rustProjectDirs = [
+    ["xc_mdz", path.join(BASE_PATH, "libs", "xc_mdz")]
+];
+// 定义编译完成的Rust存放位置
+let saveDylibDir = path.join(BASE_PATH, "libs", "rust_libraries");
+
+// 生成批量编译Rust库的脚本代码
+let scriptSet = "";
+for (let i = 0; i < rustProjectDirs.length; i++) {
+    let rustProjectName = rustProjectDirs[i][0] + "." + process.platform + "-" + process.arch;
+    let rustProjectDir = rustProjectDirs[i][1];
+    scriptSet = scriptSet + (`echo "正在编译${ rustProjectDirs[i][0] }..." && cd ${rustProjectDir} ` +
+        `&& npm run build ` +
+        `&& cp ${path.join(rustProjectDir, (rustProjectName + ".node"))} ${path.join(saveDylibDir, (rustProjectDirs[i][0] + ".node"))} ` +
+        `&& rm -rf ${path.join(rustProjectDir, "target")} ` +
+        `&& rm -rf ${path.join(rustProjectDir, (rustProjectName + ".node"))}`);
+    scriptSet = scriptSet + " && ";
+}
+scriptSet = scriptSet + `cd ${BASE_PATH}`;
+
+runCommand(scriptSet, () => {
+    if (arg === "only") process.exit(0);
+    console.log("Rust库已编译完成，开始打包整个应用...");
+    // 编译完成后开始打包应用
+    console.log(`检测到系统架构：${ process.arch }...`);
+    if (process.platform === "win32") {
+        console.log("检测到操作系统：Windows...");
         distributeWin32X64.run();
     }
-}
 
-if (process.platform === "darwin") {
-    console.log("检测到操作系统：macOS...");
-    if (process.arch === "arm64") {
-        console.log("检测到系统架构：arm64...");
+    if (process.platform === "darwin") {
+        console.log("检测到操作系统：macOS...");
         distributeDarwinArm64.run();
     }
-}
+});

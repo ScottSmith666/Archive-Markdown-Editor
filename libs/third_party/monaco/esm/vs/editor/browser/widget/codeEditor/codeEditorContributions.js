@@ -78,7 +78,7 @@ export class CodeEditorContributions extends Disposable {
         return this._instances.get(id) || null;
     }
     onBeforeInteractionEvent() {
-        // this method is called very often by the editor!
+        // this method is called very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md often by the editor!
         this._instantiateSome(2 /* EditorContributionInstantiation.BeforeFirstInteraction */);
     }
     onAfterModelAttached() {

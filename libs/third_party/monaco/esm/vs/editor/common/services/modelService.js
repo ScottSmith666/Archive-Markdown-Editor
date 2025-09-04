@@ -363,7 +363,7 @@ let ModelService = class ModelService extends Disposable {
             }
         }
         else if (!sharesUndoRedoStack && (heapSize > maxMemory || !sha1Computer.canComputeSHA1(model))) {
-            // the undo stack for this file would never fit in the configured memory or the file is very large, so don't bother with it.
+            // the undo stack for this file would never fit in the configured memory or the file is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md large, so don't bother with it.
             const initialUndoRedoSnapshot = modelData.model.getInitialUndoRedoSnapshot();
             if (initialUndoRedoSnapshot !== null) {
                 this._undoRedoService.restoreSnapshot(initialUndoRedoSnapshot);

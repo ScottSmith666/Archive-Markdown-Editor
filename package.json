@@ -4,7 +4,7 @@
   "description": "mdz file editor",
   "main": "main.js",
   "scripts": {
-    "start": "electron-forge start",
+    "start": "./distribute only && electron-forge start",
     "test": "echo \"Error: no test specified\" && exit 1",
     "package": "electron-forge package",
     "make": "electron-forge make"
@@ -16,20 +16,17 @@
   "license": "MIT",
   "devDependencies": {
     "@electron-forge/cli": "^7.8.0",
+    "@electron-forge/maker-squirrel": "^7.8.1",
     "@electron-forge/maker-zip": "^7.8.0",
     "@electron-forge/plugin-auto-unpack-natives": "^7.8.0",
     "@electron-forge/plugin-fuses": "^7.8.0",
     "@electron/fuses": "^1.8.0",
+    "appdmg": "^0.6.6",
     "electron": "^36.1.0",
-    "electron-wix-msi": "^5.1.3"
+    "electron-wix-msi": "^5.1.3",
+    "node-gyp": "^11.4.1",
+    "xml2js": "^0.6.2"
   },
   "dependencies": {
-    "@electron-forge/maker-squirrel": "^7.8.1",
-    "adm-zip": "^0.5.16",
-    "appdmg": "^0.6.6",
-    "archiver": "^7.0.1",
-    "archiver-zip-encrypted": "^2.0.0",
-    "fs-extra": "^11.3.0",
-    "xml2js": "^0.6.2"
   }
 }

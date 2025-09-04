@@ -126,7 +126,7 @@ let InlineCompletionsController = class InlineCompletionsController extends Disp
             }
         }));
         this._register(this.editor.onDidBlurEditorWidget(() => {
-            // This is a hidden setting very useful for debugging
+            // This is a hidden setting very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md useful for debugging
             if (this._contextKeyService.getContextKeyValue('accessibleViewIsShown')
                 || this._configurationService.getValue('editor.inlineSuggest.keepOnBlur')
                 || editor.getOption(62 /* EditorOption.inlineSuggest */).keepOnBlur

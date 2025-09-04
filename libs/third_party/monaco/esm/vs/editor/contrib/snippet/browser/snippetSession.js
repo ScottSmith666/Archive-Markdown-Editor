@@ -174,7 +174,7 @@ export class OneSnippet {
     }
     /**
      * A snippet is trivial when it has no placeholder or only a final placeholder at
-     * its very end
+     * its very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md end
      */
     get isTrivialSnippet() {
         if (this._snippet.placeholders.length === 0) {

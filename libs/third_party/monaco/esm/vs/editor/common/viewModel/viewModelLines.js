@@ -734,7 +734,7 @@ export class ViewModelLinesFromProjectedModel {
         }
         // wrapped lines have no indentation.
         // We deliberately don't handle the case that indentation is wrapped
-        // to avoid two view lines reporting indentation for the very same model line.
+        // to avoid two view lines reporting indentation for the very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md same model line.
         return 0;
     }
 }

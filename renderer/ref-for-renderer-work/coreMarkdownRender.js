@@ -516,21 +516,30 @@ let renderProcess = {
                 console.error("粘贴失败: ", error);
             });
         },
-        saveFile(editor, saveAs = false) {
+        async saveFile(editor, saveAs = false) {
             /**
              * 保存文件
              */
+            let afterSave = [true, true];
             if (!saveAs) {
                 // 已存在的文件更改后的保存
-                window.save.saveFile(this.openFilePath);
+                window.save.autoSaveFile(editor.getValue(), this.openFilePath);
             } else {
                 // 新建文件编辑后保存，fullPath为false
-                window.save.saveFile(!saveAs);
+                afterSave = await window.save.customSaveFile(editor.getValue());
             }
-            // 设置保存状态
-            window.setSaveStatus.setSaveStatus(true);
-            // 设置窗口标题为新
-            document.getElementById('app-title').innerText = this.windowTitle;
+
+            if (afterSave[1]) {  // 如果另存为之后返回的列表第二个元素（代表文件路径）为undefined，则不设置保存成功标记
+                // 设置保存状态
+                window.setSaveStatus.setSaveStatus(true);
+                if (saveAs) {
+                    // 刷新页面以应用另存为的文件内容
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set("name", afterSave[0]);  // 添加参数
+                    currentUrl.searchParams.set("path", afterSave[1]);  // 添加参数
+                    window.location.href = currentUrl.toString();  // 重定向到新 URL
+                }
+            }
         },
 
         renderChange(editor) {
@@ -546,20 +555,20 @@ let renderProcess = {
 
             // 监视👀当前编辑区光标位置
             // 获取编辑区滚动到哪里了
-            let presentLineProp = editor.getPosition().lineNumber / editor.getModel().getLineCount();
+            // let presentLineProp = editor.getPosition().lineNumber / editor.getModel().getLineCount();
 
             // 渲染Markdown
             // 获得当前编辑的整个Markdown文档的抽象语法树
             this.$data.mdResult = marked.lexer(newEditorValue);
 
             // 使渲染区滚动到相应位置
-            let getRenderAreaTotalHeight = document.getElementById("write").offsetHeight;
-            let parentGetRenderAreaTotalHeight = document.querySelector(".middle-content-render");
-            parentGetRenderAreaTotalHeight.scrollTo({
-                top: getRenderAreaTotalHeight * presentLineProp,
-                left: 0,
-                behavior: "instant",
-            });
+            // let getRenderAreaTotalHeight = document.getElementById("write").offsetHeight;
+            // let parentGetRenderAreaTotalHeight = document.querySelector(".middle-content-render");
+            // parentGetRenderAreaTotalHeight.scrollTo({
+            //     top: getRenderAreaTotalHeight * presentLineProp,
+            //     left: 0,
+            //     behavior: "instant",
+            // });
             this.afterPage();
         },
 
@@ -648,19 +657,32 @@ let renderProcess = {
         this.windowId = queryParams.get('windowId');
         let platform = queryParams.get('platform');
         this.platform = platform;
-        let openFileName = queryParams.get('name') !== 'NEW_FILE' ? queryParams.get('name') : false;
+        let openFileName = queryParams.get('name') !== '' ? queryParams.get('name') : false;
         this.openFileName = openFileName;
         // 获得相应窗口title
         this.windowTitle = !openFileName ? `Archive Markdown Editor - Untitled ${ this.windowId - 1 }` : `Archive Markdown Editor - ${ openFileName }`;
         // 获得打开的文件路径
-        let openFilePath = queryParams.get('path') !== 'NO_PATH' ? queryParams.get('path') : false;
+        let openFilePath = queryParams.get('path') !== '' ? queryParams.get('path') : false;
         this.openFilePath = openFilePath;
+
+        console.log(openFilePath);
+        // 验证路径下的文件是否存在，如不存在则提醒
+        if (openFilePath && !(await window.loadFileContent.verifyFileExists(openFilePath))) {
+            alert(`文件“${ openFilePath }”不存在，无法打开！`);
+            window.qt.closeThisWindow(this.windowId);
+        }
+
+        // 验证文件名是否合法，如不合法则禁止打开
+        if (openFilePath && !(await window.loadFileContent.verifyFileNameValid(openFilePath))) {
+            alert(`该文件名不合法，禁止打开！`);
+            window.qt.closeThisWindow(this.windowId);
+        }
 
         // 加载文件内容
         if ((await window.loadFileContent.verifyFileIsOpen(openFilePath))) {
             alert(`文件“${ openFilePath }”已打开，请勿再次打开！`);
-            window.close();
-        } else this.fileContent = openFilePath ? (await window.loadFileContent.loadFileContent(openFilePath, platform)) : false;
+            window.qt.closeThisWindow(this.windowId);
+        } else this.fileContent = openFilePath ? (await window.loadFileContent.loadFileContent(openFilePath)) : false;
 
         window.setSaveStatus.setSaveStatus(true);  // 初始化本页面保存状态为true
 
@@ -676,17 +698,17 @@ let renderProcess = {
             /**
              * 根据Markdown媒体文件的相对路径生成绝对路径
              * 参数“mdz”：确认是否为mdz文件，以启用不同的路径转化
-             * 要求：相对路径开头为“./”，不支持“../”
+             * 要求：相对路径开头必须包括“./”或“../”
              */
             let sep = (platform === 'win32') ? '\\' : '/';
             let filePathList = originFilePath ? originFilePath.split(sep) : [];
-            let fullFileName = filePathList.pop();  // 去掉列表最后一个元素
+            let fullFileName = filePathList.pop();  // 取出列表最后一个元素，即文件名
             let fileNameList = originFilePath ? fullFileName.split(".") : [];
             fileNameList.pop();  // 去掉扩展名元素
             let fileName = fileNameList.join(".");
             let rootPath = filePathList.join(sep);
 
-            if (/(\.)(\/)(\S|\s)+/.test(originMediaPath)) {  // 如果是相对路径（以“./”开头）
+            if (/(\.|\.\.)(\/)(\S|\s)+/.test(originMediaPath)) {  // 如果是相对路径（以“./”或“../”开头）
                 if (!originFilePath) return false;  // 未保存文件，无法使用相对路径引用多媒体
                 return rootPath + sep + originMediaPath;
             }
@@ -769,26 +791,21 @@ let renderProcess = {
                     if (tokens) {
                         text = this.parser.parseInline(tokens, this.parser.textRenderer);  // “![]”内的字符
                     }
-
                     if (!(/(http\:\/\/)(\S|\s)+/.test(href) || /(https\:\/\/)(\S|\s)+/.test(href))) {
                         href = getAbsoluteMediaPath(platform, openFilePath, href);
                         href = href.replaceAll('\\', '/');  // 如果不是URL，且包含反斜杠（普通文件名里面基本没这个符号，可以放心全部替换），说明是Windows文件路径，将其替换成正斜杠
-                        if (!href) return `<p style="color: red; font-weight: bold;">错误：未保存文件，无法使用相对路径引用多媒体！</psty>`
+                        if (!href) return `<p style="color: red; font-weight: bold;">错误：未保存文件，无法使用相对路径引用多媒体！</p>`
                     }
-
                     let cleanHref = cleanUrl(href);  // 多媒体链接（URL或文件路径）
-
                     if (cleanHref === null) {
                         return escape(text);
                     }
-
                     href = cleanHref;
                     let out = `<img src="${href}" alt="${text}"`;
                     if (title) {
                         out += ` title="${escape(title)}"`;
                     }
                     out += '>';
-
                     if (/(\$\{)(\S+)(\})(:)([\S|\s]*)/.test(text)) {  // 匹配指定多媒体的字符格式
                         let identifierRegObj = /(\$\{)(\S+)(\})(:)([\S|\s]*)/.exec(text);
                         let fileKind = identifierRegObj[2];

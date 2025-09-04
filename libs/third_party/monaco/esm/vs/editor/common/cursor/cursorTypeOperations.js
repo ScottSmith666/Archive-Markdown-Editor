@@ -48,7 +48,7 @@ export class TypeOperations {
         return CompositionOperation.getEdits(prevEditOperationType, config, model, selections, text, replacePrevCharCnt, replaceNextCharCnt, positionDelta);
     }
     /**
-     * This is very similar with typing, but the character is already in the text buffer!
+     * This is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md similar with typing, but the character is already in the text buffer!
      */
     static compositionEndWithInterceptors(prevEditOperationType, config, model, compositions, selections, autoClosedCharacters) {
         if (!compositions) {

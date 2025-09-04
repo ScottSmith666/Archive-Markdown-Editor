@@ -1,0 +1,22 @@
+[package]
+authors = ["Scott Smith <scottsmith999830@gmail.com>"]
+edition = "2024"
+name = "xc_mdz"
+version = "1.0.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = "3.0.0"
+napi-derive = "3.0.0"
+zip = "4.5.0"
+anyhow = "1.0.99"
+walkdir = "2.5.0"
+
+[build-dependencies]
+napi-build = "2"
+
+[profile.release]
+lto = true
+strip = "symbols"

@@ -420,7 +420,7 @@ export const win32 = {
         // Make sure that the joined path doesn't start with two slashes, because
         // normalize() will mistake it for a UNC path then.
         //
-        // This step is skipped when it is very clear that the user actually
+        // This step is skipped when it is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md clear that the user actually
         // intended to point at a UNC path. This is assumed when the first
         // non-empty string arguments starts with exactly two slashes followed by
         // at least one more non-slash character.

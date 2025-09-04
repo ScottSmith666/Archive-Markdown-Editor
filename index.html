@@ -143,10 +143,10 @@
                             <div>
                                 <!--File name-->
                                 <div class="access-file" @click="openFileFromHistory(item.opened_file_path);">
-                                    {{ item.opened_file_path.split(sep).pop() }}
+                                    {{ strTooLong(item.opened_file_path.split(sep).pop(), 25) }}
                                 </div>
                                 <!--File path-->
-                                <div class="access-file-path">{{ item.opened_file_path }}</div>
+                                <div class="access-file-path">{{ strTooLong(item.opened_file_path, 50) }}</div>
                             </div>
                             <!--Date and time-->
                             <div class="last-open-date-time">上次打开时间: {{ item.open_datetime }}</div>
@@ -203,6 +203,21 @@
                 historyList.sort((a, b) => (b.open_timestamp - a.open_timestamp));
                 return historyList;
             },
+            strTooLong(str, limitLength) {
+                /**
+                 * 将很长的字符串转成省略中间的适宜长度的字符串，如“xxx...xxx”
+                 * 文件名默认长度为25，超过即省略
+                 * 文件路径默认长度为50，超过即省略
+                 */
+                if (str.length <= limitLength) return str;
+                else {
+                    let leftSliceLength = (limitLength - 3) % 2 === 0 ? (limitLength - 3) / 2 : (limitLength - 3 + 1) / 2;
+                    let rightSliceLength = limitLength - leftSliceLength;
+                    let leftSliceStr = str.slice(0, leftSliceLength);
+                    let rightSliceStr = str.slice(str.length - rightSliceLength, str.length);
+                    return leftSliceStr + "..." + rightSliceStr;
+                }
+            }
         },
         async created() {
             // 获取并展示文件打开历史记录

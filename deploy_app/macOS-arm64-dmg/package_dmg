@@ -3,7 +3,7 @@
 "use strict";
 
 /**
- * 打包macOS arm64 dmg文件
+ * 打包macOS dmg文件
  * @type {path.PlatformPath | path}
  */
 
@@ -13,7 +13,6 @@ const process = require("node:process");
 
 
 function DistributeDarwinArm64() {
-
     this.run = () => {
         const packageJsonPath = path.join(__dirname, '../../package.json');
         // 读取并解析package.json文件

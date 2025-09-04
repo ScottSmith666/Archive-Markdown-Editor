@@ -193,7 +193,7 @@ let TextAreaHandler = class TextAreaHandler extends ViewPart {
                         }
                     }
                     // on macOS, write current selection into textarea will allow system text services pick selected text,
-                    // but we still want to limit the amount of text given Chromium handles very poorly text even of a few
+                    // but we still want to limit the amount of text given Chromium handles very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md poorly text even of a few
                     // thousand chars
                     // (https://github.com/microsoft/vscode/issues/27799)
                     const LIMIT_CHARS = 500;

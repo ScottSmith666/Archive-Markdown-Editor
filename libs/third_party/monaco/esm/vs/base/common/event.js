@@ -808,7 +808,7 @@ export class Emitter {
             // It is bad to have listeners at the time of disposing an emitter, it is worst to have listeners keep the emitter
             // alive via the reference that's embedded in their disposables. Therefore we loop over all remaining listeners and
             // unset their subscriptions/disposables. Looping and blaming remaining listeners is done on next tick because the
-            // the following programming pattern is very popular:
+            // the following programming pattern is very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md popular:
             //
             // const someModel = this._disposables.add(new ModelObject()); // (1) create and register model
             // this._disposables.add(someModel.onDidChange(() => { ... }); // (2) subscribe and register model-event listener

@@ -166,7 +166,7 @@ export class BracketMatchingController extends Disposable {
                     newCursorPosition = enclosingBrackets[1].getStartPosition();
                 }
                 else {
-                    // no enclosing brackets, try the very first next bracket
+                    // no enclosing brackets, try the very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md first next bracket
                     const nextBracket = model.bracketPairs.findNextBracket(position);
                     if (nextBracket && nextBracket.range) {
                         newCursorPosition = nextBracket.range.getStartPosition();

@@ -1,13 +1,14 @@
 const { BrowserWindow, Menu, ipcMain} = require("electron");
 const path = require("node:path");
-const ConfirmDialog = require(path.join(__dirname, "../dialogs/dialogs"));
-const SqliteMan = require(path.join(__dirname, "../libs/sqliteman"));
+const ConfirmDialog = require(path.join(__dirname, "..", "dialogs", "dialogs"));
+const SqliteMan = require(path.join(__dirname, "..", "libs", "sqliteman"));
 const querystring = require('querystring');
 const process = require("node:process");
-const GlobalVar = require(path.join(__dirname, "../libs/globalvar"));  // 全局变量模块引入
+const GlobalVar = require(path.join(__dirname, "..", "libs", "globalvar"));  // 全局变量模块引入
 
 
 let gVar = new GlobalVar();
+console.log(gVar.pathSep);
 const settingsConfigManager = new SqliteMan.SettingsConfigManager();
 
 function Windows() {
@@ -23,22 +24,23 @@ function Windows() {
             x: 0,
             y: 0,
             show: false,
-            icon: path.join(__dirname, "../assets/app_icon/tmp.iconset/icon_256x256.png"),
+            icon: path.join(__dirname, "..", "assets", "app_icon", "tmp.iconset", "icon_256x256.png"),
             webPreferences: {
-                preload: path.join(__dirname, '../preload/preload-work.js'),
+                preload: path.join(__dirname, '..', 'preload', 'preload-work.js'),
             },
             devTools: gVar.DEBUG,
         });
         let fileName;
-        if (!filePath) {  // 传入“NEW_FILE”和“NO_PATH”字符串使App以新建文件的方式打开窗口，注意不要让用户将文件重命名为“NEW_FILE”
-            fileName = `NEW_FILE`;
-            filePath = "NO_PATH";
+        if (!filePath) {  // 传入空字符串使App以新建文件的方式打开窗口
+            fileName = "";
+            filePath = "";
         } else fileName = filePath.split(path.sep).pop();
         let encodedQuery = querystring.stringify({
             name: fileName,
             path: filePath,
         });
         // windowId：传递应用打开生命周期内窗口唯一ID，platform：传递系统类型，以便于处理文件路径，name：打开文件的文件名，path：打开文件的完整文件路径
+        console.log(encodedQuery);
         const url = `file://${ __dirname }/../ui/workspace.html?windowId=${win.id}&${encodedQuery}&platform=${process.platform}`;
         win.loadURL(url);
         win.on('ready-to-show', function () {
@@ -57,7 +59,7 @@ function Windows() {
         win.on('close', e => {  // 检测本窗口是否未保存
             e.preventDefault(); // 先阻止一下默认行为，不然直接关了，提示框只会闪一下
             if (saveStatusMap[`Window_${ win.id }`]) {  // 如果已保存，不弹框直接关闭窗口
-                if (filePath !== 'NO_PATH') settingsConfigManager.deleteInstantHistoryRecords(filePath);  // 删除临时历史记录
+                if (filePath !== '') settingsConfigManager.deleteInstantHistoryRecords(filePath);  // 删除临时历史记录
                 win.destroy();
             } else {
                 let warningConfirmDialogChosen = new ConfirmDialog();
@@ -70,7 +72,7 @@ function Windows() {
                     '您有项目未保存，如果直接关闭，当前进度将不会保存，确认要直接关闭吗？',
                     0
                 )) {
-                    if (filePath !== 'NO_PATH') settingsConfigManager.deleteInstantHistoryRecords(filePath);  // 删除临时历史记录
+                    if (filePath !== '') settingsConfigManager.deleteInstantHistoryRecords(filePath);  // 删除临时历史记录
                     win.destroy();
                 }
             }
@@ -89,7 +91,7 @@ function Windows() {
             show: false,
             resizable: false,
             webPreferences: {
-                preload: path.join(__dirname, '../preload/preload-main.js'),
+                preload: path.join(__dirname, '..', 'preload', 'preload-main.js'),
             },
             devTools: gVar.DEBUG,
         });

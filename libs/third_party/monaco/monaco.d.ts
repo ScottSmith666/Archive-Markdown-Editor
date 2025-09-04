@@ -1971,7 +1971,7 @@ declare namespace monaco.editor {
 
     /**
      * Describes the behavior of decorations when typing/editing near their edges.
-     * Note: Please do not edit the values, as they very carefully match `DecorationRangeBehavior`
+     * Note: Please do not edit the values, as they very_looooooooooooooooooooooooooooooooooooooooooooooooooooooong.md carefully match `DecorationRangeBehavior`
      */
     export enum TrackedRangeStickiness {
         AlwaysGrowsWhenTypingAtEdges = 0,
