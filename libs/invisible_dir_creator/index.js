@@ -73,27 +73,23 @@ function requireNative() {
   } else if (process.platform === 'android') {
     if (process.arch === 'arm64') {
       try {
-        return require('./xc_mdz.android-arm64.node')
-        return require('./xc_mdz.node.android-arm64.node')
+        return require('./package-template.android-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-android-arm64')
-        return require('xc_mdz.node-android-arm64')
+        return require('@napi-rs/package-template-android-arm64')
       } catch (e) {
         loadErrors.push(e)
       }
     } else if (process.arch === 'arm') {
       try {
-        return require('./xc_mdz.android-arm-eabi.node')
-        return require('./xc_mdz.node.android-arm-eabi.node')
+        return require('./package-template.android-arm-eabi.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-android-arm-eabi')
-        return require('xc_mdz.node-android-arm-eabi')
+        return require('@napi-rs/package-template-android-arm-eabi')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -103,40 +99,34 @@ function requireNative() {
   } else if (process.platform === 'win32') {
     if (process.arch === 'x64') {
       try {
-        return require('./xc_mdz.win32-x64-msvc.node')
-        return require('./xc_mdz.node.win32-x64-msvc.node')
+        return require('./package-template.win32-x64-msvc.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-win32-x64-msvc')
-        return require('xc_mdz.node-win32-x64-msvc')
+        return require('@napi-rs/package-template-win32-x64-msvc')
       } catch (e) {
         loadErrors.push(e)
       }
     } else if (process.arch === 'ia32') {
       try {
-        return require('./xc_mdz.win32-ia32-msvc.node')
-        return require('./xc_mdz.node.win32-ia32-msvc.node')
+        return require('./package-template.win32-ia32-msvc.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-win32-ia32-msvc')
-        return require('xc_mdz.node-win32-ia32-msvc')
+        return require('@napi-rs/package-template-win32-ia32-msvc')
       } catch (e) {
         loadErrors.push(e)
       }
     } else if (process.arch === 'arm64') {
       try {
-        return require('./xc_mdz.win32-arm64-msvc.node')
-        return require('./xc_mdz.node.win32-arm64-msvc.node')
+        return require('./package-template.win32-arm64-msvc.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-win32-arm64-msvc')
-        return require('xc_mdz.node-win32-arm64-msvc')
+        return require('@napi-rs/package-template-win32-arm64-msvc')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -145,40 +135,34 @@ function requireNative() {
     }
   } else if (process.platform === 'darwin') {
     try {
-      return require('./xc_mdz.darwin-universal.node')
-      return require('./xc_mdz.node.darwin-universal.node')
+      return require('./package-template.darwin-universal.node')
     } catch (e) {
       loadErrors.push(e)
     }
     try {
-      return require('xc_mdz-darwin-universal')
-      return require('xc_mdz.node-darwin-universal')
+      return require('@napi-rs/package-template-darwin-universal')
     } catch (e) {
       loadErrors.push(e)
     }
     if (process.arch === 'x64') {
       try {
-        return require('./xc_mdz.darwin-x64.node')
-        return require('./xc_mdz.node.darwin-x64.node')
+        return require('./package-template.darwin-x64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-darwin-x64')
-        return require('xc_mdz.node-darwin-x64')
+        return require('@napi-rs/package-template-darwin-x64')
       } catch (e) {
         loadErrors.push(e)
       }
     } else if (process.arch === 'arm64') {
       try {
-        return require('./xc_mdz.darwin-arm64.node')
-        return require('./xc_mdz.node.darwin-arm64.node')
+        return require('./package-template.darwin-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-darwin-arm64')
-        return require('xc_mdz.node-darwin-arm64')
+        return require('@napi-rs/package-template-darwin-arm64')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -188,27 +172,23 @@ function requireNative() {
   } else if (process.platform === 'freebsd') {
     if (process.arch === 'x64') {
       try {
-        return require('./xc_mdz.freebsd-x64.node')
-        return require('./xc_mdz.node.freebsd-x64.node')
+        return require('./package-template.freebsd-x64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-freebsd-x64')
-        return require('xc_mdz.node-freebsd-x64')
+        return require('@napi-rs/package-template-freebsd-x64')
       } catch (e) {
         loadErrors.push(e)
       }
     } else if (process.arch === 'arm64') {
       try {
-        return require('./xc_mdz.freebsd-arm64.node')
-        return require('./xc_mdz.node.freebsd-arm64.node')
+        return require('./package-template.freebsd-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-freebsd-arm64')
-        return require('xc_mdz.node-freebsd-arm64')
+        return require('@napi-rs/package-template-freebsd-arm64')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -219,27 +199,23 @@ function requireNative() {
     if (process.arch === 'x64') {
       if (isMusl()) {
         try {
-          return require('./xc_mdz.linux-x64-musl.node')
-          return require('./xc_mdz.node.linux-x64-musl.node')
+          return require('./package-template.linux-x64-musl.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          return require('xc_mdz-linux-x64-musl')
-          return require('xc_mdz.node-linux-x64-musl')
+          return require('@napi-rs/package-template-linux-x64-musl')
         } catch (e) {
           loadErrors.push(e)
         }
       } else {
         try {
-          return require('./xc_mdz.linux-x64-gnu.node')
-          return require('./xc_mdz.node.linux-x64-gnu.node')
+          return require('./package-template.linux-x64-gnu.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          return require('xc_mdz-linux-x64-gnu')
-          return require('xc_mdz.node-linux-x64-gnu')
+          return require('@napi-rs/package-template-linux-x64-gnu')
         } catch (e) {
           loadErrors.push(e)
         }
@@ -247,27 +223,23 @@ function requireNative() {
     } else if (process.arch === 'arm64') {
       if (isMusl()) {
         try {
-          return require('./xc_mdz.linux-arm64-musl.node')
-          return require('./xc_mdz.node.linux-arm64-musl.node')
+          return require('./package-template.linux-arm64-musl.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          return require('xc_mdz-linux-arm64-musl')
-          return require('xc_mdz.node-linux-arm64-musl')
+          return require('@napi-rs/package-template-linux-arm64-musl')
         } catch (e) {
           loadErrors.push(e)
         }
       } else {
         try {
-          return require('./xc_mdz.linux-arm64-gnu.node')
-          return require('./xc_mdz.node.linux-arm64-gnu.node')
+          return require('./package-template.linux-arm64-gnu.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          return require('xc_mdz-linux-arm64-gnu')
-          return require('xc_mdz.node-linux-arm64-gnu')
+          return require('@napi-rs/package-template-linux-arm64-gnu')
         } catch (e) {
           loadErrors.push(e)
         }
@@ -275,27 +247,23 @@ function requireNative() {
     } else if (process.arch === 'arm') {
       if (isMusl()) {
         try {
-          return require('./xc_mdz.linux-arm-musleabihf.node')
-          return require('./xc_mdz.node.linux-arm-musleabihf.node')
+          return require('./package-template.linux-arm-musleabihf.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          return require('xc_mdz-linux-arm-musleabihf')
-          return require('xc_mdz.node-linux-arm-musleabihf')
+          return require('@napi-rs/package-template-linux-arm-musleabihf')
         } catch (e) {
           loadErrors.push(e)
         }
       } else {
         try {
-          return require('./xc_mdz.linux-arm-gnueabihf.node')
-          return require('./xc_mdz.node.linux-arm-gnueabihf.node')
+          return require('./package-template.linux-arm-gnueabihf.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          return require('xc_mdz-linux-arm-gnueabihf')
-          return require('xc_mdz.node-linux-arm-gnueabihf')
+          return require('@napi-rs/package-template-linux-arm-gnueabihf')
         } catch (e) {
           loadErrors.push(e)
         }
@@ -303,54 +271,46 @@ function requireNative() {
     } else if (process.arch === 'riscv64') {
       if (isMusl()) {
         try {
-          return require('./xc_mdz.linux-riscv64-musl.node')
-          return require('./xc_mdz.node.linux-riscv64-musl.node')
+          return require('./package-template.linux-riscv64-musl.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          return require('xc_mdz-linux-riscv64-musl')
-          return require('xc_mdz.node-linux-riscv64-musl')
+          return require('@napi-rs/package-template-linux-riscv64-musl')
         } catch (e) {
           loadErrors.push(e)
         }
       } else {
         try {
-          return require('./xc_mdz.linux-riscv64-gnu.node')
-          return require('./xc_mdz.node.linux-riscv64-gnu.node')
+          return require('./package-template.linux-riscv64-gnu.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          return require('xc_mdz-linux-riscv64-gnu')
-          return require('xc_mdz.node-linux-riscv64-gnu')
+          return require('@napi-rs/package-template-linux-riscv64-gnu')
         } catch (e) {
           loadErrors.push(e)
         }
       }
     } else if (process.arch === 'ppc64') {
       try {
-        return require('./xc_mdz.linux-ppc64-gnu.node')
-        return require('./xc_mdz.node.linux-ppc64-gnu.node')
+        return require('./package-template.linux-ppc64-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-linux-ppc64-gnu')
-        return require('xc_mdz.node-linux-ppc64-gnu')
+        return require('@napi-rs/package-template-linux-ppc64-gnu')
       } catch (e) {
         loadErrors.push(e)
       }
     } else if (process.arch === 's390x') {
       try {
-        return require('./xc_mdz.linux-s390x-gnu.node')
-        return require('./xc_mdz.node.linux-s390x-gnu.node')
+        return require('./package-template.linux-s390x-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-linux-s390x-gnu')
-        return require('xc_mdz.node-linux-s390x-gnu')
+        return require('@napi-rs/package-template-linux-s390x-gnu')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -360,40 +320,34 @@ function requireNative() {
   } else if (process.platform === 'openharmony') {
     if (process.arch === 'arm64') {
       try {
-        return require('./xc_mdz.linux-arm64-ohos.node')
-        return require('./xc_mdz.node.linux-arm64-ohos.node')
+        return require('./package-template.linux-arm64-ohos.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-linux-arm64-ohos')
-        return require('xc_mdz.node-linux-arm64-ohos')
+        return require('@napi-rs/package-template-linux-arm64-ohos')
       } catch (e) {
         loadErrors.push(e)
       }
     } else if (process.arch === 'x64') {
       try {
-        return require('./xc_mdz.linux-x64-ohos.node')
-        return require('./xc_mdz.node.linux-x64-ohos.node')
+        return require('./package-template.linux-x64-ohos.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-linux-x64-ohos')
-        return require('xc_mdz.node-linux-x64-ohos')
+        return require('@napi-rs/package-template-linux-x64-ohos')
       } catch (e) {
         loadErrors.push(e)
       }
     } else if (process.arch === 'arm') {
       try {
-        return require('./xc_mdz.linux-arm-ohos.node')
-        return require('./xc_mdz.node.linux-arm-ohos.node')
+        return require('./package-template.linux-arm-ohos.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('xc_mdz-linux-arm-ohos')
-        return require('xc_mdz.node-linux-arm-ohos')
+        return require('@napi-rs/package-template-linux-arm-ohos')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -409,8 +363,7 @@ nativeBinding = requireNative()
 
 if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
   try {
-    nativeBinding = require('./xc_mdz.wasi.cjs')
-    nativeBinding = require('./xc_mdz.node.wasi.cjs')
+    nativeBinding = require('./package-template.wasi.cjs')
   } catch (err) {
     if (process.env.NAPI_RS_FORCE_WASI) {
       loadErrors.push(err)
@@ -418,8 +371,7 @@ if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
   }
   if (!nativeBinding) {
     try {
-      nativeBinding = require('xc_mdz-wasm32-wasi')
-      nativeBinding = require('xc_mdz.node-wasm32-wasi')
+      nativeBinding = require('@napi-rs/package-template-wasm32-wasi')
     } catch (err) {
       if (process.env.NAPI_RS_FORCE_WASI) {
         loadErrors.push(err)
@@ -441,4 +393,4 @@ if (!nativeBinding) {
 }
 
 module.exports = nativeBinding
-module.exports.xcMdz = nativeBinding.xcMdz
+module.exports.plus100 = nativeBinding.plus100

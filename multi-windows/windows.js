@@ -40,6 +40,7 @@ function Windows() {
             path: filePath,
         });
         // windowId：传递应用打开生命周期内窗口唯一ID，platform：传递系统类型，以便于处理文件路径，name：打开文件的文件名，path：打开文件的完整文件路径
+        console.log(encodedQuery);
         const url = `file://${ __dirname }/../ui/workspace.html?windowId=${win.id}&${encodedQuery}&platform=${process.platform}`;
         win.loadURL(url);
         win.on('ready-to-show', function () {

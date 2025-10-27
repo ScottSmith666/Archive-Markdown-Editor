@@ -29,6 +29,9 @@ fn remove_ds_store_etc(folder: &str) {
     Command::new("sh").arg("-c").arg(format!("find {} -name \"_MACOSX\" -print0 | xargs -0 rm", folder));
 }
 
+use std::path::{Path, PathBuf};
+use walkdir::{DirEntry, WalkDir};
+
 fn zip_dir<T>(
     it: &mut dyn Iterator<Item = DirEntry>,
     prefix: &Path,
@@ -105,6 +108,7 @@ fn x_zip(src_file: &Path, dst_dir: &Path, method: zip::CompressionMethod, passwo
     let file = File::open(src_file).unwrap();
     let mut archive = zip::ZipArchive::new(file).unwrap();
     for i in 0..archive.len() {
+
         let mut file = if use_password == 1 {
             archive.by_index_decrypt(i, password.as_bytes())?
         } else {
