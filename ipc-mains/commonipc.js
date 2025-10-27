@@ -174,7 +174,7 @@ function CommonIpc() {
 
             } else if (extName === "md" || extName === "txt") {
                 // 如果在内容中发现了mdz文件中特有的内容（多媒体路径$MDZ_MEDIA），则修改其中的路径，并将mdz文件中的多媒体放在保存目录的一个文件夹内
-
+                // 先用正则表达式识别出多媒体Markdown代码
                 fs.writeFileSync(fileSaveAsPath, 'fuck', 'utf8');
             }
             return [fileName, fileSaveAsPath];
