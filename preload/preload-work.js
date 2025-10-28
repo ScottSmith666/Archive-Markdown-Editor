@@ -78,7 +78,7 @@ contextBridge.exposeInMainWorld('setSaveStatus', {
 // 保存文件
 contextBridge.exposeInMainWorld('save', {
     autoSaveFile: (content, path) => ipcRenderer.send('auto-save-file', content, path),
-    customSaveFile: (content) => ipcRenderer.invoke('custom-save-file', content),
+    customSaveFile: (content, path) => ipcRenderer.invoke('custom-save-file', content, path),
 });
 
 // 退出应用

@@ -7,7 +7,6 @@ const RwMdz = require(path.join(__dirname, "..", "libs", "rwmdz"));
 const Dialogs = require(path.join(__dirname, "..", "dialogs", "dialogs"));
 const fs = require("fs");
 
-
 const gVar = new GlobalVar();
 const rwMdz = new RwMdz();
 const settingsConfigManager = new SqliteMan.SettingsConfigManager();
@@ -134,7 +133,7 @@ function CommonIpc() {
             } else fs.writeFileSync(fullFilePath, content, 'utf8');
         });
 
-        ipcMain.handle('custom-save-file', (event, content) => {
+        ipcMain.handle('custom-save-file', (event, content, originPath) => {
             /**
              * 保存新文件（即保存时弹出保存框选择路径保存）
              */
@@ -159,7 +158,7 @@ function CommonIpc() {
                 let num = 0;
                 for (let i = 0; i < gVar.ForbiddenChars.length; i++) {
                     if (fileName.indexOf(gVar.ForbiddenChars[i]) !== -1) {
-                        saveTitle = "文件名有非法字符，请重新修改！";
+                        saveTitle = "文件名有空格等非法字符，请重新修改！";
                         break;  // 如果检出非法字符，则num肯定不等于gVar.ForbiddenChars.length - 1
                     }
                     num = i;
@@ -169,14 +168,34 @@ function CommonIpc() {
             // 接下来开始写入文件
             // 先判断保存文件类型：md、mdz和txt
             let extName = fileName.split(".").pop();
+            // 用正则表达式识别出多媒体Markdown代码
+            let mediaMdCodeReg = /!\[([^\]]*)\]\(([^)]+)\)/g;
             if (extName === "mdz") {
                 // 如果在内容中发现了绝对路径或相对路径，则改成mdz文件中特有的路径（多媒体路径$MDZ_MEDIA），并将多媒体收入mdz文件内
-
+                // 当然还有一种情况，就是多媒体Markdown代码在“code”内时，是绝对不能修改任何内容的（包括内联 `code` 和块 ```code```）
+                // 因此需要先去掉code部分，以“$MEDIA_IN_CODE<index>”（如$MEDIA_IN_CODE0、$MEDIA_IN_CODE1等临时代替）
+                // 等替换完剩下的media代码后，再把code重新替换回去
+                let al = [...content.matchAll(mediaMdCodeReg)].map(match => ({
+                    fullMatch: match[0],
+                    altText: match[1],
+                    imagePath: match[2]
+                }));
+                console.log(al);
             } else if (extName === "md" || extName === "txt") {
                 // 如果在内容中发现了mdz文件中特有的内容（多媒体路径$MDZ_MEDIA），则修改其中的路径，并将mdz文件中的多媒体放在保存目录的一个文件夹内
-                // 先用正则表达式识别出多媒体Markdown代码
-                fs.writeFileSync(fileSaveAsPath, 'fuck', 'utf8');
+                // 当然还有一种情况，就是多媒体Markdown代码在“code”内时，是绝对不能修改任何内容的（包括内联 `code` 和块 ```code```）
+                // 因此需要先去掉code部分，以“$MEDIA_IN_CODE<index>”（如$MEDIA_IN_CODE0、$MEDIA_IN_CODE1等临时代替）
+                // 等替换完剩下的media代码后，再把code重新替换回去
+                let al = [...content.matchAll(mediaMdCodeReg)].map(match => ({
+                    fullMatch: match[0],
+                    altText: match[1],
+                    imagePath: match[2]
+                }));
+                console.log(al);
+                // fs.writeFileSync(fileSaveAsPath, 'fuck', 'utf8');
             }
+            // 最后一步，消除打开的临时历史记录
+            settingsConfigManager.deleteInstantHistoryRecords(originPath);
             return [fileName, fileSaveAsPath];
         });
 

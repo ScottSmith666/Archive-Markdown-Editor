@@ -526,7 +526,7 @@ let renderProcess = {
                 window.save.autoSaveFile(editor.getValue(), this.openFilePath);
             } else {
                 // 新建文件编辑后保存，fullPath为false
-                afterSave = await window.save.customSaveFile(editor.getValue());
+                afterSave = await window.save.customSaveFile(editor.getValue(), this.openFilePath);
             }
 
             if (afterSave[1]) {  // 如果另存为之后返回的列表第二个元素（代表文件路径）为undefined，则不设置保存成功标记
@@ -674,7 +674,7 @@ let renderProcess = {
 
         // 验证文件名是否合法，如不合法则禁止打开
         if (openFilePath && !(await window.loadFileContent.verifyFileNameValid(openFilePath))) {
-            alert(`该文件名不合法，禁止打开！`);
+            alert(`该文件名包含空格等非法字符，禁止打开！`);
             window.qt.closeThisWindow(this.windowId);
         }
 
@@ -700,6 +700,7 @@ let renderProcess = {
              * 参数“mdz”：确认是否为mdz文件，以启用不同的路径转化
              * 要求：相对路径开头必须包括“./”或“../”
              */
+            console.log(originMediaPath);
             let sep = (platform === 'win32') ? '\\' : '/';
             let filePathList = originFilePath ? originFilePath.split(sep) : [];
             let fullFileName = filePathList.pop();  // 取出列表最后一个元素，即文件名
