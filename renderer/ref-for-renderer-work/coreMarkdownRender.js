@@ -533,11 +533,14 @@ let renderProcess = {
                 // 设置保存状态
                 window.setSaveStatus.setSaveStatus(true);
                 if (saveAs) {
-                    // 刷新页面以应用另存为的文件内容
-                    const currentUrl = new URL(window.location.href);
-                    currentUrl.searchParams.set("name", afterSave[0]);  // 添加参数
-                    currentUrl.searchParams.set("path", afterSave[1]);  // 添加参数
-                    window.location.href = currentUrl.toString();  // 重定向到新 URL
+                    // // 刷新页面以应用另存为的文件内容
+                    // const currentUrl = new URL(window.location.href);
+                    // currentUrl.searchParams.set("name", afterSave[0]);  // 添加参数
+                    // currentUrl.searchParams.set("path", afterSave[1]);  // 添加参数
+                    // window.location.href = currentUrl.toString();  // 重定向到新 URL
+
+                    window.loadFileContent.openFileInNewWindow(afterSave[1]);
+                    window.qt.closeThisWindow(this.windowId);
                 }
             }
         },
@@ -674,7 +677,7 @@ let renderProcess = {
 
         // 验证文件名是否合法，如不合法则禁止打开
         if (openFilePath && !(await window.loadFileContent.verifyFileNameValid(openFilePath))) {
-            alert(`该文件名包含空格等非法字符，禁止打开！`);
+            alert(`文件名包含非法字符，或者文件所处路径内含有空格，请修改文件名或将文件移至其他路径再尝试打开！`);
             window.qt.closeThisWindow(this.windowId);
         }
 
@@ -709,7 +712,7 @@ let renderProcess = {
             let fileName = fileNameList.join(".");
             let rootPath = filePathList.join(sep);
 
-            if (/(\.|\.\.)(\/)(\S|\s)+/.test(originMediaPath)) {  // 如果是相对路径（以“./”或“../”开头）
+            if (/(\.|\.\.)(\/|\\)(\S|\s)+/.test(originMediaPath)) {  // 如果是相对路径（必须以“./” “../” “.\” “..\”开头）
                 if (!originFilePath) return false;  // 未保存文件，无法使用相对路径引用多媒体
                 return rootPath + sep + originMediaPath;
             }

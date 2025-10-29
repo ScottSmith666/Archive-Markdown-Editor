@@ -17,7 +17,6 @@ const createMainWindow = () => {
     /**
      * 创建主窗口（欢迎+新建）
      */
-    // xc_mdz.xcMdz("/Users/scottsmith/Desktop/comic_code.zip", "/Users/scottsmith/Desktop/comic_code", 2, 2, "");
     let windowsObject = new Windows();
     windowsObject.mainWindow();
 };

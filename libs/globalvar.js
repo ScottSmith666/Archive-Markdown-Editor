@@ -6,7 +6,7 @@ function GlobalVar() {
      * @type {null}
      */
     // 是否开启debug模式（即运行软件就默认启动Chromium开发者工具）
-    this.DEBUG = true;
+    this.DEBUG = false;
     // 检查文件名的合法性，以下符号禁止出现在文件名中，因此无法指定含有下列字符的文件名，如有存在这些字符的文件也将被禁止打开
     this.ForbiddenChars = [">", "<", ":", "\"", "'", "/", "\\", "|", "*", "?", " "]
     // 文件名长度不准大于以下值
