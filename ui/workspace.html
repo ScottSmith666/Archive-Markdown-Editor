@@ -355,6 +355,88 @@
         </div>
     </div>
 
+    <!--密码保护模态框-->
+    <div class="fonts" id="unlock-modal">
+        <div id="unlock-modal-surface" class="modal"></div>
+        <div class="face-unlock">
+            <div class="window">
+                <div style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
+                    <div style="width: 25px; height: 25px; margin-right: 6px;">
+                        <svg t="1761749453737" style="width: 100%; height: 100%;" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5221" width="200" height="200"><path d="M385.150849 385.662338l-128.895105 0 0-150.377622q0-49.102897 19.436563-91.556444t53.706294-74.677323 80.815185-50.637363 101.786214-18.413586q49.102897 0 94.625375 18.413586t80.815185 50.637363 56.263736 74.677323 20.971029 91.556444l0 150.377622-123.78022 0 0-121.734266q0-64.447552-35.804196-99.74026t-97.182817-35.292707q-55.240759 0-88.999001 35.292707t-33.758242 99.74026l0 121.734266zM826.053946 447.040959q27.62038 0 47.568432 19.948052t19.948052 47.568432l0 317.122877q0 27.62038-9.718282 51.66034t-26.597403 41.942058-39.896104 28.131868-50.637363 10.22977l-516.603397 0q-27.62038 0-50.125874-10.22977t-38.361638-27.108891-24.551449-39.384615-8.695305-48.07992l0-324.283716q0-27.62038 19.436563-47.568432t47.056943-19.948052l61.378621 0 128.895105 0 255.744256 0 123.78022 0 61.378621 0z" p-id="5222" fill="#42b883"></path></svg>
+                    </div>
+                    <div class="window-title fonts" style="color: #42b983; font-size: 1.4em">解锁文件</div>
+                </div>
+                <div style="display: flex; flex-direction: column; width: 100%;">
+                    <div style="display: flex; flex-direction: row; align-items: start;">
+                        <div class="unlock-item-content-package">
+                            <div class="settings-item-content" id="file-protect">
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">本文件受密码保护，请输入正确密码以解锁文件</div>
+                                </div>
+                                <label>
+                                    <input style="width: 100%;" class="fonts" type="password"
+                                           id="file-password"/>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--按钮组-->
+                    <div style="display: flex; width: 100%; flex-direction: row; margin-top: 20px; justify-content: flex-end;">
+                        <div class="settings-button-cancel fonts" id="unlock-close" style="margin-right: 10px;">关闭</div>
+                        <div class="settings-button fonts" id="unlock">解锁</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--密码设置模态框-->
+    <div class="fonts" id="pswd-modal">
+        <div id="pswd-modal-surface" class="modal"></div>
+        <div class="face-unlock">
+            <div class="window">
+                <div style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
+                    <div style="width: 25px; height: 25px; margin-right: 6px;">
+                        <svg t="1761749453737" style="width: 100%; height: 100%;" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5221" width="200" height="200"><path d="M385.150849 385.662338l-128.895105 0 0-150.377622q0-49.102897 19.436563-91.556444t53.706294-74.677323 80.815185-50.637363 101.786214-18.413586q49.102897 0 94.625375 18.413586t80.815185 50.637363 56.263736 74.677323 20.971029 91.556444l0 150.377622-123.78022 0 0-121.734266q0-64.447552-35.804196-99.74026t-97.182817-35.292707q-55.240759 0-88.999001 35.292707t-33.758242 99.74026l0 121.734266zM826.053946 447.040959q27.62038 0 47.568432 19.948052t19.948052 47.568432l0 317.122877q0 27.62038-9.718282 51.66034t-26.597403 41.942058-39.896104 28.131868-50.637363 10.22977l-516.603397 0q-27.62038 0-50.125874-10.22977t-38.361638-27.108891-24.551449-39.384615-8.695305-48.07992l0-324.283716q0-27.62038 19.436563-47.568432t47.056943-19.948052l61.378621 0 128.895105 0 255.744256 0 123.78022 0 61.378621 0z" p-id="5222" fill="#42b883"></path></svg>
+                    </div>
+                    <div class="window-title fonts" style="color: #42b983; font-size: 1.4em">设定密码</div>
+                </div>
+                <div style="display: flex; flex-direction: column; width: 100%;">
+
+                </div>
+                <div style="display: flex; flex-direction: column; width: 100%;">
+                    <div style="display: flex; flex-direction: row; align-items: start;">
+                        <div class="unlock-item-content-package">
+                            <div class="settings-item-content" id="file-pswd">
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">输入密码</div>
+                                </div>
+                                <label>
+                                    <input style="width: 100%;" class="fonts" type="password"
+                                           id="set-password"/>
+                                </label>
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">再次输入密码</div>
+                                </div>
+                                <label>
+                                    <input style="width: 100%;" class="fonts" type="password"
+                                           id="set-password-again"/>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--按钮组-->
+                    <div style="display: flex; width: 100%; flex-direction: row; margin-top: 20px; justify-content: flex-end;">
+                        <div class="settings-button-cancel fonts" id="pswd-close" style="margin-right: 10px;">取消</div>
+                        <div class="settings-button fonts" id="continue">继续</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!--tips模态框-->
     <div class="fonts" id="tips-modal">
         <div id="tips-modal-surface" class="modal"></div>

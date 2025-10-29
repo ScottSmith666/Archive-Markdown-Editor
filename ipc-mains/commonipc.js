@@ -40,6 +40,14 @@ function CommonIpc() {
             const readyDestroyedWindow = BrowserWindow.fromId(Number(windowId));
             readyDestroyedWindow.destroy();
         });
+        ipcMain.on('close-window-and-rm-ins-history', (event, windowId, path) => {
+            /**
+             * 关闭当前窗口并清除临时历史记录
+             */
+            const readyDestroyedWindow = BrowserWindow.fromId(Number(windowId));
+            readyDestroyedWindow.destroy();
+            settingsConfigManager.deleteInstantHistoryRecords(path);
+        });
         ipcMain.on('reload-app', (event) => {
             /**
              * 重启整个应用
@@ -83,7 +91,7 @@ function CommonIpc() {
         ipcMain.on('open-file-from-path', (event, path) => {
             workWindow(path);
         });
-        ipcMain.handle('load-file-content', (event, path) => {
+        ipcMain.handle('load-file-content', (event, path, password) => {
             /**
              * 加载文件内容
              */
@@ -91,7 +99,8 @@ function CommonIpc() {
             if (path.split(".").pop() === "md" || path.split(".").pop() === "txt")
                 return fs.readFileSync(path, 'utf8');
             else if (path.split(".").pop() === "mdz") {  // 加载Archive Markdown File (mdz)
-                let mdzCoreFilePath = rwMdz.readMdz(path);
+                let mdzCoreFilePath = rwMdz.readMdz(path, password);
+                if (mdzCoreFilePath === -1) return false;
                 return fs.readFileSync(mdzCoreFilePath, 'utf8');
             }
         });
@@ -132,22 +141,97 @@ function CommonIpc() {
             settingsConfigManager.deleteInstantHistoryRecords(path);
             return 0;
         });
-        ipcMain.handle('auto-save-file', (event, content, fullFilePath) => {
+        ipcMain.handle('auto-save-file', (event, content, fullFilePath, password) => {
             /**
              * 保存旧文件（即点击按钮或按下热键时直接按照之前的路径默认保存）
              */
-            let extName = fileName.split(".").pop();
+            let extName = fullFilePath.split(".").pop();
             if (extName === "mdz") {
                 // 如果在内容中发现了绝对路径或相对路径，则改成mdz文件中特有的路径（多媒体路径$MDZ_MEDIA），并将多媒体收入mdz文件内
+                let codeBlockMdCodeReg = /```\s*(\w+)?\s*\n?([\s\S]*?)\n?```/g;  // 匹配代码块
+                let inlineCodeMdCodeReg = /(?<!\\)`([^`\n]+)(?<!\\)`/g;  // 匹配内联代码
+                let mediaMdCodeReg = /!\[([^\]]*)\]\(([^)]+)\)/g;
+                let match;
+                let codeResult = {
+                    inline: [],
+                    block: [],
+                };
+                // 先匹配代码块
+                let block_num = 0;
+                while ((match = codeBlockMdCodeReg.exec(content)) !== null) {
+                    content = content.replace(match[0], `$MAYBE_MEDIA_IN_CODE${block_num}`);
+                    codeResult.block.push({
+                        type: 'block',
+                        language: match[1] || 'text',
+                        content: match[2].trim(),
+                        raw: match[0],
+                        position: match.index
+                    });
+                    block_num++;
+                }
 
+                // 再匹配内联代码
+                let inline_num = 0;
+                while ((match = inlineCodeMdCodeReg.exec(content)) !== null) {
+                    content = content.replace(match[0], `$MAYBE_MEDIA_IN_INLINE_CODE${inline_num}`);
+                    codeResult.inline.push({
+                        type: 'inline',
+                        content: match[1],
+                        raw: match[0],
+                        position: match.index
+                    });
+                    inline_num++;
+                }
+                // 如果在内容中发现了绝对路径或相对路径，则改成mdz文件中特有的路径（多媒体路径$MDZ_MEDIA），并将多媒体收入mdz文件内
+                let al = [...content.matchAll(mediaMdCodeReg)].map(match => ({
+                    fullMatch: match[0],
+                    altText: match[1],
+                    imagePath: match[2]
+                }));
+
+                let savePathList = fullFilePath.split(gVar.pathSep);
+                let fileName = savePathList.pop();
+                let fileNameList = fileName.split(".");
+                fileNameList.pop();
+                let root = savePathList.join(gVar.pathSep);
+                let realMdzFilePath = root + gVar.pathSep + "._mdz_content." + fileNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + fileNameList.join(".") + ".md";
+
+                for (let i = 0; i < al.length; i++) {
+                    let urlReg = /^http(s)*(:\/\/)/;
+                    let relativePathReg = /(\.|\.\.)(\/|\\)(\S|\s)+/;
+                    let mdzPathReg = /^(\$MDZ_MEDIA\/)(\S)+/;
+
+                    let mediaCodeElement = al[i].fullMatch;
+                    let originMediaPath = al[i].imagePath;
+                    let mediaFileName = originMediaPath.split(/\/|\\/).pop();
+                    let mediaPath = originMediaPath;
+
+                    if (urlReg.test(mediaPath) || mdzPathReg.test(mediaPath)) continue;  // 判断URL或者mdz路径
+                    else if (relativePathReg.test(mediaPath)) {  // 判断相对路径
+                        mediaPath = root + gVar.pathSep + mediaPath;  // 获得多媒体的绝对路径
+                    }
+                    // 拷贝多媒体至文件夹
+                    fs.copyFileSync(mediaPath, root + gVar.pathSep + "._mdz_content." + fileNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + "media_src" + gVar.pathSep + mediaFileName);
+                    // 最后修改路径为$MDZ_MEDIA
+                    let modifiedMediaCode = mediaCodeElement.replace(originMediaPath, `$MDZ_MEDIA/${mediaFileName}`);
+                    // 新代码替换旧代码
+                    content = content.replace(mediaCodeElement, modifiedMediaCode);
+                }
+                // 将代码块替换回来
+                for (let i = 0; i < codeResult.inline.length; i++)
+                    content = content.replace(`$MAYBE_MEDIA_IN_INLINE_CODE${i}`, codeResult.inline[i].raw);
+                for (let i = 0; i < codeResult.block.length; i++)
+                    content = content.replace(`$MAYBE_MEDIA_IN_CODE${i}`, codeResult.block[i].raw);
                 // 内容写入
-                fs.writeFileSync(fullFilePath, content, 'utf8');
+                fs.writeFileSync(realMdzFilePath, content, 'utf8');
                 // 打包为mdz
-                // 删除残留文件夹
+                rwMdz.writeMdz(root + gVar.pathSep + "._mdz_content." + fileNameList.join("."));
             } else fs.writeFileSync(fullFilePath, content, 'utf8');
+            settingsConfigManager.deleteInstantHistoryRecords(fullFilePath);
+            return true;
         });
 
-        ipcMain.handle('custom-save-file', (event, content, originPath) => {
+        ipcMain.handle('custom-save-file', (event, content, originPath, password) => {
             /**
              * 保存新文件（即保存时弹出保存框选择路径保存）
              */
@@ -189,6 +273,7 @@ function CommonIpc() {
             // 当然还有一种情况，就是多媒体Markdown代码在“code”内时，是绝对不能修改任何内容的（包括内联 `code` 和块 ```code```）
             // 因此需要先去掉code部分，以“$MAYBE_MEDIA_IN_CODE<index>”（$MAYBE_MEDIA_IN_CODE0、$MAYBE_MEDIA_IN_CODE1）或“$MAYBE_MEDIA_IN_INLINE_CODE<index>”等临时代替
             // 等替换完剩下的media代码后，再把code重新替换回去
+
             let codeBlockMdCodeReg = /```\s*(\w+)?\s*\n?([\s\S]*?)\n?```/g;  // 匹配代码块
             let inlineCodeMdCodeReg = /(?<!\\)`([^`\n]+)(?<!\\)`/g;  // 匹配内联代码
             let match;
@@ -210,7 +295,6 @@ function CommonIpc() {
                 block_num++;
             }
 
-
             // 再匹配内联代码
             let inline_num = 0;
             while ((match = inlineCodeMdCodeReg.exec(content)) !== null) {
@@ -229,6 +313,7 @@ function CommonIpc() {
             let mdzPathReg = /^(\$MDZ_MEDIA\/)(\S)+/;
 
             if (extName === "mdz") {
+
                 // 如果在内容中发现了绝对路径或相对路径，则改成mdz文件中特有的路径（多媒体路径$MDZ_MEDIA），并将多媒体收入mdz文件内
                 let al = [...content.matchAll(mediaMdCodeReg)].map(match => ({
                     fullMatch: match[0],
@@ -246,7 +331,6 @@ function CommonIpc() {
                 runCommand(process.platform === 'win32'
                     ? `attrib +h ${root + gVar.pathSep + "._mdz_content." + fileNameList.join(".")}` : `echo`, () => {
                     for (let i = 0; i < al.length; i++) {
-                        console.log(`index = ${i}`);
                         let mediaCodeElement = al[i].fullMatch;
                         let originMediaPath = al[i].imagePath;
                         let mediaFileName = originMediaPath.split(/\/|\\/).pop();

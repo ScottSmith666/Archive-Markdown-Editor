@@ -163,6 +163,10 @@ let renderProcess = {
                 if (!this.openFileName && !this.openFilePath) this.saveFile(editor, true);
                 else this.saveFile(editor);
             });
+            // Ctrl/Cmd + Shift + S
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyS,  () => {
+                this.saveFile(editor, true);
+            });
             // Monaco Editor内容改变事件
             editor.onDidChangeModelContent((e) => {
                 // 更改标题
@@ -287,6 +291,20 @@ let renderProcess = {
             document.getElementById("settings").addEventListener("click", (e) => {
                 this.mainManuAllHide("file", "edit", "view", "help");
                 document.getElementById("settings-modal").style.display = "block";
+            });
+
+            // 解锁文件
+            document.getElementById("unlock").addEventListener("click", async () => {
+                let inputPassword = document.getElementById("file-password").value;
+                this.fileContent = await window.loadFileContent.loadFileContent(this.openFilePath, inputPassword);
+                if (!this.fileContent) {
+
+                }
+            });
+
+            // 关闭解锁文件窗口
+            document.getElementById("unlock-close").addEventListener("click", () => {
+                window.qt.totalCloseThisWindow(this.windowId, this.openFilePath);
             });
 
             // about内部按钮关闭监听
@@ -523,7 +541,13 @@ let renderProcess = {
             let afterSave = [true, true];
             if (!saveAs) {
                 // 已存在的文件更改后的保存
-                window.save.autoSaveFile(editor.getValue(), this.openFilePath);
+                let autoSaveResult = await window.save.autoSaveFile(editor.getValue(), this.openFilePath);
+                if (autoSaveResult) {
+                    const currentUrl = new URL(window.location.href);
+                    window.location.href = currentUrl.toString();  // 重定向到新 URL
+                    window.setSaveStatus.setSaveStatus(true);
+                }
+                return 0;
             } else {
                 // 新建文件编辑后保存，fullPath为false
                 afterSave = await window.save.customSaveFile(editor.getValue(), this.openFilePath);
@@ -533,12 +557,6 @@ let renderProcess = {
                 // 设置保存状态
                 window.setSaveStatus.setSaveStatus(true);
                 if (saveAs) {
-                    // // 刷新页面以应用另存为的文件内容
-                    // const currentUrl = new URL(window.location.href);
-                    // currentUrl.searchParams.set("name", afterSave[0]);  // 添加参数
-                    // currentUrl.searchParams.set("path", afterSave[1]);  // 添加参数
-                    // window.location.href = currentUrl.toString();  // 重定向到新 URL
-
                     window.loadFileContent.openFileInNewWindow(afterSave[1]);
                     window.qt.closeThisWindow(this.windowId);
                 }
@@ -668,7 +686,6 @@ let renderProcess = {
         let openFilePath = queryParams.get('path') !== '' ? queryParams.get('path') : false;
         this.openFilePath = openFilePath;
 
-        console.log(openFilePath);
         // 验证路径下的文件是否存在，如不存在则提醒
         if (openFilePath && !(await window.loadFileContent.verifyFileExists(openFilePath))) {
             alert(`文件“${ openFilePath }”不存在，无法打开！`);
@@ -685,7 +702,15 @@ let renderProcess = {
         if ((await window.loadFileContent.verifyFileIsOpen(openFilePath))) {
             alert(`文件“${ openFilePath }”已打开，请勿再次打开！`);
             window.qt.closeThisWindow(this.windowId);
-        } else this.fileContent = openFilePath ? (await window.loadFileContent.loadFileContent(openFilePath)) : false;
+        } else {
+            console.log(openFilePath.split(".").pop());
+            if (openFilePath.split(".").pop() === "mdz") {
+                this.fileContent = await window.loadFileContent.loadFileContent(openFilePath, "");
+                if (!this.fileContent) {
+                    document.getElementById("unlock-modal").style.display = "block";
+                }
+            } else this.fileContent = openFilePath ? (await window.loadFileContent.loadFileContent(openFilePath, "")) : false;
+        }
 
         window.setSaveStatus.setSaveStatus(true);  // 初始化本页面保存状态为true
 
@@ -703,7 +728,6 @@ let renderProcess = {
              * 参数“mdz”：确认是否为mdz文件，以启用不同的路径转化
              * 要求：相对路径开头必须包括“./”或“../”
              */
-            console.log(originMediaPath);
             let sep = (platform === 'win32') ? '\\' : '/';
             let filePathList = originFilePath ? originFilePath.split(sep) : [];
             let fullFileName = filePathList.pop();  // 取出列表最后一个元素，即文件名

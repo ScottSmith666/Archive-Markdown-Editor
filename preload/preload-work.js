@@ -78,8 +78,8 @@ contextBridge.exposeInMainWorld('setSaveStatus', {
 
 // 保存文件
 contextBridge.exposeInMainWorld('save', {
-    autoSaveFile: (content, path) => ipcRenderer.send('auto-save-file', content, path),
-    customSaveFile: (content, path) => ipcRenderer.invoke('custom-save-file', content, path),
+    autoSaveFile: (content, path, password) => ipcRenderer.invoke('auto-save-file', content, path, password),
+    customSaveFile: (content, path, password) => ipcRenderer.invoke('custom-save-file', content, path, password),
 });
 
 // 退出应用
@@ -87,4 +87,5 @@ contextBridge.exposeInMainWorld('qt', {
     quit: () => ipcRenderer.send('quit'),
     // 关闭当前窗口
     closeThisWindow: (windowId) => ipcRenderer.send('close-window', windowId),
+    totalCloseThisWindow: (windowId, path) => ipcRenderer.send('close-window-and-rm-ins-history', windowId, path),
 });

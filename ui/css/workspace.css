@@ -401,6 +401,26 @@ html, body {
     padding: 20px;
 }
 
+.face-unlock {
+    z-index: 251;
+    overflow: auto;
+    width: 560px;
+    /*min-height: 310px;*/
+    border-radius: 10px;
+    background-color: #ffffff;
+    position: fixed;
+
+    left: 0;
+    top: calc(100vh / 2 - 540px / 2);
+    /*bottom: 50%;*/
+    right: 0;
+    height: 180px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
 .main-title {
     color: #42b983 !important;
 }
@@ -451,6 +471,10 @@ html, body {
 }
 
 #about-modal {
+    display: none;
+}
+
+#unlock-modal {
     display: none;
 }
 
@@ -667,6 +691,12 @@ html, body {
     display: flex;
     flex-direction: column;
     width: 82%;
+}
+
+.unlock-item-content-package {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 .settings-item-in-content-items {
