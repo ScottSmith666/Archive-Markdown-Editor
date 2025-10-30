@@ -65,7 +65,7 @@ contextBridge.exposeInMainWorld('openNewWindow', {
 // 加载文件内容
 contextBridge.exposeInMainWorld('loadFileContent', {
     openFileInNewWindow: (path) => ipcRenderer.send('open-file-from-path', path),
-    loadFileContent: (path) => ipcRenderer.invoke('load-file-content', path),
+    loadFileContent: (path, password) => ipcRenderer.invoke('load-file-content', path, password),
     verifyFileIsOpen: (filePath) => ipcRenderer.invoke('verify-file-was-opened', filePath),  // 检查该路径的文件是否已打开
     verifyFileExists: (path) => ipcRenderer.invoke('verify-file-is-exists', path),  // 验证文件存在
     verifyFileNameValid: (path) => ipcRenderer.invoke('verify-file-name-is-valid', path),  // 验证文件名合法

@@ -421,6 +421,46 @@ html, body {
     padding: 20px;
 }
 
+.face-pswd {
+    z-index: 251;
+    overflow: auto;
+    width: 560px;
+    /*min-height: 310px;*/
+    border-radius: 10px;
+    background-color: #ffffff;
+    position: fixed;
+
+    left: 0;
+    top: calc(100vh / 2 - 540px / 2);
+    /*bottom: 50%;*/
+    right: 0;
+    height: 465px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.face-auto-pswd {
+    z-index: 251;
+    overflow: auto;
+    width: 560px;
+    /*min-height: 310px;*/
+    border-radius: 10px;
+    background-color: #ffffff;
+    position: fixed;
+
+    left: 0;
+    top: calc(100vh / 2 - 540px / 2);
+    /*bottom: 50%;*/
+    right: 0;
+    height: 230px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
 .main-title {
     color: #42b983 !important;
 }
@@ -475,6 +515,14 @@ html, body {
 }
 
 #unlock-modal {
+    display: none;
+}
+
+#pswd-modal {
+    display: none;
+}
+
+#auto-pswd-modal {
     display: none;
 }
 
@@ -709,4 +757,64 @@ html, body {
 
 .hide-content {
     display: none;
+}
+
+.wrapper-info {
+    padding: 1rem;
+    border-radius: 12px 12px 12px 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    word-break: break-word;
+    outline-color: #359BEE !important;
+}
+
+.fonts-info {
+    color: #1660d0;
+    font-weight: bold;
+}
+
+.wrapper-info:hover {
+    transition: outline-color 0.5s;
+    outline-color: #359BEE;
+}
+
+.info-border {
+    outline: 1px rgba(255, 255, 255, 0) solid;
+    transition: outline-color 0.5s;
+    outline-offset: -2px;
+}
+
+.info-bg {
+    background-color: #eff3fd;
+}
+
+.fonts-err {
+    color: #d73f3e;
+    font-weight: bold;
+}
+
+.wrapper-err {
+    padding: 1rem;
+    border-radius: 12px 12px 12px 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    word-break: break-word;
+    outline-color: #D24948 !important;
+}
+
+.wrapper-err:hover {
+    transition: outline-color 0.5s;
+    outline-color: #D24948;
+}
+
+.err-border {
+    outline: 1px rgba(255, 255, 255, 0) solid;
+    transition: outline-color 0.5s;
+    outline-offset: -2px;
+}
+
+.err-bg {
+    background-color: #ffecec;
 }

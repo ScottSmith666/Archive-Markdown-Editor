@@ -391,10 +391,10 @@
         </div>
     </div>
 
-    <!--密码设置模态框-->
+    <!--保存密码设置模态框-->
     <div class="fonts" id="pswd-modal">
         <div id="pswd-modal-surface" class="modal"></div>
-        <div class="face-unlock">
+        <div class="face-pswd">
             <div class="window">
                 <div style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
                     <div style="width: 25px; height: 25px; margin-right: 6px;">
@@ -402,9 +402,33 @@
                     </div>
                     <div class="window-title fonts" style="color: #42b983; font-size: 1.4em">设定密码</div>
                 </div>
-                <div style="display: flex; flex-direction: column; width: 100%;">
 
+                <div style="height: 15px;"></div>
+
+                <div class="wrapper-info fonts-info info-border info-bg">
+                    <svg style="width: 36px; height: 36px;" t="1661061891516" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                         xmlns="http://www.w3.org/2000/svg"
+                         p-id="2381" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200">
+                        <path d="M512 512m-448 0a448 448 0 1 0 896 0 448 448 0 1 0-896 0Z" fill="#2196F3" p-id="2382"></path>
+                        <path d="M469.333333 469.333333h85.333334v234.666667h-85.333334z" fill="#FFFFFF" p-id="2383"></path>
+                        <path
+                                d="M512 352m-53.333333 0a53.333333 53.333333 0 1 0 106.666666 0 53.333333 53.333333 0 1 0-106.666666 0Z"
+                                fill="#FFFFFF" p-id="2384"></path>
+                    </svg>
+                    <div style="margin-left: 5px;">1. 该界面设置的密码<span style="color: red;">仅在保存为mdz文件时</span>有效。<br>2. 如您在保存文件时不想设置密码，请不要在密码框填写任何内容，<span style="color: red;">直接</span>点“<span style="color: red;">继续</span>”按钮即可。</div>
                 </div>
+
+                <div style="height: 15px;"></div>
+                <div class="wrapper-err fonts-err err-border err-bg">
+                    <svg style="width: 40px; height: 40px;" t="1661063631352" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                         p-id="3090" width="200" height="200">
+                        <path
+                                d="M512 0C229.376 0 0 229.376 0 512s229.376 512 512 512 512-229.376 512-512S794.624 0 512 0z m218.624 672.256c15.872 15.872 15.872 41.984 0 57.856-8.192 8.192-18.432 11.776-29.184 11.776s-20.992-4.096-29.184-11.776L512 569.856l-160.256 160.256c-8.192 8.192-18.432 11.776-29.184 11.776s-20.992-4.096-29.184-11.776c-15.872-15.872-15.872-41.984 0-57.856L454.144 512 293.376 351.744c-15.872-15.872-15.872-41.984 0-57.856 15.872-15.872 41.984-15.872 57.856 0L512 454.144l160.256-160.256c15.872-15.872 41.984-15.872 57.856 0 15.872 15.872 15.872 41.984 0 57.856L569.856 512l160.768 160.256z"
+                                fill="#CF3736" p-id="3091"></path>
+                    </svg>
+                    <div style="margin-left: 5px;">特别注意：请自行妥善保存您设置的密码，Archive Markdown Editor不会以任何形式保存任何mdz文件的密码，一旦密码丢失将无法找回！</div>
+                </div>
+
                 <div style="display: flex; flex-direction: column; width: 100%;">
                     <div style="display: flex; flex-direction: row; align-items: start;">
                         <div class="unlock-item-content-package">
@@ -431,6 +455,50 @@
                     <div style="display: flex; width: 100%; flex-direction: row; margin-top: 20px; justify-content: flex-end;">
                         <div class="settings-button-cancel fonts" id="pswd-close" style="margin-right: 10px;">取消</div>
                         <div class="settings-button fonts" id="continue">继续</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--再次保存密码设置模态框-->
+    <div class="fonts" id="auto-pswd-modal">
+        <div id="auto-pswd-modal-surface" class="modal"></div>
+        <div class="face-auto-pswd">
+            <div class="window">
+                <div style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
+                    <div style="width: 25px; height: 25px; margin-right: 6px;">
+                        <svg t="1761749453737" style="width: 100%; height: 100%;" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5221" width="200" height="200"><path d="M385.150849 385.662338l-128.895105 0 0-150.377622q0-49.102897 19.436563-91.556444t53.706294-74.677323 80.815185-50.637363 101.786214-18.413586q49.102897 0 94.625375 18.413586t80.815185 50.637363 56.263736 74.677323 20.971029 91.556444l0 150.377622-123.78022 0 0-121.734266q0-64.447552-35.804196-99.74026t-97.182817-35.292707q-55.240759 0-88.999001 35.292707t-33.758242 99.74026l0 121.734266zM826.053946 447.040959q27.62038 0 47.568432 19.948052t19.948052 47.568432l0 317.122877q0 27.62038-9.718282 51.66034t-26.597403 41.942058-39.896104 28.131868-50.637363 10.22977l-516.603397 0q-27.62038 0-50.125874-10.22977t-38.361638-27.108891-24.551449-39.384615-8.695305-48.07992l0-324.283716q0-27.62038 19.436563-47.568432t47.056943-19.948052l61.378621 0 128.895105 0 255.744256 0 123.78022 0 61.378621 0z" p-id="5222" fill="#42b883"></path></svg>
+                    </div>
+                    <div class="window-title fonts" style="color: #42b983; font-size: 1.4em">设定密码</div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; width: 100%;">
+                    <div style="display: flex; flex-direction: row; align-items: start;">
+                        <div class="unlock-item-content-package">
+                            <div class="settings-item-content" id="auto-file-pswd">
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">输入密码</div>
+                                </div>
+                                <label>
+                                    <input style="width: 100%;" class="fonts" type="password"
+                                           id="auto-set-password"/>
+                                </label>
+                                <div class="settings-item-in-content-items">
+                                    <div class="window-title fonts" style="font-size: medium;">再次输入密码</div>
+                                </div>
+                                <label>
+                                    <input style="width: 100%;" class="fonts" type="password"
+                                           id="auto-set-password-again"/>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--按钮组-->
+                    <div style="display: flex; width: 100%; flex-direction: row; margin-top: 20px; justify-content: flex-end;">
+                        <div class="settings-button-cancel fonts" id="auto-pswd-close" style="margin-right: 10px;">取消</div>
+                        <div class="settings-button fonts" id="auto-continue">继续</div>
                     </div>
                 </div>
             </div>

@@ -40,7 +40,6 @@ function Windows() {
             path: filePath,
         });
         // windowId：传递应用打开生命周期内窗口唯一ID，platform：传递系统类型，以便于处理文件路径，name：打开文件的文件名，path：打开文件的完整文件路径
-        console.log(encodedQuery);
         const url = `file://${ __dirname }/../ui/workspace.html?windowId=${win.id}&${encodedQuery}&platform=${process.platform}`;
         win.loadURL(url);
         win.on('ready-to-show', function () {
@@ -58,7 +57,6 @@ function Windows() {
         });
         win.on('close', e => {  // 检测本窗口是否未保存
             e.preventDefault(); // 先阻止一下默认行为，不然直接关了，提示框只会闪一下
-            console.log(filePath);
             if (saveStatusMap[`Window_${ win.id }`]) {  // 如果已保存，不弹框直接关闭窗口
                 if (filePath !== '') {
                     if (filePath.split(".").pop() === "mdz") {

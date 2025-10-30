@@ -225,7 +225,7 @@ function CommonIpc() {
                 // 内容写入
                 fs.writeFileSync(realMdzFilePath, content, 'utf8');
                 // 打包为mdz
-                rwMdz.writeMdz(root + gVar.pathSep + "._mdz_content." + fileNameList.join("."));
+                rwMdz.writeMdz(root + gVar.pathSep + "._mdz_content." + fileNameList.join("."), password);
             } else fs.writeFileSync(fullFilePath, content, 'utf8');
             settingsConfigManager.deleteInstantHistoryRecords(fullFilePath);
             return true;
@@ -313,7 +313,6 @@ function CommonIpc() {
             let mdzPathReg = /^(\$MDZ_MEDIA\/)(\S)+/;
 
             if (extName === "mdz") {
-
                 // 如果在内容中发现了绝对路径或相对路径，则改成mdz文件中特有的路径（多媒体路径$MDZ_MEDIA），并将多媒体收入mdz文件内
                 let al = [...content.matchAll(mediaMdCodeReg)].map(match => ({
                     fullMatch: match[0],
@@ -328,8 +327,8 @@ function CommonIpc() {
                 let mediaFolder = root + gVar.pathSep + "._mdz_content." + fileNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + "media_src";
                 fs.mkdirSync(mediaFolder, { recursive: true });
                 // 如果是Windows，需要给文件夹设置隐藏属性
-                runCommand(process.platform === 'win32'
-                    ? `attrib +h ${root + gVar.pathSep + "._mdz_content." + fileNameList.join(".")}` : `echo`, () => {
+                runCommand(process.platform === 'win32' ? `attrib +h ${root + gVar.pathSep + "._mdz_content." + fileNameList.join(".")}` : `echo`, () => {
+                    console.log("这个if");
                     for (let i = 0; i < al.length; i++) {
                         let mediaCodeElement = al[i].fullMatch;
                         let originMediaPath = al[i].imagePath;
@@ -374,7 +373,16 @@ function CommonIpc() {
                     fs.writeFileSync(root + gVar.pathSep + "._mdz_content." + fileNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + fileNameList.join(".") + ".md",
                         content, 'utf8');
                     // 打包mdz
-                    rwMdz.writeMdz(root + gVar.pathSep + "._mdz_content." + fileNameList.join("."));
+                    rwMdz.writeMdz(root + gVar.pathSep + "._mdz_content." + fileNameList.join("."), password);
+
+                    // 删除原文件的临时目录
+                    let originPathList = originPath.split(gVar.pathSep);
+                    let oFileName = originPathList.pop();  // 去掉文件名
+                    let oFileNameList = oFileName.split(".");
+                    oFileNameList.pop();  // 去掉扩展名
+                    let oFileNameRmExt = oFileNameList.join(".");
+                    let oRoot = originPathList.join(gVar.pathSep);
+                    fs.rmSync(oRoot + gVar.pathSep + "._mdz_content." + oFileNameRmExt, {recursive: true});
                 });
             } else if (extName === "md" || extName === "txt") {
                 // 如果在内容中发现了mdz文件中特有的内容（多媒体路径$MDZ_MEDIA），则修改其中的路径，并将mdz文件中的多媒体放在保存目录的一个文件夹内
@@ -423,19 +431,7 @@ function CommonIpc() {
             }
 
             // 最后一步，如果是已保存的文件，则消除打开的临时历史记录
-            if (originPath) {
-                // 删除先前已打开的mdz临时文件夹
-                if (originFileExt === "mdz") {
-                    let originPathList = originPath.split(gVar.pathSep);
-                    let oFileName = originPathList.pop();  // 去掉文件名
-                    let oFileNameList = oFileName.split(".");
-                    oFileNameList.pop();  // 去掉扩展名
-                    let oFileNameRmExt = oFileNameList.join(".");
-                    let oRoot = originPathList.join(gVar.pathSep);
-                    fs.rmSync(oRoot + gVar.pathSep + "._mdz_content." + oFileNameRmExt, {recursive: true});
-                }
-                settingsConfigManager.deleteInstantHistoryRecords(originPath);
-            }
+            if (originPath) settingsConfigManager.deleteInstantHistoryRecords(originPath);
             return [fileName, fileSaveAsPath];
         });
 

@@ -297,14 +297,68 @@ let renderProcess = {
             document.getElementById("unlock").addEventListener("click", async () => {
                 let inputPassword = document.getElementById("file-password").value;
                 this.fileContent = await window.loadFileContent.loadFileContent(this.openFilePath, inputPassword);
-                if (!this.fileContent) {
-
+                if (!this.fileContent) {  // 密码错误
+                    alert("密码错误！");
+                    setTimeout(() => {
+                        window.qt.totalCloseThisWindow(this.windowId, this.openFilePath);
+                    }, 100);
+                } else {
+                    document.getElementById("unlock-modal").style.display = "none";
+                    editor.setValue(this.fileContent);
+                    window.setSaveStatus.setSaveStatus(true);
+                    document.getElementById('app-title').innerText
+                        = document.getElementById('app-title').innerText.replace("(未保存) ", "");
+                    document.getElementById("real-edit").style.display = "block";
                 }
             });
 
             // 关闭解锁文件窗口
             document.getElementById("unlock-close").addEventListener("click", () => {
                 window.qt.totalCloseThisWindow(this.windowId, this.openFilePath);
+            });
+
+            // 关闭设定密码窗口
+            document.getElementById("pswd-close").addEventListener("click", () => {
+                document.getElementById("pswd-modal").style.display = "none";
+            });
+
+            // 关闭旧文件设定密码窗口
+            document.getElementById("auto-pswd-close").addEventListener("click", () => {
+                document.getElementById("auto-pswd-modal").style.display = "none";
+            });
+
+            // 点击设定密码继续
+            document.getElementById("continue").addEventListener("click", () => {
+                let pswd = document.getElementById("set-password").value;
+                let pswdAgain = document.getElementById("set-password-again").value;
+                if (pswd !== pswdAgain) alert("两次输入的密码不一致，请重新确认并输入！");
+                else {
+                    // 新建文件编辑后保存
+                    document.getElementById("pswd-modal").style.display = "none";
+                    window.save.customSaveFile(editor.getValue(), this.openFilePath, pswd).then((afterSave) => {
+                        if (afterSave[1]) {  // 如果另存为之后返回的列表第二个元素（代表文件路径）为undefined，则不设置保存成功标记
+                            // 设置保存状态
+                            window.setSaveStatus.setSaveStatus(true);
+                            window.loadFileContent.openFileInNewWindow(afterSave[1]);
+                            window.qt.closeThisWindow(this.windowId);
+                        }
+                    });
+                }
+            });
+
+            // 旧文件保存时设定密码继续
+            document.getElementById("auto-continue").addEventListener("click", async () => {
+                let pswd = document.getElementById("auto-set-password").value;
+                let pswdAgain = document.getElementById("auto-set-password-again").value;
+                if (pswd !== pswdAgain) alert("两次输入的密码不一致，请重新确认并输入！");
+                else {
+                    let autoSaveResult = await window.save.autoSaveFile(editor.getValue(), this.openFilePath, pswd);
+                    if (autoSaveResult) {
+                        const currentUrl = new URL(window.location.href);
+                        window.location.href = currentUrl.toString();  // 重定向到新 URL
+                        window.setSaveStatus.setSaveStatus(true);
+                    }
+                }
             });
 
             // about内部按钮关闭监听
@@ -538,28 +592,19 @@ let renderProcess = {
             /**
              * 保存文件
              */
-            let afterSave = [true, true];
             if (!saveAs) {
                 // 已存在的文件更改后的保存
-                let autoSaveResult = await window.save.autoSaveFile(editor.getValue(), this.openFilePath);
-                if (autoSaveResult) {
-                    const currentUrl = new URL(window.location.href);
-                    window.location.href = currentUrl.toString();  // 重定向到新 URL
-                    window.setSaveStatus.setSaveStatus(true);
+                if (this.openFilePath.split(".").pop() === "mdz") document.getElementById("auto-pswd-modal").style.display = "block";
+                else {
+                    let autoSaveResult = await window.save.autoSaveFile(editor.getValue(), this.openFilePath, "");
+                    if (autoSaveResult) {
+                        const currentUrl = new URL(window.location.href);
+                        window.location.href = currentUrl.toString();  // 重定向到新 URL
+                        window.setSaveStatus.setSaveStatus(true);
+                    }
                 }
-                return 0;
             } else {
-                // 新建文件编辑后保存，fullPath为false
-                afterSave = await window.save.customSaveFile(editor.getValue(), this.openFilePath);
-            }
-
-            if (afterSave[1]) {  // 如果另存为之后返回的列表第二个元素（代表文件路径）为undefined，则不设置保存成功标记
-                // 设置保存状态
-                window.setSaveStatus.setSaveStatus(true);
-                if (saveAs) {
-                    window.loadFileContent.openFileInNewWindow(afterSave[1]);
-                    window.qt.closeThisWindow(this.windowId);
-                }
+                document.getElementById("pswd-modal").style.display = "block";
             }
         },
 
@@ -703,13 +748,16 @@ let renderProcess = {
             alert(`文件“${ openFilePath }”已打开，请勿再次打开！`);
             window.qt.closeThisWindow(this.windowId);
         } else {
-            console.log(openFilePath.split(".").pop());
-            if (openFilePath.split(".").pop() === "mdz") {
-                this.fileContent = await window.loadFileContent.loadFileContent(openFilePath, "");
-                if (!this.fileContent) {
-                    document.getElementById("unlock-modal").style.display = "block";
-                }
-            } else this.fileContent = openFilePath ? (await window.loadFileContent.loadFileContent(openFilePath, "")) : false;
+            if (!openFilePath) this.fileContent = false;
+            else {
+                if (openFilePath.split(".").pop() === "mdz") {
+                    this.fileContent = await window.loadFileContent.loadFileContent(openFilePath, "");
+                    if (!this.fileContent) {
+                        document.getElementById("real-edit").style.display = "none";
+                        document.getElementById("unlock-modal").style.display = "block";
+                    }
+                } else this.fileContent = await window.loadFileContent.loadFileContent(openFilePath, "");
+            }
         }
 
         window.setSaveStatus.setSaveStatus(true);  // 初始化本页面保存状态为true
