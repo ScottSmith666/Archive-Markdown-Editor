@@ -10,8 +10,10 @@ const path = require("node:path");
 const { MSICreator } = require('electron-wix-msi');
 const process = require("node:process");
 const xml2js = require("xml2js");
+const GlobalVar = require(path.join(__dirname, "..", "..", "libs", "globalvar"));
 
 
+const gVar = new GlobalVar();
 function DistributeWin32X64() {
 
     this.run = () => {
@@ -44,7 +46,7 @@ function DistributeWin32X64() {
             xml2js.parseString(WixConfigContentXML, {explicitArray : false}, function(err, json) {
                 // 修改内容
                 json.Wix.Product.$.Name = "Archive Markdown Editor";
-                json.Wix.Product.$.Version = "1.0.0";
+                json.Wix.Product.$.Version = gVar.getVersion()[1];
                 json.Wix.Product.WixVariable = [{
                     "$": {
                         "Id": "WixUIDialogBmp",
@@ -86,7 +88,7 @@ function DistributeWin32X64() {
             exe: 'ArchiveMarkdownEditor',
             name: 'Archive Markdown Editor',
             manufacturer: 'Scott Smith',
-            version: '1.0.0',
+            version: gVar.getVersion()[1],
             outputDirectory: path.join(__dirname, `.`),
             ui: {
                 chooseDirectory: true,
@@ -99,7 +101,7 @@ function DistributeWin32X64() {
 
         runCommand(compile, async () => {
             console.log("散装可执行程序编译完成，正在生成Wix MSI打包配置文件...");
-            const DEPLOY_NAME = appName + "-" + packageJson.version + "-" + process.platform + "-" + process.arch;
+            const DEPLOY_NAME = appName + "-" + gVar.getVersion()[1] + "-" + process.platform + "-" + process.arch;
             // 删除旧配置文件
             try {
                 fs.unlinkSync(path.join(__dirname, ".\\" + appName + ".wxs.json"));

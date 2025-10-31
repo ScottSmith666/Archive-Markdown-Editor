@@ -1,0 +1,26 @@
+{
+  "name": "exe-icon-extractor",
+  "version": "1.0.8",
+  "description": "Fork of @initthink/exe-icon-extractor",
+  "main": "bindings.js",
+  "scripts": {
+    "test": "node test.js",
+    "install": "node-gyp rebuild"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pelayomendez/exe-icon-extractor.git"
+  },
+  "keywords": [
+    "icon",
+    "windows",
+    "extract"
+  ],
+  "author": "",
+  "license": "ISC",
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/pelayomendez/exe-icon-extractor/issues"
+  },
+  "homepage": "https://github.com/pelayomendez/exe-icon-extractor#readme"
+}

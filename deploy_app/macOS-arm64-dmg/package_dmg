@@ -10,8 +10,10 @@
 const path = require("node:path");
 const fs = require("fs");
 const process = require("node:process");
+const GlobalVar = require(path.join(__dirname, "..", "..", "libs", "globalvar"));
 
 
+const gVar = new GlobalVar();
 function DistributeDarwinArm64() {
     this.run = () => {
         const packageJsonPath = path.join(__dirname, '../../package.json');
@@ -19,7 +21,7 @@ function DistributeDarwinArm64() {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
         // 获取包名
         const appName = packageJson.name;
-        const version = packageJson.version;
+        const version = gVar.getVersion()[1];
         const RELEASE_MAC_ARM64_APP_DIR =
             path.join(__dirname, `../../out/${appName}-${process.platform}-${process.arch}/${appName}.app`);
 

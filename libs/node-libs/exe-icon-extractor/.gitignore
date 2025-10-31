@@ -1,0 +1,10 @@
+#directories
+dist
+temp
+build
+bin
+
+#files
+*.ico
+*.tgz
+*.log
