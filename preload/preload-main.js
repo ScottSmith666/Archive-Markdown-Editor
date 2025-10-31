@@ -20,3 +20,11 @@ contextBridge.exposeInMainWorld('histories', {
 contextBridge.exposeInMainWorld('qt', {
     quit: () => ipcRenderer.send('quit'),
 });
+
+contextBridge.exposeInMainWorld('settings', {
+    getLangSettings: () => ipcRenderer.invoke('load-storage-settings-index', "lang_index"),
+});
+
+contextBridge.exposeInMainWorld('userSurface', {
+    getIndexSurface: async () => ipcRenderer.invoke('load-language-user-surface', "index"),
+});

@@ -2,7 +2,12 @@ const { ipcMain } = require("electron");
 const path = require("node:path");
 const SqliteMan = require(path.join(__dirname, "../libs/sqliteman"));
 const ConfirmDialog = require(path.join(__dirname, "../dialogs/dialogs"));
+const GlobalVar = require(path.join(__dirname, "..", "libs", "globalvar"));  // 全局变量模块引入
+const LanguageLocale = require(path.join(__dirname, "..", "libs", "languages"));
 
+
+let gVar = new GlobalVar();
+let langSurface = new LanguageLocale().operationsInstructions();
 
 function ForWork() {
     this.workIpcMain = (mainWin) => {
@@ -24,10 +29,13 @@ function ForWork() {
             return warningConfirmDialogChosen.confirm(
                 mainWin,
                 "warning",
-                ["不关闭", "关闭"],
+                [
+                    langSurface.prompts.confirmWithoutApplySettings.cancelButton[gVar.langs()],
+                    langSurface.prompts.confirmWithoutApplySettings.confirmButton[gVar.langs()],
+                ],
                 1,
-                '设置未应用',
-                '您有设置未应用，要直接关闭“设置”窗口吗？如选择“关闭”，改动将不会应用。',
+                langSurface.prompts.confirmWithoutApplySettings.title[gVar.langs()],
+                langSurface.prompts.confirmWithoutApplySettings.description[gVar.langs()],
                 0
             );  // 返回true则直接关闭设置对话框
         });
@@ -41,10 +49,13 @@ function ForWork() {
                 if (warningConfirmDialogChosen.confirm(
                     mainWin,
                     "warning",
-                    ["取消", "应用"],
+                    [
+                        langSurface.prompts.confirmApplySettings.cancelButton[gVar.langs()],
+                        langSurface.prompts.confirmApplySettings.confirmButton[gVar.langs()]
+                    ],
                     1,
-                    '确认应用',
-                    '您确定应用刚才更改的设置吗？如选择“应用”，程序将重新启动，请注意保存您的数据。',
+                    langSurface.prompts.confirmApplySettings.title[gVar.langs()],
+                    langSurface.prompts.confirmApplySettings.description[gVar.langs()],
                     0
                 )) {  // 返回true则应用重启应用设置
                     let settingsConfigManager = new SqliteMan.SettingsConfigManager();
@@ -62,10 +73,10 @@ function ForWork() {
                 warningConfirmDialogChosen.confirm(
                     mainWin,
                     "warning",
-                    ["确定"],
+                    [langSurface.prompts.confirmNeedNotSettings.confirmButton[gVar.langs()]],
                     1,
-                    '应用提示',
-                    '您未更改任何设置，无需进行应用。',
+                    langSurface.prompts.confirmNeedNotSettings.title[gVar.langs()],
+                    langSurface.prompts.confirmNeedNotSettings.description[gVar.langs()],
                     0
                 );
             }
@@ -80,10 +91,13 @@ function ForWork() {
             if (warningConfirmDialogChosen.confirm(
                 mainWin,
                 "warning",
-                ["取消", "重置"],
+                [
+                    langSurface.prompts.confirmResetSettings.cancelButton[gVar.langs()],
+                    langSurface.prompts.confirmResetSettings.confirmButton[gVar.langs()],
+                ],
                 1,
-                '确认重置',
-                '您确定重置本程序的所有设置吗？',
+                langSurface.prompts.confirmResetSettings.title[gVar.langs()],
+                langSurface.prompts.confirmResetSettings.description[gVar.langs()],
                 0
             )) {  // 返回true则应用重置设置
                 // 写入sqlite

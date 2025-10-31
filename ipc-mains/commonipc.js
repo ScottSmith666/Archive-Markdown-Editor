@@ -9,6 +9,7 @@ const fs = require("fs");
 
 const gVar = new GlobalVar();
 const rwMdz = new RwMdz();
+let langSurface = new LanguageLocale().operationsInstructions();
 const settingsConfigManager = new SqliteMan.SettingsConfigManager();
 
 
@@ -61,6 +62,13 @@ function CommonIpc() {
              */
             return new LanguageLocale().operationsInstructions()[part];
         });
+        ipcMain.handle('load-storage-settings-index', async (event, instruction) => {
+            /**
+             * 从硬盘上的本地Sqlite数据库读取settings
+             */
+            const settingsConfigManager = new SqliteMan.SettingsConfigManager();
+            return Number(settingsConfigManager.getSettings(instruction));
+        });
         ipcMain.handle('switch-debug', async (event) => {
             /**
              * 开启/关闭DEBUG选项，便于调试
@@ -83,8 +91,8 @@ function CommonIpc() {
         });
         ipcMain.on('open-file', (event) => {
             const dialogs = new Dialogs();
-            let filePath = dialogs.openFileDialog();  // 获得打开的文件路径
-            console.log(filePath);
+            let openFileTitle = langSurface.prompts.open[gVar.langs()];
+            let filePath = dialogs.openFileDialog(openFileTitle);  // 获得打开的文件路径
             // 以打开exists文件的方式打开work窗口
             if (filePath) workWindow(filePath[0]);
         });
@@ -235,14 +243,13 @@ function CommonIpc() {
             /**
              * 保存新文件（即保存时弹出保存框选择路径保存）
              */
-            let originFileExt = originPath ? originPath.split(".").pop() : false;
             // 弹出保存选择路径框
             const dialogs = new Dialogs();
             let isFileIncludeForbiddenChars = true;
             let isFileNameTooLong = true;
             let fileSaveAsPath = "";
             let fileName = "";
-            let saveTitle = "保存文件";
+            let saveTitle = langSurface.prompts.saveAs.saveTitle[gVar.langs()];
             while (isFileIncludeForbiddenChars || isFileNameTooLong) {
                 fileSaveAsPath = dialogs.saveFileDialog(saveTitle);  // 获得打开的文件路径
                 // 如果取消保存，即保存失败，返回的路径则为undefined，那么就直接返回
@@ -250,14 +257,14 @@ function CommonIpc() {
                 fileName = fileSaveAsPath.split(gVar.pathSep).pop();  // 获得自定义保存的文件名
                 // 验证文件名的合法性
                 if (fileName.length > gVar.MaxFileNameLength) {  // 文件名长度如不符合要求直接跳进下一个循环，不用验证非法字符
-                    saveTitle = "文件名太长，请重新修改！";
+                    saveTitle = langSurface.prompts.saveAs.errorTooLongSaveTitle[gVar.langs()];
                     isFileNameTooLong = true;
                     continue;
                 } else isFileNameTooLong = false;
                 let num = 0;
                 for (let i = 0; i < gVar.ForbiddenChars.length; i++) {
                     if (fileName.indexOf(gVar.ForbiddenChars[i]) !== -1) {
-                        saveTitle = "文件名有空格等非法字符，请重新修改！";
+                        saveTitle = langSurface.prompts.saveAs.errorInvalidCharsSaveTitle[gVar.langs()];
                         break;  // 如果检出非法字符，则num肯定不等于gVar.ForbiddenChars.length - 1
                     }
                     num = i;
@@ -328,7 +335,6 @@ function CommonIpc() {
                 fs.mkdirSync(mediaFolder, { recursive: true });
                 // 如果是Windows，需要给文件夹设置隐藏属性
                 runCommand(process.platform === 'win32' ? `attrib +h ${root + gVar.pathSep + "._mdz_content." + fileNameList.join(".")}` : `echo`, () => {
-                    console.log("这个if");
                     for (let i = 0; i < al.length; i++) {
                         let mediaCodeElement = al[i].fullMatch;
                         let originMediaPath = al[i].imagePath;
@@ -443,6 +449,9 @@ function CommonIpc() {
             if (!all) settingsConfigManager.deletePermanentHistoryRecords(path);
             else settingsConfigManager.deletePermanentHistoryRecords(path, all);
             return 0;
+        });
+        ipcMain.handle('get-version', (event) => {
+            return gVar.getVersion()[1];
         });
     };
 }

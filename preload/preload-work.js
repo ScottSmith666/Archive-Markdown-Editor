@@ -54,6 +54,8 @@ contextBridge.exposeInMainWorld('userSurface', {
     getRightMenuSurface: async () => (await ipcRenderer.invoke('load-language-user-surface', "display")).index.markdownEditRightMenu,
     getRenderPlaceholderSurface: async () => (await ipcRenderer.invoke('load-language-user-surface', "display")).index.markdownRenderPlaceholder,
     getEditorPlaceholderSurface: async () => (await ipcRenderer.invoke('load-language-user-surface', "display")).index.markdownEditPlaceholder,
+    getMainSurface: async () => ipcRenderer.invoke('load-language-user-surface', "menu"),
+    getIndexSurface: async () => ipcRenderer.invoke('load-language-user-surface', "index"),
 });
 
 // 打开新窗口&文件窗口
@@ -88,4 +90,8 @@ contextBridge.exposeInMainWorld('qt', {
     // 关闭当前窗口
     closeThisWindow: (windowId) => ipcRenderer.send('close-window', windowId),
     totalCloseThisWindow: (windowId, path) => ipcRenderer.send('close-window-and-rm-ins-history', windowId, path),
+});
+
+contextBridge.exposeInMainWorld('ver', {
+    getVersion: () => ipcRenderer.invoke('get-version'),
 });

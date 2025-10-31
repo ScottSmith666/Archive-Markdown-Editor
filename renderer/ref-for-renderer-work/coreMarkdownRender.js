@@ -167,10 +167,23 @@ let renderProcess = {
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyS,  () => {
                 this.saveFile(editor, true);
             });
+            // Ctrl/Cmd + ,
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Comma,  () => {
+                document.getElementById("settings-modal").style.display = "block";
+            });
+            // Ctrl/Cmd + q
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyQ,  () => {
+                window.qt.quit();
+            });
             // Monaco Editor内容改变事件
-            editor.onDidChangeModelContent((e) => {
+            editor.onDidChangeModelContent(async (e) => {
                 // 更改标题
-                document.getElementById('app-title').innerText = "(未保存) " + this.windowTitle;
+                let pm = [
+                    `未保存`,
+                    `未保存`,
+                    `Unsaved`
+                ];
+                document.getElementById('app-title').innerText = `(${pm[await window.settings.getLangSettings()]}) ` + this.windowTitle;
                 this.renderChange(editor);
                 this.saveStatus = false;
                 window.setSaveStatus.setSaveStatus(false);
@@ -275,9 +288,11 @@ let renderProcess = {
             });
 
             // about
-            document.getElementById("about").addEventListener("click", (e) => {
+            document.getElementById("about").addEventListener("click", async (e) => {
                 this.mainManuAllHide("file", "edit", "view", "help");
                 document.getElementById("about-modal").style.display = "block";  // 先出现
+                document.getElementById("version").innerHTML = await window.ver.getVersion();
+                document.getElementById("this-year").innerHTML = new Date().getFullYear();
                 document.styleSheets[0].insertRule(
                     `@keyframes aboutin {
                                0% {opacity: 0;}
@@ -288,9 +303,10 @@ let renderProcess = {
                 document.getElementById("about-modal-face").style.animation = "aboutin 0.3s ease";
             });
             // settings
-            document.getElementById("settings").addEventListener("click", (e) => {
+            document.getElementById("settings").addEventListener("click", async (e) => {
                 this.mainManuAllHide("file", "edit", "view", "help");
                 document.getElementById("settings-modal").style.display = "block";
+                document.getElementById("ver").innerHTML = await window.ver.getVersion();
             });
 
             // 解锁文件
@@ -298,7 +314,12 @@ let renderProcess = {
                 let inputPassword = document.getElementById("file-password").value;
                 this.fileContent = await window.loadFileContent.loadFileContent(this.openFilePath, inputPassword);
                 if (!this.fileContent) {  // 密码错误
-                    alert("密码错误！");
+                    let pm = [
+                        `密码错误！`,
+                        `密碼錯誤！`,
+                        `Wrong password!`
+                    ];
+                    alert(pm[await window.settings.getLangSettings()]);
                     setTimeout(() => {
                         window.qt.totalCloseThisWindow(this.windowId, this.openFilePath);
                     }, 100);
@@ -306,8 +327,6 @@ let renderProcess = {
                     document.getElementById("unlock-modal").style.display = "none";
                     editor.setValue(this.fileContent);
                     window.setSaveStatus.setSaveStatus(true);
-                    document.getElementById('app-title').innerText
-                        = document.getElementById('app-title').innerText.replace("(未保存) ", "");
                     document.getElementById("real-edit").style.display = "block";
                 }
             });
@@ -328,10 +347,15 @@ let renderProcess = {
             });
 
             // 点击设定密码继续
-            document.getElementById("continue").addEventListener("click", () => {
+            document.getElementById("continue").addEventListener("click", async () => {
                 let pswd = document.getElementById("set-password").value;
                 let pswdAgain = document.getElementById("set-password-again").value;
-                if (pswd !== pswdAgain) alert("两次输入的密码不一致，请重新确认并输入！");
+                let pm = [
+                    `两次输入的密码不一致，请重新确认并输入！`,
+                    `兩次輸入的密碼不一致，請重新確認並輸入！`,
+                    `The first password is different from the second one. Please confirm it!`
+                ];
+                if (pswd !== pswdAgain) alert(pm[await window.settings.getLangSettings()]);
                 else {
                     // 新建文件编辑后保存
                     document.getElementById("pswd-modal").style.display = "none";
@@ -350,7 +374,12 @@ let renderProcess = {
             document.getElementById("auto-continue").addEventListener("click", async () => {
                 let pswd = document.getElementById("auto-set-password").value;
                 let pswdAgain = document.getElementById("auto-set-password-again").value;
-                if (pswd !== pswdAgain) alert("两次输入的密码不一致，请重新确认并输入！");
+                let pm = [
+                    `两次输入的密码不一致，请重新确认并输入！`,
+                    `兩次輸入的密碼不一致，請重新確認並輸入！`,
+                    `The first password is different from the second one. Please confirm it!`
+                ];
+                if (pswd !== pswdAgain) alert(pm[await window.settings.getLangSettings()]);
                 else {
                     let autoSaveResult = await window.save.autoSaveFile(editor.getValue(), this.openFilePath, pswd);
                     if (autoSaveResult) {
@@ -387,6 +416,16 @@ let renderProcess = {
                 document.getElementById("about-modal").style.display = "none";  // 最后消失
             });
 
+            // 点击联系卡片跳转链接
+            document.getElementById("contact-card").addEventListener("click", (e) => {
+                window.openOutLink.openLink('https://mail.163.com');
+            });
+
+            // 点击GitHub卡片跳转链接
+            document.getElementById("github-card").addEventListener("click", (e) => {
+                window.openOutLink.openLink('https://github.com/ScottSmith666/Archive-Markdown-Editor');
+            });
+
             // settings内部其他事件
             let generalItem = document.getElementById('general');
             let editItem = document.getElementById('set-edit');
@@ -399,7 +438,6 @@ let renderProcess = {
                 let shouldApplyItem = itemsDom[indexOfItems];  // 定义点击就应用style的Item
                 shouldApplyItem.addEventListener('click', () => {  // 通用
                     itemsDom.forEach((item) => {
-                        console.log(item);
                         let applyClass = (item === shouldApplyItem) ? "options-items side-item-focused-for-js" : "options-items";
                         let showApplyClass = (item === shouldApplyItem) ? "" : " hide-content";
                         let itemDomId = item.getAttribute('id');
@@ -666,6 +704,97 @@ let renderProcess = {
         async loadLanguage() {
             let leftObj = document.getElementById('leftMenu');
             let renderTxt = document.getElementById("plh-render");
+
+            // -- main menu object start --
+            let mainMenuFileObj = document.getElementById("file");
+            let mainMenuNewObj = document.getElementById("main-menu-new");
+            let mainMenuOpenObj = document.getElementById("main-menu-open");
+            let mainMenuSaveObj = document.getElementById("main-menu-save");
+            let mainMenuSaveAsObj = document.getElementById("main-menu-save-as");
+            let mainMenuAppQuitObj = document.getElementById("app-quit");
+
+            let mainMenuEditObj = document.getElementById("edit");
+            let mainMenuCutObj = document.getElementById("main-menu-cut");
+            let mainMenuCopyObj = document.getElementById("main-menu-copy");
+            let mainMenuPasteObj = document.getElementById("main-menu-paste");
+            let mainMenuSettingsObj = document.getElementById("settings");
+
+            let mainMenuViewObj = document.getElementById("view");
+
+            let mainMenuHelpObj = document.getElementById("help");
+            let mainMenuAboutObj = document.getElementById("about");
+            let mainMenuLearnMoreObj = document.getElementById("learn-more");
+            // -- main menu object end --
+
+            // -- Save as password object start --
+            let saveAsTitleObj = document.getElementById("set-pswd-title");
+            let saveAsInfoExplainObj = document.getElementById("info-explain");
+            let saveAsFatalExplainObj = document.getElementById("fatal-explain");
+            let saveAsPlaceholder1Obj = document.getElementById("place1");
+            let saveAsPlaceholder2Obj = document.getElementById("place2");
+            let saveAsPlaceContinueObj = document.getElementById("continue");
+            let saveAsPlaceCancelObj = document.getElementById("pswd-close");
+            // -- Save as password object end --
+
+            // -- Auto save password object start --
+            let saveAgainTitleObj = document.getElementById("set-pswd-again-title");
+            let saveAgainPlaceholder1Obj = document.getElementById("place-again1");
+            let saveAgainPlaceholder2Obj = document.getElementById("place-again2");
+            let saveAgainPlaceContinueObj = document.getElementById("auto-continue");
+            let saveAgainPlaceCancelObj = document.getElementById("auto-pswd-close");
+            // -- Auto save password object end --
+
+            // -- password need prompt object start --
+            let passwordNeedTitleObj = document.getElementById("unlock-title");
+            let passwordNeedExplainObj = document.getElementById("unlock-explain");
+            let passwordNeedCloseObj = document.getElementById("unlock-close");
+            let passwordNeedUnlockObj = document.getElementById("unlock");
+            // -- password need prompt object end --
+
+            // -- Settings object start --
+            let settingsTitleObj = document.getElementById("settings-title");
+            let settingsItem1Obj = document.getElementById("item1");
+            let settingsItem2Obj = document.getElementById("item2");
+            let settingsItem3Obj = document.getElementById("item3");
+            let settingsItem11Obj = document.getElementById("item1-1");
+            let settingsItem21Obj = document.getElementById("item2-1");
+            let settingsItem22Obj = document.getElementById("item2-2");
+            let settingsItem23Obj = document.getElementById("item2-3");
+            let settingsItem24Obj = document.getElementById("item2-4");
+            let settingsItem25Obj = document.getElementById("item2-5");
+            let settingsItem26Obj = document.getElementById("item2-6");
+            let settingsItem27Obj = document.getElementById("item2-7");
+
+            let settingsItem271Obj = document.getElementById("item2-71");
+            let settingsItem272Obj = document.getElementById("item2-72");
+            let settingsItem273Obj = document.getElementById("item2-73");
+
+            let settingsItem28Obj = document.getElementById("item2-8");
+
+            let settingsItem281Obj = document.getElementById("item2-81");
+            let settingsItem282Obj = document.getElementById("item2-82");
+            let settingsItem283Obj = document.getElementById("item2-83");
+
+            let settingsItem29Obj = document.getElementById("item2-9");
+            let settingsItem210Obj = document.getElementById("item2-10");
+
+            let settingsItem31Obj = document.getElementById("item3-1");
+            let settingsItem311Obj = document.getElementById("item3-11");
+
+            let settingsApplyObj = document.getElementById("apply");
+            let settingsCancelObj = document.getElementById("settings-close");
+            let settingsResetObj = document.getElementById("reset");
+            // -- Settings object end --
+
+            // -- About object start --
+            let aboutVersionTxtObj = document.getElementById("about-version");
+            let aboutDescriptionObj = document.getElementById("desc");
+            let aboutCreditsObj = document.getElementById("credits");
+            let aboutContactTxtObj = document.getElementById("contact");
+            let aboutGithubObj = document.getElementById("github");
+            let aboutConfirmObj = document.getElementById("close-about");
+            // -- About object end --
+
             let presentLangIndex = await window.settings.getLangSettings();
             let rightMenu = await window.userSurface.getRightMenuSurface();
             let renderPlaceholder = await window.userSurface.getRenderPlaceholderSurface();
@@ -680,6 +809,106 @@ let renderProcess = {
             leftObj.children[0].children[0].innerHTML = "&nbsp;&nbsp;&nbsp;" + rightMenu[presentLangIndex][0];
             leftObj.children[1].children[0].innerHTML = "&nbsp;&nbsp;&nbsp;" + rightMenu[presentLangIndex][1];
             leftObj.children[2].children[0].innerHTML = "&nbsp;&nbsp;&nbsp;" + rightMenu[presentLangIndex][2];
+
+            let mainSurface = await window.userSurface.getMainSurface();
+            // -- Main menu language start --
+            mainMenuFileObj.innerHTML = mainSurface.file[presentLangIndex];
+            mainMenuNewObj.children[0].innerHTML = mainSurface.new[presentLangIndex];
+            mainMenuOpenObj.children[0].innerHTML = mainSurface.open[presentLangIndex];
+            mainMenuSaveObj.children[0].innerHTML = mainSurface.save[presentLangIndex];
+            mainMenuSaveAsObj.children[0].innerHTML = mainSurface.saveAs[presentLangIndex];
+            mainMenuAppQuitObj.children[0].innerHTML = mainSurface.quit[presentLangIndex];
+            mainMenuEditObj.innerHTML = mainSurface.edit[presentLangIndex];
+            mainMenuCutObj.children[0].innerHTML = mainSurface.cut[presentLangIndex];
+            mainMenuCopyObj.children[0].innerHTML = mainSurface.copy[presentLangIndex];
+            mainMenuPasteObj.children[0].innerHTML = mainSurface.paste[presentLangIndex];
+            mainMenuSettingsObj.children[0].innerHTML = mainSurface.settings[presentLangIndex];
+            mainMenuViewObj.innerHTML = mainSurface.view[presentLangIndex];
+            mainMenuHelpObj.innerHTML = mainSurface.help[presentLangIndex];
+            mainMenuAboutObj.children[0].innerHTML = mainSurface.about[presentLangIndex];
+            mainMenuLearnMoreObj.children[0].innerHTML = mainSurface.moreInfo[presentLangIndex];
+            // -- Main menu language end --
+
+            // -- Save as language start --
+            saveAsTitleObj.innerHTML = mainSurface.SetPasswordSurface.title[presentLangIndex];
+            saveAsInfoExplainObj.innerHTML = mainSurface.SetPasswordSurface.infoExplain[presentLangIndex];
+            saveAsFatalExplainObj.innerHTML = mainSurface.SetPasswordSurface.fatalErrorExplain[presentLangIndex];
+            saveAsPlaceholder1Obj.innerHTML = mainSurface.SetPasswordSurface.placeholder1[presentLangIndex];
+            saveAsPlaceholder2Obj.innerHTML = mainSurface.SetPasswordSurface.placeholder2[presentLangIndex];
+            saveAsPlaceContinueObj.innerHTML = mainSurface.SetPasswordSurface.buttonContinue[presentLangIndex];
+            saveAsPlaceCancelObj.innerHTML = mainSurface.SetPasswordSurface.buttonCancel[presentLangIndex];
+            if (presentLangIndex === 2) {
+                saveAsPlaceContinueObj.style.width = "120px";
+                saveAsPlaceCancelObj.style.width = "120px";
+                document.getElementById("face-pswd").style.height = "540px";
+            }
+            // --  Save as language end --
+
+            // -- Auto save language start --
+            saveAgainTitleObj.innerHTML = mainSurface.SetPasswordSurface.title[presentLangIndex];
+            saveAgainPlaceholder1Obj.innerHTML = mainSurface.SetPasswordSurface.placeholder1[presentLangIndex];
+            saveAgainPlaceholder2Obj.innerHTML = mainSurface.SetPasswordSurface.placeholder2[presentLangIndex];
+            saveAgainPlaceContinueObj.innerHTML = mainSurface.SetPasswordSurface.buttonContinue[presentLangIndex];
+            saveAgainPlaceCancelObj.innerHTML = mainSurface.SetPasswordSurface.buttonCancel[presentLangIndex];
+            if (presentLangIndex === 2) {
+                saveAgainPlaceContinueObj.style.width = "120px";
+                saveAgainPlaceCancelObj.style.width = "120px";
+            }
+            // -- Auto save language end --
+
+            // -- password need prompt start --
+            passwordNeedTitleObj.innerHTML = mainSurface.NeedPasswordPrompt.title[presentLangIndex];
+            passwordNeedExplainObj.innerHTML = mainSurface.NeedPasswordPrompt.explain[presentLangIndex];
+            passwordNeedCloseObj.innerHTML = mainSurface.NeedPasswordPrompt.buttonClose[presentLangIndex];
+            passwordNeedUnlockObj.innerHTML = mainSurface.NeedPasswordPrompt.buttonUnlock[presentLangIndex];
+            if (presentLangIndex === 2) {
+                passwordNeedUnlockObj.style.width = "80px";
+                passwordNeedCloseObj.style.width = "80px";
+            }
+            // -- password need prompt end --
+
+            // -- settings start --
+            settingsTitleObj.innerHTML = mainSurface.Settings.settingsTitle[presentLangIndex];
+            settingsItem1Obj.innerHTML = mainSurface.Settings.settingsItem1[presentLangIndex];
+            settingsItem2Obj.innerHTML = mainSurface.Settings.settingsItem2[presentLangIndex];
+            settingsItem3Obj.innerHTML = mainSurface.Settings.settingsItem3[presentLangIndex];
+            settingsItem11Obj.innerHTML = mainSurface.Settings.settingsItem11[presentLangIndex];
+            settingsItem21Obj.innerHTML = mainSurface.Settings.settingsItem21[presentLangIndex];
+            settingsItem22Obj.innerHTML = mainSurface.Settings.settingsItem22[presentLangIndex];
+            settingsItem23Obj.innerHTML = mainSurface.Settings.settingsItem23[presentLangIndex];
+            settingsItem24Obj.innerHTML = mainSurface.Settings.settingsItem24[presentLangIndex];
+            settingsItem25Obj.innerHTML = mainSurface.Settings.settingsItem25[presentLangIndex];
+            settingsItem26Obj.innerHTML = mainSurface.Settings.settingsItem26[presentLangIndex];
+            settingsItem27Obj.innerHTML = mainSurface.Settings.settingsItem27[presentLangIndex];
+            settingsItem271Obj.innerHTML = mainSurface.Settings.settingsItem271[presentLangIndex];
+            settingsItem272Obj.innerHTML = mainSurface.Settings.settingsItem272[presentLangIndex];
+            settingsItem273Obj.innerHTML = mainSurface.Settings.settingsItem273[presentLangIndex];
+            settingsItem28Obj.innerHTML = mainSurface.Settings.settingsItem28[presentLangIndex];
+            settingsItem281Obj.innerHTML = mainSurface.Settings.settingsItem281[presentLangIndex];
+            settingsItem282Obj.innerHTML = mainSurface.Settings.settingsItem282[presentLangIndex];
+            settingsItem283Obj.innerHTML = mainSurface.Settings.settingsItem283[presentLangIndex];
+            settingsItem29Obj.innerHTML = mainSurface.Settings.settingsItem29[presentLangIndex];
+            settingsItem210Obj.innerHTML = mainSurface.Settings.settingsItem210[presentLangIndex];
+            settingsItem31Obj.innerHTML = mainSurface.Settings.settingsItem31[presentLangIndex];
+            settingsItem311Obj.innerHTML = mainSurface.Settings.settingsItem311[presentLangIndex];
+            settingsApplyObj.innerHTML = mainSurface.Settings.settingsApply[presentLangIndex];
+            settingsCancelObj.innerHTML = mainSurface.Settings.settingsCancel[presentLangIndex];
+            settingsResetObj.innerHTML = mainSurface.Settings.settingsReset[presentLangIndex];
+            if (presentLangIndex === 2) {
+                settingsApplyObj.style.width = "120px";
+                settingsCancelObj.style.width = "120px";
+                settingsItem31Obj.style.width = "200px";
+            }
+            // -- settings end --
+
+            // -- about start --
+            aboutVersionTxtObj.innerHTML = mainSurface.About.aboutVersionText[presentLangIndex];
+            aboutDescriptionObj.innerHTML = mainSurface.About.description[presentLangIndex];
+            aboutCreditsObj.innerHTML = mainSurface.About.credits[presentLangIndex];
+            aboutContactTxtObj.innerHTML = mainSurface.About.contact[presentLangIndex];
+            aboutGithubObj.innerHTML = mainSurface.About.github[presentLangIndex];
+            aboutConfirmObj.innerHTML = mainSurface.About.confirm[presentLangIndex];
+            // -- about end --
 
             return ePlaceholder;
         },
@@ -733,19 +962,34 @@ let renderProcess = {
 
         // 验证路径下的文件是否存在，如不存在则提醒
         if (openFilePath && !(await window.loadFileContent.verifyFileExists(openFilePath))) {
-            alert(`文件“${ openFilePath }”不存在，无法打开！`);
+            let pm = [
+                `文件“${ openFilePath }”不存在，无法打开！`,
+                `檔案「${ openFilePath }」不存在，無法開啟！`,
+                `Cannot open ${ openFilePath }, file does not exist!`
+            ];
+            alert(pm[await window.settings.getLangSettings()]);
             window.qt.closeThisWindow(this.windowId);
         }
 
         // 验证文件名是否合法，如不合法则禁止打开
         if (openFilePath && !(await window.loadFileContent.verifyFileNameValid(openFilePath))) {
-            alert(`文件名包含非法字符，或者文件所处路径内含有空格，请修改文件名或将文件移至其他路径再尝试打开！`);
+            let pm = [
+                `文件名包含非法字符，或者文件所处路径内含有空格，请修改文件名或将文件移至其他路径再尝试打开！`,
+                `檔案名稱包含非法字符，或檔案所處路徑內含有空格，請修改檔案名稱或將檔案移至其他路徑再嘗試開啟！`,
+                `The filename contains illegal characters, or the file path contains spaces. Please change the filename or move the file to another path and try opening it again!`
+            ];
+            alert(pm[await window.settings.getLangSettings()]);
             window.qt.closeThisWindow(this.windowId);
         }
 
         // 加载文件内容
         if ((await window.loadFileContent.verifyFileIsOpen(openFilePath))) {
-            alert(`文件“${ openFilePath }”已打开，请勿再次打开！`);
+            let pm = [
+                `文件“${ openFilePath }”已打开，请勿再次打开！`,
+                `檔案「${ openFilePath }」已打開，請勿再開啟！`,
+                `${openFilePath} is already open. Please do not open it again!`
+            ];
+            alert(pm[await window.settings.getLangSettings()]);
             window.qt.closeThisWindow(this.windowId);
         } else {
             if (!openFilePath) this.fileContent = false;

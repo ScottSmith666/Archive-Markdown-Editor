@@ -374,7 +374,7 @@ html, body {
     top: calc(100vh / 2 - 540px / 2);
     /*bottom: 50%;*/
     right: 0;
-    height: 540px;
+    height: 550px;
     margin: auto;
     display: flex;
     flex-direction: column;
@@ -394,7 +394,7 @@ html, body {
     top: calc(100vh / 2 - 540px / 2);
     /*bottom: 50%;*/
     right: 0;
-    /*height: 540px;*/
+    height: 445px;
     margin: auto;
     display: flex;
     flex-direction: column;

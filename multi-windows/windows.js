@@ -4,11 +4,13 @@ const ConfirmDialog = require(path.join(__dirname, "..", "dialogs", "dialogs"));
 const SqliteMan = require(path.join(__dirname, "..", "libs", "sqliteman"));
 const querystring = require('querystring');
 const process = require("node:process");
+const LanguageLocale = require(path.join(__dirname, "..", "libs", "languages"));
 const GlobalVar = require(path.join(__dirname, "..", "libs", "globalvar"));  // 全局变量模块引入
 const fs = require("fs");
 
 
 let gVar = new GlobalVar();
+let langSurface = new LanguageLocale().operationsInstructions();
 const settingsConfigManager = new SqliteMan.SettingsConfigManager();
 
 function Windows() {
@@ -77,10 +79,10 @@ function Windows() {
                 if (warningConfirmDialogChosen.confirm(
                     win,
                     "warning",
-                    ["取消", "确定"],
+                    [langSurface.prompts.confirmSaved.cancelButton[gVar.langs()], langSurface.prompts.confirmSaved.confirmButton[gVar.langs()]],
                     1,
-                    '确认关闭',
-                    '您有项目未保存，如果直接关闭，当前进度将不会保存，确认要直接关闭吗？',
+                    langSurface.prompts.confirmSaved.confirmTitle[gVar.langs()],
+                    langSurface.prompts.confirmSaved.confirmDescription[gVar.langs()],
                     0
                 )) {
                     if (filePath !== '') {

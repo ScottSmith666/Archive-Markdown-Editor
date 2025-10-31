@@ -101,9 +101,9 @@
         <!--Separator-->
         <div class="separator"></div>
         <!--New File-->
-        <div class="options" id="new">新建文件</div>
+        <div class="options" id="new">新建文件...</div>
         <!--Open-->
-        <div class="options" id="open" @click="openFile">打开文件</div>
+        <div class="options" id="open" @click="openFile">打开文件...</div>
         <!--Quit-->
         <div class="options-quit" id="quit" @click="quitApp">退出Archive Markdown Editor</div>
     </div>
@@ -115,15 +115,15 @@
                 <div class="recent-file-title-body">
                     <div class="block"></div>
                     <div style="width: 6px;"></div>
-                    <div style="font-weight: bold; font-size: 20px;">历史记录</div>
+                    <div style="font-weight: bold; font-size: 20px;" id="history">历史记录</div>
                 </div>
-                <div v-if="histories.length !== 0" class="clear-all-history" @click="clearAllHistory();">清空</div>
+                <div id="clear" v-if="histories.length !== 0" class="clear-all-history" @click="clearAllHistory();">清空</div>
             </div>
             <!--Separator-->
             <div class="separator"></div>
             <!--Recent file unit-->
             <template v-if="histories.length === 0">
-                <div style="color: #6a737d;">曾打开的文件将显示于此处。</div>
+                <div style="color: #6a737d;" id="empty">曾打开的文件将显示于此处。</div>
             </template>
             <template v-else>
                 <div class="recent-file-unit" v-for="(item, index) in histories" :key="index">
@@ -149,7 +149,7 @@
                                 <div class="access-file-path">{{ strTooLong(item.opened_file_path, 50) }}</div>
                             </div>
                             <!--Date and time-->
-                            <div class="last-open-date-time">上次打开时间: {{ item.open_datetime }}</div>
+                            <div class="last-open-date-time">{{ item.open_datetime }}</div>
                         </div>
                     </div>
                     <!--Delete icon-->
@@ -229,19 +229,35 @@
         },
         async mounted() {
             // 新建文件，打开新的Work窗口，并关闭主窗口
+            let presentLangIndex = await window.settings.getLangSettings();
+            let indexSurface = await window.userSurface.getIndexSurface();
+            let indexNewObj = document.getElementById("new");
+            let indexOpenObj = document.getElementById("open");
+            let indexQuitObj = document.getElementById("quit");
+            let indexHistoryObj = document.getElementById("history");
+            let indexClearHistoryObj = document.getElementById("clear");
+            let indexEmptyHistoryObj = document.getElementById("empty");
+
+            indexNewObj.innerHTML = indexSurface.new[presentLangIndex];
+            indexOpenObj.innerHTML = indexSurface.open[presentLangIndex];
+            indexQuitObj.innerHTML = indexSurface.quit[presentLangIndex];
+            indexHistoryObj.innerHTML = indexSurface.history[presentLangIndex];
+            if (indexClearHistoryObj) indexClearHistoryObj.innerHTML = indexSurface.clear[presentLangIndex];
+            if (indexEmptyHistoryObj) indexEmptyHistoryObj.innerHTML = indexSurface.emptyHistoryPrompt[presentLangIndex];
+
             document.getElementById("new").addEventListener("click", () => {
                 window.openNewWindow.openNew();
                 window.close();
             });
 
-            // 快捷键关闭页面
+            // 快捷键退出应用
             window.addEventListener("keydown", function (event) {
-                // 判断是否按下了Ctrl/Command键和 W 键
-                if (event.ctrlKey && event.key === "w") {  // Windows
-                    window.close();
+                // 判断是否按下了Ctrl/Command键和 Q 键
+                if (event.ctrlKey && event.key === "q") {  // Windows
+                    window.qt.quit();
                 }
-                if (event.metaKey && event.key === "w") {  // macOS
-                    window.close();
+                if (event.metaKey && event.key === "q") {  // macOS
+                    window.qt.quit();
                 }
             });
         },

@@ -1,5 +1,10 @@
 "use strict";
 
+const path = require("node:path");
+const SqliteMan = require(path.join(__dirname, "./sqliteman"));
+const fs = require("fs");
+
+
 function GlobalVar() {
     /**
      * 全局变量控制器
@@ -13,6 +18,23 @@ function GlobalVar() {
     this.MaxFileNameLength = 200;
     // 定义不同系统的文件路径分隔符
     this.pathSep = (process.platform === 'win32') ? '\\' : '/';
+    // 获取数据库中的语言设置
+    this.langs = () => {
+        /**
+         * 从硬盘上的本地Sqlite数据库读取settings
+         */
+        const settingsConfigManager = new SqliteMan.SettingsConfigManager();
+        return Number(settingsConfigManager.getSettings("lang_index"));
+    };
+    this.getVersion = () => {
+        const packageJsonPath = path.join(__dirname, '../package.json');
+        // 读取并解析package.json文件
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+        // 获取包名
+        const appName = packageJson.name;
+        const version = packageJson.version;
+        return [appName, version];
+    };
 }
 
 module.exports = GlobalVar;
