@@ -4,9 +4,9 @@
   "description": "mdz file editor",
   "main": "main.js",
   "scripts": {
-    "start": "./distribute only && electron-forge start",
+    "start": "node ./distribute only && electron-forge start",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package": "electron-forge package",
+    "package": "node ./distribute only && electron-forge package",
     "make": "electron-forge make"
   },
   "keywords": [

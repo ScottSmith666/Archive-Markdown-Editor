@@ -69,8 +69,7 @@ function LanguageLocale() {
             "moreInfo": ["了解更多...", "瞭解更多...", "More Info..."],
 
             // Menu 6
-            "donate": ["打赏", "打賞", "Donate"],
-            "donateToSS": ["打赏给Scott Smith...", "打賞給Scott Smith...", "Donate To Scott Smith..."],
+            "donate": ["打赏...", "打賞...", "Donate..."],
 
             // set password surface
             "SetPasswordSurface": {
@@ -148,6 +147,16 @@ function LanguageLocale() {
                 "contact": ["有事请联系", "有事請聯絡", "Contact"],
                 "github": ["GitHub项目地址", "GitHub專案地址", "GitHub"],
                 "confirm": ["确定", "確認", "Close"],
+            },
+
+            "donatePage": {
+                "title": ["打赏", "打賞", "Donate"],
+                "explain": [
+                    "如果本软件对您有所帮助，不妨请我喝一杯小小的咖啡吧～各位用户的鼎力支持是我完善软件的最大动力:)。",
+                    "如果本軟體對您有幫助，不妨請我喝一杯小小的咖啡吧～各位用戶的鼎力支持是我完善軟體的最大動力:)。",
+                    "How about buying me a small cup of coffee? Your support is my greatest motivation to improve the software :).",
+                ],
+                "button": ["关闭", "關閉", "OK"],
             },
         },
         "prompts": {

@@ -309,6 +309,15 @@ let renderProcess = {
                 document.getElementById("ver").innerHTML = await window.ver.getVersion();
             });
 
+            // donate
+            document.getElementById("donate").addEventListener("click", (e) => {
+                this.mainManuAllHide("file", "edit", "view", "help");
+                document.getElementById("donate-modal").style.display = "block";
+            });
+            document.getElementById("donate-close").addEventListener("click", (e) => {
+                document.getElementById("donate-modal").style.display = "none";
+            });
+
             // 解锁文件
             document.getElementById("unlock").addEventListener("click", async () => {
                 let inputPassword = document.getElementById("file-password").value;
@@ -786,6 +795,13 @@ let renderProcess = {
             let settingsResetObj = document.getElementById("reset");
             // -- Settings object end --
 
+            // -- Donate object start --
+            let menuDonateObj = document.getElementById("donate");
+            let donateTitleObj = document.getElementById("donate-title");
+            let donateDescriptionObj = document.getElementById("info-donate-explain");
+            let donateButtonObj = document.getElementById("donate-close");
+            // -- Donate object end --
+
             // -- About object start --
             let aboutVersionTxtObj = document.getElementById("about-version");
             let aboutDescriptionObj = document.getElementById("desc");
@@ -826,6 +842,7 @@ let renderProcess = {
             mainMenuViewObj.innerHTML = mainSurface.view[presentLangIndex];
             mainMenuHelpObj.innerHTML = mainSurface.help[presentLangIndex];
             mainMenuAboutObj.children[0].innerHTML = mainSurface.about[presentLangIndex];
+            menuDonateObj.children[0].innerHTML = mainSurface.donate[presentLangIndex];
             mainMenuLearnMoreObj.children[0].innerHTML = mainSurface.moreInfo[presentLangIndex];
             // -- Main menu language end --
 
@@ -900,6 +917,12 @@ let renderProcess = {
                 settingsItem31Obj.style.width = "200px";
             }
             // -- settings end --
+
+            // -- donate start --
+            donateTitleObj.innerHTML = mainSurface.donatePage.title[presentLangIndex];
+            donateDescriptionObj.innerHTML = mainSurface.donatePage.explain[presentLangIndex];
+            donateButtonObj.innerHTML = mainSurface.donatePage.button[presentLangIndex];
+            // -- donate end --
 
             // -- about start --
             aboutVersionTxtObj.innerHTML = mainSurface.About.aboutVersionText[presentLangIndex];

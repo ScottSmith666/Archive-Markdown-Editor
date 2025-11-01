@@ -42,7 +42,7 @@ let saveDylibDir = path.join(BASE_PATH, "libs", "rust_libraries");
 // 生成批量编译Rust库的脚本代码
 let scriptSet = "";
 for (let i = 0; i < rustProjectDirs.length; i++) {
-    let rustProjectName = rustProjectDirs[i][0] + "." + process.platform + "-" + (process.platform === "win32" ? process.arch + "-msvc" : process.arch);
+    let rustProjectName = rustProjectDirs[i][0] + "." + process.platform + "-" + (process.platform === "win32" ? process.arch + "-msvc" : (process.platform === "linux" ? process.arch + "-gnu" : process.arch));
     let rustProjectDir = rustProjectDirs[i][1];
     scriptSet = scriptSet + (`echo "正在编译${ rustProjectDirs[i][0] }..." && cd ${rustProjectDir} ` +
         `&& npm run build ` +

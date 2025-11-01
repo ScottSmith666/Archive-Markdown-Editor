@@ -9,8 +9,6 @@ Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非�
 3. 智能提示，使您编写Markdown时更舒适。
 4. **注意⚠️！如果您有跨编辑器编辑Markdown文档的需求，请不要在Markdown内容中使用Archive Markdown Editor特有的拓展语法，保存文件时请不要保存为mdz格式！**
 
-另外，通过页面局部更新，减小渲染压力，可顺利打开10000-20000行的Markdown并进行查看&编辑，性能强于Mark Text和Typora。
-
 ## 二. 软件安装
 ### 1. 下载编译好的binary直接安装
 进入Archive Markdown Editor的GitHub项目，从“Release”中下载最新版本的binary file，按照各系统的常用安装方式进行安装。

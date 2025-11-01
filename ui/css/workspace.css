@@ -441,6 +441,26 @@ html, body {
     padding: 20px;
 }
 
+.face-donate {
+    z-index: 251;
+    overflow: auto;
+    width: 560px;
+    /*min-height: 310px;*/
+    border-radius: 10px;
+    background-color: #ffffff;
+    position: fixed;
+
+    left: 0;
+    top: calc(100vh / 2 - 540px / 2);
+    /*bottom: 50%;*/
+    right: 0;
+    height: 470px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
 .face-auto-pswd {
     z-index: 251;
     overflow: auto;
@@ -531,6 +551,10 @@ html, body {
 }
 
 #tips-modal {
+    display: none;
+}
+
+#donate-modal {
     display: none;
 }
 
