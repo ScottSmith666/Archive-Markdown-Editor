@@ -344,9 +344,9 @@ function CommonIpc() {
                         if (urlReg.test(mediaPath)) continue;  // 判断URL
                         else if (relativePathReg.test(mediaPath)) {
                             // 判断相对路径
-                            let savePathList = fileSaveAsPath.split(gVar.pathSep);
-                            savePathList.pop();  // 去掉文件名
-                            let root = savePathList.join(gVar.pathSep);
+                            let originPathList = originPath.split(gVar.pathSep);
+                            originPathList.pop();  // 去掉文件名
+                            let root = originPathList.join(gVar.pathSep);
                             mediaPath = root + gVar.pathSep + mediaPath;  // 获得多媒体的绝对路径
                         } else if (mdzPathReg.test(mediaPath)) {
                             // 判断是mdz专属路径
@@ -381,14 +381,15 @@ function CommonIpc() {
                     // 打包mdz
                     rwMdz.writeMdz(root + gVar.pathSep + "._mdz_content." + fileNameList.join("."), password);
 
-                    // 删除原文件的临时目录
+                    // 删除原mdz文件的临时目录
                     let originPathList = originPath.split(gVar.pathSep);
                     let oFileName = originPathList.pop();  // 去掉文件名
                     let oFileNameList = oFileName.split(".");
-                    oFileNameList.pop();  // 去掉扩展名
+                    let originExt = oFileNameList.pop();  // 去掉扩展名
                     let oFileNameRmExt = oFileNameList.join(".");
                     let oRoot = originPathList.join(gVar.pathSep);
-                    fs.rmSync(oRoot + gVar.pathSep + "._mdz_content." + oFileNameRmExt, {recursive: true});
+                    if (originExt === "mdz")  // 只有mdz文件才会产生临时文件夹
+                        fs.rmSync(oRoot + gVar.pathSep + "._mdz_content." + oFileNameRmExt, {recursive: true});
                 });
             } else if (extName === "md" || extName === "txt") {
                 // 如果在内容中发现了mdz文件中特有的内容（多媒体路径$MDZ_MEDIA），则修改其中的路径，并将mdz文件中的多媒体放在保存目录的一个文件夹内
