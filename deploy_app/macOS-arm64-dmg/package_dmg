@@ -59,7 +59,7 @@ function DistributeDarwinArm64() {
                 throw err;
             }
             console.log('配置文件已写入...');
-            runCommand(`rm -rf "` + path.join(__dirname, `./${appName}-${version}-${process.platform}-${process.arch}.dmg`) + `" && rm -rf "/Users/scottsmith/Library/Application Support/archive_markdown_editor"`, () => {
+            runCommand(`rm -rf "` + path.join(__dirname, `./${appName}-${version}-${process.platform}-${process.arch}.dmg`) + `" && rm -rf "$HOME/Library/Application Support/ArchiveMarkdownEditor"`, () => {
                 // 先将代码编译成散装可执行程序
                 runCommand(`export ELECTRON_ENABLE_OFFLINE_MODE=1 && ${ path.join(__dirname + "../../../node_modules/.bin/electron-forge") } make --offline`, () => {
                     // 调用appdmg命令
