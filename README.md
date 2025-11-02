@@ -1,4 +1,4 @@
-# Archive-Markdown-Editor
+# Archive Markdown Editor
 
 ---
 
@@ -12,7 +12,7 @@ Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非�
 4. **注意⚠️！如果您有跨编辑器编辑Markdown文档的需求，请不要在Markdown内容中使用Archive Markdown Editor特有的拓展语法，保存文件时请不要保存为mdz格式！**
 
 ## 二. 软件安装
-### 1. 下载预编译好的binary直接安装
+### 1. 下载预编译好的binary file直接安装
 进入Archive Markdown Editor的GitHub项目，从“Release”中下载最新版本的binary file，按照各系统的常用安装方式进行安装。
 
 ### 2. 自行编译安装
@@ -109,7 +109,7 @@ file_name
                  └── media.jpg
     
 ```
-其中“file_name.md”是我们熟悉的Markdown文件，**该文件的名字和原来的mdz文件名一致**。media_src文件用于存放多媒体。
+其中“file_name.md”是我们熟悉的Markdown文件，**该文件的名字和原来的mdz文件名一致**。media_src文件夹用于存放多媒体。
 
 ### 3. 编辑器在保存新建的*.mdz文件时的处理过程细节
 保存新建的文件时，编辑器将在用户指定的保存目录生成mdz文件结构（不可见文件夹），将编辑的内容保存至这个文件结构（即文件夹）中，在该目录打包成mdz文件，最后删除文件结构。
