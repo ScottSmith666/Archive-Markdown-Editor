@@ -318,6 +318,11 @@ let renderProcess = {
                 document.getElementById("donate-modal").style.display = "none";
             });
 
+            // learn more
+            document.getElementById("learn-more").addEventListener("click", (e) => {
+                window.openOutLink.openLink("https://archive-markdown-editor-ss.pages.dev/");
+            });
+
             // 解锁文件
             document.getElementById("unlock").addEventListener("click", async () => {
                 let inputPassword = document.getElementById("file-password").value;
