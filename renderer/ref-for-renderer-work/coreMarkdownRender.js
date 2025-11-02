@@ -196,11 +196,11 @@ let renderProcess = {
                 // 相应改变渲染区滚动位置
                 let getRenderAreaTotalHeight = document.getElementById("write").offsetHeight;
                 let parentGetRenderAreaTotalHeight = document.querySelector(".middle-content-render");
-                parentGetRenderAreaTotalHeight.scrollTo({
-                    top: editor.getVisibleRanges()[0].startLineNumber !== 1 ? getRenderAreaTotalHeight * rollProcess : 0,
-                    left: 0,
-                    behavior: "smooth",
-                });
+                // parentGetRenderAreaTotalHeight.scrollTo({
+                //     top: editor.getVisibleRanges()[0].startLineNumber !== 1 ? getRenderAreaTotalHeight * rollProcess : 0,
+                //     left: 0,
+                //     behavior: "smooth",
+                // });
             });
 
             // 编辑区右键菜单点击事件
