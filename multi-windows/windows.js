@@ -1,4 +1,4 @@
-const { BrowserWindow, Menu, ipcMain} = require("electron");
+const { BrowserWindow, Menu, ipcMain, app } = require("electron");
 const path = require("node:path");
 const ConfirmDialog = require(path.join(__dirname, "..", "dialogs", "dialogs"));
 const SqliteMan = require(path.join(__dirname, "..", "libs", "sqliteman"));
@@ -128,8 +128,9 @@ function Windows() {
         });
         if (gVar.DEBUG) win.webContents.openDevTools();  // 打开开发者工具
         win.on('closed', () => {
-            // 当窗口被关闭时，将 mainWindow 设置为 null
-            win = null;
+            // 当单独Main窗口被关闭时，直接退出程序
+            if (BrowserWindow.getAllWindows().length === 0) app.quit();
+            else win = null;
         });
         return win;
     };

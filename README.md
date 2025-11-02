@@ -32,7 +32,7 @@ PS C:\Users\scottsmith\Desktop> cd .\Archive-Markdown-Editor\libs\xc_mdz && yarn
 ```powershell
 PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor\libs\xc_mdz> cd ..\..
 ```
-删除`package.json`内的`"appdmg": "^0.6.6",`部分，并安装项目本体的依赖。
+安装项目本体的依赖
 ```powershell
 PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> npm install
 ```
@@ -66,7 +66,7 @@ cd ./Archive-Markdown-Editor/libs/xc_mdz && yarn install
 ```shell
 cd ../..
 ```
-如果是Linux，则删除`package.json`内的`"appdmg": "^0.6.6",`部分，并安装项目本体的依赖。
+安装项目本体的依赖。
 ```shell
 npm install
 ```

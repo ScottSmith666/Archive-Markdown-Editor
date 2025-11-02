@@ -183,7 +183,9 @@
             },
             openFile() {
                 window.openNewWindow.openFile();
-                window.close();
+                setTimeout(() => {
+                    window.close();
+                }, 1000);
             },
             openFileFromHistory(path) {
                 window.openNewWindow.openFileFromPath(path);
@@ -247,7 +249,9 @@
 
             document.getElementById("new").addEventListener("click", () => {
                 window.openNewWindow.openNew();
-                window.close();
+                setTimeout(() => {
+                    window.close();
+                }, 1000);
             });
 
             // 快捷键退出应用
