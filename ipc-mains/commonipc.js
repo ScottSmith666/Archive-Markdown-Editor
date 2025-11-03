@@ -108,6 +108,7 @@ function CommonIpc() {
                 return fs.readFileSync(path, 'utf8');
             else if (path.split(".").pop() === "mdz") {  // 加载Archive Markdown File (mdz)
                 let mdzCoreFilePath = rwMdz.readMdz(path, password);
+                console.log(mdzCoreFilePath);
                 if (mdzCoreFilePath === -1) return false;
                 return fs.readFileSync(mdzCoreFilePath, 'utf8');
             }
@@ -382,14 +383,16 @@ function CommonIpc() {
                     rwMdz.writeMdz(root + gVar.pathSep + "._mdz_content." + fileNameList.join("."), password);
 
                     // 删除原mdz文件的临时目录
-                    let originPathList = originPath.split(gVar.pathSep);
-                    let oFileName = originPathList.pop();  // 去掉文件名
-                    let oFileNameList = oFileName.split(".");
-                    let originExt = oFileNameList.pop();  // 去掉扩展名
-                    let oFileNameRmExt = oFileNameList.join(".");
-                    let oRoot = originPathList.join(gVar.pathSep);
-                    if (originExt === "mdz")  // 只有mdz文件才会产生临时文件夹
-                        fs.rmSync(oRoot + gVar.pathSep + "._mdz_content." + oFileNameRmExt, {recursive: true});
+                    if (originPath) {
+                        let originPathList = originPath.split(gVar.pathSep);
+                        let oFileName = originPathList.pop();  // 去掉文件名
+                        let oFileNameList = oFileName.split(".");
+                        let originExt = oFileNameList.pop();  // 去掉扩展名
+                        let oFileNameRmExt = oFileNameList.join(".");
+                        let oRoot = originPathList.join(gVar.pathSep);
+                        if (originExt === "mdz")  // 只有mdz文件才会产生临时文件夹
+                            fs.rmSync(oRoot + gVar.pathSep + "._mdz_content." + oFileNameRmExt, {recursive: true});
+                    }
                 });
             } else if (extName === "md" || extName === "txt") {
                 // 如果在内容中发现了mdz文件中特有的内容（多媒体路径$MDZ_MEDIA），则修改其中的路径，并将mdz文件中的多媒体放在保存目录的一个文件夹内

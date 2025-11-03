@@ -6,6 +6,12 @@ html, body {
     background-color: rgba(66, 185, 131, 0.06);
 }
 
+/* 针对MathJax过长超出页面 */
+#write p {
+    overflow: hidden;
+    overflow-x: auto;
+}
+
 .CodeMirror-cursor {
     border-left: 2px solid #42b983; /* 将光标颜色更改为#42b983 */
 }
@@ -89,19 +95,18 @@ html, body {
     width: 50% !important;
     -moz-box-flex: 1.0;
     -webkit-box-flex: 1.0;
-    padding: 20px;
+    padding: 40px;
     background-color: #f8f9fa !important;
 }
 
 .content-like {
-    /*margin-top: 20px;*/
-    /*margin-bottom: 20px;*/
+    box-sizing: border-box;
     background-color: white;
     border-radius: 8px;
-    opacity: 0.9;  /* 不要写百分数，否则webpack打包时会强制变成1% */
+    opacity: 0.9;
     display: flex;
     flex-direction: row;
-    height: calc(100vh - 60px - 20px - 31px);
+    height: calc(100vh - 60px - 20px);
 }
 
 .content-like-dark {
@@ -127,7 +132,6 @@ html, body {
     word-wrap: break-word !important;
     word-break: break-all !important;
     background-color: #f8f9fa !important;
-    margin: 20px;
     scroll-behavior: smooth;
 }
 
@@ -139,7 +143,7 @@ html, body {
     display: none;
 }
 
-.line-num::-webkit-scrollbar {
+.content-resize-render::-webkit-scrollbar {
     display: none;
 }
 

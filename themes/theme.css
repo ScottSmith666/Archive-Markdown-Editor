@@ -1760,10 +1760,6 @@ a img {
 }
 
 @media only screen and (min-width: 1400px) {
-    #write {
-        max-width: 1024px;
-    }
-
     hr {
         position: relative;
         margin: 2rem auto;
@@ -1780,9 +1776,6 @@ a img {
 }
 
 @media only screen and (min-width: 1800px) {
-    #write {
-        max-width: 1200px;
-    }
 
     hr {
         position: relative;

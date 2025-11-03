@@ -11,7 +11,7 @@ const fs = require("fs");
 // ---- 所有设置项和默认值START ----
 /**
  * 设置表
- * ----通用 instruction----
+ * ----通用 instruction（指令）----
  * 选择界面语言：lang_index: 0 || 1 || 2，0代表简体中文，1代表繁体中文，2代表English，初始化默认为0
  * ----编辑 instructions----
  * 编辑区Tab缩进长度：editor_tab_size: <number>，初始化默认为4

@@ -33,6 +33,26 @@ let renderProcess = {
             }
         });
 
+        // 切换预览模式、编辑模式和混合模式
+        // 预览模式
+        document.getElementById("preview-mode").addEventListener("click", () => {
+            document.getElementById("editor").style.display = "none";
+            document.getElementById("preview").style.display = "block";
+            this.mainManuAllHide("file", "edit", "view", "help");
+        });
+        // 编辑模式
+        document.getElementById("edit-mode").addEventListener("click", () => {
+            document.getElementById("editor").style.display = "block";
+            document.getElementById("preview").style.display = "none";
+            this.mainManuAllHide("file", "edit", "view", "help");
+        });
+        // 混合模式
+        document.getElementById("mix-mode").addEventListener("click", () => {
+            document.getElementById("editor").style.display = "block";
+            document.getElementById("preview").style.display = "block";
+            this.mainManuAllHide("file", "edit", "view", "help");
+        });
+
         // 初始化编辑器
         require.config({paths: {vs: '../libs/third_party/monaco/min/vs'}});
         require.config({'vs/nls': {availableLanguages: {'*': 'zh-cn'}}});
@@ -702,6 +722,8 @@ let renderProcess = {
                 document.getElementById("MathJax-script").setAttribute(
                     "src", "../libs/third_party/MathJax/es5/tex-svg-full.js");
                 MathJax.typesetPromise();
+
+                // 更改mathjax父<p>的
             });
         },
 
@@ -734,6 +756,9 @@ let renderProcess = {
             let mainMenuSettingsObj = document.getElementById("settings");
 
             let mainMenuViewObj = document.getElementById("view");
+            let mainMenuPreviewMode = document.getElementById("preview-mode");
+            let mainMenuEditMode = document.getElementById("edit-mode");
+            let mainMenuMixMode = document.getElementById("mix-mode");
 
             let mainMenuHelpObj = document.getElementById("help");
             let mainMenuAboutObj = document.getElementById("about");
@@ -845,6 +870,9 @@ let renderProcess = {
             mainMenuPasteObj.children[0].innerHTML = mainSurface.paste[presentLangIndex];
             mainMenuSettingsObj.children[0].innerHTML = mainSurface.settings[presentLangIndex];
             mainMenuViewObj.innerHTML = mainSurface.view[presentLangIndex];
+            mainMenuPreviewMode.children[0].innerHTML = mainSurface.viewMode[presentLangIndex];
+            mainMenuEditMode.children[0].innerHTML = mainSurface.editMode[presentLangIndex];
+            mainMenuMixMode.children[0].innerHTML = mainSurface.mixMode[presentLangIndex];
             mainMenuHelpObj.innerHTML = mainSurface.help[presentLangIndex];
             mainMenuAboutObj.children[0].innerHTML = mainSurface.about[presentLangIndex];
             menuDonateObj.children[0].innerHTML = mainSurface.donate[presentLangIndex];
@@ -950,8 +978,14 @@ let renderProcess = {
             event.preventDefault(); //关闭浏览器右键默认事件
             let menuHeight = 120;
             let menuWidth = 200;
-            leftObj.style.left = (event.clientX + menuWidth) <= (document.body.clientWidth / 2 - 20)
-                ? (event.clientX - 20) + 'px' : (document.body.clientWidth / 2 - 40 - menuWidth) + 'px';
+
+            if (document.getElementById("preview").style.display === "none")  // 这是编辑模式下的右键菜单位置判定
+                leftObj.style.left = (event.clientX + menuWidth) <= (document.body.clientWidth - 20)
+                    ? (event.clientX - 20) + 'px' : (document.body.clientWidth - 40 - menuWidth) + 'px';
+            else
+                leftObj.style.left = (event.clientX + menuWidth) <= (document.body.clientWidth / 2 - 20)  // 这是混合模式下的右键菜单位置判定
+                    ? (event.clientX - 20) + 'px' : (document.body.clientWidth / 2 - 40 - menuWidth) + 'px';
+
             leftObj.style.top = (event.clientY + menuHeight + 30) <= document.body.clientHeight
                 ? (event.clientY - 20 - 30) + 'px' : (document.body.clientHeight - menuHeight - 60 - 30) + 'px';
 
@@ -1024,7 +1058,7 @@ let renderProcess = {
             else {
                 if (openFilePath.split(".").pop() === "mdz") {
                     this.fileContent = await window.loadFileContent.loadFileContent(openFilePath, "");
-                    if (!this.fileContent) {
+                    if (this.fileContent === false) {
                         document.getElementById("real-edit").style.display = "none";
                         document.getElementById("unlock-modal").style.display = "block";
                     }

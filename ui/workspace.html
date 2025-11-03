@@ -790,11 +790,14 @@
 
                     <div id="view" class="bar-menu-element-txt fonts">视图</div>
                     <div id="view-expand" class="lower dp-menu" style="margin-left: calc(2 * (25px + 18px));">
-                        <div class="dp-menu-element" id="main-menu-light">
-<!--                            <p class="fonts">白昼模式</p>-->
+                        <div class="dp-menu-element" id="preview-mode">
+                            <p class="fonts">预览模式</p>
                         </div>
-                        <div class="dp-menu-element" id="main-menu-dark">
-<!--                            <p class="fonts">暗黑模式</p>-->
+                        <div class="dp-menu-element" id="edit-mode">
+                            <p class="fonts">编辑模式</p>
+                        </div>
+                        <div class="dp-menu-element" id="mix-mode">
+                            <p class="fonts">混合模式</p>
                         </div>
                     </div>
 
@@ -920,7 +923,7 @@
             <div class="content-wrap" id="cnt">
                 <!--Markdown编辑区-->
                 <div class="content-resize-edit content-like upper" id="editor">
-                    <div class="middle-content-edit" style="position: relative;">
+                    <div class="middle-content-edit" style="position: relative; height: 100%;">
                         <div class='code-editor' id="real-edit"></div>
                     </div>
                     <div class="lower dp-menu fonts" id="leftMenu">
@@ -937,8 +940,8 @@
                 </div>
 
                 <!--Markdown渲染区-->
-                <div tabindex="1" class="content-resize-render content-like upper" id="preview">
-                    <div class="middle-content-render" style="overflow: scroll; overflow-x: auto;">
+                <div tabindex="1" class="content-resize-render content-like upper" id="preview" style="overflow: hidden; overflow-x: auto; overflow-y: auto;">
+                    <div class="middle-content-render">
                         <div class="fonts" id="render-placeholder">
                             <h1 class="rend-area" id="plh-render">Markdown渲染区</h1>
                         </div>
@@ -948,6 +951,7 @@
                             <div v-for="(item, index) in mdResult" v-html="renderExecute(item)"
                                  :key="'marked-' + index"></div>
                         </div>
+                        <div style="height: 20px;"></div>
                     </div>
                 </div>
             </div>
