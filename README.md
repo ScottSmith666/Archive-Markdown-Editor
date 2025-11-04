@@ -18,7 +18,7 @@ Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非�
 ### 2. 自行编译安装
 #### * 本项目使用了node的新特性（node原生sqlite读写模块node:sqlite），所以node版本不可低于`22.5.0`，推荐使用`22.21.0 LTS`版本，并且确保你的环境已安装`yarn`。
 #### * 本项目使用了Rust `1.90.0`版本，请安装到位。
-#### 2.1. Windows
+#### 2.1. Windows x64
 ##### 如果需要制作Windows Installer安装包（*.msi），那么还需要安装Visual Studio 2022、Wix 3.14和Votive2022.vsix插件（均在`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi\vs_sln`目录中）。
 首先将项目克隆至本地（如桌面）
 ```powershell
@@ -53,7 +53,7 @@ PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> node .\distribute
 
 打包完成后，可在`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi\vs_sln\bin`中找到打包完成的*.msi文件。
 
-#### 2.2. macOS & Linux
+#### 2.2. macOS arm64 & Linux x64/arm64
 首先将项目克隆至本地（如桌面）
 ```shell
 git clone https://github.com/ScottSmith666/Archive-Markdown-Editor.git
@@ -83,10 +83,20 @@ macOS平台打包完成后，可在`.\Archive-Markdown-Editor\deploy_app\macOS-a
 
 Linux平台打包完成后，可在`.\Archive-Markdown-Editor\out`中找到编译完成的应用。
 
-#### 注意：Linux端AME运行时需添加gtk3参数，否则会报错。
+#### 注意：x64 Linux端AME运行时需添加gtk3参数，否则会报错。
 ```shell
 ./ArchiveMarkdownEditor --gtk-version=3
 ```
+
+#### 而arm64 Linux端AME运行时需添加--no-sandbox参数，否则会报错。
+```shell
+./ArchiveMarkdownEditor --no-sandbox
+```
+
+#### 2.3. Windows arm64
+请参考Linux版本的编译安装方法，**不要**参考Windows x64的编译安装方法。
+另：arm64 Windows在编译完Rust库时不会自动拷贝至对应位置，所以请去`.\Archive-Markdown-Editor\libs\xc_mdz`目录找到`xc_mdz-win32-arm64-msvc.node`，并将其复制到`.\Archive-Markdown-Editor\libs\rust_libraries`，并更名为`xc_mdz.node`。然后再运行`npm run package`。
+
 
 ## 三. 提升Markdown易用性的新格式：*.mdz
 
