@@ -32,6 +32,7 @@ module.exports = {
             "package-lock.json",
             "node_modules",
 
+            "libs/node-libs",
             "libs/third_party/mermaid/dist/__mocks__",
             "libs/third_party/mermaid/dist/dagre-wrapper",
             "libs/third_party/mermaid/dist/diagram-api",
