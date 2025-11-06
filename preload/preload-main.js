@@ -7,7 +7,7 @@ const { contextBridge, ipcRenderer } = require('electron/renderer');
 contextBridge.exposeInMainWorld('openNewWindow', {
     openNew: () => ipcRenderer.send('open-new'),
     openFile: () => ipcRenderer.send('open-file'),
-    openFileFromPath: (path) => ipcRenderer.send('open-file-from-path', path),
+    openFileFromPath: (path) => ipcRenderer.invoke('open-file-from-path', path),
 });
 
 // 获取打开文件历史记录

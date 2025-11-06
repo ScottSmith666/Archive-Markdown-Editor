@@ -96,8 +96,9 @@ function CommonIpc() {
             // 以打开exists文件的方式打开work窗口
             if (filePath) workWindow(filePath[0]);
         });
-        ipcMain.on('open-file-from-path', (event, path) => {
+        ipcMain.handle('open-file-from-path', (event, path) => {
             workWindow(path);
+            return 0;
         });
         ipcMain.handle('load-file-content', (event, path, password) => {
             /**

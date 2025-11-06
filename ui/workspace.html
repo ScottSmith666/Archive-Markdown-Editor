@@ -217,6 +217,44 @@
         </div>
     </div>
 
+    <!--圈圈加载打开模态框-->
+    <div class="fonts" id="circle-loading-modal">
+        <div id="circle-loading-surface" class="modal"></div>
+        <div class="face-circle-loading" id="face-circle-loading">
+            <div class="window">
+                <div style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
+                    <div class="ame-circle" style="height: 26px; width: 26px;">
+                        <svg height="100%" viewBox="0 0 32 32" width="100%">
+                            <circle cx="16" cy="16" fill="none" r="14" stroke-width="4" style="stroke: rgb(66, 185, 131); opacity: 0.2;"></circle>
+                            <circle cx="16" cy="16" fill="none" r="14" stroke-width="4" style="stroke: rgb(66, 185, 131); stroke-dasharray: 80; stroke-dashoffset: 60;"></circle>
+                        </svg>
+                    </div>
+                    <div style="width: 20px;"></div>
+                    <div id="circle-loading-title" class="window-title fonts" style="color: #555555; font-size: 1em;">正在打开文件，请稍候...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--圈圈加载保存模态框-->
+    <div class="fonts" id="circle-save-modal">
+        <div id="circle-save-surface" class="modal"></div>
+        <div class="face-circle-loading" id="face-save-loading">
+            <div class="window">
+                <div style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
+                    <div class="ame-circle" style="height: 26px; width: 26px;">
+                        <svg height="100%" viewBox="0 0 32 32" width="100%">
+                            <circle cx="16" cy="16" fill="none" r="14" stroke-width="4" style="stroke: rgb(66, 185, 131); opacity: 0.2;"></circle>
+                            <circle cx="16" cy="16" fill="none" r="14" stroke-width="4" style="stroke: rgb(66, 185, 131); stroke-dasharray: 80; stroke-dashoffset: 60;"></circle>
+                        </svg>
+                    </div>
+                    <div style="width: 20px;"></div>
+                    <div id="circle-save-title" class="window-title fonts" style="color: #555555; font-size: 1em;">正在保存文件，请稍候...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!--settings模态框-->
     <div class="fonts" id="settings-modal">
         <div id="settings-modal-surface" class="modal"></div>
@@ -985,6 +1023,9 @@
 <!--导入核心renderer-->
 <script src="../renderer/ref-for-renderer-work/coreMarkdownRender.js"></script>
 <script>
+    // 打开页面开始加载
+    document.getElementById("circle-loading-modal").style.display = "block";
+
     let mde = {};
     const { createApp } = Vue;
     const app = createApp(renderProcess);

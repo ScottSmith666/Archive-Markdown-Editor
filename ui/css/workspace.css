@@ -445,6 +445,23 @@ html, body {
     padding: 20px;
 }
 
+.face-circle-loading {
+    z-index: 251;
+    overflow: auto;
+    width: 240px;
+    border-radius: 10px;
+    background-color: #ffffff;
+    position: fixed;
+
+    left: 0;
+    top: 20px;
+    right: 0;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
 .face-donate {
     z-index: 251;
     overflow: auto;
@@ -559,6 +576,10 @@ html, body {
 }
 
 #donate-modal {
+    display: none;
+}
+
+#circle-save-modal {
     display: none;
 }
 
@@ -845,4 +866,26 @@ html, body {
 
 .err-bg {
     background-color: #ffecec;
+}
+
+/* 圈圈加载 */
+ame-circle-loading animation {
+    transform: rotate(34.3469deg);
+}
+
+.ame-circle {
+    animation-name: ame-circle-loading;
+    animation-iteration-count: infinite;
+    animation-duration: 0.75s;
+    animation-timing-function: linear;
+}
+
+@-webkit-keyframes ame-circle-loading {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }

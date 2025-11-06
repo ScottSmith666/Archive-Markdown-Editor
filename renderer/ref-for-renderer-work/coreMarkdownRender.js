@@ -382,6 +382,8 @@ let renderProcess = {
 
             // 点击设定密码继续
             document.getElementById("continue").addEventListener("click", async () => {
+                document.getElementById("pswd-modal").style.display = "none";
+                document.getElementById("circle-save-modal").style.display = "block";
                 let pswd = document.getElementById("set-password").value;
                 let pswdAgain = document.getElementById("set-password-again").value;
                 let pm = [
@@ -389,16 +391,18 @@ let renderProcess = {
                     `兩次輸入的密碼不一致，請重新確認並輸入！`,
                     `The first password is different from the second one. Please confirm it!`
                 ];
-                if (pswd !== pswdAgain) alert(pm[await window.settings.getLangSettings()]);
-                else {
+                if (pswd !== pswdAgain) {
+                    document.getElementById("circle-save-modal").style.display = "none";
+                    alert(pm[await window.settings.getLangSettings()]);
+                } else {
                     // 新建文件编辑后保存
-                    document.getElementById("pswd-modal").style.display = "none";
                     window.save.customSaveFile(editor.getValue(), this.openFilePath, pswd).then((afterSave) => {
                         if (afterSave[1]) {  // 如果另存为之后返回的列表第二个元素（代表文件路径）为undefined，则不设置保存成功标记
                             // 设置保存状态
                             window.setSaveStatus.setSaveStatus(true);
-                            window.loadFileContent.openFileInNewWindow(afterSave[1]);
-                            window.qt.closeThisWindow(this.windowId);
+                            window.loadFileContent.openFileInNewWindow(afterSave[1]).then(() => {
+                                window.qt.closeThisWindow(this.windowId);
+                            });
                         }
                     });
                 }
@@ -406,6 +410,8 @@ let renderProcess = {
 
             // 旧文件保存时设定密码继续
             document.getElementById("auto-continue").addEventListener("click", async () => {
+                document.getElementById("auto-pswd-modal").style.display = "none";
+                document.getElementById("circle-save-modal").style.display = "block";
                 let pswd = document.getElementById("auto-set-password").value;
                 let pswdAgain = document.getElementById("auto-set-password-again").value;
                 let pm = [
@@ -413,7 +419,10 @@ let renderProcess = {
                     `兩次輸入的密碼不一致，請重新確認並輸入！`,
                     `The first password is different from the second one. Please confirm it!`
                 ];
-                if (pswd !== pswdAgain) alert(pm[await window.settings.getLangSettings()]);
+                if (pswd !== pswdAgain) {
+                    document.getElementById("circle-save-modal").style.display = "none";
+                    alert(pm[await window.settings.getLangSettings()]);
+                }
                 else {
                     let autoSaveResult = await window.save.autoSaveFile(editor.getValue(), this.openFilePath, pswd);
                     if (autoSaveResult) {
@@ -668,6 +677,7 @@ let renderProcess = {
                 // 已存在的文件更改后的保存
                 if (this.openFilePath.split(".").pop() === "mdz") document.getElementById("auto-pswd-modal").style.display = "block";
                 else {
+                    document.getElementById("circle-save-modal").style.display = "block";
                     let autoSaveResult = await window.save.autoSaveFile(editor.getValue(), this.openFilePath, "");
                     if (autoSaveResult) {
                         const currentUrl = new URL(window.location.href);
@@ -1024,6 +1034,7 @@ let renderProcess = {
 
         // 验证路径下的文件是否存在，如不存在则提醒
         if (openFilePath && !(await window.loadFileContent.verifyFileExists(openFilePath))) {
+            document.getElementById("circle-loading-modal").style.display = "none";
             let pm = [
                 `文件“${ openFilePath }”不存在，无法打开！`,
                 `檔案「${ openFilePath }」不存在，無法開啟！`,
@@ -1035,6 +1046,7 @@ let renderProcess = {
 
         // 验证文件名是否合法，如不合法则禁止打开
         if (openFilePath && !(await window.loadFileContent.verifyFileNameValid(openFilePath))) {
+            document.getElementById("circle-loading-modal").style.display = "none";
             let pm = [
                 `文件名包含非法字符，或者文件所处路径内含有空格，请修改文件名或将文件移至其他路径再尝试打开！`,
                 `檔案名稱包含非法字符，或檔案所處路徑內含有空格，請修改檔案名稱或將檔案移至其他路徑再嘗試開啟！`,
@@ -1046,6 +1058,7 @@ let renderProcess = {
 
         // 加载文件内容
         if ((await window.loadFileContent.verifyFileIsOpen(openFilePath))) {
+            document.getElementById("circle-loading-modal").style.display = "none";
             let pm = [
                 `文件“${ openFilePath }”已打开，请勿再次打开！`,
                 `檔案「${ openFilePath }」已打開，請勿再開啟！`,
@@ -1064,6 +1077,7 @@ let renderProcess = {
                     }
                 } else this.fileContent = await window.loadFileContent.loadFileContent(openFilePath, "");
             }
+            document.getElementById("circle-loading-modal").style.display = "none";
         }
 
         window.setSaveStatus.setSaveStatus(true);  // 初始化本页面保存状态为true
