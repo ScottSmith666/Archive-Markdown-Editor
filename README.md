@@ -2,7 +2,7 @@
 
 ---
 
-### 注：本教程仅适用于版本1.0.4 Alpha5及以上，如要编译旧版本，请参考旧版教程。
+### 注：本教程仅适用于版本1.0.4 Alpha5及以上，如要编译旧版本，请参考[旧版教程](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/old/README_OLD.md)。
 
 ![](https://archive-markdown-editor-ss.pages.dev/assets/face-C0IE5nk5.png)
 
