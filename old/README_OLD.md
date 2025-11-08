@@ -2,7 +2,7 @@
 
 ---
 
-### 注：本教程仅适用于版本1.0.4 Alpha5及以上，如要编译旧版本，请参考旧版教程。
+### 注：本教程适用于版本1.0.0 Alpha1至1.0.3 Alpha4，后续的新版本请参考新版教程。
 
 ![](https://archive-markdown-editor-ss.pages.dev/assets/face-C0IE5nk5.png)
 
@@ -19,14 +19,21 @@ Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非�
 
 ### 2. 自行编译安装
 #### * 本项目使用了node的新特性（node原生sqlite读写模块node:sqlite），所以node版本不可低于`22.5.0`，推荐使用`22.21.0 LTS`版本，并且确保你的环境已安装`yarn`。
-
+#### * 本项目使用了Rust `1.90.0`版本，请安装到位。
 #### 2.1. Windows x64
 ##### 如果需要制作Windows Installer安装包（*.msi），那么还需要安装Visual Studio 2022、Wix 3.14和Votive2022.vsix插件（均在`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi\vs_sln`目录中）。
 首先将项目克隆至本地（如桌面）
 ```powershell
 PS C:\Users\scottsmith\Desktop> git clone https://github.com/ScottSmith666/Archive-Markdown-Editor.git
 ```
-
+然后进入项目的Rust lib目录，安装lib的依赖
+```powershell
+PS C:\Users\scottsmith\Desktop> cd .\Archive-Markdown-Editor\libs\xc_mdz && yarn install
+```
+然后返回项目本体目录
+```powershell
+PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor\libs\xc_mdz> cd ..\..
+```
 安装项目本体的依赖
 ```powershell
 PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> npm install
@@ -53,7 +60,14 @@ PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> node .\distribute
 ```shell
 git clone https://github.com/ScottSmith666/Archive-Markdown-Editor.git
 ```
-
+然后进入项目的Rust lib目录，安装lib的依赖
+```shell
+cd ./Archive-Markdown-Editor/libs/xc_mdz && yarn install
+```
+然后返回项目本体目录
+```shell
+cd ../..
+```
 安装项目本体的依赖。
 ```shell
 npm install
@@ -63,6 +77,8 @@ npm install
 ```shell
 # macOS
 ./distribute
+# Linux
+npm run package
 ```
 
 macOS平台打包完成后，可在`.\Archive-Markdown-Editor\deploy_app\macOS-arm64-dmg`中找到打包完成的*.dmg文件。
@@ -81,6 +97,8 @@ Linux平台打包完成后，可在`.\Archive-Markdown-Editor\out`中找到编�
 
 #### 2.3. Windows arm64
 请参考Linux版本的编译安装方法，**不要**参考Windows x64的编译安装方法。
+另：arm64 Windows在编译完Rust库时不会自动拷贝至对应位置，所以请去`.\Archive-Markdown-Editor\libs\xc_mdz`目录找到`xc_mdz-win32-arm64-msvc.node`，并将其复制到`.\Archive-Markdown-Editor\libs\rust_libraries`，并更名为`xc_mdz.node`。然后再运行`npm run package`。
+
 
 ## 三. 提升Markdown易用性的新格式：*.mdz
 

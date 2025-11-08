@@ -889,3 +889,8 @@ ame-circle-loading animation {
         transform: rotate(360deg);
     }
 }
+
+/* 将“仅渲染可视区域content-visibility: auto;”的CSS应用于每个渲染后Markdown区块的元素标签上 */
+.md-content-visibility {
+    content-visibility: auto;
+}

@@ -6,9 +6,9 @@ let renderProcess = {
             windowTitle: null,
             openFilePath: null,
             openFileName: null,
-            openFileContent: null,
             platform: null,
             saveStatus: true,
+            fileContent: '',
         }
     },
     async mounted() {
@@ -159,7 +159,9 @@ let renderProcess = {
             });
 
             // 初始化editor value
+            console.log("before");
             if (this.fileContent) editor.setValue(this.fileContent);
+            console.log("after");
 
             // 初始化值
             this.renderChange(editor);
@@ -345,13 +347,14 @@ let renderProcess = {
 
             // 解锁文件
             document.getElementById("unlock").addEventListener("click", async () => {
+                document.getElementById("circle-loading-modal").style.display = "block";
                 let inputPassword = document.getElementById("file-password").value;
                 this.fileContent = await window.loadFileContent.loadFileContent(this.openFilePath, inputPassword);
                 if (!this.fileContent) {  // 密码错误
                     let pm = [
                         `密码错误！`,
                         `密碼錯誤！`,
-                        `Wrong password!`
+                        `Incorrect password!`
                     ];
                     alert(pm[await window.settings.getLangSettings()]);
                     setTimeout(() => {
@@ -362,6 +365,7 @@ let renderProcess = {
                     editor.setValue(this.fileContent);
                     window.setSaveStatus.setSaveStatus(true);
                     document.getElementById("real-edit").style.display = "block";
+                    document.getElementById("circle-loading-modal").style.display = "none";
                 }
             });
 
@@ -732,8 +736,6 @@ let renderProcess = {
                 document.getElementById("MathJax-script").setAttribute(
                     "src", "../libs/third_party/MathJax/es5/tex-svg-full.js");
                 MathJax.typesetPromise();
-
-                // 更改mathjax父<p>的
             });
         },
 
@@ -1074,6 +1076,14 @@ let renderProcess = {
                     if (this.fileContent === false) {
                         document.getElementById("real-edit").style.display = "none";
                         document.getElementById("unlock-modal").style.display = "block";
+                    } else if (this.fileContent === undefined) {
+                        let pm = [
+                            `文件已损坏！`,
+                            `檔案已損壞！`,
+                            `File is corrupted!`
+                        ];
+                        alert(pm[await window.settings.getLangSettings()]);
+                        window.qt.totalCloseThisWindow(this.windowId, this.openFilePath);
                     }
                 } else this.fileContent = await window.loadFileContent.loadFileContent(openFilePath, "");
             }

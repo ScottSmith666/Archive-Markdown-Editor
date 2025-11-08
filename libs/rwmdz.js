@@ -1,14 +1,28 @@
 const path = require("node:path");
 const { app } = require("electron");
 const GlobalVar = require(path.join(__dirname, "globalvar"));
+const {exec} = require("child_process");
+const fs = require("fs");
 
 // 打包后动态链接库并不在原位置，需要更改为打包后的路径
-let xc_mdz;
-if (app.isPackaged) xc_mdz = require(path.join(process.resourcesPath, "app.asar", "libs", "rust_libraries", "xc_mdz.node"));
-else xc_mdz = require(path.join(__dirname, "rust_libraries", "xc_mdz.node"));
+// let xc_mdz;
+// if (app.isPackaged) xc_mdz = require(path.join(process.resourcesPath, "app.asar", "libs", "rust_libraries", "xc_mdz.node"));
+// else xc_mdz = require(path.join(__dirname, "rust_libraries", "xc_mdz.node"));
 
 
 const gVar = new GlobalVar();
+
+function runCommand(command) {
+    console.log(`正在执行${command}`);
+    let exec = require('child_process').execSync;
+    try {
+        exec(command);
+    } catch (err) {
+        if (err.toString().includes("incorrect password")) return -1;  // 解压密码错误
+        else return -2;  // 文件可能损坏
+    }
+    return 0;
+}
 
 function RwMdz() {
     /**
@@ -20,15 +34,16 @@ function RwMdz() {
          */
 
         // 解压mdz文件
+            console.log(password);
         let mdzPathList = mdzPath.split(gVar.pathSep);
         let mdzName = mdzPathList.pop();
         let mdzNameList = mdzName.split(".");
         mdzNameList.pop();
         let root = mdzPathList.join(gVar.pathSep);
-        let xResult = xc_mdz.xcMdz(mdzPath, root + gVar.pathSep + "._mdz_content." + mdzNameList.join("."), 2, password === "" ? 2 : 1, password);
-        if (xResult === -1) return -1;
+        if (fs.existsSync(root + gVar.pathSep + "._mdz_content." + mdzNameList.join("."))) runCommand(`rm -rf ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`);
+        if (runCommand(`mkdir ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} && unzip -P ${password === "" ? '""' : password} ${mdzPath} -d ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`) === -1) return -1;
         // 返回mdz文件内md核心文件的路径
-        return root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + mdzNameList.join(".") + ".md";
+        else return root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + mdzNameList.join(".") + ".md";
     };
 
     this.writeMdz = (folderPath, password = "") => {
@@ -37,7 +52,9 @@ function RwMdz() {
          */
         let folderPathList = folderPath.split(gVar.pathSep);
         let folderName = folderPathList.pop();
-        xc_mdz.xcMdz(folderPath, folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName.replace("._mdz_content.", "") + ".mdz", 1, password === "" ? 2 : 1, password);
+
+        let needPassword = password === "" ? [``, ``] : [`-e`, `-P ${password}`];
+        runCommand(`cd ${folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName} && rm -rf .DS_Store __MACOSX && zip -r ${needPassword[0]} ${".." + gVar.pathSep + folderName.replace("._mdz_content.", "") + ".mdz"} . ${needPassword[1]}`);
     }
 }
 

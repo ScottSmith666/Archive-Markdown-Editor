@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport"
-          content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
     <title id="app-title"></title>
     <link rel="stylesheet" href="../libs/third_party/prism/light/prism-full-scott.css">
     <link rel="stylesheet" href="../themes/theme.css">
@@ -986,7 +985,7 @@
 
                         <div class="fonts line-num" id="write">
                             <!--所有的文档内容，均inject在该标签的内部，不可inject在其他地方！-->
-                            <div v-for="(item, index) in mdResult" v-html="renderExecute(item)"
+                            <div class="md-content-visibility" v-for="(item, index) in mdResult" v-html="renderExecute(item)"
                                  :key="'marked-' + index"></div>
                         </div>
                         <div style="height: 20px;"></div>

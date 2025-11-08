@@ -47,6 +47,7 @@ function CommonIpc() {
              */
             const readyDestroyedWindow = BrowserWindow.fromId(Number(windowId));
             readyDestroyedWindow.destroy();
+            console.log(path);
             settingsConfigManager.deleteInstantHistoryRecords(path);
         });
         ipcMain.on('reload-app', (event) => {
@@ -109,8 +110,9 @@ function CommonIpc() {
                 return fs.readFileSync(path, 'utf8');
             else if (path.split(".").pop() === "mdz") {  // 加载Archive Markdown File (mdz)
                 let mdzCoreFilePath = rwMdz.readMdz(path, password);
-                console.log(mdzCoreFilePath);
+                console.log("mdzCoreFilePath:", mdzCoreFilePath);
                 if (mdzCoreFilePath === -1) return false;
+                if (mdzCoreFilePath === -2 || !fs.existsSync(mdzCoreFilePath)) return undefined;
                 return fs.readFileSync(mdzCoreFilePath, 'utf8');
             }
         });

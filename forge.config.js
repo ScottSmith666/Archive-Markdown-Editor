@@ -25,7 +25,7 @@ module.exports = {
             ".idea",
             ".gitignore",
             "distribute",
-            "README.md",
+            "README_OLD.md",
             "test.md",
             "electron-cache",
             "examples",
@@ -74,7 +74,7 @@ module.exports = {
             "libs/third_party/monaco/min-maps",
             "libs/third_party/monaco/monaco.d.ts",
             "libs/third_party/monaco/package.json",
-            "libs/third_party/monaco/README.md",
+            "libs/third_party/monaco/README_OLD.md",
             "libs/third_party/monaco/ThirdPartyNotices.txt",
 
             "libs/xc_mdz",

@@ -1,9 +1,16 @@
-const path = require("node:path");
-const xc_mdz = require(path.join(__dirname, "..", "libs", "rust_libraries", "xc_mdz.node"));
+const {exec} = require("child_process");
 
+function runCommand(command) {
+    console.log(command);
+    let exec = require('child_process').execSync;
+    try {
+        exec(command);
+    } catch (err) {
+        console.log(err);
+        if (err.toString().includes("incorrect password")) return -1;
+    }
+    return 0;
+}
 
-// 压缩
-let cResult = xc_mdz.xcMdz("/Users/scottsmith/Desktop/ttt", "/Users/scottsmith/Desktop/ttt.zip", 1, 1, "1234");
-
-// 解压
-let xResult = xc_mdz.xcMdz("/Users/scottsmith/Desktop/ttt.zip", "/Users/scottsmith/Desktop/ttt2", 2, 1, "1234");
+let out = runCommand(`unzip -P "" /Users/scottsmith/Desktop/未命名.mdz -d /Users/scottsmith/Desktop`, () => 0);
+console.log(out);

@@ -1,12 +1,12 @@
 {
   "name": "ArchiveMarkdownEditor",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "mdz file editor",
   "main": "main.js",
   "scripts": {
-    "start": "node ./distribute only && electron-forge start",
+    "start": "electron-forge start",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package": "node ./distribute only && electron-forge package",
+    "package": "electron-forge package",
     "make": "electron-forge make"
   },
   "keywords": [
