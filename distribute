@@ -32,7 +32,7 @@ console.log(`检测到系统架构：${ process.arch }...`);
 if (process.platform === "win32") {
     console.log("检测到操作系统：Windows...");
     if (process.arch === "x64") distributeWin32X64.run();
-    else if (process.arch === "arm64") runCommand(`cd ${BASE_PATH} && npm run package`, () => 0);
+    else if (process.arch === "arm64") runCommand(`cd ${BASE_PATH}; npm run package`, () => 0);
 }
 
 if (process.platform === "darwin") {

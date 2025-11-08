@@ -3,6 +3,7 @@ const { app } = require("electron");
 const GlobalVar = require(path.join(__dirname, "globalvar"));
 const {exec} = require("child_process");
 const fs = require("fs");
+const process = require("node:process");
 
 // 打包后动态链接库并不在原位置，需要更改为打包后的路径
 // let xc_mdz;
@@ -11,6 +12,8 @@ const fs = require("fs");
 
 
 const gVar = new GlobalVar();
+
+let cmdSep = process.platform === "win32" ? ";" : "&&"
 
 function runCommand(command) {
     console.log(`正在执行${command}`);
@@ -41,7 +44,7 @@ function RwMdz() {
         mdzNameList.pop();
         let root = mdzPathList.join(gVar.pathSep);
         if (fs.existsSync(root + gVar.pathSep + "._mdz_content." + mdzNameList.join("."))) runCommand(`rm -rf ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`);
-        if (runCommand(`mkdir ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} && unzip -P ${password === "" ? '""' : password} ${mdzPath} -d ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`) === -1) return -1;
+        if (runCommand(`mkdir ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} ${cmdSep} unzip -P ${password === "" ? '""' : password} ${mdzPath} -d ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`) === -1) return -1;
         // 返回mdz文件内md核心文件的路径
         else return root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + mdzNameList.join(".") + ".md";
     };
@@ -54,7 +57,7 @@ function RwMdz() {
         let folderName = folderPathList.pop();
 
         let needPassword = password === "" ? [``, ``] : [`-e`, `-P ${password}`];
-        runCommand(`cd ${folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName} && rm -rf .DS_Store __MACOSX && zip -r ${needPassword[0]} ${".." + gVar.pathSep + folderName.replace("._mdz_content.", "") + ".mdz"} . ${needPassword[1]}`);
+        runCommand(`cd ${folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName} ${cmdSep} rm -rf .DS_Store __MACOSX ${cmdSep} zip -r ${needPassword[0]} ${".." + gVar.pathSep + folderName.replace("._mdz_content.", "") + ".mdz"} . ${needPassword[1]}`);
     }
 }
 
