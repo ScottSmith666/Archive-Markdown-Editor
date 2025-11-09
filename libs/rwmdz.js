@@ -44,7 +44,7 @@ function RwMdz() {
         mdzNameList.pop();
         let root = mdzPathList.join(gVar.pathSep);
         if (fs.existsSync(root + gVar.pathSep + "._mdz_content." + mdzNameList.join("."))) runCommand(`rm -rf ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`);
-        if (runCommand(`mkdir ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} ${cmdSep} unzip -P ${password === "" ? '""' : password} ${mdzPath} -d ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`) === -1) return -1;
+        if (runCommand(`mkdir ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} ${cmdSep} unzip -P ${password === "" ? '\t' : password} ${mdzPath} -d ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`) === -1) return -1;
         // 返回mdz文件内md核心文件的路径
         else return root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + mdzNameList.join(".") + ".md";
     };
