@@ -7,7 +7,10 @@ const process = require("node:process");
 
 // 打包后动态链接库并不在原位置，需要更改为打包后的路径
 let prog7z;
-if (app.isPackaged) prog7z = path.join(process.resourcesPath, process.platform + "-pf", (process.platform === "win32" ? "7za.exe" : "7zz"));
+if (app.isPackaged) {
+    if (process.platform === "win32" && process.arch === "x64") prog7z = path.join(process.resourcesPath, process.platform + "-pf", (process.platform === "win32" ? "7za.exe" : "7zz"));
+    else prog7z = path.join(process.resourcesPath, process.platform + "-pf", "7zz");
+}
 else prog7z = path.join(__dirname, "third_party", "7-Zip", process.arch + "-ah", process.platform + "-pf", (process.platform === "win32" ? "7za.exe" : "7zz"));
 
 
@@ -42,7 +45,7 @@ function RwMdz() {
         let mdzNameList = mdzName.split(".");
         mdzNameList.pop();
         let root = mdzPathList.join(gVar.pathSep);
-        if (runCommand(`${prog7z} x ${mdzPath} -r -o${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} -p${password === "" ? '' : password} -mmt=4 -y ${cmdSep} attrib +h ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`) === -1) return -1;
+        if (runCommand(`"${prog7z}" x "${mdzPath}" -r -o${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} -p${password === "" ? '' : password} -mmt=4 -y ${cmdSep} attrib +h "${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}"`) === -1) return -1;
         // 返回mdz文件内md核心文件的路径
         else return root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + mdzNameList.join(".") + ".md";
     };
@@ -55,7 +58,7 @@ function RwMdz() {
         let folderName = folderPathList.pop();
 
         let needPassword = password === "" ? `` : `-p${password}`;
-        runCommand(`cd ${folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName} ${cmdSep} ${process.platform === "darwin" ? "rm -rf .DS_Store __MACOSX " + cmdSep : ""} ${prog7z} a -r ${".." + gVar.pathSep + folderName.replace("._mdz_content.", "") + ".mdz"} .${gVar.pathSep}* ${needPassword} -mmt=4 -y`);
+        runCommand(`cd "${folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName}" ${cmdSep} ${process.platform === "darwin" ? "rm -rf .DS_Store __MACOSX " + cmdSep : ""} "${prog7z}" a -r "${'..' + gVar.pathSep + folderName.replace('._mdz_content.', '') + '.mdz'}" .${gVar.pathSep}* ${needPassword} -mmt=4 -y`);
     }
 }
 
