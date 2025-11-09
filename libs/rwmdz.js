@@ -24,7 +24,7 @@ function runCommand(command) {
     try {
         exec(command);
     } catch (err) {
-        if (err.toString().includes("ERROR: Wrong password")) return -1;  // 解压密码错误
+        if (err.toString().includes("Wrong password")) return -1;  // 解压密码错误
         else return -2;  // 文件可能损坏
     }
     return 0;
