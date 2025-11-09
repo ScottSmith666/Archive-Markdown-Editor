@@ -63,7 +63,6 @@ npm install
 
 开始编译打包本项目
 ```shell
-# macOS
 ./distribute
 ```
 
