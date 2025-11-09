@@ -55,7 +55,7 @@ function RwMdz() {
         let folderName = folderPathList.pop();
 
         let needPassword = password === "" ? `` : `-p${password}`;
-        runCommand(`cd ${folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName} ${cmdSep} ${process.platform === "darwin" ? "rm -rf .DS_Store __MACOSX" : ""} ${cmdSep} ${prog7z} a -r ${".." + gVar.pathSep + folderName.replace("._mdz_content.", "") + ".mdz"} .${gVar.pathSep}* ${needPassword} -mmt=4 -y`);
+        runCommand(`cd ${folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName} ${cmdSep} ${process.platform === "darwin" ? "rm -rf .DS_Store __MACOSX " + cmdSep : ""} ${prog7z} a -r ${".." + gVar.pathSep + folderName.replace("._mdz_content.", "") + ".mdz"} .${gVar.pathSep}* ${needPassword} -mmt=4 -y`);
     }
 }
 
