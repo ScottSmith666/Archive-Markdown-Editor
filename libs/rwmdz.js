@@ -8,10 +8,9 @@ const process = require("node:process");
 // 打包后动态链接库并不在原位置，需要更改为打包后的路径
 let prog7z;
 if (app.isPackaged) {
-    if (process.platform === "win32" && process.arch === "x64") prog7z = path.join(process.resourcesPath, process.platform + "-pf", (process.platform === "win32" ? "7za.exe" : "7zz"));
+    if (process.platform === "win32") prog7z = path.join(process.resourcesPath, process.platform + "-pf", (process.platform === "win32" ? "7za.exe" : "7zz"));
     else prog7z = path.join(process.resourcesPath, process.platform + "-pf", "7zz");
-}
-else prog7z = path.join(__dirname, "third_party", "7-Zip", process.arch + "-ah", process.platform + "-pf", (process.platform === "win32" ? "7za.exe" : "7zz"));
+} else prog7z = path.join(__dirname, "third_party", "7-Zip", process.arch + "-ah", process.platform + "-pf", (process.platform === "win32" ? "7za.exe" : "7zz"));
 
 
 const gVar = new GlobalVar();
