@@ -182,10 +182,11 @@
                 window.qt.quit();
             },
             openFile() {
-                window.openNewWindow.openFile();
-                setTimeout(() => {
-                    window.close();
-                }, 1000);
+                window.openNewWindow.openFile().then(ret => {
+                    if (ret !== -1) setTimeout(() => {
+                        window.close();
+                    }, 1000);
+                });
             },
             openFileFromHistory(path) {
                 window.openNewWindow.openFileFromPath(path);

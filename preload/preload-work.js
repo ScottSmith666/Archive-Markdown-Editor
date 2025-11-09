@@ -61,7 +61,7 @@ contextBridge.exposeInMainWorld('userSurface', {
 // 打开新窗口&文件窗口
 contextBridge.exposeInMainWorld('openNewWindow', {
     openNew: () => ipcRenderer.send('open-new'),
-    openFile: () => ipcRenderer.send('open-file'),
+    openFile: () => ipcRenderer.invoke('open-file'),
 });
 
 // 加载文件内容

@@ -90,12 +90,17 @@ function CommonIpc() {
              */
             workWindow();
         });
-        ipcMain.on('open-file', (event) => {
+        ipcMain.handle('open-file', (event) => {
             const dialogs = new Dialogs();
             let openFileTitle = langSurface.prompts.open[gVar.langs()];
             let filePath = dialogs.openFileDialog(openFileTitle);  // 获得打开的文件路径
+            console.log(filePath);
             // 以打开exists文件的方式打开work窗口
-            if (filePath) workWindow(filePath[0]);
+            if (filePath) {
+                workWindow(filePath[0]);
+                return 0;
+            }
+            else return -1;
         });
         ipcMain.handle('open-file-from-path', (event, path) => {
             workWindow(path);
