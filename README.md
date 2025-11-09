@@ -20,6 +20,8 @@ Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非�
 ### 2. 自行编译安装
 #### * 本项目使用了node的新特性（node原生sqlite读写模块node:sqlite），所以node版本不可低于`22.5.0`，推荐使用`22.21.0 LTS`版本，并且确保你的环境已安装`yarn`。
 
+### 特别注意：在Windows x64和Windows arm64上编译打包本程序需要在命令提示符（cmd）中进行！
+
 #### 2.1. Windows x64
 ##### 如果需要制作Windows Installer安装包（*.msi），那么还需要安装Visual Studio 2022、Wix 3.14和Votive2022.vsix插件（均在`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi\vs_sln`目录中）。
 首先将项目克隆至本地（如桌面）
