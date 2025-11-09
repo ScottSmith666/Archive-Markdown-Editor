@@ -42,7 +42,7 @@ function RwMdz() {
         let mdzNameList = mdzName.split(".");
         mdzNameList.pop();
         let root = mdzPathList.join(gVar.pathSep);
-        if (runCommand(`${prog7z} x ${mdzPath} -r -o${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} -p${password === "" ? '' : password} -mmt=4 -y`) === -1) return -1;
+        if (runCommand(`${prog7z} x ${mdzPath} -r -o${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} -p${password === "" ? '' : password} -mmt=4 -y ${cmdSep} attrib +h ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`) === -1) return -1;
         // 返回mdz文件内md核心文件的路径
         else return root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + mdzNameList.join(".") + ".md";
     };
