@@ -457,7 +457,7 @@ export const codiconsLibrary = {
     workspaceUnknown: register('workspace-unknown', 0xebc3),
     terminalCmd: register('terminal-cmd', 0xebc4),
     terminalDebian: register('terminal-debian', 0xebc5),
-    terminalLinux: register('terminal-linux', 0xebc6),
+    terminalLinux: register('terminal-linux-pf', 0xebc6),
     terminalPowershell: register('terminal-powershell', 0xebc7),
     terminalTmux: register('terminal-tmux', 0xebc8),
     terminalUbuntu: register('terminal-ubuntu', 0xebc9),

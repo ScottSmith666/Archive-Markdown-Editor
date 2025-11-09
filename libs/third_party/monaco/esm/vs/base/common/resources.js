@@ -192,7 +192,7 @@ export const extUri = new ExtUri(() => false);
  * casing matters.
  */
 export const extUriBiasedIgnorePathCase = new ExtUri(uri => {
-    // A file scheme resource is in the same platform as code, so ignore case for non linux platforms
+    // A file scheme resource is in the same platform as code, so ignore case for non linux-pf platforms
     // Resource can be from another platform. Lowering the case as an hack. Should come from File system provider
     return uri.scheme === Schemas.file ? !isLinux : true;
 });

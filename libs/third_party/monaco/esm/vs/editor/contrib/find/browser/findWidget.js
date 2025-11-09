@@ -646,7 +646,7 @@ export class FindWidget extends Widget {
         }
     }
     _onFindInputMouseDown(e) {
-        // on linux, middle key does pasting.
+        // on linux-pf, middle key does pasting.
         if (e.middleButton) {
             e.stopPropagation();
         }

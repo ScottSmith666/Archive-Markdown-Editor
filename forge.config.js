@@ -19,7 +19,7 @@ let ignoreDirs = [
     "package-lock.json",
     "node_modules",
 
-    "libs/third_party/7-Zip/", + (process.arch === "x64" ? "arm64" : "x64"),
+    "libs/third_party/7-Zip/",
     "libs/third_party/mermaid/dist/__mocks__",
     "libs/third_party/mermaid/dist/dagre-wrapper",
     "libs/third_party/mermaid/dist/diagram-api",
@@ -262,29 +262,12 @@ let ignoreDirs = [
     "libs/third_party/mermaid/dist/mermaid.core.mjs.map",
 ]
 
-if (process.platform === "win32") {
-    ignoreDirs.push(
-        `libs/third_party/7-Zip/${process.arch}/darwin`,
-        `libs/third_party/7-Zip/${process.arch}/linux`
-    );
-} else if (process.platform === "darwin") {
-    ignoreDirs.push(
-        `libs/third_party/7-Zip/${process.arch}/win32`,
-        `libs/third_party/7-Zip/${process.arch}/linux`
-    );
-} else if (process.platform === "linux") {
-    ignoreDirs.push(
-        `libs/third_party/7-Zip/${process.arch}/darwin`,
-        `libs/third_party/7-Zip/${process.arch}/win32`
-    );
-}
-
 module.exports = {
     packagerConfig: {
         asar: true,
-        // extraResource: [
-        //     path.join(__dirname, './libs/rust_libraries')
-        // ],
+        extraResource: [
+            path.join(__dirname, `./libs/third_party/7-Zip/${process.arch}-ah/${process.platform}-pf`)
+        ],
         overwrite: true,
         // download: {
         //     mirror: `file://${path.join(__dirname, './electron-cache/')}`,
