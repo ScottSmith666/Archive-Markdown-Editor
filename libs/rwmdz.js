@@ -13,7 +13,7 @@ else prog7z = path.join(__dirname, "third_party", "7-Zip", process.arch, process
 
 const gVar = new GlobalVar();
 
-let cmdSep = process.platform === "win32" ? ";" : "&&"
+let cmdSep = "&&";
 
 function runCommand(command) {
     console.log(`正在执行${command}`);
