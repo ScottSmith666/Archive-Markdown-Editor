@@ -23,32 +23,32 @@ Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非�
 #### 2.1. Windows x64
 ##### 如果需要制作Windows Installer安装包（*.msi），那么还需要安装Visual Studio 2022、Wix 3.14和Votive2022.vsix插件（均在`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi\vs_sln`目录中）。
 首先将项目克隆至本地（如桌面）
-```powershell
-PS C:\Users\scottsmith\Desktop> git clone https://github.com/ScottSmith666/Archive-Markdown-Editor.git
+```cmd
+C:\Users\scottsmith\Desktop> git clone https://github.com/ScottSmith666/Archive-Markdown-Editor.git
 ```
 然后进入项目的Rust lib目录，安装lib的依赖
-```powershell
-PS C:\Users\scottsmith\Desktop> cd .\Archive-Markdown-Editor\libs\xc_mdz && yarn install
+```cmd
+C:\Users\scottsmith\Desktop> cd .\Archive-Markdown-Editor\libs\xc_mdz && yarn install
 ```
 然后返回项目本体目录
-```powershell
-PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor\libs\xc_mdz> cd ..\..
+```cmd
+C:\Users\scottsmith\Desktop\Archive-Markdown-Editor\libs\xc_mdz> cd ..\..
 ```
 安装项目本体的依赖
-```powershell
-PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> npm install
+```cmd
+C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> npm install
 ```
 安装额外依赖
-```powershell
-PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> npm install .\libs\node-libs\exe-icon-extractor
+```cmd
+C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> npm install .\libs\node-libs\exe-icon-extractor
 ```
 额外依赖安装完成后，将`node_modules`中的`exe-icon-extractor`文件夹拷贝至`node_modules\@bitdisaster`中。
 
 为什么要安装额外依赖呢？因为**在Windows平台上**，`npm`直接在线安装`exe-icon-extractor`会发生编译错误，原因见[moudle.cc compile fail when using vs2022 #3](https://github.com/pelayomendez/exe-icon-extractor/issues/3)。
 
 开始编译打包本项目
-```powershell
-PS C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> node .\distribute
+```cmd
+C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> node .\distribute
 ```
 此步骤完成后会自动启动Visual Studio 2022，在Visual Studio 2022中打开`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi\vs_sln\SetupProject1.sln`，在`SetupProject1`上右键单击“生成”，等待打包成msi。
 ![](https://archive-markdown-editor-ss.pages.dev/assets/vs.jpg)
