@@ -6,9 +6,9 @@ const fs = require("fs");
 const process = require("node:process");
 
 // 打包后动态链接库并不在原位置，需要更改为打包后的路径
-// let xc_mdz;
-// if (app.isPackaged) xc_mdz = require(path.join(process.resourcesPath, "app.asar", "libs", "rust_libraries", "xc_mdz.node"));
-// else xc_mdz = require(path.join(__dirname, "rust_libraries", "xc_mdz.node"));
+let prog7z;
+if (app.isPackaged) prog7z = path.join(process.resourcesPath, "app.asar", "libs", "third_party", "7-Zip", process.arch, process.platform, (process.platform === "win32" ? "7za.exe" : "7zz"));
+else prog7z = path.join(__dirname, "third_party", "7-Zip", process.arch, process.platform, (process.platform === "win32" ? "7za.exe" : "7zz"));
 
 
 const gVar = new GlobalVar();
@@ -21,7 +21,7 @@ function runCommand(command) {
     try {
         exec(command);
     } catch (err) {
-        if (err.toString().includes("incorrect password")) return -1;  // 解压密码错误
+        if (err.toString().includes("ERROR: Wrong password")) return -1;  // 解压密码错误
         else return -2;  // 文件可能损坏
     }
     return 0;
@@ -37,14 +37,12 @@ function RwMdz() {
          */
 
         // 解压mdz文件
-            console.log(password);
         let mdzPathList = mdzPath.split(gVar.pathSep);
         let mdzName = mdzPathList.pop();
         let mdzNameList = mdzName.split(".");
         mdzNameList.pop();
         let root = mdzPathList.join(gVar.pathSep);
-        if (fs.existsSync(root + gVar.pathSep + "._mdz_content." + mdzNameList.join("."))) runCommand(`rm -rf ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`);
-        if (runCommand(`unzip -P ${password === "" ? '\t' : password} ${mdzPath} -d ${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")}`) === -1) return -1;
+        if (runCommand(`${prog7z} x ${mdzPath} -r -o${root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".")} -p${password === "" ? '' : password} -mmt=4 -y`) === -1) return -1;
         // 返回mdz文件内md核心文件的路径
         else return root + gVar.pathSep + "._mdz_content." + mdzNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + mdzNameList.join(".") + ".md";
     };
@@ -56,8 +54,8 @@ function RwMdz() {
         let folderPathList = folderPath.split(gVar.pathSep);
         let folderName = folderPathList.pop();
 
-        let needPassword = password === "" ? [``, ``] : [`-e`, `-P ${password}`];
-        runCommand(`cd ${folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName} ${cmdSep} ${process.platform === "darwin" ? "rm -rf .DS_Store __MACOSX" : ""} ${cmdSep} zip -r ${needPassword[0]} ${".." + gVar.pathSep + folderName.replace("._mdz_content.", "") + ".mdz"} . ${needPassword[1]}`);
+        let needPassword = password === "" ? `` : `-p${password}`;
+        runCommand(`cd ${folderPathList.join(gVar.pathSep) + gVar.pathSep + folderName} ${cmdSep} ${process.platform === "darwin" ? "rm -rf .DS_Store __MACOSX" : ""} ${cmdSep} ${prog7z} a -r ${".." + gVar.pathSep + folderName.replace("._mdz_content.", "") + ".mdz"} .${gVar.pathSep}* ${needPassword} -mmt=4 -y`);
     }
 }
 

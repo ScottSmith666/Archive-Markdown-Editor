@@ -12,5 +12,5 @@ function runCommand(command) {
     return 0;
 }
 
-let out = runCommand(`unzip -P "" /Users/scottsmith/Desktop/未命名.mdz -d /Users/scottsmith/Desktop`, () => 0);
+let out = runCommand(`/Volumes/Execute/Files/project/archive_markdown_editor/libs/third_party/7-Zip/arm64/darwin/7zz x /Users/scottsmith/Desktop/tst/Large12.mdz -r -o/Users/scottsmith/Desktop/tst/._mdz_content.Large12 -p12 -mmt=4 -y`, () => 0);
 console.log(out);
