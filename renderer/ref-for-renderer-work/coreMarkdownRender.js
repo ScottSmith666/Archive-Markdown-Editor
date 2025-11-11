@@ -1085,7 +1085,17 @@ let renderProcess = {
                         alert(pm[await window.settings.getLangSettings()]);
                         window.qt.totalCloseThisWindow(this.windowId, this.openFilePath);
                     }
-                } else this.fileContent = await window.loadFileContent.loadFileContent(openFilePath, "");
+                } else if (openFilePath.split(".").pop() === "md" || openFilePath.split(".").pop() === "txt") {
+                    this.fileContent = await window.loadFileContent.loadFileContent(openFilePath, "");
+                } else {
+                    let pm = [
+                        `本程序仅支持打开mdz、md和txt文件！`,
+                        `本程式僅支援開啟mdz、md和txt檔案！`,
+                        `This program only supports opening mdz, md, and txt files!`
+                    ];
+                    alert(pm[await window.settings.getLangSettings()]);
+                    window.qt.totalCloseThisWindow(this.windowId, this.openFilePath);
+                }
             }
             document.getElementById("circle-loading-modal").style.display = "none";
         }
