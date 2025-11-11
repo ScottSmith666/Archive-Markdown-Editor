@@ -1,6 +1,6 @@
 {
   "name": "ArchiveMarkdownEditor",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "mdz file editor",
   "main": "main.js",
   "scripts": {
@@ -28,5 +28,17 @@
   },
   "optionalDependencies": {
     "appdmg": "^0.6.6"
-  }
+  },
+  "fileAssociations": [
+    {
+      "ext": "md",
+      "name": "Markdown Files",
+      "role": "Editor"
+    },
+    {
+      "ext": "mdz",
+      "name": "Archive Markdown Files",
+      "role": "Editor"
+    }
+  ]
 }

@@ -18,7 +18,7 @@ const createMainWindow = () => {
      * 创建主窗口（欢迎+新建）
      */
     let windowsObject = new Windows();
-    windowsObject.mainWindow();
+    return windowsObject.mainWindow();
 };
 
 const createWorkSpaceWindow = (filePath = false) => {
@@ -32,18 +32,60 @@ const createWorkSpaceWindow = (filePath = false) => {
     forWorkIpcMain.workIpcMain(workWindow);
 };
 
-// 开始运行
+// 当应用启动前双击文件时，app.on("open-file")会比app.whenReady()先运行，就会产生bug打不开文件
+// 因此设置了这个全局变量，以备储存打开文件的路径
+let beforeRunFileInfo = false;
+let isExecutedInOpenFile = false;
+
+let firstOpenedMainWinID = 0;
+
+if (process.platform === 'darwin') {
+    app.on("open-file", (event, filePath) => {
+        beforeRunFileInfo = filePath;
+        event.preventDefault();
+        try {
+            createWorkSpaceWindow(filePath);
+            setTimeout(() => {
+                console.log(`First ID - ${firstOpenedMainWinID}`);
+                BrowserWindow.fromId(firstOpenedMainWinID).close();
+                isExecutedInOpenFile = true;
+            }, 500);
+        } catch (e) {}
+    });
+}
+
 app.whenReady().then(() => {
+    console.log("When ready先？");
     settingsConfigManager.initSettingsConfig();  // 初始化配置
     settingsConfigManager.deleteInstantHistoryRecords("", true);  // 初始化打开历史记录
     Menu.setApplicationMenu(menu);  //主进程设置应用菜单
-    createMainWindow();
+
+    // 如果是命令行参数指定文件路径（仅支持绝对路径），则直接打开WorkSpace Window
+    // --direct-open-file=/path/to/file.md(z)
+    let args = process.argv;
+    let pathArg = false;
+    for (let i = 0; i < args.length; i++) {
+        let arg = args[i];
+        if (arg.indexOf("--direct-open-file=") !== -1) {
+            pathArg = arg.replace("--direct-open-file=", "");
+            break;
+        }
+    }
+    if (pathArg) createWorkSpaceWindow(pathArg);
+    else if (pathArg === false) {
+        firstOpenedMainWinID = createMainWindow().id;
+    }
+
+    if (process.platform === 'darwin') {
+        if (beforeRunFileInfo !== false && !isExecutedInOpenFile) {
+            createWorkSpaceWindow(beforeRunFileInfo);
+            BrowserWindow.fromId(firstOpenedMainWinID).close();
+        }
+    }
+
     // 加载通用ipc
     let commonIpc = new CommonIpc();
     commonIpc.commonIpcMain(createWorkSpaceWindow);
-    app.on("activate", () => {
-        if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
-    });
 
     app.on('will-quit', () => {
         settingsConfigManager.deleteInstantHistoryRecords("", true);
@@ -51,5 +93,6 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-    createMainWindow();
+    firstOpenedMainWinID = createMainWindow().id;
+    console.log(`Empty ID - ${firstOpenedMainWinID}`);
 });
