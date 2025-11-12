@@ -2,7 +2,7 @@
 
 ---
 
-### 注：本教程仅适用于版本1.0.4 Alpha5及以上，如要编译旧版本，请参考[旧版教程](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/old/README_OLD.md)。
+### 注：本教程仅适用于版本1.0.5 Alpha6及以上，如要编译旧版本，请参考[旧版教程](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/old/README_OLD.md)和[1.0.4 Alpha5教程](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/old/README_OLD_104.md)。
 
 ![](https://archive-markdown-editor-ss.pages.dev/assets/face-C0IE5nk5.png)
 
@@ -22,8 +22,8 @@ Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非�
 
 ### 特别注意：在Windows x64和Windows arm64上编译打包本程序需要在命令提示符（cmd）中进行！
 
-#### 2.1. Windows x64
-##### 如果需要制作Windows Installer安装包（*.msi），那么还需要安装Visual Studio 2022、Wix 3.14和Votive2022.vsix插件（均在`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi\vs_sln`目录中）。
+#### 2.1. Windows x64/arm64
+##### 如果需要制作Windows Installer安装包（*.msi），那么还需要安装`Inno Setup`（已在`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi`目录中提供）。
 首先将项目克隆至本地（如桌面）
 ```cmd
 C:\Users\scottsmith\Desktop> git clone https://github.com/ScottSmith666/Archive-Markdown-Editor.git
@@ -33,22 +33,12 @@ C:\Users\scottsmith\Desktop> git clone https://github.com/ScottSmith666/Archive-
 ```cmd
 C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> npm install
 ```
-安装额外依赖
-```cmd
-C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> npm install .\libs\node-libs\exe-icon-extractor
-```
-额外依赖安装完成后，将`node_modules`中的`exe-icon-extractor`文件夹拷贝至`node_modules\@bitdisaster`中。
 
-为什么要安装额外依赖呢？因为**在Windows平台上**，`npm`直接在线安装`exe-icon-extractor`会发生编译错误，原因见[moudle.cc compile fail when using vs2022 #3](https://github.com/pelayomendez/exe-icon-extractor/issues/3)。
-
-开始编译打包本项目
+开始编译本项目
 ```cmd
 C:\Users\scottsmith\Desktop\Archive-Markdown-Editor> node .\distribute
 ```
-此步骤完成后会自动启动Visual Studio 2022，在Visual Studio 2022中打开`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi\vs_sln\SetupProject1.sln`，在`SetupProject1`上右键单击“生成”，等待打包成msi。
-![](https://archive-markdown-editor-ss.pages.dev/assets/vs.jpg)
-
-打包完成后，可在`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi\vs_sln\bin`中找到打包完成的*.msi文件。
+此步骤完成后，打开`Inno Setup`，进行安装包的制作，可参考网上的教程，也可参考`.\Archive-Markdown-Editor\deploy_app\Windows-x64-msi`目录中的`AME.iss`。
 
 #### 2.2. macOS arm64 & Linux x64/arm64
 首先将项目克隆至本地（如桌面）
@@ -79,9 +69,6 @@ Linux平台打包完成后，可在`.\Archive-Markdown-Editor\out`中找到编�
 ```shell
 ./ArchiveMarkdownEditor --no-sandbox
 ```
-
-#### 2.3. Windows arm64
-请参考Linux版本的编译安装方法，**不要**参考Windows x64的编译安装方法。
 
 ## 三. 提升Markdown易用性的新格式：*.mdz
 

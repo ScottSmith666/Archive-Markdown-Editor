@@ -47,7 +47,7 @@ if (process.platform === 'darwin') {
             createWorkSpaceWindow(filePath);
             setTimeout(() => {
                 console.log(`First ID - ${firstOpenedMainWinID}`);
-                BrowserWindow.fromId(firstOpenedMainWinID).close();
+                if (BrowserWindow.fromId(firstOpenedMainWinID)) BrowserWindow.fromId(firstOpenedMainWinID).close();
                 isExecutedInOpenFile = true;
             }, 500);
         } catch (e) {}
@@ -55,7 +55,6 @@ if (process.platform === 'darwin') {
 }
 
 app.whenReady().then(() => {
-    console.log("When ready先？");
     settingsConfigManager.initSettingsConfig();  // 初始化配置
     settingsConfigManager.deleteInstantHistoryRecords("", true);  // 初始化打开历史记录
     Menu.setApplicationMenu(menu);  //主进程设置应用菜单
@@ -73,13 +72,13 @@ app.whenReady().then(() => {
     }
     if (pathArg) createWorkSpaceWindow(pathArg);
     else if (pathArg === false) {
-        firstOpenedMainWinID = createMainWindow().id;
+        if (BrowserWindow.getAllWindows().length === 0) firstOpenedMainWinID = createMainWindow().id;
     }
 
     if (process.platform === 'darwin') {
         if (beforeRunFileInfo !== false && !isExecutedInOpenFile) {
             createWorkSpaceWindow(beforeRunFileInfo);
-            BrowserWindow.fromId(firstOpenedMainWinID).close();
+            if (BrowserWindow.fromId(firstOpenedMainWinID)) BrowserWindow.fromId(firstOpenedMainWinID).close();
         }
     }
 
