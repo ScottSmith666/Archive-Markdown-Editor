@@ -1,3 +1,22 @@
+// 禁止在文件名中出现的字符
+let forbiddenChars = [">", "<", ":", "\"", "'", "/", "\\", "|", "*", "?", " "];
+// 常见视频文件的扩展名
+let videoExts = ["mp4", "mov", "webm", "avi", "wmv", "flv", "mkv", "m4v", "mpeg", "ts"];
+// 常见音频文件的扩展名
+let audioExts = ["mp3", "wav", "flac", "ogg", "wma", "aac", "m4a"];
+// 常见图片文件的扩展名
+let imageExts = ["jpg", "jpeg", "tif", "tiff", "gif", "bmp", "svg", "png"];
+// 常见压缩包的扩展名
+let compressExts = ["zip", "7z", "rar", "gz", "tar", "zstd", "bz2", "xz", "iso", "img", "dmg", "docx", "pptx", "xlsx", "mdz"];
+
+function sMedia(href) {
+
+    window.save.saveMedia(href).then(res => {
+        document.getElementById('circle-save-modal').style.display = 'none';
+        if (typeof(res) === "string") alert(res);
+    });
+}
+
 let renderProcess = {
     data() {
         return {
@@ -1204,13 +1223,22 @@ let renderProcess = {
 
                 // 支持音视频
                 image({href, title, text, tokens}) {
+                    let validExts = [...videoExts, ...audioExts, ...imageExts, ...compressExts];
+
                     if (tokens) {
                         text = this.parser.parseInline(tokens, this.parser.textRenderer);  // “![]”内的字符
                     }
+
+                    // 初筛，如果不符合任意四大文件类型，就直接拒绝插入
+                    if (!(validExts.includes(href.split(".").pop()))) return `<p style="color: red; font-weight: bold;">错误：不支持的文件类型！</p>`;
+
+                    if (forbiddenChars.some(char => href.split(/\/|\\/).pop().includes(char)) || href.includes(" "))
+                        return `<p style="color: red; font-weight: bold;">错误：文件名中出现非法字符或者文件路径中出现空格！</p>`;
+
                     if (!(/(http\:\/\/)(\S|\s)+/.test(href) || /(https\:\/\/)(\S|\s)+/.test(href))) {
                         href = getAbsoluteMediaPath(platform, openFilePath, href);
                         href = href.replaceAll('\\', '/');  // 如果不是URL，且包含反斜杠（普通文件名里面基本没这个符号，可以放心全部替换），说明是Windows文件路径，将其替换成正斜杠
-                        if (!href) return `<p style="color: red; font-weight: bold;">错误：未保存文件，无法使用相对路径引用多媒体！</p>`
+                        if (!href) return `<p style="color: red; font-weight: bold;">错误：未保存文件，无法使用相对路径引用多媒体！</p>`;
                     }
                     let cleanHref = cleanUrl(href);  // 多媒体链接（URL或文件路径）
                     if (cleanHref === null) {
@@ -1227,14 +1255,22 @@ let renderProcess = {
                         let fileKind = identifierRegObj[2];
                         let note = identifierRegObj[4];
                         if (fileKind === "video") {
+                            if (!(videoExts.includes(href.split(".").pop())))
+                                return `<p style="color: red; font-weight: bold;">错误：不支持的视频类型！</p>`;
                             return `<video controls><source src="${href}"></video>`;
                         } else if (fileKind === "audio") {
+                            if (!(audioExts.includes(href.split(".").pop())))
+                                return `<p style="color: red; font-weight: bold;">错误：不支持的音频类型！</p>`;
                             return `<audio style="width: 100%;" controls src="${href}"></audio>`;
+                        } else if (fileKind === "compressed") {
+                            if (!(compressExts.includes(href.split(".").pop())))
+                                return `<p style="color: red; font-weight: bold;">错误：不支持的压缩文件类型！</p>`;
+                            return `<div onclick="alert('注意⚠️：下载前请核实压缩包来源，不要轻易相信来路不明的压缩包！'); document.getElementById('circle-save-modal').style.display = 'block'; sMedia('${decodeURI(href)}');" style="cursor:pointer; display: flex; flex-direction: row; align-items: center; padding: 15px; border-radius: 5px; background-color: #42b98330; border: 1px solid #42b983;"><div><svg style="width: 50px; height: 50px;" t="1763025308845" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5358" width="200" height="200"><path d="M135.68 0c-12.8 0-26.624 5.12-35.84 15.36-10.24 9.216-15.36 23.04-15.36 35.84v919.04c0 12.8 5.12 26.624 15.36 35.84 10.24 10.24 23.04 15.36 35.84 15.36h749.056c12.8 0 26.624-5.12 35.84-15.36 10.24-10.24 15.36-23.04 15.36-35.84v-680.96L646.144 0H135.68z" fill="#42b883" p-id="5359" data-spm-anchor-id="a313x.search_index.0.i11.5ffa3a81xZnch9" class=""></path><path d="M935.424 289.28h-238.08c-12.8 0-26.624-5.12-35.84-15.36-10.24-9.216-15.36-23.04-15.36-35.84V0l289.28 289.28z" fill="#42b883" p-id="5360" data-spm-anchor-id="a313x.search_index.0.i10.5ffa3a81xZnch9" class=""></path><path d="M451.072 0h58.368v57.856H451.072V0z m58.88 57.856H568.32v57.856H509.952V57.856zM451.072 115.712h58.368v57.856H451.072V115.712z m58.88 57.856H568.32v57.856H509.952V173.568zM451.072 231.424h58.368v57.856H451.072V231.424z m58.88 57.856H568.32v57.856H509.952V289.28z m-35.328 57.856H568.32v128c0 12.8-10.24 23.04-23.552 23.04H474.624c-12.8 0-23.552-10.24-23.552-23.04V370.176c0-12.8 10.752-23.04 23.552-23.04z m11.264 34.816v80.896h46.592V381.952h-46.592z" fill="#FCFCFC" p-id="5361"></path></svg></div><div style="width: 10px;"></div><div style="font-weight: bold; color: #42b983;">${decodeURI(href.split(/\/|\\/).pop())}</div></div>`;
                         }
                         // else if (fileKind in ["docx", "xlsx", "pptx"]) {
                         //
                         // }
-                        // 后续版本再考虑加上别的文档文件，首先解决文件安全性问题
+                        // 后续版本再考虑加上别的文档文件
                         // else if (fileKind === "pdf") {
                         //     out.innerHTML += ``;
                         //     return out;
@@ -1243,6 +1279,9 @@ let renderProcess = {
                         //     return out;
                         // }
                     }
+                    // 筛选符合扩展名要求的图片文件
+                    if (!(imageExts.includes(href.split(".").pop())))
+                        return `<p style="color: red; font-weight: bold;">错误：不支持的图片类型！</p>`;
                     return out;
                 },
 

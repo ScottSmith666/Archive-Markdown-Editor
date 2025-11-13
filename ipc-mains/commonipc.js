@@ -26,6 +26,21 @@ function runCommand(command, afterDoing = () => 0) {
     });
 }
 
+function identifyFileShouldBeAdded(altTxt, ext, mediaPath) {
+    console.log(altTxt);
+    console.log(ext);
+    console.log(mediaPath);
+    if (gVar.ForbiddenChars.some(char => mediaPath.split(/\/|\\/).pop().includes(char)) || mediaPath.includes(" "))
+        return false;  // 多媒体文件名包含不合法字符或者文件路径包含空格
+
+    if (altTxt.includes("${video}:")) return gVar.videoExts.includes(ext);
+    else if (altTxt.includes("${audio}:")) return gVar.audioExts.includes(ext);
+    else if (altTxt.includes("${compressed}:")) return gVar.compressExts.includes(ext);
+    else {
+        return gVar.imageExts.includes(ext);
+    }
+}
+
 function CommonIpc() {
     this.commonIpcMain = (workWindow) => {
         ipcMain.on('quit', (event) => {
@@ -228,7 +243,8 @@ function CommonIpc() {
                         mediaPath = root + gVar.pathSep + mediaPath;  // 获得多媒体的绝对路径
                     }
                     // 拷贝多媒体至文件夹
-                    fs.copyFileSync(mediaPath, root + gVar.pathSep + "._mdz_content." + fileNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + "media_src" + gVar.pathSep + mediaFileName);
+                    if (identifyFileShouldBeAdded(al[i].altText, mediaFileName.split(".").pop(), al[i].imagePath))
+                        fs.copyFileSync(mediaPath, root + gVar.pathSep + "._mdz_content." + fileNameList.join(".") + gVar.pathSep + "mdz_contents" + gVar.pathSep + "media_src" + gVar.pathSep + mediaFileName);
                     // 最后修改路径为$MDZ_MEDIA
                     let modifiedMediaCode = mediaCodeElement.replace(originMediaPath, `$MDZ_MEDIA/${mediaFileName}`);
                     // 新代码替换旧代码
@@ -246,6 +262,17 @@ function CommonIpc() {
             } else fs.writeFileSync(fullFilePath, content, 'utf8');
             settingsConfigManager.deleteInstantHistoryRecords(fullFilePath);
             return true;
+        });
+
+        ipcMain.handle('save-media', (event, originMediaPath) => {
+            if (!fs.existsSync(originMediaPath)) return "保存失败，文件不存在！";
+            const dialogs = new Dialogs();
+            let saveTitle = langSurface.prompts.saveAs.saveTitle[gVar.langs()];
+            let mediaSaveAsPath = dialogs.saveMediaDialog(saveTitle, originMediaPath.split(gVar.pathSep).pop());  // 获得打开的文件路径
+            if (mediaSaveAsPath) {
+                fs.copyFileSync(originMediaPath, mediaSaveAsPath);
+                return true;
+            } else return false;
         });
 
         ipcMain.handle('custom-save-file', (event, content, originPath, password) => {
@@ -367,11 +394,14 @@ function CommonIpc() {
                             let oRoot = originPathList.join(gVar.pathSep);
                             mediaPath = oRoot + gVar.pathSep + "._mdz_content." + oFileNameRmExt + gVar.pathSep + "mdz_contents" + gVar.pathSep + "media_src" + gVar.pathSep + mediaFileName;
                             // 拷贝多媒体至文件夹
-                            fs.copyFileSync(mediaPath, mediaFolder + gVar.pathSep + mediaFileName);
+                            if (identifyFileShouldBeAdded(al[i].altText, mediaFileName.split(".").pop(), al[i].imagePath))
+                                fs.copyFileSync(mediaPath, mediaFolder + gVar.pathSep + mediaFileName);
                             continue;
                         }
                         // 拷贝多媒体至文件夹
-                        fs.copyFileSync(mediaPath, mediaFolder + gVar.pathSep + mediaFileName);
+                        console.log(identifyFileShouldBeAdded(al[i].altText, mediaFileName.split(".").pop(), al[i].imagePath));
+                        if (identifyFileShouldBeAdded(al[i].altText, mediaFileName.split(".").pop(), al[i].imagePath))
+                            fs.copyFileSync(mediaPath, mediaFolder + gVar.pathSep + mediaFileName);
                         // 最后修改路径为$MDZ_MEDIA
                         let modifiedMediaCode = mediaCodeElement.replace(originMediaPath, `$MDZ_MEDIA/${mediaFileName}`);
                         // 新代码替换旧代码

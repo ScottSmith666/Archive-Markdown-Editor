@@ -51,6 +51,16 @@ function Dialogs() {
             { name: 'Text File', extensions: ['txt'] },
         ]
     });
+
+    this.saveMediaDialog = (title = "保存文件", defPath = os.homedir()) => dialog.showSaveDialogSync({
+        /**
+         * 另存为文件
+         */
+        title: title,
+        defaultPath: defPath,
+        buttonLabel: '保存',
+        message: title,
+    });
 }
 
 module.exports = Dialogs;
