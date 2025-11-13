@@ -426,7 +426,7 @@ let renderProcess = {
                             window.loadFileContent.openFileInNewWindow(afterSave[1]).then(() => {
                                 window.qt.closeThisWindow(this.windowId);
                             });
-                        }
+                        } else document.getElementById("circle-save-modal").style.display = "none";
                     });
                 }
             });
@@ -445,14 +445,13 @@ let renderProcess = {
                 if (pswd !== pswdAgain) {
                     document.getElementById("circle-save-modal").style.display = "none";
                     alert(pm[await window.settings.getLangSettings()]);
-                }
-                else {
+                } else {
                     let autoSaveResult = await window.save.autoSaveFile(editor.getValue(), this.openFilePath, pswd);
                     if (autoSaveResult) {
                         const currentUrl = new URL(window.location.href);
                         window.location.href = currentUrl.toString();  // 重定向到新 URL
                         window.setSaveStatus.setSaveStatus(true);
-                    }
+                    } else document.getElementById("circle-save-modal").style.display = "none";
                 }
             });
 

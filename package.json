@@ -1,6 +1,6 @@
 {
   "name": "ArchiveMarkdownEditor",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "mdz file editor",
   "main": "main.js",
   "scripts": {
