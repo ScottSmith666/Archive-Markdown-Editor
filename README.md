@@ -6,6 +6,8 @@
 
 ![](https://archive-markdown-editor-ss.pages.dev/assets/face-C0IE5nk5.png)
 
+### [预编译版国内下载地址 - 百度网盘](https://pan.baidu.com/s/1lA7JpMLrMeuPBhkedY_0iw?pwd=scot#list/path=%2F)
+
 ## 一. 软件简介
 Archive Markdown Editor是一款基于Electron的，编写与渲染分离（非所见即所得）的Markdown编辑器，相较于其他Markdown编辑器，Archive Markdown Editor具有其他编辑器所没有的特性。如：
 1. 独创性推出基于Markdown的拓展格式：mdz。可方便进行多媒体归档，设置密码等操作。
