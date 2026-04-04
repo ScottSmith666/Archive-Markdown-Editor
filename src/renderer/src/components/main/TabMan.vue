@@ -1,22 +1,64 @@
 <script setup>
-import {ref, onMounted} from "vue";
+import {watch, ref, onMounted} from "vue";
 import {useStore} from 'vuex';
 
 const store = useStore();
 
 // data
+const showScroller = ref(false);
 
 // mounted
 onMounted(() => {
 });
 
 // methods
+const leftSlite = () => {
+    if (showScroller) {
+        let tabsContainer = document.getElementById('tabs-container');
+        tabsContainer.scrollTo({
+            left: tabsContainer.scrollLeft - 100,
+            behavior: 'smooth',
+        });
+    }
+};
+
+const rightSlite = () => {
+    if (showScroller) {
+        let tabsContainer = document.getElementById('tabs-container');
+        tabsContainer.scrollTo({
+            left: tabsContainer.scrollLeft + 100,
+            behavior: 'smooth',
+        });
+    }
+};
+
+// watch
+watch(
+    () => store.state.currentOpenedTabNumber,
+    (newVal, oldVal) => {
+        let tabs = document.getElementById('tabs');
+        let tabsTotalLength = tabs ? tabs.clientWidth : 0;
+        if (tabsTotalLength >= document.documentElement.clientWidth * 0.99) {
+            showScroller.value = true;
+        } else {
+            showScroller.value = false;
+        }
+    }
+)
 </script>
 
 <template>
-    <div class="tab-man-main fonts" v-if="store.state.tabList.size > 0">
+    <div class="tab-man-main fonts" v-if="store.state.tabList.size > 0" id="tabs-container">
+        <div v-if="showScroller" class="tab-scroller-sticky">
+            <div class="tab-scroller">
+                <div style="width: 10px;"></div>
+                <div class="scroll-left-right" @click="leftSlite">◀</div>
+                <div class="scroll-left-right" @click="rightSlite">▶</div>
+                <div style="width: 10px;"></div>
+            </div>
+        </div>
         <div class="block"></div>
-        <TransitionGroup name="list" tag="div" style="display: flex; flex-direction: row;">
+        <TransitionGroup id="tabs" name="list" tag="div" style="display: flex; flex-direction: row;">
             <template v-for="[pageId, tabObject] in store.state.tabList" :key="pageId">
                 <div class="tab" :class="tabObject.get('focus') ? 'tab-activated' : ''"
                      @click="store.commit('switchToCurrentTab', {'pageId': pageId})">
@@ -95,7 +137,8 @@ onMounted(() => {
                     <div class="close-tab"
                          @mouseenter="store.commit('changePropsOfTab', {'pageId': pageId, 'propName': 'hovered', 'propValue': true})"
                          @mouseleave="store.commit('changePropsOfTab', {'pageId': pageId, 'propName': 'hovered', 'propValue': false})"
-                         @click.stop="store.commit('closeTabPage', {'pageId': pageId, 'model': tabObject.get('monacoEditorModel')})"><!--@click.stop使得子元素点击不会触发父元素的方法-->
+                         @click.stop="store.commit('closeTabPage', {'pageId': pageId, 'model': tabObject.get('monacoEditorModel')})">
+                        <!--@click.stop使得子元素点击不会触发父元素的方法-->
                         <div>{{ tabObject.get('saved') || tabObject.get('hovered') ? '×' : '●' }}</div>
                     </div>
                 </div>

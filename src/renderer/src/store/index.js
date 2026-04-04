@@ -73,6 +73,7 @@ const deleteThisEditorPage = (state, pageid, model) => {
     });
     if (model) {
         model.dispose();
+        state.currentOpenedTabNumber = state.tabList.size;
     }
 };
 
@@ -95,9 +96,14 @@ export default createStore({
             safeMode: false,
 
             switchedPageMonacoEditorModel: null,
+
+            currentOpenedTabNumber: 0,
         }
     },
     mutations: {
+        getCurrentOpenedTabNumber(state) {
+            state.currentOpenedTabNumber = tabList.size;
+        },
         setSwitchedPage(state, mEditorModel) {
             state.switchedPageMonacoEditorModel = mEditorModel;
         },
@@ -135,6 +141,7 @@ export default createStore({
             state.tabList.set(filePageID, newPageObject);
             // 最后把页面切过去
             switchToPage(state, newPageObject);
+            state.currentOpenedTabNumber = state.tabList.size;
         },
         // 关闭指定标签页
         closeTabPage(state, object) {
@@ -177,6 +184,7 @@ export default createStore({
                         "monacoEditorModel": null
                     })));
                 }
+                state.currentOpenedTabNumber = state.tabList.size;
             } else {
                 // 弹窗提示未保存
                 // if 取消关闭
