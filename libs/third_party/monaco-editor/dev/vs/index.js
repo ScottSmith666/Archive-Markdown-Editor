@@ -1,0 +1,23 @@
+define("vs/index", ["exports", "./index-DW7fQdGP", "./basic-languages/monaco.contribution", "./monaco.contribution-bkjksHYY", "./monaco.contribution-Cf4oJ-Nv", "./monaco.contribution-BMUSc6RH", "./monaco.contribution-Dh4QvDgJ", "./toggleHighContrast-CunqhnfZ", "./editor-DJILDtaA"], (function(exports, index, src_deprecated_basicLanguages_monaco_contribution_ts, src_deprecated_language_css_monaco_contribution_ts, src_deprecated_language_html_monaco_contribution_ts, src_deprecated_language_json_monaco_contribution_ts, src_deprecated_language_typescript_monaco_contribution_ts, toggleHighContrast, editor) {
+  "use strict";
+  exports.lsp = index.index;
+  exports.css = src_deprecated_language_css_monaco_contribution_ts.register;
+  exports.html = src_deprecated_language_html_monaco_contribution_ts.register;
+  exports.json = src_deprecated_language_json_monaco_contribution_ts.register;
+  exports.typescript = src_deprecated_language_typescript_monaco_contribution_ts.register;
+  exports.CancellationTokenSource = editor.CancellationTokenSource;
+  exports.Emitter = editor.Emitter;
+  exports.KeyCode = editor.KeyCode;
+  exports.KeyMod = editor.KeyMod;
+  exports.MarkerSeverity = editor.MarkerSeverity;
+  exports.MarkerTag = editor.MarkerTag;
+  exports.Position = editor.Position;
+  exports.Range = editor.Range;
+  exports.Selection = editor.Selection;
+  exports.SelectionDirection = editor.SelectionDirection;
+  exports.Token = editor.Token;
+  exports.Uri = editor.Uri;
+  exports.editor = editor.editor;
+  exports.languages = editor.languages;
+  Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
+}));

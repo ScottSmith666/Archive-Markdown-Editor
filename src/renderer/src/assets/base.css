@@ -1,0 +1,342 @@
+:root {
+    --main-color: #42b983;
+    --main-color-R: 66;
+    --main-color-G: 185;
+    --main-color-B: 131;
+
+    /********************************* Text alignment 文本对齐方式 *************************************
+     **************************************************************************************************
+     * - left:         Align Left         左对齐
+     * - right:        Align right        右对齐
+     * - center:       Align center       居中对齐
+     * - justify:      Align justify      两端对齐
+     * - justify-all:  Align justify-all  全部两端对齐
+     * - start:        Align start        行首对齐
+     * - end:          Align end          行尾对齐
+     **************************************************************************************************/
+    --text-align: justify;
+
+    /************************* Interactive animation configuration 交互动画配置 ************************
+     **************************************************************************************************
+     ** 1.To use interactive animations, first set --use-dynamic-effect` to 1, Then adjust other
+     **   configuration items as needed.
+     ** 2.To turn off all interactive animations, set `--use-dynamic-effect` to 0
+     **                                           set `--list-ol-text-style` to italic
+     *
+     ** 1.若要使用交互动画, 请先将 `--use-dynamic-effect` 设置为 1, 然后根据需要调整其他配置项
+     ** 2.若要关闭全部交互动画, 请将 `--use-dynamic-effect` 设置为 0
+     **                            `--list-ol-text-style` 设置为 italic
+     *
+     * 其余配置项请根据需要自行配置
+     * - 0: Close 关闭
+     * - 1: Open 开启
+     **************************************************************************************************/
+    /* Use/Close interactive animations 使用/关闭交互动画 */
+    --use-dynamic-effect: 1;
+
+    /* H1 interactive effect 一级标题交互效果 */
+    --h1-hover-effect: 1;
+
+    /* H2 interactive effect 二级标题交互效果 */
+    --h2-after-effect: 1;
+
+    /* H3 H4 H5 H6 interactive effect 三,四,五,六级标题交互效果 */
+    --h3-6-hover-effect: 1;
+
+    /* Paragraph interactive effect 段落交互效果 */
+    --p-hover-effect: 1;
+
+    /* Image interactive effect 图片交互效果 */
+    --img-hover-effect: 1;
+
+    /* Blockquote interactive effect 引用块交互效果 */
+    --blockquote-hover-effect: 1;
+
+    /* Alert interactive effect 提示框交互效果 */
+    --alert-hover-effect: 1;
+
+    /* Strong text interactive effect 粗体文本交互效果 */
+    --strong-hover-effect: 1;
+
+    /* Italic text interactive effect 斜体文本交互效果 */
+    --em-hover-effect: 1;
+
+    /* Underline interactive effect 下划线交互效果 */
+    --u-hover-effect: 1;
+
+    /* Marked text interactive effect 高亮文本交互效果 */
+    --mark-hover-effect: 1;
+
+    /* Deleted text interactive effect 删除线交互效果 */
+    --del-hover-effect: 1;
+
+    /* Inline code block interactive effect 内联代码块交互效果 */
+    --code-hover-effect: 1;
+
+    /* Code block interactive effect 代码块交互效果 */
+    --fence-hover-effect: 1;
+
+    /* List interactive effect 列表交互效果
+     * The following two values ​​need to be changed synchronously
+     * 下面两个值需同步更改 0-italic or 1-normal */
+    --list-marker-effect: 1;
+    --list-ol-text-style: normal;
+
+    /* Divider interactive effect 分割线交互效果 */
+    --hr-hover-effect: 1;
+
+    /* Table interactive effect 表格交互效果 */
+    --table-hover-effect: 1;
+
+    /*************************** Theme color configuration 主题颜色配置 ********************************
+     **************************************************************************************************
+     * -
+     **************************************************************************************************/
+    --body-text-color: #282c34;
+    --content-write-bg-color: #fefefe;
+    /* 修改 --selection-color*/
+    /*--selection-color: #def2e8;*/
+    --selection-color: #6cffbc;
+
+    /*--write-h1-before-bg: linear-gradient(90deg, rgba(152, 251, 152, 0), #e8f4ee, rgba(152, 251, 152, 0));*/
+    --write-h1-before-bg: linear-gradient(90deg, #e8f4ee, #e8f4ee30);  /* 修改H1背景色渐变 */
+
+    /*--write-h2-after-bg: linear-gradient(90deg, rgba(106, 158, 69, 0), #3ea174, rgba(106, 158, 69, 0));*/
+    --write-h2-after-bg: linear-gradient(90deg, #3ea174, #e8f4ee30);
+
+    --p-hover-bg-color: rgba(123, 181, 147, calc(0.1 * var(--p-hover-effect) * var(--use-dynamic-effect)));
+
+    --ul-marker-color: #087725;
+    --ulul-marker-color: #087725;
+    --ululul-marker-color: #087725;
+
+    --ol-hover-marker-color:rgb(0, calc(100 * var(--list-marker-effect) * var(--use-dynamic-effect)), 0);
+
+    --blockquote-border-color: #2f845e;
+    --blockquote-bg-color: #e8f4eb;
+    --blockquote-hover-border-color: #2f845e;
+    --blockquote-thead-bg-color: #3b9457;
+    --blockquote-thead-text-color: #3b3b3b4e;
+    --blockquote-td-bg-color: #fafafa;
+
+    --alert-tip-border-color: #1F883D;
+    --alert-tip-bg-color: #e8f4eb;
+    --alert-tip-hover-border-color: #1F883D;
+    --alert-tip-thead-bg-color: #3b9457;
+    --alert-tip-thead-text-color: #fafbfa;
+
+    --alert-caution-border-color: #CF222E;
+    --alert-caution-bg-color: #f5ecec;
+    --alert-caution-hover-border-color: #CF222E;
+    --alert-caution-hover-bg-color: #cf222d0a;
+    --alter-caution-selection-bg-color: #cf222d17;
+    --alert-caution-text-color: #CF222E;
+    --alert-caution-thead-bg-color: #d83c46;
+    --alert-caution-thead-text-color: #fafbfa;
+    --alert-caution-td-hover-bg-color: #f5ecec;
+    --alert-caution-list-item-marker-color: #CF222E;
+
+    --alert-warning-border-color: #9A6700;
+    --alert-warning-bg-color: #f4f1e9;
+    --alert-warning-hover-border-color: #9A6700;
+    --alert-warning-hover-bg-color: #9a67000a;
+    --alert-warning-selection-bg-color: #9a670017;
+    --alert-warning-text-color: #9A6700;
+    --alert-warning-thead-bg-color: #b7831c;
+    --alert-warning-thead-text-color: #fafbfa;
+    --alert-warning-list-item-marker-color: #9A6700;
+
+    --alert-important-border-color: #8250DF;
+    --alert-important-bg-color: #eae6f2;
+    --alert-important-hover-border-color: #8250DF;
+    --alert-important-hover-bg-color: #8250df0a;
+    --alert-important-selection-bg-color: #8250df17;
+    --alert-important-text-color: #8250DF;
+    --alert-important-thead-bg-color: #8250DF;
+    --alert-important-thead-text-color: #fafbfa;
+    --alert-important-list-item-marker-color: #8250DF;
+
+    --alert-note-border-color: #0969DA;
+    --alert-note-bg-color: #e5ebf1;
+    --alert-note-hover-border-color: #0969DA;
+    --alert-note-hover-bg-color: #0969da0a;
+    --alert-note-selection-bg-color: #0969da17;
+    --alert-note-text-color: #0969DA;
+    --alert-note-thead-bg-color: #0969DA;
+    --alert-note-thead-text-color: #fafbfa;
+    --alert-note-list-item-marker-color: #0969DA;
+
+    --alert-code-bg-color: #67676716;
+    --alert-code-3circle-1: #fc625d;
+    --alert-code-3circle-2: #fdbc40;
+    --alert-code-3circle-3: #34c759;
+    --alert-td-bg-color: #fafafa;
+
+    --hr-bg-image: linear-gradient(90deg, #5ea67c, #2f845e, #5ea67c);
+    --hr-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+
+    --table-border-color: #e0e0e0;
+    --table-td-hover-bg: rgba(239, 245, 242, calc(0.7 * var(--table-hover-effect))) calc(var(--table-hover-effect) * 100%);
+    --blockquote-td-hover-bg: rgba(239, 245, 242, calc(0.7 * var(--table-hover-effect))) calc(var(--table-hover-effect) * 100%);
+    --alert-tip-td-hover-bg: rgba(239, 245, 242, calc(0.7 * var(--table-hover-effect))) calc(var(--table-hover-effect) * 100%);
+    --alert-caution-td-hover-bg: rgba(245, 236, 236, calc(0.7 * var(--table-hover-effect))) calc(var(--table-hover-effect) * 100%);
+    --alert-warning-td-hover-bg: rgba(245, 241, 236, calc(0.7 * var(--table-hover-effect))) calc(var(--table-hover-effect) * 100%);
+    --alert-important-td-hover-bg: rgba(236, 236, 245, calc(0.7 * var(--table-hover-effect))) calc(var(--table-hover-effect) * 100%);
+    --alert-note-td-hover-bg: rgba(236, 236, 245, calc(0.7 * var(--table-hover-effect))) calc(var(--table-hover-effect) * 100%);
+
+    --table-thead-bg-color: #eff5f2;
+    --table-thead-text-color: #06621e;
+
+    --table-tbody-border-color: #e8f4ee;
+    --table-edit-bg-color: #ffffff;
+    --table-edit-hover-bg-color: #e8f4ee;
+
+    --table-webkit-box-shadow-color1: rgba(0, 0, 0, 0.16);
+    --table-webkit-box-shadow-color2: rgba(0, 0, 0, 0.12);
+
+    --table-reset-bg-color: #ffffff;
+    --table-reset-input-color: #282c34;
+    --table-some-border-top-color: #eee;
+
+    --table-meta-block-bg-color: #eaf3ec;
+    --table-meta-block-color: #3f8a5f;
+
+    --task-list-border-color: #737373;
+    --task-list-bg-color: #ffffff;
+    --task-list-input-after-border-color: #fff;
+    --task-list-input-checked-bg-color: #399b6f;
+    --task-list-done-color: #999;
+
+    --math-html-webkit-box-shadow-color1: rgba(0, 0, 0, 0.16);
+    --math-html-webkit-box-shadow-color2: rgba(0, 0, 0, 0.12);
+    --math-html-rawblock-bg-color: #f5f6f7;
+    --math-html-rawblock-control-bg-color: #f5f6f7;
+    --math-html-rawblock-tooltip-bg-color: #f5f6f7;
+    --math-html-rawblock-input-color: #282c34;
+    --math-html-rawblock-gutter-bg-color: #f5f6f7;
+    --math-html-rawblock-selected-bg-color: #bac6e9;
+    --math-html-rawblock-selected-bg-color2: #def2e8;
+
+    --strong-color: #06621e;
+    --em-color: #000000;
+    --em-hover-color: #006400;
+    --u-border-color: rgb(9, 156, 70);
+
+    --code-bg-color: rgba(221, 235, 213, 0.5);
+    --code-color: #359d09;
+    --code-hover-bg-color: rgba(221, 235, 213, calc(0.5 + 0.5 * var(--code-hover-effect) * var(--use-dynamic-effect)));
+
+    --del-color: rgba(50, 100, 50, 0.5);
+    --del-text-decoration-color:rgba(76, 175, 80, 0.7);
+    --del-hover-color: rgba(50, 100, 50, calc(0.5 + 0.5 * var(--del-hover-effect) * var(--use-dynamic-effect)));
+    --del-hover-text-decoration-color: rgba(76, 175, 80, calc(0.7 + 0.3 * var(--del-hover-effect) * var(--use-dynamic-effect)));
+
+    --mark-bg-color: #aee6c3;
+    --mark-hover-bg-color: rgba(174, 230, 195, calc(1 - 0.5 * var(--mark-hover-effect) * var(--use-dynamic-effect)));
+
+    --a-color: #0c8f94;
+    --a-hover-color: #02502a;
+
+    --code-fences-color: #2f4f4f;
+    --code-fences-bg-color: #ffffff;
+    --code-fences-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    --code-fences-before-bg: #015e19;
+    --code-fences-before-box-shadow: 20px 0 #068f28, 40px 0 rgb(116, 219, 38);
+    --code-fences-3circle-1: #fc625d;
+    --code-fences-3circle-2: #fdbc40;
+    --code-fences-3circle-3: #34c759;
+
+    --cm-s-inner-linenumber-color: #2f845e;
+
+    --scrollbar-track-bg: #fafafa;
+    --scrollbar-thumb-bg: linear-gradient(to top right, #4aad23, #1b5b3e) !important;
+
+    --quick-open-bg-color: #fff;
+    --quick-open-color: #282c34;
+    --quick-open-item-active-bg-color: #bac6e9;
+    --quick-open-category-border-color: #eee;
+
+    --modal-dialog-webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    --modal-dialog-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    --modal-dialog-bg-color: #f5f6f7;
+    --modal-dialog-btn-default-hover-bg-color: #bac6e9;
+
+    --preferences-color: #282c34;
+    --preference-sidebar-nav-group-item-active-color: #efefef;
+    --preference-sidebar-nav-group-item-active-bg-color: #2f845e;
+
+    --html-for-mac-sidebar-webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    --html-for-mac-sidebar-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+
+    --notification-bg-color: #fff;
+    --notification-hover-bg-color: #bac6e9;
+    --menu-sidebar-color: #282c34;
+    --menu-sidebar-list-border-color: #2f353a;
+    --menu-sidebar-list-bg-color: #2f353a;
+    --menu-sidebar-li-a-color: #e3dede;
+    --menu-sidebar-li-a-active-hover-color: #3e4249;
+    --megamenu-content-color: #000;
+
+    --sidebar-bg-color: #2f845e;
+    --sidebar-content-file-list-item-border-color: #eee;
+    --sidebar-content-file-list-item-active-bg-color: rgba(66, 185, 131, 0.1);
+    --sidebar-content-file-list-item-active-border-color: #2f845e;
+    --sidebar-content-file-list-item-search-pannel-border-color: #eee;
+    --sidebar-content-file-list-item-search-pannel-search-option-btn-bg-color: #fff;
+    --file-tree-node-hover-border-color: #2f845e;
+    --file-tree-node-hover-bg-color: rgba(66, 185, 131, 0.1);
+    --file-tree-node-active-border-color: #2f845e;
+    --file-tree-node-active-bg-color: rgba(66, 185, 131, 0.1);
+    --file-library-file-node-hover-border-color: #2f845e;
+    --file-library-file-node-hover-bg-color: rgba(66, 185, 131, 0.1);
+
+    --outline-item-hover-bg-color: #e8f4ee;
+    --sidebar-footer-border-color: #eee;
+    --sidebar-footer-hover-bg-color: #caebdb;
+    --sidebar-files-menu-webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    --sidebar-files-menu-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+
+    --dropdown-menu-border-color: #eee;
+    --dropdown-menu-li-a-color: #282c34;
+    --dropdown-menu-li-a-hover-color: #e8f4ee;
+    --dropdown-menu-divider-border-color: #fff;
+
+    --toc-bg-color: #fff;
+    --toc-webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    --toc-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    --toc-hover-bg-color: #caebdb;
+
+    --auto-suggest-container-bg-color: #d4eee1;
+
+    --source-color: #6a6a6a;
+    --source-cm-header-color: #428bca;
+    --source-cm-atom-color: #777777;
+}
+
+@font-face {
+    /* 中文字体全局定义为“阿里巴巴普惠体” */
+    font-family: AlibabaPuHuiTi;
+    src: url("./fonts/AlibabaPuHuiTi/woff2/Alibaba-PuHuiTi-Regular.woff2");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    /* 中文字体全局定义为“阿里巴巴普惠体” */
+    font-family: AlibabaPuHuiTi;
+    src: url("./fonts/AlibabaPuHuiTi/woff2/Alibaba-PuHuiTi-Bold.woff2");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    /* 中文字体全局定义为“阿里巴巴普惠体” */
+    font-family: AlibabaPuHuiTi;
+    src: url("./fonts/AlibabaPuHuiTi/woff2/Alibaba-PuHuiTi-Light.woff2");
+    font-weight: 200;
+    font-style: normal;
+}
+
+.fonts {
+    font-family: AlibabaPuHuiTi, serif;
+}

@@ -1,0 +1,48 @@
+@import "../../../assets/base.css";
+
+.icon {
+    width: 300px;
+}
+
+.container {
+    border-collapse: separate;
+    border-spacing: 6px;
+    color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.65);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.explain {
+    font-weight: bold;
+}
+
+.hotkeys-container {
+    display: flex;
+    flex-direction: row;
+    font-weight: normal !important;
+    color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.55) !important;
+}
+
+.hotkey {
+    background-color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.15);
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 9px;
+    padding-right: 9px;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-radius: 3px;
+}
+
+.element-in-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;  /* 禁止拖选文字 */
+}

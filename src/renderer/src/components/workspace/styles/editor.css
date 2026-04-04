@@ -1,0 +1,12 @@
+.editor {
+    box-sizing: border-box;
+    width: 50%;
+    -moz-box-flex: 1.0;
+    -webkit-box-flex: 1.0;
+    padding-left: 5px;
+    background-color: white;
+}
+
+#editor {
+    height: 100%;
+}

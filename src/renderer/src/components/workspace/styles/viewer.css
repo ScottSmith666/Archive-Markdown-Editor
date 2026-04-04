@@ -1,0 +1,29 @@
+@import "../../../assets/base.css";
+
+.viewer-area {
+    box-sizing: border-box;
+    width: 50%;
+    -moz-box-flex: 1.0;
+    -webkit-box-flex: 1.0;
+    background-color: white;
+    /*height: 100%;*/
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    overflow-anchor: none;
+}
+
+#write {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+:deep(.md-block) {
+    overflow-x: scroll;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+:deep(.table-container) {
+    overflow-x: scroll;
+}

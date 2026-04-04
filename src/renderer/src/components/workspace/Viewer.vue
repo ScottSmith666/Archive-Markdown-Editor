@@ -1,0 +1,380 @@
+<script setup>
+import mermaid from 'mermaid';
+import MarkdownIt from "markdown-it";
+// 引入mdIt插件
+import markdownItRegex from "markdown-it-regex";
+import MarkdownItInjectLineNumbers from 'markdown-it-inject-linenumbers';
+import markdownItTextualUml from 'markdown-it-textual-uml';
+import MarkdownItClass from '@toycode/markdown-it-class';
+import markdownItTaskLists from 'markdown-it-task-lists';
+import * as IncrementalDOM from 'incremental-dom';
+import MarkdownItIncrementalDOM from 'markdown-it-incremental-dom';
+import {full as emoji} from 'markdown-it-emoji';
+import MarkdownItMark from 'markdown-it-mark';
+import { alert } from "@mdit/plugin-alert";
+import '@mdit/plugin-alert/style';
+import MarkdownItSup from 'markdown-it-sup';
+import MarkdownItSub from 'markdown-it-sub';
+
+// 引入Prism
+import Prism from 'prismjs';
+// 导入需要的语言
+import 'prismjs/components/prism-clike.js'
+import 'prismjs/components/prism-c.js';
+import 'prismjs/components/prism-cpp.js';
+import 'prismjs/components/prism-java.js';
+import 'prismjs/components/prism-markup.js';
+import 'prismjs/components/prism-css.js';
+import 'prismjs/components/prism-javascript.js';
+import 'prismjs/components/prism-typescript.js';
+import 'prismjs/components/prism-python.js';
+// 引入 Toolbar 插件
+import 'prismjs/plugins/toolbar/prism-toolbar.js';
+import 'prismjs/plugins/toolbar/prism-toolbar.css';
+// 引入Show Language插件
+import 'prismjs/plugins/show-language/prism-show-language.js';
+// 引入Copy to Clipboard插件
+import 'prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.js';
+// 引入行号样式
+import "prismjs/plugins/line-numbers/prism-line-numbers.js";
+import "prismjs/plugins/line-numbers/prism-line-numbers.css";
+// 导入主题
+import 'prismjs/themes/prism.css';
+
+import {nextTick, onMounted, watch, ref} from "vue";
+import {useStore} from 'vuex';
+
+import {rules} from "./render_rules.js";
+import SafeModeInfo from "./SafeModeInfo.vue";
+import {useRouter} from "vue-router";
+
+const store = useStore();
+const route = useRouter();
+
+// 初始化Markdown-it
+const mdIt = new MarkdownIt({
+    html: true,
+    langPrefix: 'language-',
+});
+rules(mdIt);  // 自定义渲染规则
+mdIt.use(markdownItRegex, {
+    name: "escape_dollar",
+    regex: /(\\\$)/,
+    replace: (match) => {
+        return '<span>$</span>';
+    },
+});
+mdIt.use(markdownItRegex, {
+    name: "round_dollars",
+    regex: /(\$[^\$]+\$)/,
+    replace: (match) => {
+        return `<span class="math">${match}</span>`;
+    },
+});
+mdIt.use(MarkdownItInjectLineNumbers);
+mdIt.use(markdownItTextualUml);
+mdIt.use(MarkdownItClass, {
+    h1: 'md-block',
+    p: 'md-block',
+    table: 'md-block',
+});
+mdIt.use(markdownItTaskLists);
+mdIt.use(MarkdownItIncrementalDOM, IncrementalDOM);
+mdIt.use(emoji);
+mdIt.use(MarkdownItMark);
+mdIt.use(alert);
+mdIt.use(MarkdownItSup);
+mdIt.use(MarkdownItSub);
+
+// data
+const confirmContentSafe = ref(false);
+
+onMounted(() => {
+    if (!store.state.safeMode) {
+        render(props.mdPiece);
+    }
+});
+
+// methods
+const render = async (content) => {
+    if (content === '') {
+        content = '<div style="color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.35); user-select: none; font-weight: bold; font-size: 2rem; padding-top: 20px;">Markdown渲染区</div>';
+    }
+    // apply render HTML content piece
+    try {
+        IncrementalDOM.patch(
+            document.getElementById('write'),
+            mdIt.renderToIncrementalDOM(content),
+        );
+    } catch (e) {
+        console.error(`渲染器出错，原因：${e.name}: ${e.message}`);
+    }
+
+    // render Prism Highlight
+    nextTick().then(() => {
+        Prism.highlightAll();
+    });
+
+    // render MathJax
+    mathJaxRender();
+    // render mermaid
+    mermaidRender();
+};
+
+const mathJaxRender = () => {
+    if (window.MathJax && window.MathJax.typesetPromise) {
+        let target = document.getElementById('write');
+        if (target) {
+            // 先清除该区域之前的渲染状态（防止重复渲染或内存泄漏）
+            nextTick().then(() => {
+                MathJax.startup.promise.then(() => {
+                    window.MathJax.typesetClear([target]);
+                    // 关键点：只渲染特定 ID 的容器，避免全局扫描，性能更好
+                    window.MathJax.typesetPromise([target]).then(() => {
+                    }).catch((err) => {
+                        console.log(err);
+                    });
+                }).then(() => {
+                }).catch(err => {
+                    console.error('渲染失败', err);
+                });
+            });
+        }
+    }
+};
+
+const mermaidRender = () => {
+    nextTick().then(async () => {
+        // 先清除data-processed节点
+        const nodes = document.getElementById('write')
+            .querySelectorAll('.mermaid');
+        if (nodes.length !== 0) {
+            nodes.forEach(node => {
+                // 关键：移除该属性，否则 Mermaid 会跳过这些节点
+                node.removeAttribute('data-processed');
+            });
+        }
+        // 再执行渲染
+        mermaid.initialize({startOnLoad: false});
+        await mermaid.run({querySelector: '.mermaid'});
+    });
+};
+
+const scrollCustomLineElementToCenter = (firstLine, middleLine, lastLine, rangeFirstLine, fileTotalLine) => {
+    nextTick().then(() => {
+        const container = document.getElementById('viewer-container');  // 外面的容器，包裹着里面的滚动着的高div
+
+        if (!container) {
+            return 0;
+        }
+        // 在右侧容器中查找具有相同 data-source-line 的元素
+        let targetElements = container.firstChild
+            .querySelectorAll(`[data-source-line="${(middleLine - rangeFirstLine + 1 /* data-source-line的编号是从0开始的，因此需要减1 -> */ - 1)}"]`);
+        if (targetElements.length === 0) {
+            targetElements = container.firstChild
+                .querySelectorAll(`[data-source-line="${(middleLine - rangeFirstLine + 1 - 1) - 1}"]`);
+            if (targetElements.length === 0) {
+                targetElements = container.firstChild
+                    .querySelectorAll(`[data-source-line="${(middleLine - rangeFirstLine + 1 - 1) + 1}"]`);
+                if (targetElements.length === 0) {
+                    return 0;
+                }
+            }
+        }
+
+        const targetElement = targetElements[0];
+
+        targetElement.scrollIntoView({
+            behavior: 'auto',
+            block: 'center',
+            container: 'nearest',
+            inline: 'center',
+        });
+    });
+};
+
+const goToTop = () => {
+    // 滚到顶了
+    try {
+        if (document.getElementById('write').children.length !== 0) {
+            setTimeout(() => {
+                document.getElementById('viewer-container').scrollTo(0, 0);
+            }, 100);
+        }
+    } catch (e) {
+    }
+};
+const goToBottom = () => {
+    // 滚到底了
+    try {
+        if (document.getElementById('write').children.length !== 0) {
+            setTimeout(() => {
+                document.getElementById('write').lastChild.scrollIntoView({
+                    behavior: 'auto',
+                    block: 'center',
+                    inline: 'center',
+                });
+            }, 100);
+        }
+    } catch (e) {
+    }
+};
+
+defineExpose({
+    goToTop,
+    goToBottom,
+});
+
+// props
+const props = defineProps({
+    mdPiece: {
+        type: String,
+        default: () => {
+            return "";
+        }
+    },
+    startLineNumber: {
+        type: Number,
+        default: () => {
+            return 1;
+        }
+    },
+    visualStartLineNumber: {
+        type: Number,
+        default: () => {
+            return 1;
+        }
+    },
+    visualEndLineNumber: {
+        type: Number,
+        default: () => {
+            return 1;
+        }
+    },
+    middleLineNumber: {
+        type: Number,
+        default: () => {
+            return 25;
+        }
+    },
+    fileTotalLineNumber: {
+        type: Number,
+        default: () => {
+            return 50;
+        }
+    },
+});
+
+// watch
+watch(
+    () => [props.mdPiece, props.middleLineNumber],
+    ([newMdPiece, newMiddleLineNumber], [oldMdPiece, oldMiddleLineNumber]) => {
+        if (!store.state.safeMode) {
+            render(newMdPiece);
+            if (newMiddleLineNumber !== oldMiddleLineNumber) {
+                scrollCustomLineElementToCenter(
+                    props.visualStartLineNumber,
+                    newMiddleLineNumber,
+                    props.visualEndLineNumber,
+                    props.startLineNumber,
+                    props.fileTotalLineNumber
+                );
+            }
+        }
+    }
+);
+
+watch(confirmContentSafe, (newValue, oldValue) => {
+    if (newValue) {
+        nextTick().then(() => {
+            render(props.mdPiece);
+        });
+    }
+});
+
+</script>
+
+<template>
+    <div class="viewer-area fonts" id="viewer-container">
+        <div v-if="!store.state.safeMode" id="write">
+            <!--Generated HTML was injected here...-->
+        </div>
+        <safe-mode-info v-else></safe-mode-info>
+    </div>
+</template>
+
+<style scoped>
+@import "./styles/viewer.css";
+</style>
+<style>
+@import "./styles/theme.css";
+
+/* 行内代码样式（适用于 <code> 标签，且不影响 <pre><code> 代码块） */
+code {
+    /* 字体：优先使用等宽字体 */
+    font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Roboto Mono', monospace;
+
+    /* 背景与文字颜色（亮色主题） */
+    background-color: #f6f8fa;
+    color: #e83e8c;
+
+    /* 内边距与圆角 */
+    padding: 0.2em 0.4em;
+    border-radius: 6px;
+
+    /* 字号略小于正文 */
+    font-size: 0.875em;
+
+    /* 长代码自动换行，避免溢出 */
+    white-space: normal;
+    word-break: break-word;
+
+    /* 可选：平滑过渡效果（不影响功能） */
+    transition: background-color 0.1s ease;
+}
+
+/* 鼠标悬停时稍微加深背景，提升交互感（可选） */
+code:hover {
+    background-color: #e9ecef;
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+
+}
+
+/* 重置代码块（<pre><code>）内的样式，确保代码块保持原始格式 */
+pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+    color: inherit;
+    white-space: pre; /* 保留代码缩进与换行 */
+    word-break: normal; /* 避免代码块内单词折断 */
+}
+
+* {
+    word-break: break-all !important;
+}
+
+.markdown-alert.markdown-alert-note {
+    background-color: rgba(47, 129, 247, 0.06);
+}
+
+.markdown-alert.markdown-alert-important {
+    background-color: rgba(163, 113, 247, 0.06);
+}
+
+.markdown-alert.markdown-alert-tip {
+    background-color: rgba(63, 185, 80, 0.06);
+}
+
+.markdown-alert.markdown-alert-warning {
+    background-color: rgba(210, 153, 34, 0.06);
+}
+
+.markdown-alert.markdown-alert-caution {
+    background-color: rgba(248, 81, 73, 0.06);
+}
+</style>

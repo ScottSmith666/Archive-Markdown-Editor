@@ -1,0 +1,66 @@
+appId: com.scottsmith.ame
+productName: Archive Markdown Editor
+electronFuses:
+  # 启用 ASAR 完整性校验
+  enableEmbeddedAsarIntegrityValidation: true
+  # （可选，但推荐）确保 Electron 仅从 app.asar 加载应用程序代码
+  onlyLoadAppFromAsar: true
+directories:
+  buildResources: build
+files:
+  - '**/*'  # 先包含所有文件
+  # 然后是排除的文件
+  - '!dist/**'
+  - '!node_modules/**'
+  - '!**/.vscode/*'
+  - '!.git/**'
+  - '!src/*'
+  - '!libs/**'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!utils/**'
+  # 然后是包含的文件
+  - 'node_modules/@electron-toolkit/utils/**'
+  - 'node_modules/@electron-toolkit/preload/**'
+  - 'node_modules/sqlite3/**'
+  - 'node_modules/bindings/**'
+  - 'node_modules/file-uri-to-path/**'
+asarUnpack:
+  - 'resources/**'
+  - 'node_modules/sqlite3/**'
+  - 'node_modules/bindings/**'
+  - 'node_modules/file-uri-to-path/**'
+  - 'libs/napi_build/**'
+win:
+  executableName: archive_markdown_editor
+  icon: 'resources/icon.ico'
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  notarize: false
+  icon: 'resources/icon.icns'
+dmg:
+  artifactName: ${name}-${version}.${ext}
+linux:
+  icon: 'resources/icon.png'
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: scottsmith666.github.io
+  category: Utility
+appImage:
+  artifactName: ${name}-${version}.${ext}
+npmRebuild: false
+publish:
+  provider: github

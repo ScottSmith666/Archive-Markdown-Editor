@@ -1,0 +1,207 @@
+@import "../../assets/base.css";
+
+.welcome-main {
+    width: 60%;
+    min-width: 700px;
+    max-width: 800px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 根据自身宽高偏移一半 */
+    user-select: none;
+}
+
+.welcome-body {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+.side {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    width: 35%;
+}
+
+.title-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.title {
+    font-weight: bold;
+    color: var(--main-color);
+    font-size: 1.6rem;
+}
+
+.subtitle {
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.4);
+    font-size: 0.8rem;
+}
+
+.separator {
+    height: 10px;
+}
+
+.options, .settings {
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.options-icon {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.options-quit {
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.options:hover {
+    background-color: #42b98330;
+    cursor: pointer;
+    font-weight: bold;
+    color: #42b983;
+}
+
+.settings:hover {
+    background-color: #0969DA30;
+    cursor: pointer;
+    font-weight: bold;
+    color: #0969DA;
+}
+
+.options-quit:hover {
+    background-color: #b41d2330;
+    cursor: pointer;
+    font-weight: bold;
+    color: #b41d23;
+}
+
+.recent-file-list {
+    overflow: scroll;
+    height: 100%;
+}
+
+.recent-file-unit {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.recent-file-unit:hover {
+    background-color: #42b98330;
+}
+
+.access-file:hover {
+    color: #42b983;
+    cursor: pointer;
+}
+
+.recent-file-list {
+    width: 65%;
+}
+
+.block {
+    background-color: #42b983;
+    width: 5px;
+    height: 20px;
+}
+
+.recent-file-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.recent-file-title-body {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.file-info-block {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.clear-all-history {
+    color: #b41d23;
+}
+
+.clear-all-history:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.access-file {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.access-file-path {
+    font-size: 12px;
+    color: #8c8c8c;
+}
+
+.last-open-date-time {
+    font-size: 12px;
+}
+
+::-webkit-scrollbar {
+    width: 0;
+}
+
+.powered {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+}
+
+.powered-title {
+    color: var(--main-color);
+    font-weight: bold;
+}
+
+.powered-text {
+    color: rgba(0, 0, 0, 0.4);
+    font-size: 0.8rem;
+}
+
+.powered-item {
+    display: flex;
+    flex-direction: row;
+}
+
+.powered-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.st0 {
+    fill: #f6f6f6;
+    fill-opacity: 0
+}
+
+.st1 {
+    fill: #fff
+}
+
+.st2 {
+    fill: #167abf
+}

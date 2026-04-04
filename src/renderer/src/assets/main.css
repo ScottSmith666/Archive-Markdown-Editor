@@ -1,0 +1,30 @@
+@import './base.css';
+
+#app {
+    height: 100%;
+}
+
+html, body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.06);
+}
+
+.fonts {
+    font-family: AlibabaPuHuiTi, serif;
+}
+
+.main-page {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.work-page {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+}
