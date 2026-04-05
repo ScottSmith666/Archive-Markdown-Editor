@@ -15,6 +15,9 @@ const mainManuAllHide = (state) => {
 
 // 创建新标签页时创建对应页面的monaco editor model
 const createMonacoEditorModel = (pageId) => {
+    if (!pageId) {  // 要是没传入参数，就自己生成
+        pageId = crypto.randomUUID();
+    }
     const uri = monaco.Uri.parse(`uuid:///${pageId}.md`);
     // 创建并返回 Model 实例
     return monaco.editor.createModel("", "markdown", uri);
@@ -23,8 +26,8 @@ const createMonacoEditorModel = (pageId) => {
 const switchToPage = (state, item) => {
     if (item.get('type') === 'file') {
         state.switchedPageMonacoEditorModel = markRaw(item.get('monacoEditorModel'));
-    } else if (item.get('type') === 'welcome') {
-        state.switchedPageMonacoEditorModel = null;
+    } else {
+        state.switchedPageMonacoEditorModel = markRaw(createMonacoEditorModel());
     }
     // 更新当前窗口类型状态
     state.currentActivatedTabType = item.get('type');
@@ -49,14 +52,16 @@ const initOpenAppTab = () => {  // 第一次打开AME时加载的页面，可进
     return new Map([
         [initPageId, new Map(Object.entries({
             "label": '欢迎',
-            "type": 'welcome',  // 标签页类型，分为文件（file）和欢迎页面（welcome）
+            "type": 'welcome',  // 标签页类型，分为文件（file）、欢迎页面（welcome）、设置页面（settings）和文档页面（document）
+                                // 其中文档页面可以渲染“关于”“更新日志”“使用指南”等自定义内容
+                                // 并且欢迎页面（welcome）和设置页面（settings）禁止打开多个
             "path": '/welcome',
             "focus": true,
             "isExistFile": false,  // 是否为一个真实存在的文件
             "saved": true,  // 当前页面文件保存状态
             "hovered": false,  // 鼠标是否划过标签页
             "pageid": initPageId,  // 标签页唯一ID
-            "monacoEditorModel": null
+            "monacoEditorModel": markRaw(createMonacoEditorModel()),
         }))],
     ]);
 };
@@ -77,6 +82,35 @@ const deleteThisEditorPage = (state, pageid, model) => {
     }
 };
 
+const addTabPage = (state, object) => {
+    allTabDeFocus(state);
+    let filePageID = crypto.randomUUID();
+    let urlContent;
+    let model;
+    if (object.pageType === 'file') {
+        urlContent = 'workspace';
+        model = createMonacoEditorModel(filePageID);
+    } else {
+        model = createMonacoEditorModel();
+        urlContent = object.pageType;
+    }
+    let newPageObject = new Map(Object.entries({
+        "label": object.pageTitle,
+        "type": object.pageType,
+        "path": `/${urlContent}?pageid=${filePageID}${object.docName ? ("&docname=" + object.docName) : ""}`,
+        "focus": true,
+        "isExistFile": object.isExistFile,
+        "saved": true,
+        "hovered": false,
+        "pageid": filePageID,
+        "monacoEditorModel": markRaw(model),
+    }));
+    state.tabList.set(filePageID, newPageObject);
+    // 最后把页面切过去
+    switchToPage(state, newPageObject);
+    state.currentOpenedTabNumber = state.tabList.size;
+};
+
 export default createStore({
     state() {
         return {
@@ -95,7 +129,7 @@ export default createStore({
 
             safeMode: false,
 
-            switchedPageMonacoEditorModel: null,
+            switchedPageMonacoEditorModel: createMonacoEditorModel(),
 
             currentOpenedTabNumber: 0,
         }
@@ -105,7 +139,7 @@ export default createStore({
             state.currentOpenedTabNumber = tabList.size;
         },
         setSwitchedPage(state, mEditorModel) {
-            state.switchedPageMonacoEditorModel = mEditorModel;
+            state.switchedPageMonacoEditorModel = markRaw(mEditorModel);
         },
         // 更改编辑器显示模式
         changeEditorMode(state, editorMode) {
@@ -114,34 +148,28 @@ export default createStore({
 
         // 以下是标签页更改方法
         // 新增标签页
-        // 第二个参数是object，里面有pageType, pageTitle和isExistFile属性
+        // 第二个参数是object，里面有pageType, pageTitle和isExistFile和docName属性，注意docName是AME内置文档的名称，用于显示在document页面
         addTabPage(state, object) {
             mainManuAllHide(state);
-            allTabDeFocus(state);
-            let filePageID = crypto.randomUUID();
-            let urlContent = 'welcome';
-            let model = null;
-            if (object.pageType === 'file') {
-                urlContent = 'workspace';
-                model = createMonacoEditorModel(filePageID);
-            } else if (object.pageType === 'welcome') {
-                urlContent = 'welcome';
+            let isOpenedWelcome = false;
+            let isOpenedSettings = false;
+            // 检查设置页面和欢迎页面有没有打开
+            for (let [key, value] of state.tabList) {
+                if (value.get('type') === 'welcome') {
+                    isOpenedWelcome = true;
+                }
+                if (value.get('type') === 'settings') {
+                    isOpenedSettings = true;
+                }
             }
-            let newPageObject = new Map(Object.entries({
-                "label": object.pageTitle,
-                "type": object.pageType,
-                "path": `/${urlContent}?pageid=${filePageID}`,
-                "focus": true,
-                "isExistFile": object.isExistFile,
-                "saved": true,
-                "hovered": false,
-                "pageid": filePageID,
-                "monacoEditorModel": model ? markRaw(model) : null,
-            }));
-            state.tabList.set(filePageID, newPageObject);
-            // 最后把页面切过去
-            switchToPage(state, newPageObject);
-            state.currentOpenedTabNumber = state.tabList.size;
+
+            if (object.pageType === 'welcome' && isOpenedWelcome) {
+                return 0;
+            }
+            if (object.pageType === 'settings' && isOpenedSettings) {
+                return 0;
+            }
+            addTabPage(state, object);
         },
         // 关闭指定标签页
         closeTabPage(state, object) {
@@ -181,7 +209,7 @@ export default createStore({
                     switchToPage(state, new Map(Object.entries({
                         "type": 'welcome',
                         "path": '/',
-                        "monacoEditorModel": null
+                        "monacoEditorModel": createMonacoEditorModel()
                     })));
                 }
                 state.currentOpenedTabNumber = state.tabList.size;

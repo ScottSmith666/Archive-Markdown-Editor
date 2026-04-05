@@ -244,7 +244,7 @@ onMounted(() => {
                                     <p class="fonts">查找</p>
                                 </div>
                             </template>
-                            <div class="menu-element" id="settings">
+                            <div class="menu-element" id="settings" @click="store.commit('addTabPage', {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false})">
                                 <p class="fonts">设置...</p>
                             </div>
                         </div>
@@ -292,7 +292,8 @@ onMounted(() => {
                             <div class="menu-element" @click="store.commit('addTabPage', {'pageType': 'welcome', 'pageTitle': '欢迎', 'isExistFile': false})">
                                 <p class="fonts">欢迎</p>
                             </div>
-                            <div class="menu-element" id="about">
+                            <div class="menu-element" id="about"
+                                 @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': '关于AME', 'isExistFile': false, 'docName': 'about'})">
                                 <p class="fonts">关于AME...</p>
                             </div>
                             <div class="menu-element" id="donate">

@@ -20,7 +20,7 @@ onMounted(() => {
         // 打开应用时监测标签页哪个被激活了就开启哪个页面
         for (let [key, value] of store.state.tabList) {
             if (value.get('focus')) {
-                store.commit('setSwitchedPage', value.monacoEditorModel);
+                store.commit('setSwitchedPage', value.get('monacoEditorModel'));
                 router.push(value.get('path'));
                 return 0;
             }

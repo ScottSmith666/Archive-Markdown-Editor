@@ -132,4 +132,25 @@ export const rules = (md) => {
             return `<p style="color: red; font-weight: bold;">🚫错误：找不到文件，请检查在线URL是否正确或采用本地绝对路径</p>`;
         }
     };
+
+    // 处理链接，点击可通过默认浏览器打开
+    md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+        const token = tokens[idx];
+
+        // 获取链接地址 (href)
+        const hrefIndex = token.attrIndex('href');
+        const href = token.attrs[hrefIndex][1];
+
+        // 如果是外部链接则通过默认浏览器打开
+        if (href.startsWith('http')) {
+            let func = `window.openURLPreload.openURL('${href}');`;
+            token.attrPush(['onclick', func]);
+            token.attrPush(['style', 'cursor: pointer;']);
+            // 移除自带的href属性
+            const idx = token.attrIndex('href');
+            if (idx !== -1) token.attrs.splice(idx, 1);
+        }
+        // 渲染该 Token 并返回 HTML 字符串
+        return self.renderToken(tokens, idx, options);
+    };
 };

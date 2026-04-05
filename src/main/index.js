@@ -25,7 +25,7 @@ app.whenReady().then(() => {
     const sqliteMemoryConnection = new Sqlite3.Database(":memory:");
     const sqliteStorageConnection = null;
 
-    // menu();
+    menu();
 
     // Set app user model id for windows
     electronApp.setAppUserModelId("com.scottsmith.ame");

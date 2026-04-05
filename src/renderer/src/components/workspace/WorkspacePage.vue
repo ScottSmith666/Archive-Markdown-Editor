@@ -37,14 +37,16 @@ const handleGoToBottom = () => {
 
 <template>
     <div class="workspace-page">
+        <!--Editor不能添加v-if，否则会出问题-->
         <Editor
-            v-if="store.state.editorMode === 'mix' || store.state.editorMode === 'edit'"
+            :class="store.state.editorMode === 'preview' ? 'editor-down' : ''"
             @update="updateParentData"
             @top="handleGoToTop"
             @bottom="handleGoToBottom"
         />
         <Viewer
             v-if="store.state.editorMode === 'mix' || store.state.editorMode === 'preview'"
+            :class="store.state.editorMode === 'preview' ? 'viewer-up' : ''"
             :md-piece="parentPieceContent"
             :start-line-number="parentFirstLineNumber"
             :middle-line-number="parentMiddleLineNumber"

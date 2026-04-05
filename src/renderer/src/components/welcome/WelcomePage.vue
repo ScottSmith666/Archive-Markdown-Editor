@@ -26,11 +26,13 @@ const store = useStore();
                 <!--Separator-->
                 <div class="separator"></div>
                 <!--New File-->
-                <div @click="store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false})" class="options" id="new"><span class="options-icon">㊢</span>新建文件...</div>
+                <div @click="store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false})"
+                     class="options" id="new"><span class="options-icon">㊢</span>新建文件...</div>
                 <!--Open-->
                 <div class="options" id="open" @click="''"><span class="options-icon">㊠</span>打开文件...</div>
                 <!--Open-->
-                <div class="settings" id="settings" @click="''"><span class="options-icon">㊕</span>设置...</div>
+                <div @click="store.commit('addTabPage', {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false})"
+                     class="settings" id="settings"><span class="options-icon">㊕</span>设置...</div>
                 <!--Quit-->
                 <div class="options-quit" id="quit" @click="''"><span class="options-icon">㊡</span>退出AME</div>
 

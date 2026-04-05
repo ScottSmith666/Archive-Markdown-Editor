@@ -327,7 +327,7 @@ hr {
     margin-top: 2rem;
     margin-bottom: 2rem;
     border: none;
-    border-top: 2px solid transparent;
+    border-top: 0.8px solid transparent;
     background-image: var(--hr-bg-image);
     height: 1.5px;
     overflow: visible;

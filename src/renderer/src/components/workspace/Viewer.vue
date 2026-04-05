@@ -11,7 +11,7 @@ import * as IncrementalDOM from 'incremental-dom';
 import MarkdownItIncrementalDOM from 'markdown-it-incremental-dom';
 import {full as emoji} from 'markdown-it-emoji';
 import MarkdownItMark from 'markdown-it-mark';
-import { alert } from "@mdit/plugin-alert";
+import {alert} from "@mdit/plugin-alert";
 import '@mdit/plugin-alert/style';
 import MarkdownItSup from 'markdown-it-sup';
 import MarkdownItSub from 'markdown-it-sub';
@@ -263,6 +263,18 @@ const props = defineProps({
             return 50;
         }
     },
+    enableToc: {
+        type: Boolean,
+        default: () => {
+            return true;
+        }
+    },
+    enableSafe: {
+        type: Boolean,
+        default: () => {
+            return true;
+        }
+    },
 });
 
 // watch
@@ -295,11 +307,84 @@ watch(confirmContentSafe, (newValue, oldValue) => {
 </script>
 
 <template>
-    <div class="viewer-area fonts" id="viewer-container">
-        <div v-if="!store.state.safeMode" id="write">
+    <nav v-if="(!store.state.safeMode) && props.enableToc" class="custom-toc">
+        <div class="toc fonts">
+            <div class="toc-title-block"></div>
+            <div class="toc-title">目录</div>
+        </div>
+        <div>
+            <ul>
+                <li><a href="#lorem-ipsum">Lorem ipsum</a>
+                    <ul>
+                        <li><a href="#">样例文本</a>
+                            <ul>
+                                <li><a href="#3">标题3</a>
+                                    <ul>
+                                        <li><a href="#4">标题4</a>
+                                            <ul>
+                                                <li><a href="#5">标题5</a>
+                                                    <ul>
+                                                        <li><a href="#6">标题6</a></li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li><a href="#lorem-ipsum-1">Lorem ipsum</a>
+                    <ul>
+                        <li><a href="#-1">样例文本</a>
+                            <ul>
+                                <li><a href="#3-1">标题3</a>
+                                    <ul>
+                                        <li><a href="#4-1">标题4</a>
+                                            <ul>
+                                                <li><a href="#5-1">标题5</a>
+                                                    <ul>
+                                                        <li><a href="#6-1">标题6</a></li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li><a href="#lorem-ipsum-2">Lorem ipsum</a>
+                    <ul>
+                        <li><a href="#-2">样例文本</a>
+                            <ul>
+                                <li><a href="#3-2">标题3</a>
+                                    <ul>
+                                        <li><a href="#4-2">标题4</a>
+                                            <ul>
+                                                <li><a href="#5-2">标题5</a>
+                                                    <ul>
+                                                        <li><a href="#6-2">标题6</a></li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="viewer-area fonts" id="viewer-container" v-bind="$attrs">
+        <div v-if="(!store.state.safeMode) || (!props.enableSafe)" id="write">
             <!--Generated HTML was injected here...-->
         </div>
-        <safe-mode-info v-else></safe-mode-info>
+        <safe-mode-info v-if="store.state.safeMode && props.enableSafe"></safe-mode-info>
     </div>
 </template>
 

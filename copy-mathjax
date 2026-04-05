@@ -1,4 +1,4 @@
 #!/bin/zsh
 
 cp -r ./src/renderer/libs ./out/renderer
-echo "MathJax copy successfully! Enjoy!"
+echo "MathJax and default markdown file copy successfully! Enjoy!"

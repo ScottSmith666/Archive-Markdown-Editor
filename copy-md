@@ -1,0 +1,4 @@
+#!/bin/zsh
+
+cp -r ./document ./out
+echo "Default markdown file copy successfully! Enjoy!"
