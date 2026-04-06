@@ -10,7 +10,7 @@
 <body>
 <div id="app"></div>
 <script>
-    window.MathJax = {
+    MathJax = {
         tex: {
             inlineMath: [
                 ["$", "$"],
@@ -24,7 +24,8 @@
                 // ['?', '?'],
             ], // 段内公式选择符
             packages: {'[+]': ['base', 'action', 'mhchem', 'ams']},
-            processEscapes: false
+            processEscapes: true,
+            processEnvironments: true // 允许识别 \begin{aligned} 等环境
         },
         loader: {
             load: [
@@ -63,8 +64,8 @@
             ignoreHtmlClass: 'code-editor',
             menuOptions: {
                 settings: {
-                    speech: false,    // 禁用语音生成
-                    braille: false    // 可选：同时禁用盲文
+                    speech: false,  // 禁用语音生成
+                    braille: false,  // 可选：同时禁用盲文
                 }
             }
         }

@@ -66,7 +66,6 @@ watch(
             </div>
         </div>
         <div class="block"></div>
-        {{ Array.from(store.state.tabList.keys()) }}
         <TransitionGroup id="tabs" name="list" tag="div" style="display: flex; flex-direction: row;">
             <template v-for="[pageId, tabObject] in store.state.tabList" :key="pageId">
                 <div

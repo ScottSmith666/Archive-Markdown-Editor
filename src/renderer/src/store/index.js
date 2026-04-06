@@ -18,7 +18,6 @@ const createMonacoEditorModel = (pageId) => {
     if (!pageId) {  // 要是没传入参数，就自己生成
         pageId = "UNUSED_" + crypto.randomUUID();
     }
-    console.log("创建的ME Model ID", pageId);
     const uri = monaco.Uri.parse(`uuid:///${pageId}.md`);
     // 创建并返回 Model 实例
     return monaco.editor.createModel("", "markdown", uri);
@@ -29,7 +28,6 @@ const switchToPage = (state, item) => {
     // state.currentActivatedTabType = item.get('type');
     state.currentOpenedPageId = item.get('pageid');
     router.replace(item.get('path'));
-    console.log("切换页面的ME Model ID及打开的页面ID", state.currentOpenedPageId);
 };
 
 const changePropsOfTab = (state, pageId, propName, propValue) => {

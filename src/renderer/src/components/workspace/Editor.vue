@@ -32,7 +32,6 @@ const emit = defineEmits(['update', 'top', 'bottom']);
 
 onBeforeRouteUpdate((to, from) => {
     // 页面变动时切换Monaco Editor Model
-    console.log("页面变动时页面URL的参数ID", to.query.pageid);
     monacoInstance.setModel(store.state.tabList.get(to.query.pageid).get('monacoEditorModel'));
     monacoInstance.focus();
     update(monacoInstance, to.query.pageid);

@@ -13,8 +13,6 @@ import {full as emoji} from 'markdown-it-emoji';
 import MarkdownItMark from 'markdown-it-mark';
 import {alert} from "@mdit/plugin-alert";
 import '@mdit/plugin-alert/style';
-import MarkdownItSup from 'markdown-it-sup';
-import MarkdownItSub from 'markdown-it-sub';
 
 // 引入Prism
 import Prism from 'prismjs';
@@ -143,8 +141,6 @@ mdIt.use(MarkdownItIncrementalDOM, IncrementalDOM);
 mdIt.use(emoji);
 mdIt.use(MarkdownItMark);
 mdIt.use(alert);
-mdIt.use(MarkdownItSup);
-mdIt.use(MarkdownItSub);
 
 // data
 const confirmContentSafe = ref(false);
