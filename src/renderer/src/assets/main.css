@@ -28,3 +28,114 @@ html, body {
     flex: 1;
     flex-direction: column;
 }
+
+.modal {
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    opacity: 0.3;
+    position: absolute;
+    z-index: 50;
+}
+
+.tip {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;  /* 禁止拖选文字 */
+    width: 300px;
+    height: 60px;
+    background-color: white;
+    z-index: 51;
+    border-radius: 8px;
+}
+
+.donate {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;  /* 禁止拖选文字 */
+    width: 500px;
+    /*height: 400px;*/
+    background-color: white;
+    z-index: 51;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.donate-close-button {
+    width: 60px;
+    height: 35px;
+    border-radius: 10px;
+    background-color: #42b883;
+    color: white;
+    text-align: center;
+    line-height: 35px;
+    cursor: pointer;
+}
+
+.donate-close-button:hover {
+    font-weight: bold;
+}
+
+.window-title {
+    font-weight: bold;
+    color: rgb(71, 71, 71);
+    font-size: large;
+}
+
+.window-subtitle {
+    color: rgb(71, 71, 71);
+    font-size: x-small;
+}
+
+.wrapper-info {
+    padding: 1rem;
+    border-radius: 12px 12px 12px 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    word-break: break-word;
+    outline-color: #359BEE !important;
+}
+
+.fonts-info {
+    color: #1660d0;
+    font-weight: bold;
+}
+
+.wrapper-info:hover {
+    transition: outline-color 0.5s;
+    outline-color: #359BEE;
+}
+
+.info-border {
+    outline: 1px rgba(255, 255, 255, 0) solid;
+    transition: outline-color 0.5s;
+    outline-offset: -2px;
+}
+
+.info-bg {
+    background-color: #eff3fd;
+}
+
+/* Transition animation */
+.v-enter-active,
+.v-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+    opacity: 0;
+}

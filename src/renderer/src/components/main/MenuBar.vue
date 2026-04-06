@@ -4,7 +4,8 @@ import {useStore} from 'vuex';
 
 const store = useStore();
 
-// reactive data
+// emit
+const emit = defineEmits(['tgModal']);
 
 // methods
 const closeCurrentPage = (tabList) => {
@@ -14,6 +15,10 @@ const closeCurrentPage = (tabList) => {
             return 0;
         }
     }
+};
+
+const openOfficialWebsite = () => {
+    window.openURLPreload.openURL('https://scottsmith666.github.io/');
 };
 
 const openUsageByHotkey = (e) => {
@@ -289,8 +294,12 @@ onMounted(() => {
                                 </div>
                             </template>
                             <div class="menu-element" id="settings"
-                                 @click="store.commit('addTabPage', {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false})">
+                                 @click="store.commit('addTabPage', {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false}); store.commit('mainManuAllHide');">
                                 <p class="fonts">设置...</p>
+                            </div>
+                            <div class="menu-element" id="settings"
+                                 @click="emit('tgModal', 'tip'); store.commit('mainManuAllHide');">
+                                <p class="fonts">测试：toggle模态框...</p>
                             </div>
                         </div>
                     </Transition>
@@ -368,10 +377,10 @@ onMounted(() => {
                                  @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': 'AME使用指南', 'isExistFile': false, 'docName': 'usage'})">
                                 <p class="fonts">使用指南...</p>
                             </div>
-                            <div class="menu-element" id="donate">
+                            <div class="menu-element" id="donate" @click="emit('tgModal', 'donate'); store.commit('mainManuAllHide');">
                                 <p class="fonts" style="color: red;">打赏...</p>
                             </div>
-                            <div class="menu-element" id="learn-more">
+                            <div class="menu-element" id="learn-more" @click="openOfficialWebsite">
                                 <p class="fonts">官方网站...</p>
                             </div>
                         </div>

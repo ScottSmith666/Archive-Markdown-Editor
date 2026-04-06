@@ -152,7 +152,7 @@
 }
 
 /* image */
-img, video {
+#write img, video {
     border-radius: 10px;
     max-width: 100%;
     display: block;
@@ -161,7 +161,7 @@ img, video {
 }
 
 @media(min-width: 1200px) {
-    img, video {
+    #write img, video {
         border-radius: 10px;
         max-width: 55%;
         display: block;

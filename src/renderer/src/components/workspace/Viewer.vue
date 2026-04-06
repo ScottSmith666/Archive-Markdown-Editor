@@ -44,7 +44,6 @@ import {useStore} from 'vuex';
 
 import {rules} from "./render_rules.js";
 import SafeModeInfo from "./SafeModeInfo.vue";
-import {useRouter} from "vue-router";
 
 const store = useStore();
 
