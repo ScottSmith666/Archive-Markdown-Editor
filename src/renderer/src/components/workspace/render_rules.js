@@ -1,4 +1,4 @@
-export const rules = (md) => {
+export const rules = (md, documentPathObject) => {
     // 保存默认的代码块渲染规则
     const defaultFence = md.renderer.rules.fence;
     // 正则表达式
@@ -10,6 +10,7 @@ export const rules = (md) => {
                 win32: /^([A-Za-z]:)(\/\S+)+/,
                 posix: /^(\/)(\S+)(\/\S+)+/,
                 mdz: /^(\$MDZ_MEDIA)\/\S+/,
+                document: /^(\$DOCUMENT_MEDIA)\/\S+/,
             },
             mediaContentMark: /(\$\{)(\S+)(\})(:)([\S|\s]*)/,
         };
@@ -90,8 +91,12 @@ export const rules = (md) => {
 
         // 然后进行正则表达式判断是路径还是URL
         // 这里规定，URL前面一律需要加上http://或者https://协议
-        // Win32系路径格式：(大写或小写字母 + 冒号 + 斜杠)开头，例如C:/Users/scottsmith/Desktop/test.jpg
-        // Posix系路径格式：斜杠开头，例如/Users/scottsmith/Desktop/test.jpg
+        // 以下有这几种文件路径：
+        // 1. Win32系路径格式：(大写或小写字母 + 冒号 + 斜杠)开头，例如C:/Users/scottsmith/Desktop/test.jpg
+        // 2. Posix系路径格式：斜杠开头，例如/Users/scottsmith/Desktop/test.jpg
+        // 3. 路径开头包含“$MDZ_MEDIA”，这是mdz格式导引多媒体路径的标志，例如$MDZ_MEDIA/test.jpg
+        // 4. 路径开头包含“$DOCUMENT_MEDIA”，这是document页面格式导引多媒体路径的标志，只能由软件本身进行内部调用，不对外部终端用户开放
+        //    例如$DOCUMENT_MEDIA/test.jpg
         // const caption = token.content;这里面的caption是Markdown多媒体语句中方括号内的内容，即“![content](url)”中的“content”部分
         // 在这里定义AME的新语法：
         //     content的格式符合“${video}:caption”，将作为视频处理
@@ -99,6 +104,22 @@ export const rules = (md) => {
         //     content的格式符合“${file}:caption”，将作为其他类型可下载文件处理
         //     content的格式如不符合上述三种情况，将作为图片处理，即Markdown默认语法
         let matchedMediaMark = regs.mediaContentMark.exec(caption);
+
+        // 内部调用document media路径，外部不可调用
+        if (documentPathObject.isEnabled) {
+            if (regs.path.document.test(url)) {
+                if (matchedMediaMark !== null) {
+                    let kind = matchedMediaMark[2];
+                    let getCaption = matchedMediaMark[4];
+                    let mediaFileName = url.split("/").pop();
+                    return returnMediaElement(false, kind, documentPathObject.path + '/' + mediaFileName, getCaption);
+                } else {
+                    return returnMediaElement(false, "image", documentPathObject.path + '/' + mediaFileName, getCaption);
+                }
+            }
+        }
+
+        // 外部调用
         if (regs.url.test(url)) {
             if (matchedMediaMark !== null) {
                 let kind = matchedMediaMark[2];
@@ -128,6 +149,9 @@ export const rules = (md) => {
             } else {
                 return returnMediaElement(false, 'image', url, caption);
             }
+        } else if (regs.path.mdz.test(url)) {
+            // mdz文件处理逻辑
+            return '';
         } else {
             return `<p style="color: red; font-weight: bold;">🚫错误：找不到文件，请检查在线URL是否正确或采用本地绝对路径</p>`;
         }

@@ -49,14 +49,74 @@ import SafeModeInfo from "./SafeModeInfo.vue";
 import {useRouter} from "vue-router";
 
 const store = useStore();
-const route = useRouter();
+
+// props
+const props = defineProps({
+    mdPiece: {
+        type: String,
+        default: () => {
+            return "";
+        }
+    },
+    startLineNumber: {
+        type: Number,
+        default: () => {
+            return 1;
+        }
+    },
+    visualStartLineNumber: {
+        type: Number,
+        default: () => {
+            return 1;
+        }
+    },
+    visualEndLineNumber: {
+        type: Number,
+        default: () => {
+            return 1;
+        }
+    },
+    middleLineNumber: {
+        type: Number,
+        default: () => {
+            return 25;
+        }
+    },
+    fileTotalLineNumber: {
+        type: Number,
+        default: () => {
+            return 50;
+        }
+    },
+    enableToc: {
+        type: Boolean,
+        default: () => {
+            return true;
+        }
+    },
+    enableSafe: {
+        type: Boolean,
+        default: () => {
+            return true;
+        }
+    },
+    enableDocumentMediaPath: {
+        type: Object,
+        default: () => {
+            return {
+                isEnabled: false,
+                path: '',
+            };
+        }
+    },
+});
 
 // 初始化Markdown-it
 const mdIt = new MarkdownIt({
     html: true,
     langPrefix: 'language-',
 });
-rules(mdIt);  // 自定义渲染规则
+rules(mdIt, props.enableDocumentMediaPath);  // 自定义渲染规则
 mdIt.use(markdownItRegex, {
     name: "escape_dollar",
     regex: /(\\\$)/,
@@ -88,11 +148,16 @@ mdIt.use(MarkdownItSub);
 
 // data
 const confirmContentSafe = ref(false);
+const viewerContextMenuShow = ref(false);
+const contextMenuPositionStyle = ref('');
+const viewerTocShow = ref(false);
 
 onMounted(() => {
-    if (!store.state.safeMode) {
+    if ((!store.state.safeMode) || (!props.enableSafe)) {
         render(props.mdPiece);
     }
+
+    window.addEventListener('keydown', copyInViewerByHotkey);
 });
 
 // methods
@@ -193,6 +258,55 @@ const scrollCustomLineElementToCenter = (firstLine, middleLine, lastLine, rangeF
     });
 };
 
+const displayViewerContextMenu = (event) => {
+    const menuHeight = 60;
+    const menuWidth = 200;
+
+    let left;
+    if (store.state.editorMode === 'preview') {
+        // 这是预览模式下的右键菜单位置判定
+        left = `left: ${
+            (event.clientX + menuWidth) <= (document.body.clientWidth - 20)
+                ? (event.clientX)
+                : (document.body.clientWidth - 40 - menuWidth)
+        }px; `;
+    } else if (store.state.editorMode === 'mix') {
+        // 这是混合模式下的右键菜单位置判定
+        left = `left: ${
+            (event.clientX + menuWidth) <= (document.body.clientWidth - 20)
+                ? (event.clientX)
+                : (document.body.clientWidth - 40 - menuWidth)
+        }px; `;
+    }
+
+    let top = `top: ${
+        (event.clientY + menuHeight + 30) <= document.body.clientHeight
+            ? (event.clientY - 20 - 30 + menuHeight)
+            : (document.body.clientHeight - menuHeight - 60 - 30)
+    }px;`;
+
+    contextMenuPositionStyle.value = left + top;
+    viewerContextMenuShow.value = true;
+};
+
+const copyInViewer = () => {
+    let selection = window.getSelection();
+    let selectionText = selection.toString();
+    navigator.clipboard.writeText(selectionText).then(() => {
+        viewerContextMenuShow.value = false;
+    }).catch((error) => {
+        console.error("复制失败: ", error);
+        viewerContextMenuShow.value = false
+    });
+};
+
+const copyInViewerByHotkey = (e) => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault(); // 阻止浏览器默认保存行为
+        copyInViewer();
+    }
+};
+
 const goToTop = () => {
     // 滚到顶了
     try {
@@ -204,6 +318,7 @@ const goToTop = () => {
     } catch (e) {
     }
 };
+
 const goToBottom = () => {
     // 滚到底了
     try {
@@ -225,63 +340,11 @@ defineExpose({
     goToBottom,
 });
 
-// props
-const props = defineProps({
-    mdPiece: {
-        type: String,
-        default: () => {
-            return "";
-        }
-    },
-    startLineNumber: {
-        type: Number,
-        default: () => {
-            return 1;
-        }
-    },
-    visualStartLineNumber: {
-        type: Number,
-        default: () => {
-            return 1;
-        }
-    },
-    visualEndLineNumber: {
-        type: Number,
-        default: () => {
-            return 1;
-        }
-    },
-    middleLineNumber: {
-        type: Number,
-        default: () => {
-            return 25;
-        }
-    },
-    fileTotalLineNumber: {
-        type: Number,
-        default: () => {
-            return 50;
-        }
-    },
-    enableToc: {
-        type: Boolean,
-        default: () => {
-            return true;
-        }
-    },
-    enableSafe: {
-        type: Boolean,
-        default: () => {
-            return true;
-        }
-    },
-});
-
 // watch
 watch(
     () => [props.mdPiece, props.middleLineNumber],
     ([newMdPiece, newMiddleLineNumber], [oldMdPiece, oldMiddleLineNumber]) => {
-        if (!store.state.safeMode) {
+        if ((!store.state.safeMode) || (!props.enableSafe)) {
             render(newMdPiece);
             if (newMiddleLineNumber !== oldMiddleLineNumber) {
                 scrollCustomLineElementToCenter(
@@ -307,80 +370,102 @@ watch(confirmContentSafe, (newValue, oldValue) => {
 </script>
 
 <template>
-    <nav v-if="(!store.state.safeMode) && props.enableToc" class="custom-toc">
-        <div class="toc fonts">
-            <div class="toc-title-block"></div>
-            <div class="toc-title">目录</div>
+    <Transition>
+        <nav v-if="(!store.state.safeMode) && props.enableToc && viewerTocShow" class="custom-toc">
+            <div class="toc fonts">
+                <div class="toc-title-block"></div>
+                <div class="toc-title">目录</div>
+            </div>
+            <div>
+                <ul>
+                    <li><a href="#lorem-ipsum">Lorem ipsum</a>
+                        <ul>
+                            <li><a href="#">样例文本</a>
+                                <ul>
+                                    <li><a href="#3">标题3</a>
+                                        <ul>
+                                            <li><a href="#4">标题4</a>
+                                                <ul>
+                                                    <li><a href="#5">标题5</a>
+                                                        <ul>
+                                                            <li><a href="#6">标题6</a></li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="#lorem-ipsum-1">Lorem ipsum</a>
+                        <ul>
+                            <li><a href="#-1">样例文本</a>
+                                <ul>
+                                    <li><a href="#3-1">标题3</a>
+                                        <ul>
+                                            <li><a href="#4-1">标题4</a>
+                                                <ul>
+                                                    <li><a href="#5-1">标题5</a>
+                                                        <ul>
+                                                            <li><a href="#6-1">标题6</a></li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="#lorem-ipsum-2">Lorem ipsum</a>
+                        <ul>
+                            <li><a href="#-2">样例文本</a>
+                                <ul>
+                                    <li><a href="#3-2">标题3</a>
+                                        <ul>
+                                            <li><a href="#4-2">标题4</a>
+                                                <ul>
+                                                    <li><a href="#5-2">标题5</a>
+                                                        <ul>
+                                                            <li><a href="#6-2">标题6</a></li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </Transition>
+
+    <Transition>
+        <div v-if="viewerContextMenuShow" class="viewer-contextmenu fonts"
+             :style="contextMenuPositionStyle">
+            <div class="vc-menu-element" @click="copyInViewer">
+                <p>&nbsp;&nbsp;&nbsp;复制</p>
+            </div>
+            <div v-if="props.enableToc" class="vc-menu-element"
+                 @click="viewerTocShow = !viewerTocShow; viewerContextMenuShow = false;">
+                <p>&nbsp;&nbsp;&nbsp;{{ viewerTocShow ? '关闭' : '打开' }}此文档目录</p>
+            </div>
         </div>
-        <div>
-            <ul>
-                <li><a href="#lorem-ipsum">Lorem ipsum</a>
-                    <ul>
-                        <li><a href="#">样例文本</a>
-                            <ul>
-                                <li><a href="#3">标题3</a>
-                                    <ul>
-                                        <li><a href="#4">标题4</a>
-                                            <ul>
-                                                <li><a href="#5">标题5</a>
-                                                    <ul>
-                                                        <li><a href="#6">标题6</a></li>
-                                                    </ul>
-                                                </li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li><a href="#lorem-ipsum-1">Lorem ipsum</a>
-                    <ul>
-                        <li><a href="#-1">样例文本</a>
-                            <ul>
-                                <li><a href="#3-1">标题3</a>
-                                    <ul>
-                                        <li><a href="#4-1">标题4</a>
-                                            <ul>
-                                                <li><a href="#5-1">标题5</a>
-                                                    <ul>
-                                                        <li><a href="#6-1">标题6</a></li>
-                                                    </ul>
-                                                </li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li><a href="#lorem-ipsum-2">Lorem ipsum</a>
-                    <ul>
-                        <li><a href="#-2">样例文本</a>
-                            <ul>
-                                <li><a href="#3-2">标题3</a>
-                                    <ul>
-                                        <li><a href="#4-2">标题4</a>
-                                            <ul>
-                                                <li><a href="#5-2">标题5</a>
-                                                    <ul>
-                                                        <li><a href="#6-2">标题6</a></li>
-                                                    </ul>
-                                                </li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </nav>
-    <div class="viewer-area fonts" id="viewer-container" v-bind="$attrs">
+    </Transition>
+
+    <div class="viewer-area fonts"
+         id="viewer-container"
+         tabindex="-1"
+         v-bind="$attrs"
+         @contextmenu.prevent="displayViewerContextMenu"
+         @click="viewerContextMenuShow = false"
+         @blur="viewerContextMenuShow = false">
         <div v-if="(!store.state.safeMode) || (!props.enableSafe)" id="write">
             <!--Generated HTML was injected here...-->
         </div>

@@ -32,6 +32,7 @@ asarUnpack:
   - 'node_modules/bindings/**'
   - 'node_modules/file-uri-to-path/**'
   - 'libs/napi_build/**'
+  - 'document/**'
 win:
   executableName: archive_markdown_editor
   icon: 'resources/icon.ico'

@@ -32,9 +32,10 @@ const emit = defineEmits(['update', 'top', 'bottom']);
 
 onBeforeRouteUpdate((to, from) => {
     // 页面变动时切换Monaco Editor Model
-    monacoInstance.setModel(store.state.switchedPageMonacoEditorModel);
+    console.log("页面变动时页面URL的参数ID", to.query.pageid);
+    monacoInstance.setModel(store.state.tabList.get(to.query.pageid).get('monacoEditorModel'));
     monacoInstance.focus();
-    update(monacoInstance, route.query.pageid);
+    update(monacoInstance, to.query.pageid);
 });
 
 onMounted(() => {
@@ -48,7 +49,7 @@ onMounted(() => {
         wordWrap: true,
     });
     // 加载页面对应的model
-    monacoInstance.setModel(store.state.switchedPageMonacoEditorModel);
+    monacoInstance.setModel(store.state.tabList.get(route.query.pageid).get('monacoEditorModel'));
     // 自动聚焦
     monacoInstance.focus();
     // 添加撤销和重做
@@ -65,7 +66,7 @@ onMounted(() => {
         // navigation 是顶部，modification 是中间，9_cutcopypaste 是剪贴板组
         contextMenuGroupId: 'navigation',
         // 点击后执行的逻辑
-        run: function() {
+        run: function () {
             monacoInstance.trigger('source', 'undo');
             return null;
         }
@@ -77,59 +78,11 @@ onMounted(() => {
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY,
         ],
         contextMenuGroupId: 'navigation',
-        run: function() {
+        run: function () {
             monacoInstance.trigger('source', 'redo');
             return null;
         }
     });
-    update(monacoInstance, route.query.pageid);
-});
-
-// methods
-const debounce = (fn, editor, delay = 15, scroll = true) => {
-    // 防抖
-    let timeout = null;
-    return function (...args) {
-        if (scroll && store.state.switchedPageMonacoEditorModel) {
-            let isUp = editor.getVisibleRanges().length === 0
-                ? true
-                : (editor.getVisibleRanges()[0].startLineNumber === 1);
-            let isDown = editor.getVisibleRanges().length === 0
-                ? true
-                : (editor.getVisibleRanges()[0].endLineNumber === store.state.switchedPageMonacoEditorModel.getLineCount());
-            if (isUp) {  // Editor是否到顶
-                emit('top');
-            }
-
-            if (isDown) {  // Editor是否到底
-                emit('bottom');
-            }
-        }
-
-        if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            fn(...args);
-        }, delay);
-    };
-};
-
-// 数据及视图更新
-const update = (monacoInstance, pageId) => {
-    monacoInstance.focus();
-    getPlanPiece(monacoInstance);  // 初始打开页面时就取一遍值
-    // 监测内容改变事件，并将操作栈写入数据库
-    monacoInstance.onDidChangeModelContent(debounce(() => {
-        getPlanPiece(monacoInstance);
-    }, null, 100, false));
-
-    // Monaco Editor滚动事件
-    // 滚动事件触发后，将从Monaco Editor中间行号开始，向两边各截取n/2倍Monaco Editor可视行数的文本传进渲染器
-    monacoInstance.onDidScrollChange(debounce((event) => {
-        if (store.state.switchedPageMonacoEditorModel) {
-            getPlanPiece(monacoInstance);
-        }
-    }, monacoInstance));
-
     // 剪切快捷键
     monacoInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => {
         monacoInstance.trigger('source', 'editor.action.clipboardCutAction');
@@ -144,14 +97,75 @@ const update = (monacoInstance, pageId) => {
     monacoInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
         monacoInstance.trigger('source', 'editor.action.clipboardPasteAction');
     });
+
+    // 监测内容改变事件
+    monacoInstance.onDidChangeModelContent((event) => {
+        runDebounceChange(() => {
+            getPlanPiece(monacoInstance, route.query.pageid);
+        });
+    });
+
+    // Monaco Editor滚动事件
+    // 滚动事件触发后，将从Monaco Editor中间行号开始，向两边各截取n/2倍Monaco Editor可视行数的文本传进渲染器
+    monacoInstance.onDidScrollChange((event) => {
+        if (route.query.pageid === store.state.currentOpenedPageId) {  // 由于Monaco Editor切换Model时会自动执行onDidScrollChange事件，因此需要判断route param是否与打开的页面id相同
+            let isUp = monacoInstance.getVisibleRanges().length === 0
+                ? true
+                : (monacoInstance.getVisibleRanges()[0].startLineNumber === 1);
+            let isDown = monacoInstance.getVisibleRanges().length === 0
+                ? true
+                : (monacoInstance.getVisibleRanges()[0].endLineNumber
+                    === store.state.tabList.get(route.query.pageid).get('monacoEditorModel').getLineCount());
+            if (isUp) {  // Editor是否到顶
+                emit('top');
+            }
+
+            if (isDown) {  // Editor是否到底
+                emit('bottom');
+            }
+
+            runDebounceScroll(() => {
+                getPlanPiece(monacoInstance, route.query.pageid);
+            });
+        }
+    });
+
+    update(monacoInstance, route.query.pageid);
+});
+
+// methods
+const debounceScroll = (delay = 15) => {
+    // 滚动防抖
+    let timeout = null;
+    return function (fn) {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(fn, delay);
+    };
+};
+const runDebounceScroll = debounceScroll();
+
+const debounceChange = (fn, delay = 100) => {
+    // 编辑防抖
+    let timeout = null;
+    return function (fn) {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(fn, delay);
+    };
+};
+const runDebounceChange = debounceChange();
+
+// 数据及视图更新
+const update = (monacoInstance, pageId) => {
+    monacoInstance.focus();
+    getPlanPiece(monacoInstance, pageId);
 };
 
-const getContentOfLineRange = (startLine, endLine) => {
-    return store.state.switchedPageMonacoEditorModel.getValueInRange({
+const getContentOfLineRange = (startLine, endLine, pageId) => {
+    return store.state.tabList.get(pageId).get('monacoEditorModel').getValueInRange({
         startLineNumber: startLine,
         startColumn: 1,
         endLineNumber: endLine,
-        endColumn: store.state.switchedPageMonacoEditorModel.getLineMaxColumn(endLine) // 获取该行最后一个字符的列号
+        endColumn: store.state.tabList.get(pageId).get('monacoEditorModel').getLineMaxColumn(endLine) // 获取该行最后一个字符的列号
     });
 }
 
@@ -177,8 +191,8 @@ const getLineNumsOfVisualPage = (editor) => {
     }
 };
 
-const getPlanPiece = (monacoInstance) => {
-    let fileTotalLines = store.state.switchedPageMonacoEditorModel.getLineCount();  // 编辑器内的文本总行数
+const getPlanPiece = (monacoInstance, pageId) => {
+    let fileTotalLines = store.state.tabList.get(pageId).get('monacoEditorModel').getLineCount();  // 编辑器内的文本总行数
     let vt = getLineNumsOfVisualPage(monacoInstance);
     let planCutContentLines = vt.linesInVisualPage * store.state.renderDistance;  // 选区总长度，即可视页面行数与渲染距离之积
     let rangeFirstLineNumber = 1;  // 选区第一行行数
@@ -195,7 +209,7 @@ const getPlanPiece = (monacoInstance) => {
     let pieceContent;
     if (fileTotalLines <= planCutContentLines) {
         // 分支1
-        pieceContent = store.state.switchedPageMonacoEditorModel.getValue();
+        pieceContent = store.state.tabList.get(pageId).get('monacoEditorModel').getValue();
     } else {
         if ((fileTotalLines - vt.lineNumAtPageCenter + 1) <= Math.floor(planCutContentLines / 2 + 0.5)) {
             // 分支2.1
@@ -213,7 +227,7 @@ const getPlanPiece = (monacoInstance) => {
             rangeFirstLineNumber = vt.lineNumAtPageCenter - Math.floor(planCutContentLines / 2 + 0.5) + 1;
             rangeLastLineNumber = vt.lineNumAtPageCenter + Math.floor(planCutContentLines / 2 + 0.5);
         }
-        pieceContent = getContentOfLineRange(rangeFirstLineNumber, rangeLastLineNumber);
+        pieceContent = getContentOfLineRange(rangeFirstLineNumber, rangeLastLineNumber, pageId);
     }
     emit('update', [
         pieceContent, // 传内容片段过去

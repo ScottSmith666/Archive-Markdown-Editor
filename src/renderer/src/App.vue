@@ -7,27 +7,15 @@ import { useStore } from 'vuex';
 
 const store = useStore();
 
+// dispatch
+store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
+
 // data
 
 // created
 
 // mounted
-onMounted(() => {
-    // 如没有激活的标签页，就打开默认页面
-    if (store.state.tabList.size === 0) {
-        router.push("/");
-    } else {
-        // 打开应用时监测标签页哪个被激活了就开启哪个页面
-        for (let [key, value] of store.state.tabList) {
-            if (value.get('focus')) {
-                store.commit('setSwitchedPage', value.get('monacoEditorModel'));
-                router.push(value.get('path'));
-                return 0;
-            }
-        }
-    }
-});
-
+onMounted(() => {});
 // methods
 </script>
 

@@ -53,6 +53,7 @@ const handleGoToBottom = () => {
             :visual-start-line-number="parentVisualFirstLineNumber"
             :visual-end-line-number="parentVisualLastLineNumber"
             :file-total-line-number="parentFileTotalLineNumber"
+            :enableToc="false"
             ref="goToTopOrBottom"
         />
     </div>

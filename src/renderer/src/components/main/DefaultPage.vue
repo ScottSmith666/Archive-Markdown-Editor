@@ -207,7 +207,7 @@
                 <div class="hotkey">H</div>
             </div>
             <div style="height: 10px;"></div>
-            <div class="explain">以打开AME使用指南</div>
+            <div class="explain">打开Archive Markdown Editor使用指南</div>
         </div>
     </div>
 </div>

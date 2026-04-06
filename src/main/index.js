@@ -1,7 +1,6 @@
 import {app, protocol, net} from "electron";
 import path from "path";
 import {electronApp, optimizer, is} from "@electron-toolkit/utils";
-import url from 'url';
 
 let Sqlite3;
 if (is.dev) {

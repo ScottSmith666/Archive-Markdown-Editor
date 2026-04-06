@@ -160,6 +160,16 @@ img, video {
     transition: transform 0.15s ease, border-radius 0.15s ease;
 }
 
+@media(min-width: 1200px) {
+    img, video {
+        border-radius: 10px;
+        max-width: 55%;
+        display: block;
+        margin: 1em auto;
+        transition: transform 0.15s ease, border-radius 0.15s ease;
+    }
+}
+
 img:hover, video:hover {
     transform: scale(calc(1 + 0.01 * var(--img-hover-effect) * var(--use-dynamic-effect)));
     border-radius: calc(10px - 10px * var(--img-hover-effect) * var(--use-dynamic-effect));

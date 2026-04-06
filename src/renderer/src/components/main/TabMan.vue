@@ -11,7 +11,6 @@ const showScroller = ref(false);
 onMounted(() => {
 });
 
-// methods
 const leftSlide = () => {
     if (showScroller) {
         let tabsContainer = document.getElementById('tabs-container');
@@ -56,8 +55,9 @@ watch(
 </script>
 
 <template>
-    <div class="tab-man-main fonts" v-if="store.state.tabList.size > 0" id="tabs-container">
-        <div v-if="showScroller" class="tab-scroller-sticky">
+    <div class="tab-man-main fonts" v-if="store.state.tabList.size > 0" id="tabs-container"
+         @dblclick="store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false})">
+        <div v-if="showScroller" class="tab-scroller-sticky" @dblclick.stop="() => null">
             <div class="tab-scroller">
                 <div style="width: 10px;"></div>
                 <div class="scroll-left-right" @click="leftSlide">◀</div>
@@ -66,10 +66,13 @@ watch(
             </div>
         </div>
         <div class="block"></div>
+        {{ Array.from(store.state.tabList.keys()) }}
         <TransitionGroup id="tabs" name="list" tag="div" style="display: flex; flex-direction: row;">
             <template v-for="[pageId, tabObject] in store.state.tabList" :key="pageId">
-                <div class="tab" :class="tabObject.get('focus') ? 'tab-activated' : ''"
-                     @click="store.commit('switchToCurrentTab', {'pageId': pageId})">
+                <div
+                     class="tab" :class="tabObject.get('focus') ? 'tab-activated' : ''"
+                     @click="store.commit('switchToCurrentTab', {'pageId': pageId})"
+                     @dblclick.stop="() => null">
                     <!--图标-->
                     <div class="tab-icon" v-if="tabObject.get('type') === 'welcome'">
                         <svg t="1773895753581" class="tab-icon" viewBox="0 0 1024 1024" version="1.1"
@@ -162,7 +165,7 @@ watch(
                             tabObject.get('label').length <= 20 ? tabObject.get('label') : tabObject.get('label').slice(0, 10) + '...' + tabObject.get('label').slice(-10)
                         }}
                     </div>
-                    <!--关闭按钮，未hoverIn时，已保存是叉，未保存是圆；已hoverIn时，已保存和未保存都是叉-->
+                    <!--关闭按钮，未hover in时，已保存是叉，未保存是圆；已hover in时，已保存和未保存都是叉-->
                     <div class="close-tab"
                          @mouseenter="store.commit('changePropsOfTab', {'pageId': pageId, 'propName': 'hovered', 'propValue': true})"
                          @mouseleave="store.commit('changePropsOfTab', {'pageId': pageId, 'propName': 'hovered', 'propValue': false})"

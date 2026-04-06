@@ -16,54 +16,26 @@ const mainManuAllHide = (state) => {
 // 创建新标签页时创建对应页面的monaco editor model
 const createMonacoEditorModel = (pageId) => {
     if (!pageId) {  // 要是没传入参数，就自己生成
-        pageId = crypto.randomUUID();
+        pageId = "UNUSED_" + crypto.randomUUID();
     }
+    console.log("创建的ME Model ID", pageId);
     const uri = monaco.Uri.parse(`uuid:///${pageId}.md`);
     // 创建并返回 Model 实例
     return monaco.editor.createModel("", "markdown", uri);
 };
 
 const switchToPage = (state, item) => {
-    if (item.get('type') === 'file') {
-        state.switchedPageMonacoEditorModel = markRaw(item.get('monacoEditorModel'));
-    } else {
-        state.switchedPageMonacoEditorModel = markRaw(createMonacoEditorModel());
-    }
     // 更新当前窗口类型状态
-    state.currentActivatedTabType = item.get('type');
+    // state.currentActivatedTabType = item.get('type');
+    state.currentOpenedPageId = item.get('pageid');
     router.replace(item.get('path'));
-};
-
-const allTabDeFocus = (state) => {
-    // 让所有的标签页都处于inactive状态
-    for (let [key, value] of state.tabList) {
-        value.set('focus', false);
-    }
+    console.log("切换页面的ME Model ID及打开的页面ID", state.currentOpenedPageId);
 };
 
 const changePropsOfTab = (state, pageId, propName, propValue) => {
     if (state.tabList.get(pageId)) {
         state.tabList.get(pageId).set(propName, propValue);
     }
-};
-
-const initOpenAppTab = () => {  // 第一次打开AME时加载的页面，可进行更改
-    let initPageId = crypto.randomUUID();
-    return new Map([
-        [initPageId, new Map(Object.entries({
-            "label": '欢迎',
-            "type": 'welcome',  // 标签页类型，分为文件（file）、欢迎页面（welcome）、设置页面（settings）和文档页面（document）
-                                // 其中文档页面可以渲染“关于”“更新日志”“使用指南”等自定义内容
-                                // 并且欢迎页面（welcome）和设置页面（settings）禁止打开多个
-            "path": '/welcome',
-            "focus": true,
-            "isExistFile": false,  // 是否为一个真实存在的文件
-            "saved": true,  // 当前页面文件保存状态
-            "hovered": false,  // 鼠标是否划过标签页
-            "pageid": initPageId,  // 标签页唯一ID
-            "monacoEditorModel": markRaw(createMonacoEditorModel()),
-        }))],
-    ]);
 };
 
 // 清除本页面所有内容
@@ -82,8 +54,8 @@ const deleteThisEditorPage = (state, pageid, model) => {
     }
 };
 
-const addTabPage = (state, object) => {
-    allTabDeFocus(state);
+const addTabPage = (state, object) => {  // 新增标签页
+    let lastFilePageID = state.currentOpenedPageId;
     let filePageID = crypto.randomUUID();
     let urlContent;
     let model;
@@ -94,6 +66,9 @@ const addTabPage = (state, object) => {
         model = createMonacoEditorModel();
         urlContent = object.pageType;
     }
+    // 将上一个pageId对应的Tab取消选中
+    changePropsOfTab(state, lastFilePageID, 'focus', false);
+
     let newPageObject = new Map(Object.entries({
         "label": object.pageTitle,
         "type": object.pageType,
@@ -106,41 +81,34 @@ const addTabPage = (state, object) => {
         "monacoEditorModel": markRaw(model),
     }));
     state.tabList.set(filePageID, newPageObject);
+    state.currentOpenedPageId = filePageID;  // 更新当前打开的pageId
     // 最后把页面切过去
     switchToPage(state, newPageObject);
-    state.currentOpenedTabNumber = state.tabList.size;
+    state.currentOpenedTabNumber = state.tabList.size;  // 更新目前共打开了几个页面
 };
 
 export default createStore({
     state() {
         return {
-            editorMode: "mix",   // 编辑器模式，分为预览模式（preview）、编辑模式（edit）和混合模式（mix）
-            tabList: initOpenAppTab(),
-            currentActivatedTabType: 'welcome',  // 当前打开的窗口类型
+            // Tab窗口管理相关变量
+            tabList: new Map(),  // 所有打开的Tab(s)
+            currentOpenedPageId: 'DEFAULT_PAGE',  // 当前打开窗口的pageId
+            currentOpenedTabNumber: 0,
 
-            // 以下是App菜单栏相关变量
+            // AME菜单栏相关变量
             fileMenuStyleStatus: false,
             editMenuStyleStatus: false,
             viewMenuStyleStatus: false,
             toolMenuStyleStatus: false,
             helpMenuStyleStatus: false,
 
+            // 编辑器&渲染器调节相关变量
+            editorMode: "mix",   // 编辑器模式，分为预览模式（preview）、编辑模式（edit）和混合模式（mix）
             renderDistance: 10,  // Markdown渲染距离
-
-            safeMode: false,
-
-            switchedPageMonacoEditorModel: createMonacoEditorModel(),
-
-            currentOpenedTabNumber: 0,
+            safeMode: false,  // 安全模式
         }
     },
     mutations: {
-        getCurrentOpenedTabNumber(state) {
-            state.currentOpenedTabNumber = tabList.size;
-        },
-        setSwitchedPage(state, mEditorModel) {
-            state.switchedPageMonacoEditorModel = markRaw(mEditorModel);
-        },
         // 更改编辑器显示模式
         changeEditorMode(state, editorMode) {
             state.editorMode = editorMode;
@@ -184,7 +152,7 @@ export default createStore({
                         deleteThisEditorPage(state, object.pageId, object.model);
                         if (state.tabList.get(object.pageId).get('focus')) {
                             state.tabList.delete(object.pageId);  // 删除一个标签页
-                            keys = Array.from(state.tabList.keys());
+                            keys = Array.from(state.tabList.keys());  // 因为前面一行代码删了Map的一个元素，因此这次获得的标签的pageId Array少了那个被删掉的pageId
                             changePropsOfTab(state, keys[keys.length - 1], "focus", true);
                             switchToPage(state, state.tabList.get(keys[keys.length - 1]));
                         } else {
@@ -194,8 +162,8 @@ export default createStore({
                         deleteThisEditorPage(state, object.pageId, object.model);
                         if (state.tabList.get(object.pageId).get('focus')) {
                             let idx = keys.indexOf(object.pageId);
-                            state.tabList.delete(object.pageId);  // 后删除Map
-                            keys = Array.from(state.tabList.keys());
+                            state.tabList.delete(object.pageId);
+                            keys = Array.from(state.tabList.keys());  // 因为前面一行代码删了Map的一个元素，因此这次获得的标签的pageId Array少了那个被删掉的pageId
                             changePropsOfTab(state, keys[idx], "focus", true);
                             switchToPage(state, state.tabList.get(keys[idx]));
                         } else {
@@ -207,7 +175,7 @@ export default createStore({
                     state.tabList.delete(object.pageId);
                     // 切回默认页面
                     switchToPage(state, new Map(Object.entries({
-                        "type": 'welcome',
+                        "type": 'default',
                         "path": '/',
                         "monacoEditorModel": createMonacoEditorModel()
                     })));
@@ -222,10 +190,9 @@ export default createStore({
         },
         // 切换到指定标签页
         // 切换标签页
-        // 第二个参数是object，里面有tabIndex和replace属性
         switchToCurrentTab(state, object) {
-            // 先让所有的标签页都处于inactive状态
-            allTabDeFocus(state);
+            // 先让上一个标签页处于inactive状态
+            changePropsOfTab(state, state.currentOpenedPageId, 'focus', false);
             // 然后点亮当前点击的标签页
             changePropsOfTab(state, object.pageId, "focus", true);
             // 最后把页面切过去
@@ -320,5 +287,34 @@ export default createStore({
             });
             return localforage.getItem(pageid);
         },
-    }
+
+        // 初始化（即软件启动后）打开的页面，计划分为：不打开任何页面、打开欢迎页面以及打开上次退出软件时打开的页面
+        initOpenAppTab: ({state, commit}) => {  // 第一次打开AME时加载的页面，可进行更改
+            let initPageId = crypto.randomUUID();
+            let initPage = new Map(Object.entries({
+                "label": '欢迎',
+                "type": 'welcome',  // 标签页类型，分为文件（file）、欢迎页面（welcome）、设置页面（settings）和文档页面（document）
+                                    // 其中文档页面可以渲染“关于”“更新日志”“使用指南”等自定义内容
+                                    // 并且欢迎页面（welcome）和设置页面（settings）禁止打开多个
+                "path": '/welcome',
+                "focus": true,
+                "isExistFile": false,  // 是否为一个真实存在的文件
+                "saved": true,  // 当前页面文件保存状态
+                "hovered": false,  // 鼠标是否划过标签页
+                "pageid": initPageId,  // 标签页唯一ID
+                "monacoEditorModel": markRaw(createMonacoEditorModel()),
+            }));
+            // 如果设置为启动时不打开任何页面，则该值为空值
+            // let initPage = null;
+            if (initPage) {
+                state.tabList.set(initPageId, initPage);
+                state.currentOpenedPageId = initPageId;
+                state.currentOpenedTabNumber = 1;  // 更新目前共打开了几个页面
+                router.replace(initPage.get('path'));
+            } else {
+                // 如果设置为启动时不打开任何页面，即展示的就是默认页面，当前打开的页面ID就设置为“DEFAULT_PAGE”
+                router.replace('/');
+            }
+        },
+    },
 });

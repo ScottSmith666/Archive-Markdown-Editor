@@ -13,6 +13,14 @@
     overflow-anchor: none;
 }
 
+/* 去除针对所有带 tabindex 的元素或 input的外框或阴影 */
+[tabindex]:focus,
+input:focus,
+button:focus {
+    outline: none; /* 去掉外框 */
+    box-shadow: none; /* 有些 UI 框架（如 Bootstrap）使用的是阴影，也要去掉 */
+}
+
 #write {
     padding-top: 20px;
     padding-bottom: 20px;
@@ -26,6 +34,37 @@
 
 :deep(.table-container) {
     overflow-x: scroll;
+}
+
+.viewer-contextmenu {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .1), 0 2px 6px rgba(0, 0, 0, .08);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    width: 200px;
+    background-color: white;
+    transition: opacity 0.2s;
+    position: fixed;
+    z-index: 12;
+    user-select: none;
+}
+
+.vc-menu-element p {
+    /*width: 100%;*/
+    height: 30px;
+    display: flex;
+    align-items: center;
+    /*margin-left: 16px;*/
+    margin: 0;
+    border-radius: 6px;
+    transition: color 0.2s, background-color 0.2s;
+    cursor: pointer;
+    font-size: 0.8em !important;
+}
+
+.vc-menu-element:hover {
+    background-color: #fafafa;
+    color: #42b983;
+    font-weight: bold;
 }
 
 .custom-toc {
@@ -42,7 +81,6 @@
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     z-index: 15;
-    display: none;
 }
 
 .toc {
@@ -64,4 +102,15 @@
     width: 4px;
     height: 1rem;
     margin-right: 4px;
+}
+
+/* Transition animation */
+.v-enter-active,
+.v-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+    opacity: 0;
 }
