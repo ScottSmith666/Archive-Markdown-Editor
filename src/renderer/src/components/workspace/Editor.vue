@@ -232,9 +232,6 @@ const getPlanPiece = (monacoInstance, pageId) => {
         pieceContent, // 传内容片段过去
         rangeFirstLineNumber,  // 传选区第一行数据，目的是通过这个来计算HTML片段内实际对应原始Markdown代码第几行
         vt.lineNumAtPageCenter,  // 传可视页面中间行数，目的是通过滚动编辑区使渲染区内容自动滚到对应编辑区的内容等高位置
-        vt.lineNumAtPageTop,  // 传可视页面第一行行数，目的是通过判断其是否为1从而将渲染区滚到顶（这里将其放宽至小于等于2）
-        vt.lineNumAtPageBottom,  // 传可视页面最后行数，目的是通过判断其是否为文件行数从而将渲染区滚到底（这里将其放宽至大于等于文件行数 - 2）
-        fileTotalLines,  // 传文件总行数
     ]);
 };
 </script>

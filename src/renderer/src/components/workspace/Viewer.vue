@@ -62,28 +62,10 @@ const props = defineProps({
             return 1;
         }
     },
-    visualStartLineNumber: {
-        type: Number,
-        default: () => {
-            return 1;
-        }
-    },
-    visualEndLineNumber: {
-        type: Number,
-        default: () => {
-            return 1;
-        }
-    },
     middleLineNumber: {
         type: Number,
         default: () => {
             return 25;
-        }
-    },
-    fileTotalLineNumber: {
-        type: Number,
-        default: () => {
-            return 50;
         }
     },
     enableToc: {
@@ -221,7 +203,7 @@ const mermaidRender = () => {
     });
 };
 
-const scrollCustomLineElementToCenter = (firstLine, middleLine, lastLine, rangeFirstLine, fileTotalLine) => {
+const scrollCustomLineElementToCenter = (middleLine, rangeFirstLine) => {
     nextTick().then(() => {
         const container = document.getElementById('viewer-container');  // 外面的容器，包裹着里面的滚动着的高div
 
@@ -344,11 +326,8 @@ watch(
             render(newMdPiece);
             if (newMiddleLineNumber !== oldMiddleLineNumber) {
                 scrollCustomLineElementToCenter(
-                    props.visualStartLineNumber,
                     newMiddleLineNumber,
-                    props.visualEndLineNumber,
-                    props.startLineNumber,
-                    props.fileTotalLineNumber
+                    props.startLineNumber
                 );
             }
         }
