@@ -13,45 +13,64 @@ import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/find
 import './suggestions.js';
 
 // get Vue API
-import {onMounted} from "vue";
+import {onMounted, ref} from "vue";
 import {useStore} from 'vuex';
 import {useRoute, onBeforeRouteUpdate} from 'vue-router';
 
 const route = useRoute();
 const store = useStore();
 
-let monacoInstance = null;
+let monacoInstance;
 
 // props
 const props = defineProps(['pageData']);
 
 // data
+const monacoEditorStateMap = ref(new Map());  // 存储每个标签页的状态（光标位置、滚动位置等）
 
 // emit
 const emit = defineEmits(['update', 'top', 'bottom']);
 
 onBeforeRouteUpdate((to, from) => {
+    // 页面变动时存储上一个旧页面的state
+    monacoEditorStateMap.value.set(from.query.pageid, monacoInstance.saveViewState());
+
     // 页面变动时切换Monaco Editor Model
-    monacoInstance.setModel(store.state.tabList.get(to.query.pageid).get('monacoEditorModel'));
+    monacoInstance.setModel(store.state.tab.tabList.get(to.query.pageid).get('monacoEditorModel'));
+
+    // 加载新编辑器页面的state
+    if (monacoEditorStateMap.value.get(to.query.pageid)) {
+        monacoInstance.restoreViewState(monacoEditorStateMap.value.get(to.query.pageid));
+    }
+
     monacoInstance.focus();
     update(monacoInstance, to.query.pageid);
 });
 
 onMounted(() => {
     monacoInstance = monaco.editor.create(document.getElementById("editor"), {
-        language: "markdown",
         contextmenu: true,
-        placeholder: "请在此处键入Markdown...",
+        language: 'markdown',
         automaticLayout: true,
         cursorSmoothCaretAnimation: true,
         scrollBeyondLastLine: false,
         wordWrap: true,
+        largeFileOptimizations: false, // 禁用大文件自动优化
     });
+
     // 加载页面对应的model
-    monacoInstance.setModel(store.state.tabList.get(route.query.pageid).get('monacoEditorModel'));
+    monacoInstance.setModel(store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel'));
+    monacoInstance.updateOptions({placeholder: "请在此处键入Markdown..."});  // 重新初始化placeholder
+
+    // 加载对应编辑器页面的state
+    if (monacoEditorStateMap.value.get(route.query.pageid)) {
+        monacoInstance.restoreViewState(monacoEditorStateMap.value.get(route.query.pageid));
+    }
+
     // 自动聚焦
     monacoInstance.focus();
-    // 添加撤销和重做
+
+    // 添加撤销、重做
     monacoInstance.addAction({
         // 唯一 ID
         id: 'custom-undo',
@@ -82,6 +101,38 @@ onMounted(() => {
             return null;
         }
     });
+
+    // 添加保存、另存为
+    monacoInstance.addAction({
+        id: 'custom-save',
+        label: '保存',
+        keybindings: [
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+        ],
+        contextMenuGroupId: '1_modification',
+        run: function () {
+            // ...保存逻辑
+            store.commit('changePropsOfTab', {  // 将标签上的关闭按钮重新换成叉
+                'pageId': route.query.pageid,
+                'propName': 'saved',
+                'propValue': true,
+            });
+            return null;
+        }
+    });
+    monacoInstance.addAction({
+        id: 'custom-save-as',
+        label: '另存为',
+        keybindings: [
+            monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyS,
+        ],
+        contextMenuGroupId: '1_modification',
+        run: function () {
+            // ...另存为逻辑
+            return null;
+        }
+    });
+
     // 剪切快捷键
     monacoInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => {
         monacoInstance.trigger('source', 'editor.action.clipboardCutAction');
@@ -100,6 +151,11 @@ onMounted(() => {
     // 监测内容改变事件
     monacoInstance.onDidChangeModelContent((event) => {
         runDebounceChange(() => {
+            store.commit('changePropsOfTab', {  // 将标签上的关闭按钮换成圆形
+                'pageId': route.query.pageid,
+                'propName': 'saved',
+                'propValue': false,
+            });
             getPlanPiece(monacoInstance, route.query.pageid);
         });
     });
@@ -107,14 +163,14 @@ onMounted(() => {
     // Monaco Editor滚动事件
     // 滚动事件触发后，将从Monaco Editor中间行号开始，向两边各截取n/2倍Monaco Editor可视行数的文本传进渲染器
     monacoInstance.onDidScrollChange((event) => {
-        if (route.query.pageid === store.state.currentOpenedPageId) {  // 由于Monaco Editor切换Model时会自动执行onDidScrollChange事件，因此需要判断route param是否与打开的页面id相同
+        if (route.query.pageid === store.state.tab.currentOpenedPageId) {  // 由于Monaco Editor切换Model时会自动执行onDidScrollChange事件，因此需要判断route param是否与打开的页面id相同
             let isUp = monacoInstance.getVisibleRanges().length === 0
                 ? true
                 : (monacoInstance.getVisibleRanges()[0].startLineNumber === 1);
             let isDown = monacoInstance.getVisibleRanges().length === 0
                 ? true
                 : (monacoInstance.getVisibleRanges()[0].endLineNumber
-                    === store.state.tabList.get(route.query.pageid).get('monacoEditorModel').getLineCount());
+                    === store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel').getLineCount());
             if (isUp) {  // Editor是否到顶
                 emit('top');
             }
@@ -160,11 +216,11 @@ const update = (monacoInstance, pageId) => {
 };
 
 const getContentOfLineRange = (startLine, endLine, pageId) => {
-    return store.state.tabList.get(pageId).get('monacoEditorModel').getValueInRange({
+    return store.state.tab.tabList.get(pageId).get('monacoEditorModel').getValueInRange({
         startLineNumber: startLine,
         startColumn: 1,
         endLineNumber: endLine,
-        endColumn: store.state.tabList.get(pageId).get('monacoEditorModel').getLineMaxColumn(endLine) // 获取该行最后一个字符的列号
+        endColumn: store.state.tab.tabList.get(pageId).get('monacoEditorModel').getLineMaxColumn(endLine) // 获取该行最后一个字符的列号
     });
 }
 
@@ -191,9 +247,9 @@ const getLineNumsOfVisualPage = (editor) => {
 };
 
 const getPlanPiece = (monacoInstance, pageId) => {
-    let fileTotalLines = store.state.tabList.get(pageId).get('monacoEditorModel').getLineCount();  // 编辑器内的文本总行数
+    let fileTotalLines = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getLineCount();  // 编辑器内的文本总行数
     let vt = getLineNumsOfVisualPage(monacoInstance);
-    let planCutContentLines = vt.linesInVisualPage * store.state.renderDistance;  // 选区总长度，即可视页面行数与渲染距离之积
+    let planCutContentLines = vt.linesInVisualPage * store.state.settings.renderDistance;  // 选区总长度，即可视页面行数与渲染距离之积
     let rangeFirstLineNumber = 1;  // 选区第一行行数
     let rangeLastLineNumber = fileTotalLines;  // 选区最后一行行数
 
@@ -208,7 +264,7 @@ const getPlanPiece = (monacoInstance, pageId) => {
     let pieceContent;
     if (fileTotalLines <= planCutContentLines) {
         // 分支1
-        pieceContent = store.state.tabList.get(pageId).get('monacoEditorModel').getValue();
+        pieceContent = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getValue();
     } else {
         if ((fileTotalLines - vt.lineNumAtPageCenter + 1) <= Math.floor(planCutContentLines / 2 + 0.5)) {
             // 分支2.1

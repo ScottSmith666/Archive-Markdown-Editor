@@ -129,6 +129,55 @@ html, body {
     background-color: #eff3fd;
 }
 
+.confirm-dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;  /* 禁止拖选文字 */
+    width: 400px;
+    /*height: 400px;*/
+    background-color: white;
+    z-index: 51;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.confirm-dialog-confirm-button {
+    width: 120px;
+    height: 35px;
+    border-radius: 10px;
+    background-color: #42b883;
+    color: white;
+    text-align: center;
+    line-height: 35px;
+    cursor: pointer;
+}
+
+.confirm-dialog-confirm-button:hover {
+    font-weight: bold;
+}
+
+.confirm-dialog-cancel-button {
+    width: 120px;
+    height: 35px;
+    border-radius: 10px;
+    background-color: #ffffff;
+    color: #959595;
+    text-align: center;
+    line-height: 35px;
+    cursor: pointer;
+}
+
+.confirm-dialog-cancel-button:hover {
+    font-weight: bold;
+    background-color: #f3f3f3;
+}
+
 /* Transition animation */
 .v-enter-active,
 .v-leave-active {

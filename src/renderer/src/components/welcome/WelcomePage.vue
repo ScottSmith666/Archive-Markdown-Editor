@@ -2,6 +2,7 @@
 import { useStore } from 'vuex';
 
 const store = useStore();
+
 </script>
 <template>
     <div class="welcome-main fonts">
@@ -29,12 +30,12 @@ const store = useStore();
                 <div @click="store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false})"
                      class="options" id="new"><span class="options-icon">㊢</span>新建文件...</div>
                 <!--Open-->
-                <div class="options" id="open" @click="''"><span class="options-icon">㊠</span>打开文件...</div>
+                <div class="options" id="open" @click="store.dispatch('activateOpenFileDialogAction')"><span class="options-icon">㊠</span>打开文件...</div>
                 <!--Open-->
                 <div @click="store.commit('addTabPage', {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false})"
                      class="settings" id="settings"><span class="options-icon">㊕</span>设置...</div>
                 <!--Quit-->
-                <div class="options-quit" id="quit" @click="''"><span class="options-icon">㊡</span>退出AME</div>
+                <div class="options-quit" id="quit" @click="store.commit('quitApp')"><span class="options-icon">㊡</span>退出AME</div>
 
                 <!--Powered-->
                 <div class="powered">

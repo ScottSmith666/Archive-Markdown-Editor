@@ -4,17 +4,11 @@ import {useStore} from 'vuex';
 
 const store = useStore();
 
-// emit
-const emit = defineEmits(['tgModal']);
-
 // methods
-const closeCurrentPage = (tabList) => {
-    for (let [key, value] of tabList) {
-        if (value.get('focus')) {
-            store.commit('closeTabPage', {'pageId': key, 'model': value.get('monacoEditorModel')});
-            return 0;
-        }
-    }
+const closeCurrentPage = () => {
+    let currentPage = store.state.tab.tabList.get(store.state.tab.currentOpenedPageId);
+    store.commit('closeTabPage',
+        {'pageId': store.state.tab.currentOpenedPageId, 'model': currentPage.get('monacoEditorModel')});
 };
 
 const openOfficialWebsite = () => {
@@ -25,17 +19,23 @@ const openUsageByHotkey = (e) => {
     // Ctrl/Command + Shift + H打开Archive Markdown Editor使用指南
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'h' || e.key === 'H')) {
         e.preventDefault(); // 阻止浏览器默认保存行为
-        store.commit('addTabPage', {'pageType': 'document', 'pageTitle': 'AME使用指南', 'isExistFile': false, 'docName': 'usage'});
+        store.commit('addTabPage',
+            {'pageType': 'document', 'pageTitle': 'AME使用指南', 'isExistFile': false, 'docName': 'usage'});
     }
     // Ctrl/Command + N新建文件
     if ((e.ctrlKey || e.metaKey) && (e.key === 'n' || e.key === 'N')) {
-        e.preventDefault(); // 阻止浏览器默认保存行为
+        e.preventDefault();
         store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false});
+    }
+    // Ctrl/Command + O打开文件
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'o' || e.key === 'O')) {
+        e.preventDefault();
+        store.dispatch('activateOpenFileDialogAction');
     }
     // Ctrl/Command + W关闭页面
     if ((e.ctrlKey || e.metaKey) && (e.key === 'w' || e.key === 'W')) {
-        e.preventDefault(); // 阻止浏览器默认保存行为
-        closeCurrentPage(store.state.tabList);
+        e.preventDefault();
+        closeCurrentPage();
     }
 };
 
@@ -248,31 +248,25 @@ onMounted(() => {
                     </div>
                     <Transition name="slide-fade">
                         <div id="file-expand" class="upper menu" style="margin-left: -10px;"
-                             v-if="store.state.fileMenuStyleStatus">
+                             v-if="store.state.menu.fileMenuStyleStatus">
                             <div class="menu-element" id="main-menu-new"
-                                 @click="store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false}); store.commit('mainManuAllHide');">
+                                 @click="store.commit('addTabPage',
+                                 {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false});
+                                 store.commit('mainManuAllHide');">
                                 <p class="fonts">新建</p>
                             </div>
-                            <div class="menu-element" id="main-menu-open">
+                            <div class="menu-element" id="main-menu-open"
+                                 @click="store.dispatch('activateOpenFileDialogAction'); store.commit('mainManuAllHide');">
                                 <p class="fonts">打开...</p>
                             </div>
-                            <template v-if="store.state.tabList.get(store.state.currentOpenedPageId)
-                                ? store.state.tabList.get(store.state.currentOpenedPageId).get('type') === 'file'
-                                : false">
-                                <div class="menu-element" id="main-menu-save">
-                                    <p class="fonts">保存</p>
-                                </div>
-                                <div class="menu-element" id="main-menu-save-as">
-                                    <p class="fonts">另存为...</p>
-                                </div>
-                            </template>
-                            <template v-if="store.state.tabList.size !== 0">
+                            <template v-if="store.state.tab.tabList.size !== 0">
                                 <div class="menu-element" id="main-menu-close"
-                                     @click="closeCurrentPage(store.state.tabList); store.commit('mainManuAllHide');">
+                                     @click="closeCurrentPage(); store.commit('mainManuAllHide');">
                                     <p class="fonts">关闭</p>
                                 </div>
                             </template>
-                            <div class="menu-element" id="app-quit" @click="store.commit('quitApp'); store.commit('mainManuAllHide');">
+                            <div class="menu-element" id="app-quit" @click="store.commit('quitApp');
+                                 store.commit('mainManuAllHide');">
                                 <p class="fonts">退出AME</p>
                             </div>
                         </div>
@@ -280,32 +274,24 @@ onMounted(() => {
 
                     <div class="main-menu-separator"></div>
 
-                    <div id="edit" class="bar-menu-element-txt fonts" @click="store.commit('mainManuClick', 'edit')">
+                    <div id="edit" class="bar-menu-element-txt fonts"
+                         @click="store.commit('mainManuClick', 'edit')">
                         编辑
                     </div>
                     <Transition name="slide-fade">
                         <div id="edit-expand" class="upper menu" style="margin-left: calc(1 * (25px + 15px));"
-                             v-if="store.state.editMenuStyleStatus">
-                            <template v-if="store.state.tabList.get(store.state.currentOpenedPageId)
-                                ? store.state.tabList.get(store.state.currentOpenedPageId).get('type') === 'file'
-                                : false">
-                                <div class="menu-element" id="main-menu-search">
-                                    <p class="fonts">查找</p>
-                                </div>
-                            </template>
+                             v-if="store.state.menu.editMenuStyleStatus">
                             <div class="menu-element" id="settings"
-                                 @click="store.commit('addTabPage', {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false}); store.commit('mainManuAllHide');">
+                                 @click="store.commit('addTabPage',
+                                 {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false});
+                                 store.commit('mainManuAllHide');">
                                 <p class="fonts">设置...</p>
-                            </div>
-                            <div class="menu-element" id="settings"
-                                 @click="emit('tgModal', 'tip'); store.commit('mainManuAllHide');">
-                                <p class="fonts">测试：toggle模态框...</p>
                             </div>
                         </div>
                     </Transition>
 
-                    <template v-if="store.state.tabList.get(store.state.currentOpenedPageId)
-                        ? store.state.tabList.get(store.state.currentOpenedPageId).get('type') === 'file'
+                    <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
+                        ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                         : false">
                         <div class="main-menu-separator"></div>
                         <div id="view" class="bar-menu-element-txt fonts"
@@ -313,7 +299,7 @@ onMounted(() => {
                         </div>
                         <Transition name="slide-fade">
                             <div id="view-expand" class="upper menu" style="margin-left: calc(2 * (25px + 18px));"
-                                 v-if="store.state.viewMenuStyleStatus">
+                                 v-if="store.state.menu.viewMenuStyleStatus">
                                 <div class="menu-element" id="preview-mode"
                                      @click="store.commit('changeEditorMode', 'preview'); store.commit('mainManuAllHide');">
                                     <p class="fonts">预览模式</p>
@@ -330,8 +316,8 @@ onMounted(() => {
                         </Transition>
                     </template>
 
-                    <template v-if="store.state.tabList.get(store.state.currentOpenedPageId)
-                        ? store.state.tabList.get(store.state.currentOpenedPageId).get('type') === 'file'
+                    <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
+                        ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                         : false">
                         <div class="main-menu-separator"></div>
                         <div id="tool" class="bar-menu-element-txt fonts"
@@ -339,12 +325,12 @@ onMounted(() => {
                         </div>
                         <Transition name="slide-fade">
                             <div id="view-expand" class="upper menu"
-                                 :style="`margin-left: calc((3 - ${(store.state.tabList.get(store.state.currentOpenedPageId)
-                                    ? store.state.tabList.get(store.state.currentOpenedPageId).get('type') === 'file'
+                                 :style="`margin-left: calc((3 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
+                                    ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                                     : false) ? 0 : 1}) * (25px + 18px));`"
-                                 v-if="store.state.toolMenuStyleStatus">
-                                <template v-if="store.state.tabList.get(store.state.currentOpenedPageId)
-                                    ? store.state.tabList.get(store.state.currentOpenedPageId).get('type') === 'file'
+                                 v-if="store.state.menu.toolMenuStyleStatus">
+                                <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
+                                    ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                                     : false">
                                     <div class="menu-element" id="mdz-media-man">
                                         <p class="fonts">mdz媒体管理工具...</p>
@@ -361,26 +347,26 @@ onMounted(() => {
                     </div>
                     <Transition name="slide-fade">
                         <div id="help-expand" class="upper menu"
-                             :style="`margin-left: calc((4 - ${(store.state.tabList.get(store.state.currentOpenedPageId)
-                                ? store.state.tabList.get(store.state.currentOpenedPageId).get('type') === 'file'
+                             :style="`margin-left: calc((4 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
+                                ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                                 : false) ? 0 : 2}) * (25px + 18px));`"
-                             v-if="store.state.helpMenuStyleStatus">
+                             v-if="store.state.menu.helpMenuStyleStatus">
                             <div class="menu-element"
-                                 @click="store.commit('addTabPage', {'pageType': 'welcome', 'pageTitle': '欢迎', 'isExistFile': false})">
+                                 @click="store.commit('addTabPage', {'pageType': 'welcome', 'pageTitle': '欢迎', 'isExistFile': false}); store.commit('mainManuAllHide');">
                                 <p class="fonts">欢迎</p>
                             </div>
                             <div class="menu-element" id="about"
-                                 @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': '关于AME', 'isExistFile': false, 'docName': 'about'})">
+                                 @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': '关于AME', 'isExistFile': false, 'docName': 'about'}); store.commit('mainManuAllHide');">
                                 <p class="fonts">关于AME...</p>
                             </div>
                             <div class="menu-element" id="about"
-                                 @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': 'AME使用指南', 'isExistFile': false, 'docName': 'usage'})">
+                                 @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': 'AME使用指南', 'isExistFile': false, 'docName': 'usage'}); store.commit('mainManuAllHide');">
                                 <p class="fonts">使用指南...</p>
                             </div>
-                            <div class="menu-element" id="donate" @click="emit('tgModal', 'donate'); store.commit('mainManuAllHide');">
+                            <div class="menu-element" id="donate" @click="store.commit('toggleModal', {'kind': 'donate'}); store.commit('mainManuAllHide');">
                                 <p class="fonts" style="color: red;">打赏...</p>
                             </div>
-                            <div class="menu-element" id="learn-more" @click="openOfficialWebsite">
+                            <div class="menu-element" id="learn-more" @click="openOfficialWebsite(); store.commit('mainManuAllHide');">
                                 <p class="fonts">官方网站...</p>
                             </div>
                         </div>

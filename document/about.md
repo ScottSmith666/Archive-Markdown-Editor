@@ -81,7 +81,7 @@
     </svg>
     <div style="display: flex; flex-direction: column;">
         <div style="color: #42b983; font-weight: bold; font-size: 2.4rem;">Archive Markdown Editor</div>
-        <div style="color: #555555; font-weight: bold; font-size: 1.2rem;">一款美观、简约、功能强大的Markdown编辑器</div>
+        <div style="color: #555555; font-weight: bold; font-size: 1.2rem;">一款简约、美观、功能强大的Markdown编辑器</div>
     </div>
 </div>
 

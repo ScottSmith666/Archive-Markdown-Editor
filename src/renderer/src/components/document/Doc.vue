@@ -2,8 +2,10 @@
 import Viewer from "../workspace/Viewer.vue";
 import {onMounted, ref} from "vue";
 import {onBeforeRouteUpdate, useRoute} from "vue-router";
+import {useStore} from "vuex";
 
 const route = useRoute();
+const store = useStore();
 
 const content = ref("正在加载中...");
 const rootPath = ref('');
@@ -16,10 +18,22 @@ const readDocument = async (docName) => {
             rootPath.value = result.root.replaceAll("\\", "/");  // 渲染端不许出现反斜杠
             content.value = result.content;
         } else {
-            console.error('读取失败:', result.error);
+            store.commit('toggleModal', {kind: "none"});
+            store.commit("autoTips", {
+                kind: "tip",
+                tipLevel: "fail",
+                content: result.message,
+                showTimeSecond: store.lifecycle.tipDisplayTime
+            });
         }
     } catch (e) {
-        console.error(e);
+        store.commit('toggleModal', {kind: "none"});
+        store.commit("autoTips", {
+            kind: "tip",
+            tipLevel: "fail",
+            content: `${e.name}: ${e.message}`,
+            showTimeSecond: store.lifecycle.tipDisplayTime
+        });
     }
 };
 

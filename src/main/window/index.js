@@ -1,4 +1,4 @@
-import {BrowserWindow, shell} from "electron";
+import {BrowserWindow, ipcMain, shell} from "electron";
 import icon from "../../../resources/icon.png";
 import {join} from "path";
 import path from "path";
@@ -32,6 +32,23 @@ export const mainWindow = () => {
 
     main.on("ready-to-show", () => {
         main.show();
+    });
+
+    main.on("close", (event) => {
+        event.preventDefault();  // 拦截自动关闭
+        main.webContents.send('ask-for-close');
+    });
+
+    // 接收前端确认关闭AME的flag
+    ipcMain.on('confirm-close', (event, canClose) => {
+        if (canClose) {
+            main.destroy();
+        }
+    });
+
+    // 前端按钮直接发送尝试退出信号
+    ipcMain.on('try-close', (event) => {
+        main.close();
     });
 
     main.webContents.setWindowOpenHandler((details) => {

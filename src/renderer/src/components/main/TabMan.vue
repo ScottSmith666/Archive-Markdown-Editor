@@ -33,7 +33,7 @@ const rightSlide = () => {
 
 // watch
 watch(
-    () => store.state.currentOpenedTabNumber,
+    () => store.state.tab.currentOpenedTabNumber,
     (newVal, oldVal) => {
         let tabs = document.getElementById('tabs');
         let tabsTotalLength = tabs ? tabs.clientWidth : 0;
@@ -55,7 +55,7 @@ watch(
 </script>
 
 <template>
-    <div class="tab-man-main fonts" v-if="store.state.tabList.size > 0" id="tabs-container"
+    <div class="tab-man-main fonts" v-if="store.state.tab.tabList.size > 0" id="tabs-container"
          @dblclick="store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false})">
         <div v-if="showScroller" class="tab-scroller-sticky" @dblclick.stop="() => null">
             <div class="tab-scroller">
@@ -67,7 +67,7 @@ watch(
         </div>
         <div class="block"></div>
         <TransitionGroup id="tabs" name="list" tag="div" style="display: flex; flex-direction: row;">
-            <template v-for="[pageId, tabObject] in store.state.tabList" :key="pageId">
+            <template v-for="[pageId, tabObject] in store.state.tab.tabList" :key="pageId">
                 <div
                      class="tab" :class="tabObject.get('focus') ? 'tab-activated' : ''"
                      @click="store.commit('switchToCurrentTab', {'pageId': pageId})"

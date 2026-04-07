@@ -130,7 +130,7 @@ const contextMenuPositionStyle = ref('');
 const viewerTocShow = ref(false);
 
 onMounted(() => {
-    if ((!store.state.safeMode) || (!props.enableSafe)) {
+    if ((!store.state.settings.safeMode) || (!props.enableSafe)) {
         render(props.mdPiece);
     }
 
@@ -240,14 +240,14 @@ const displayViewerContextMenu = (event) => {
     const menuWidth = 200;
 
     let left;
-    if (store.state.editorMode === 'preview') {
+    if (store.state.settings.editorMode === 'preview') {
         // 这是预览模式下的右键菜单位置判定
         left = `left: ${
             (event.clientX + menuWidth) <= (document.body.clientWidth - 20)
                 ? (event.clientX)
                 : (document.body.clientWidth - 40 - menuWidth)
         }px; `;
-    } else if (store.state.editorMode === 'mix') {
+    } else if (store.state.settings.editorMode === 'mix') {
         // 这是混合模式下的右键菜单位置判定
         left = `left: ${
             (event.clientX + menuWidth) <= (document.body.clientWidth - 20)
@@ -321,7 +321,7 @@ defineExpose({
 watch(
     () => [props.mdPiece, props.middleLineNumber],
     ([newMdPiece, newMiddleLineNumber], [oldMdPiece, oldMiddleLineNumber]) => {
-        if ((!store.state.safeMode) || (!props.enableSafe)) {
+        if ((!store.state.settings.safeMode) || (!props.enableSafe)) {
             render(newMdPiece);
             if (newMiddleLineNumber !== oldMiddleLineNumber) {
                 scrollCustomLineElementToCenter(
@@ -345,7 +345,7 @@ watch(confirmContentSafe, (newValue, oldValue) => {
 
 <template>
     <Transition>
-        <nav v-if="(!store.state.safeMode) && props.enableToc && viewerTocShow" class="custom-toc">
+        <nav v-if="(!store.state.settings.safeMode) && props.enableToc && viewerTocShow" class="custom-toc">
             <div class="toc fonts">
                 <div class="toc-title-block"></div>
                 <div class="toc-title">目录</div>
@@ -440,10 +440,10 @@ watch(confirmContentSafe, (newValue, oldValue) => {
          @contextmenu.prevent="displayViewerContextMenu"
          @click="viewerContextMenuShow = false"
          @blur="viewerContextMenuShow = false">
-        <div v-if="(!store.state.safeMode) || (!props.enableSafe)" id="write">
+        <div v-if="(!store.state.settings.safeMode) || (!props.enableSafe)" id="write">
             <!--Generated HTML was injected here...-->
         </div>
-        <safe-mode-info v-if="store.state.safeMode && props.enableSafe"></safe-mode-info>
+        <safe-mode-info v-if="store.state.settings.safeMode && props.enableSafe"></safe-mode-info>
     </div>
 </template>
 

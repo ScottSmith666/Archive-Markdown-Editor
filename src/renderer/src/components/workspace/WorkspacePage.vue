@@ -33,14 +33,14 @@ const handleGoToBottom = () => {
     <div class="workspace-page">
         <!--Editor不能添加v-if，否则会出问题-->
         <Editor
-            :class="store.state.editorMode === 'preview' ? 'editor-down' : ''"
+            :class="store.state.settings.editorMode === 'preview' ? 'editor-down' : ''"
             @update="updateParentData"
             @top="handleGoToTop"
             @bottom="handleGoToBottom"
         />
         <Viewer
-            v-if="store.state.editorMode === 'mix' || store.state.editorMode === 'preview'"
-            :class="store.state.editorMode === 'preview' ? 'viewer-up' : ''"
+            v-if="store.state.settings.editorMode === 'mix' || store.state.settings.editorMode === 'preview'"
+            :class="store.state.settings.editorMode === 'preview' ? 'viewer-up' : ''"
             :md-piece="parentPieceContent"
             :start-line-number="parentFirstLineNumber"
             :middle-line-number="parentMiddleLineNumber"

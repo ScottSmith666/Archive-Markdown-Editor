@@ -1,4 +1,4 @@
-import {app, protocol, net} from "electron";
+import {app, protocol, net, dialog} from "electron";
 import path from "path";
 import {electronApp, optimizer, is} from "@electron-toolkit/utils";
 
@@ -18,11 +18,31 @@ if (is.dev) {
 import {ipc} from "./ipc";
 import {menu} from "./menu";
 import {mainWindow} from "./window";
+import os from "os";
+import fs from "fs";
 
 app.whenReady().then(() => {
-    // 创建一个Sqlite memory连接
-    const sqliteMemoryConnection = new Sqlite3.Database(":memory:");
-    const sqliteStorageConnection = null;
+    // 创建一个Sqlite连接
+    let settings_dir_path = path.join(os.homedir(), ".ame_conf");  // 配置文件置于$HOME目录的.ame_conf隐藏文件夹内
+    try {
+        const stats = fs.statSync(settings_dir_path);
+        if (!stats.isDirectory()) {  // 确认路径存在，但不是文件夹
+            dialog.showMessageBox({
+                type: 'error',  // 图标类型: info, error, question, none
+                title: 'AME启动出错',
+                message: `路径“${ os.homedir() }”内有“.ame_conf”文件残留，请将它删除，否则AME无法启动！`, // 主内容
+                buttons: ['退出AME'] // 按钮文字数组
+            }).then(result => {
+                if (result.response === 0) {
+                    app.quit();
+                }
+            });
+        }
+    } catch (e) {  // 没有该路径，就创建文件夹
+        fs.mkdirSync(settings_dir_path, { recursive: true });
+    }
+
+    const sqliteConnection = new Sqlite3.Database(path.join(settings_dir_path, "ame.sqlite"));
 
     menu();
 
@@ -36,27 +56,9 @@ app.whenReady().then(() => {
         optimizer.watchWindowShortcuts(window);
     });
 
-    ipc(sqliteMemoryConnection, sqliteStorageConnection);
+    ipc(sqliteConnection);
 
     mainWindow();
-
-    (() => {
-        // 测试Sqlite Memory
-        // 写入和读取数据
-        const editRecord = new Sqlite3.Database(":memory:");
-        console.log(editRecord);
-        console.log(editRecord.serialize);
-        console.log(editRecord.run);
-        editRecord.serialize(() => {
-            editRecord.run("CREATE TABLE page (info TEXT);");
-            const stmt = editRecord.prepare("INSERT INTO page VALUES (?)");
-            stmt.run("TEST SUCCESSFUL!");
-
-            editRecord.each("SELECT info FROM page;", (err, row) => {
-                console.log("Sqlite memory内容：" + row.info);
-            });
-        });
-    })();
 });
 
 app.on("window-all-closed", () => {
