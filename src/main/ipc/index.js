@@ -30,7 +30,7 @@ export const ipc = (sqliteConnection) => {
             // 用户中途取消打开文件，直接关闭了openFileDialog
             return {'success': false, 'message': '用户已取消打开文件'};
         }
-        return {'success': true, 'filePath': filePath};
+        return {'success': true, 'filePath': filePath[0], 'fileName': filePath[0].split(path.sep).pop()};
     });
 
     ipcMain.handle("activate-save-file-dialog", (event) => {
@@ -51,7 +51,7 @@ export const ipc = (sqliteConnection) => {
                 return {success: false, message: (e.name + ": " + e.message)};
             }
         } else if (extensionTail === 'mdz') {
-            // 不能直接读取，需要经历解压等步骤拿到真正的文件路径
+            // 不能直接读取，需要经历解压等步骤拿到真正的md文件路径
             return {success: true, content: ''};
         } else {
             return {success: false, message: "不支持打开这种类型的文件！"};

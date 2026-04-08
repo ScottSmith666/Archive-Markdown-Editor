@@ -1,19 +1,8 @@
 <script setup>
-import mermaid from 'mermaid';
-import MarkdownIt from "markdown-it";
-// 引入mdIt插件
-import markdownItRegex from "markdown-it-regex";
-import MarkdownItInjectLineNumbers from 'markdown-it-inject-linenumbers';
-import markdownItTextualUml from 'markdown-it-textual-uml';
-import MarkdownItClass from '@toycode/markdown-it-class';
-import markdownItTaskLists from 'markdown-it-task-lists';
-import * as IncrementalDOM from 'incremental-dom';
-import MarkdownItIncrementalDOM from 'markdown-it-incremental-dom';
-import {full as emoji} from 'markdown-it-emoji';
-import MarkdownItMark from 'markdown-it-mark';
-import {alert} from "@mdit/plugin-alert";
-import '@mdit/plugin-alert/style';
+import engine from "./engine";
 
+import * as IncrementalDOM from 'incremental-dom';
+import mermaid from 'mermaid';
 // 引入Prism
 import Prism from 'prismjs';
 // 导入需要的语言
@@ -42,7 +31,6 @@ import 'prismjs/themes/prism.css';
 import {nextTick, onMounted, watch, ref} from "vue";
 import {useStore} from 'vuex';
 
-import {rules} from "./render_rules.js";
 import SafeModeInfo from "./SafeModeInfo.vue";
 
 const store = useStore();
@@ -90,38 +78,8 @@ const props = defineProps({
     },
 });
 
-// 初始化Markdown-it
-const mdIt = new MarkdownIt({
-    html: true,
-    langPrefix: 'language-',
-});
-rules(mdIt, props.enableDocumentMediaPath);  // 自定义渲染规则
-mdIt.use(markdownItRegex, {
-    name: "escape_dollar",
-    regex: /(\\\$)/,
-    replace: (match) => {
-        return '<span>$</span>';
-    },
-});
-mdIt.use(markdownItRegex, {
-    name: "round_dollars",
-    regex: /(\$[^\$]+\$)/,
-    replace: (match) => {
-        return `<span class="math">${match}</span>`;
-    },
-});
-mdIt.use(MarkdownItInjectLineNumbers);
-mdIt.use(markdownItTextualUml);
-mdIt.use(MarkdownItClass, {
-    h1: 'md-block',
-    p: 'md-block',
-    table: 'md-block',
-});
-mdIt.use(markdownItTaskLists);
-mdIt.use(MarkdownItIncrementalDOM, IncrementalDOM);
-mdIt.use(emoji);
-mdIt.use(MarkdownItMark);
-mdIt.use(alert);
+// Markdown-It engine
+let mdIt = engine(props.enableDocumentMediaPath);
 
 // data
 const confirmContentSafe = ref(false);
@@ -171,7 +129,7 @@ const mathJaxRender = () => {
             nextTick().then(() => {
                 MathJax.startup.promise.then(() => {
                     window.MathJax.typesetClear([target]);
-                    // 关键点：只渲染特定 ID 的容器，避免全局扫描，性能更好
+                    // 只渲染特定ID的容器，避免全局扫描，性能更好
                     window.MathJax.typesetPromise([target]).then(() => {
                     }).catch((err) => {
                         console.log(err);

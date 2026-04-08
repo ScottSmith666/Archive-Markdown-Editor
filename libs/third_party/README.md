@@ -1,0 +1,16 @@
+# 1. 编译7-Zip
+
+```bash
+cd /path/to/7z2600-src/CPP/7zip/Bundles/Format7zF_build
+make -j -f ../../cmpl_mac_arm64.mak
+# 获取7z.so
+```
+
+# 2. 编译Bit7z
+```bash
+cd /path/to/bit7z
+mkdir build
+cd build
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION=26.00 -DBIT7Z_CUSTOM_7ZIP_PATH=/Volumes/Execute/Files/project/ame_new/archive_markdown_editor/libs/third_party/7z2600-src
+cmake --build . -j --config Release
+```
