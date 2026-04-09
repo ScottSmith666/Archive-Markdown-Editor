@@ -21,13 +21,16 @@ if (process.contextIsolated) {
         });
         // 文件管理相关
         contextBridge.exposeInMainWorld('fileManPreload', {
-            activateOpenFileDialog: () => ipcRenderer.invoke('activate-open-file-dialog'),
-            loadFileContent: (filePath) => ipcRenderer.invoke('load-file-content', filePath),
+            activateOpenFileDialog: (title, content) => ipcRenderer.invoke('activate-open-file-dialog', title, content),
+            loadFileContent: (filePath, content) => ipcRenderer.invoke('load-file-content', filePath, content),
+            activateInputMdzPasswordDialog: (title, content) => ipcRenderer.invoke('show-input-mdz-password-dialog', title, content),
+            loadEncryptedMdzFileContent: (filePath, password) => ipcRenderer.invoke('load-encrypted-mdz-content', filePath, password),
+            cleanMdzFolder: (cleanPath) => ipcRenderer.invoke('clean-mdz-folder', cleanPath),
         });
         // 关闭前确认
         contextBridge.exposeInMainWorld('confirmPreload', {
             onAskForClose: (callback) => ipcRenderer.on('ask-for-close', callback),
-            confirmClose: (canClose) => ipcRenderer.send('confirm-close', canClose),
+            confirmClose: (canClose, mdzPaths) => ipcRenderer.send('confirm-close', canClose, mdzPaths),
             tryClose: () => ipcRenderer.send('try-close'),
         });
     } catch (error) {

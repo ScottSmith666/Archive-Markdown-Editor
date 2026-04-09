@@ -6,9 +6,6 @@ export default defineConfig({
     main: {
         build: {
             bytecode: true,
-            // rollupOptions: {
-            //     external: ['your-native-addon']  // 排除打包
-            // }
         }
     },
     preload: {

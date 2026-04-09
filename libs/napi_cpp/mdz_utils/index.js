@@ -6,9 +6,9 @@ const mdzUtils = require(path.join(__dirname, "bin", platform, arch, "mdz_utils.
 
 const sevenZlibPth = path.join(__dirname, "lib", platform, arch, "7z.so");
 
-const genOrDecompressMdz = (callback, inputPath, instruction, destPath, compressPassword, decompressPassword) => {
+const genOrDecompressMdz = (inputPath, destPath, instruction, compressPassword, decompressPassword) => {
     console.log(mdzUtils.genOrDecompressMdz);
-    return mdzUtils.genOrDecompressMdz(callback, inputPath, instruction, destPath, sevenZlibPth, compressPassword, decompressPassword);
+    return mdzUtils.genOrDecompressMdz(inputPath, destPath, instruction, sevenZlibPth, compressPassword, decompressPassword);
 };
 
 const verifyMdzIsEncrypted = (inputPath) => {

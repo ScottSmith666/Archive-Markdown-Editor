@@ -37,6 +37,12 @@ const openUsageByHotkey = (e) => {
         e.preventDefault();
         closeCurrentPage();
     }
+
+    // Ctrl/Command + Q退出应用
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q')) {
+        e.preventDefault();
+        window.confirmPreload.tryClose();
+    }
 };
 
 onMounted(() => {

@@ -9,7 +9,7 @@ export const ameLifecycleMan = {
             tLevel: 'info',  // 普通弹出提示框的等级，分为success、info和fail
             tipContent: '',  // 普通弹出提示框的内容
             loadingContent: '',  // 加载弹出提示框的内容
-            tipDisplayTime: 0.8,  // 普通弹出提示框的显示时间，单位是秒
+            tipDisplayTime: 1.2,  // 普通弹出提示框的显示时间，单位是秒
         };
     },
     mutations: {

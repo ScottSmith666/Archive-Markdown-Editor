@@ -35,9 +35,32 @@ export const changePropsOfTab = (state, pageId, propName, propValue) => {
 
 // 清除本页面所有内容
 export const deleteThisEditorPage = (state, pageid, model) => {
-    localStorage.removeItem(`editorCursorPosition-${pageid}`);
-    if (model) {
-        model.dispose();
+    // 释放Monaco Editor Model
+    model.dispose();
+    // 如果打开了mdz文件，则删除对应目录中的残留文件夹
+    let pageInfo = state.tabList.get(pageid);
+    if (pageInfo.get("isExistFile")) {
+        let pageRouter = pageInfo.get("path");
+        let pagePathParam = pageRouter.split("&").pop();
+        let pagePath = pagePathParam.replace("filepath=", "");
+        let ext = pagePath.split(".").pop();
+        let pagePathArray = pagePath.split(/\\|\//);
+        let fileName = pagePathArray.pop();
+        let fileNameArray = fileName.split(".");
+        fileNameArray.pop();
+        let pureFileName = fileNameArray.join(".");
+        let pathRemoveFileName = pagePathArray.join("/");
+        if (ext === "mdz") {
+            // 执行清除残余文件夹代码
+            let cleanPath = `${pathRemoveFileName}/._mdz_content.${pureFileName}`;
+            window.fileManPreload.cleanMdzFolder(cleanPath).then(() => {
+                state.currentOpenedTabNumber = state.tabList.size;
+            }).catch((e) => {
+                state.currentOpenedTabNumber = state.tabList.size;
+            });
+        } else {
+        }
+    } else {
         state.currentOpenedTabNumber = state.tabList.size;
     }
 };
@@ -67,6 +90,8 @@ export const addTabPage = (state, object) => {  // 新增标签页
         "hovered": false,
         "pageid": filePageID,
         "monacoEditorModel": markRaw(model),
+        "encrypted": object.encrypted ? (object.encrypted === true) : false,
+        "password": object.password ? object.password : "",
     }));
     state.tabList.set(filePageID, newPageObject);
     state.currentOpenedPageId = filePageID;  // 更新当前打开的pageId
@@ -113,7 +138,9 @@ export const closeTabPage = (state, object) => {
             switchToPage(state, new Map(Object.entries({
                 "type": 'default',
                 "path": '/',
-                "monacoEditorModel": createMonacoEditorModel()
+                "monacoEditorModel": createMonacoEditorModel(),
+                "encrypted": false,
+                "password": "",
             })));
         }
         state.currentOpenedTabNumber = state.tabList.size;
@@ -151,4 +178,21 @@ export const actModel = (rootState, object) => {
 export const hdLoading = (rootState) => {
     rootState.lifecycle.showLoading = !rootState.lifecycle.showLoading;
     rootState.lifecycle.showModal = !rootState.lifecycle.showModal;
+};
+
+export const isOpened = (rootState, filePath) => {
+    // 遍历每个标签（即打开的文件信息）
+    let isOpenedFile = false;
+    for (const [key, value] of rootState.tab.tabList) {
+        if (value.get("isExistFile")) {
+            let openedPathParam = value.get("path").split("&").pop();
+            let openedPath = openedPathParam.replace("filepath=", "");
+            if (openedPath === filePath) {
+                isOpenedFile = true;
+                break;
+            }
+        }
+    }
+
+    return isOpenedFile;
 };

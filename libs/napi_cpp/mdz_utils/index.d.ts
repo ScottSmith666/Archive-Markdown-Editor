@@ -1,12 +1,11 @@
 declare const mdzUtils: {
     genOrDecompressMdz(
-        callback: Function,
         inputPath: String,
-        instruction: String,
         destPath: String,
+        instruction: String,
         compressPassword: String,
         decompressPassword: String
-    ): Object;
+    ): Promise;
     verifyMdzIsEncrypted(inputPath: String): boolean;
 };
 

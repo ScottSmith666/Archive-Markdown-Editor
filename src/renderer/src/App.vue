@@ -31,14 +31,31 @@ onMounted(() => {
             quitConfirmDialog.value = !quitConfirmDialog.value;
         } else {
             // 发现都保存了，就直接退出
-            window.confirmPreload.confirmClose(true);
+            window.confirmPreload.confirmClose(true, getAllMdzFolderPaths());
         }
     });
 });
 
 // methods
+const getAllMdzFolderPaths = () => {
+    let mdzPaths = [];
+    for (let [key, value] of store.state.tab.tabList) {
+        if (value.get('isExistFile') && value.get("path").split(".").pop() === "mdz") {
+            let mdzPathParam = value.get("path").split("&").pop();
+            let mdzPath = mdzPathParam.replace("filepath=", "");
+            let mdzPathArray = mdzPath.split(/\\|\//);
+            let mdzName = mdzPathArray.pop();
+            let pathRemoveName = mdzPathArray.join("/");
+            let mdzNameArray = mdzName.split(".");
+            mdzNameArray.pop();
+            let pureMdzName = mdzNameArray.join(".");
+            mdzPaths.push(`${pathRemoveName}/._mdz_content.${pureMdzName}`);
+        }
+    }
+    return mdzPaths;
+};
 const forceQuit = () => {
-    window.confirmPreload.confirmClose(true);
+    window.confirmPreload.confirmClose(true, getAllMdzFolderPaths());
 }
 </script>
 

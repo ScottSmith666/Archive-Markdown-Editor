@@ -34,9 +34,9 @@ const emit = defineEmits(['update', 'top', 'bottom']);
 onBeforeRouteUpdate((to, from) => {
     // 页面变动时存储上一个旧页面的state
     monacoEditorStateMap.value.set(from.query.pageid, monacoInstance.saveViewState());
-
     // 页面变动时切换Monaco Editor Model
-    monacoInstance.setModel(store.state.tab.tabList.get(to.query.pageid).get('monacoEditorModel'));
+    let model = store.state.tab.tabList.get(to.query.pageid).get('monacoEditorModel');
+    monacoInstance.setModel(model);
 
     // 加载新编辑器页面的state
     if (monacoEditorStateMap.value.get(to.query.pageid)) {
@@ -59,8 +59,8 @@ onMounted(() => {
     });
 
     // 加载页面对应的model
-    monacoInstance.setModel(store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel'));
-    monacoInstance.updateOptions({placeholder: "请在此处键入Markdown..."});  // 重新初始化placeholder
+    let model = store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel');
+    monacoInstance.setModel(model);
 
     // 加载对应编辑器页面的state
     if (monacoEditorStateMap.value.get(route.query.pageid)) {

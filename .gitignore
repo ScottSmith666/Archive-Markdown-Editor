@@ -4,3 +4,4 @@ __MACOSX
 out
 dist
 node_modules
+test.js

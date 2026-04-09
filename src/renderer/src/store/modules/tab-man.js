@@ -86,7 +86,7 @@ export const tMan = {
         },
     },
     actions: {
-        // 初始化（即软件启动后）打开的页面，计划分为：不打开任何页面、打开欢迎页面以及打开上次退出软件时打开的页面
+        // 初始化（即软件启动后）打开的页面，计划分为：不打开任何页面、打开欢迎页面
         initOpenAppTab: ({state, commit}) => {  // 第一次打开AME时加载的页面，可进行更改
             let initPageId = crypto.randomUUID();
             let initPage = new Map(Object.entries({
@@ -101,6 +101,8 @@ export const tMan = {
                 "hovered": false,  // 鼠标是否划过标签页
                 "pageid": initPageId,  // 标签页唯一ID
                 "monacoEditorModel": markRaw(createMonacoEditorModel()),
+                "encrypted": false,
+                "password": "",
             }));
             // 如果设置为启动时不打开任何页面，则该值为空值
             // let initPage = null;

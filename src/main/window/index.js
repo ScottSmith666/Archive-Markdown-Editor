@@ -3,6 +3,7 @@ import icon from "../../../resources/icon.png";
 import {join} from "path";
 import path from "path";
 import {is} from "@electron-toolkit/utils";
+import fs from "fs";
 
 const packedRoot = path.join(process.resourcesPath, 'app.asar')
 
@@ -40,8 +41,14 @@ export const mainWindow = () => {
     });
 
     // 接收前端确认关闭AME的flag
-    ipcMain.on('confirm-close', (event, canClose) => {
+    ipcMain.on('confirm-close', (event, canClose, mdzPaths) => {
         if (canClose) {
+            // 检查并清理所有曾打开过的残余mdz文件
+            for (let i = 0; i < mdzPaths.length; i++) {
+                if (fs.existsSync(mdzPaths[i])) {
+                    fs.rmSync(mdzPaths[i], { recursive: true, force: true });
+                }
+            }
             main.destroy();
         }
     });
