@@ -21,7 +21,7 @@ export const ameLifecycleMan = {
             }
         },
         autoTips(state, object) {
-            // object: {kind: "...", tipLevel: "...", content: "...", showTimeSecond: %d}
+            // object: {kind: "...", tipLevel: "...", content: "..."}
             state.showModal = !state.showModal;
             if (object.kind === 'loading') {  // kind是提示框的类型，分为loading和tip，none则是仅弹出背景模态框
                 state.loadingContent = object.content;
@@ -33,7 +33,7 @@ export const ameLifecycleMan = {
                 setTimeout(() => {
                     state.showTip = !state.showTip;
                     state.showModal = !state.showModal;
-                }, object.showTimeSecond * 1000);
+                }, state.tipDisplayTime * 1000);
             }
         },
         hideLoading(state) {

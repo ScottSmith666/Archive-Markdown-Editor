@@ -1,22 +1,26 @@
-const prompt = require('electron-prompt');
-import {ipcMain, shell} from "electron";
-import {SqliteMan} from "../sqlite-man";
+import {dialog, ipcMain, shell} from "electron";
 import {Dialogs} from "../dialogs";
 import {is} from "@electron-toolkit/utils";
 import path from "path";
 import fs from "fs";
 import {rm} from 'fs/promises';
+import {sqliteIpc} from "./modules/sqliteipc.js";
+import {SqliteMan} from "../sqlite-man";
+import os from "os";
 
+let prompt;
 let mdzUtils;
 let docRootPath;
 if (is.dev) {
     // 在开发环境
     mdzUtils = require(path.join(__dirname, "..", "..", "libs", "napi_cpp", "mdz_utils"));
+    prompt = require('electron-prompt');
     docRootPath = path.join(__dirname, "..", "..", "document");
 } else {
     // 在生产环境
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
     mdzUtils = require(path.join(unpackedRoot, "libs", "napi_cpp", "mdz_utils"));
+    prompt = require(path.join(unpackedRoot, "node_modules", "electron-prompt"));
     docRootPath = path.join(
         unpackedRoot,
         `document`
@@ -25,8 +29,28 @@ if (is.dev) {
 
 const dialogs = new Dialogs();
 
+const setOpenedFileHistory = (sqliteMan, fileName, filePath, openTime) => {
+    // 成功打开文件后，将一条记录写入sqlite，一条记录包括：文件名、文件路径和打开时间str
+    let uuid = crypto.randomUUID();
+    sqliteMan.setHistory(uuid, fileName, filePath, openTime);
+};
+
+const getNow = () => {
+    const now = new Date();
+    return now.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false  // 使用24小时制
+    }).replace(/\//g, '-');
+};
+
 export const ipc = (sqliteConnection) => {
     const sqliteMan = new SqliteMan(sqliteConnection);
+    sqliteMan.init();  // 检查相关sqlite表是否存在，如不存在就新建
 
     ipcMain.handle("activate-open-file-dialog", (event, title, content) => {
         // 打开“选择打开文件”的操作系统组件，以向渲染端（前端）返回计划打开的文件路径
@@ -75,8 +99,9 @@ export const ipc = (sqliteConnection) => {
 
         // 解压加密mdz文件并读取文件内容
         try {
-            let re = await mdzUtils.genOrDecompressMdz(filePath, filePathArray.join(path.sep), "decompress", "", password);
+            await mdzUtils.genOrDecompressMdz(filePath, filePathArray.join(path.sep), "decompress", "", password);
             let fileContent = await fs.promises.readFile(realFilePathInMdz, 'utf8');
+            setOpenedFileHistory(sqliteMan, fileName, filePath, getNow());
             return {success: true, content: fileContent, name: fileName, path: filePath, encrypted: true};
         } catch (e) {
             // 如果判断出是解压密码错误，那就返回特殊字符串
@@ -101,6 +126,7 @@ export const ipc = (sqliteConnection) => {
             // 直接读取文件就行
             try {
                 let fileContent = await fs.promises.readFile(filePath, 'utf8');
+                setOpenedFileHistory(sqliteMan, fileName, filePath, getNow());
                 return {success: true, content: fileContent, name: fileName, path: filePath, encrypted: false};
             } catch (e) {
                 return {success: false, message: (e.name + ": " + e.message)};
@@ -150,8 +176,44 @@ export const ipc = (sqliteConnection) => {
         }
     });
 
-    ipcMain.handle("save-file-content", async (event, filePath) => {
+    ipcMain.handle("save-file-content", async (event, title, filePath) => {
 
+    });
+
+    ipcMain.on("save-file-in-mdz", async (event, title, filePath) => {
+        // 打开“选择打开文件”的操作系统组件，以向渲染端（前端）返回计划打开的文件路径
+        filePath = filePath.replace("file://", "");
+        let fileName = filePath.split(path.sep).pop();
+        let savePath = dialogs.saveMediaDialog(title, (os.homedir() + path.sep + fileName));  // 获得打开的文件路径
+        if (savePath) {
+            // 开始保存文件
+            await fs.copyFile(filePath, savePath, (err) => {
+                if (err) {
+                    console.log(err);
+                    dialog.showMessageBoxSync({
+                        type: 'error',
+                        message: '保存失败 Save failed!',
+                        buttons: ['OK'],
+                        defaultId: 0,
+                    });
+                    return console.error(err);
+                }
+                dialog.showMessageBoxSync({
+                    type: 'info',
+                    message: '保存成功 Save successfully!',
+                    buttons: ['OK'],
+                    defaultId: 0,
+                });
+            });
+        } else {
+            // 用户中途取消打开文件，直接关闭了saveFileDialog
+            dialog.showMessageBoxSync({
+                type: 'warning',
+                message: '用户取消保存 User save canceled!',
+                buttons: ['OK'],
+                defaultId: 0,
+            });
+        }
     });
 
     ipcMain.handle("doc-loader", async (event, fileName) => {
@@ -167,4 +229,7 @@ export const ipc = (sqliteConnection) => {
     ipcMain.on('open-url', (event, url) => {
         shell.openExternal(url);
     });
+
+    // sqlite ipc
+    sqliteIpc(sqliteConnection);
 };

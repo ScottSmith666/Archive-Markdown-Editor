@@ -117,7 +117,6 @@ mdIt.renderer.rules.image = function (tokens, idx, options, env, self) {
             let currentFilePathRemoveFileName = currentFilePathArray.join("/");  // 路径去掉文件名
             let factMediaPath
                 = currentFilePathRemoveFileName + `/._mdz_content.${currentFileNameRemoveExt}/mdz_contents/media_src/${url.replace("$MDZ_MEDIA/", "")}`;
-            console.log(factMediaPath);
             if (matchedMediaMark !== null) {
                 let kind = matchedMediaMark[2];
                 let getCaption = matchedMediaMark[4];
@@ -148,7 +147,8 @@ onMounted(() => {
 // methods
 const render = async (content) => {
     if (content === '') {
-        content = '<div style="color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.35); user-select: none; font-weight: bold; font-size: 2rem; padding-top: 20px;">Markdown渲染区</div>';
+        content = '<div style="color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.35);'
+            + ' user-select: none; font-weight: bold; font-size: 2rem; padding-top: 20px;">Markdown渲染区</div>';
     }
 
     // apply render HTML content piece
@@ -214,33 +214,28 @@ const mermaidRender = () => {
 const scrollCustomLineElementToCenter = (middleLine, rangeFirstLine) => {
     nextTick().then(() => {
         const container = document.getElementById('viewer-container');  // 外面的容器，包裹着里面的滚动着的高div
-
-        if (!container) {
+        if (!container || !container.firstChild) {
             return 0;
         }
+        let targetElement;
+        const lineOffsets = [0, -1, 1, -2, 2, -3, 3]; // 查找优先级：当前行 -> 前一行 -> 后一行，以此类推
         // 在右侧容器中查找具有相同 data-source-line 的元素
-        let targetElements = container.firstChild
-            .querySelectorAll(`[data-source-line="${(middleLine - rangeFirstLine + 1 /* data-source-line的编号是从0开始的，因此需要减1 -> */ - 1)}"]`);
-        if (targetElements.length === 0) {
-            targetElements = container.firstChild
-                .querySelectorAll(`[data-source-line="${(middleLine - rangeFirstLine + 1 - 1) - 1}"]`);
-            if (targetElements.length === 0) {
-                targetElements = container.firstChild
-                    .querySelectorAll(`[data-source-line="${(middleLine - rangeFirstLine + 1 - 1) + 1}"]`);
-                if (targetElements.length === 0) {
-                    return 0;
-                }
+        for (const offset of lineOffsets) {
+            targetElement = container.firstChild
+                .querySelector(`[data-source-line="${(middleLine - rangeFirstLine + 1
+                    /* data-source-line的编号是从0开始的，因此需要减1 -> */ - 1) + offset}"]`);
+            if (targetElement) {
+                break;
             }
         }
-
-        const targetElement = targetElements[0];
-
-        targetElement.scrollIntoView({
-            behavior: 'auto',
-            block: 'center',
-            container: 'nearest',
-            inline: 'center',
-        });
+        if (targetElement) {
+            targetElement.scrollIntoView({
+                behavior: 'auto',
+                block: 'center',
+                container: 'nearest',
+                inline: 'center',
+            });
+        }
     });
 };
 

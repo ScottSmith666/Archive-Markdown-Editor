@@ -74,4 +74,5 @@ export const mainWindow = () => {
             // 生产环境
             : join(packedRoot, `out${path.sep}renderer${path.sep}index.html`));
     }
+    return main;
 };

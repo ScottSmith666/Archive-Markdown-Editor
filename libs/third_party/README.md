@@ -14,3 +14,10 @@ cd build
 cmake ../ -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION=26.00 -DBIT7Z_CUSTOM_7ZIP_PATH=/Volumes/Execute/Files/project/ame_new/archive_markdown_editor/libs/third_party/7z2600-src
 cmake --build . -j --config Release
 ```
+
+# 3. 下载、编译、安装better-sqlite3
+```bash
+npm install --save-dev electron-rebuild
+npm install better-sqlite3
+./node_modules/.bin/electron-rebuild -f -w better-sqlite3
+```

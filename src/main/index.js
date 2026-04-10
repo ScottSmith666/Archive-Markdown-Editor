@@ -5,13 +5,13 @@ import {electronApp, optimizer, is} from "@electron-toolkit/utils";
 let Sqlite3;
 if (is.dev) {
     // 在开发环境
-    Sqlite3 = require("sqlite3");
+    Sqlite3 = require("better-sqlite3");
 } else {
     // 在生产环境
-    const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked')
+    const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
     Sqlite3 = require(path.join(
         unpackedRoot,
-        `node_modules${path.sep}sqlite3`)
+        `node_modules${path.sep}better-sqlite3`)
     );
 }
 
@@ -41,8 +41,7 @@ app.whenReady().then(() => {
     } catch (e) {  // 没有该路径，就创建文件夹
         fs.mkdirSync(settings_dir_path, { recursive: true });
     }
-
-    const sqliteConnection = new Sqlite3.Database(path.join(settings_dir_path, "ame.sqlite"));
+    const sqliteConnection = new Sqlite3(path.join(settings_dir_path, "ame.sqlite"));
 
     menu();
 
