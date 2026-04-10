@@ -8,7 +8,6 @@ const store = useStore();
 
 // dispatch
 store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
-// store.dispatch('...');  // 启动App时即加载sqlite中的设置项
 
 // data
 const quitConfirmDialog = ref(false);
@@ -61,9 +60,10 @@ const forceQuit = () => {
 
 <template>
     <Transition>
-        <!--模态框-->
+        <!--模态框背景-->
         <div class="modal" v-if="store.state.lifecycle.showModal || store.state.tab.showConfirmModal"></div>
     </Transition>
+
     <Transition>
         <!--加载提示-->
         <div v-if="store.state.lifecycle.showLoading" class="fonts tip" id="circle-loading-modal">
@@ -209,7 +209,19 @@ const forceQuit = () => {
         </div>
     </Transition>
 
-    <!--mdz媒体管理工具-->
+    <Transition>
+        <!--另存为提示-->
+        <div v-if="store.state.lifecycle.showSaveAs">
+
+        </div>
+    </Transition>
+
+    <Transition>
+        <!--mdz媒体管理工具-->
+        <div v-if="store.state.lifecycle.showMdzMediaMan">
+
+        </div>
+    </Transition>
 
     <!--打赏-->
     <Transition>

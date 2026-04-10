@@ -5,6 +5,8 @@ export const ameLifecycleMan = {
             showTip: false,
             showDonate: false,
             showLoading: false,
+            showSaveAs: false,
+            showMdzMediaMan: false,
 
             tLevel: 'info',  // 普通弹出提示框的等级，分为success、info和fail
             tipContent: '',  // 普通弹出提示框的内容

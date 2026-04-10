@@ -102,37 +102,6 @@ onMounted(() => {
         }
     });
 
-    // 添加保存、另存为
-    monacoInstance.addAction({
-        id: 'custom-save',
-        label: '保存',
-        keybindings: [
-            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-        ],
-        contextMenuGroupId: '1_modification',
-        run: function () {
-            // ...保存逻辑
-            store.commit('changePropsOfTab', {  // 将标签上的关闭按钮重新换成叉
-                'pageId': route.query.pageid,
-                'propName': 'saved',
-                'propValue': true,
-            });
-            return null;
-        }
-    });
-    monacoInstance.addAction({
-        id: 'custom-save-as',
-        label: '另存为',
-        keybindings: [
-            monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyS,
-        ],
-        contextMenuGroupId: '1_modification',
-        run: function () {
-            // ...另存为逻辑
-            return null;
-        }
-    });
-
     // 剪切快捷键
     monacoInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => {
         monacoInstance.trigger('source', 'editor.action.clipboardCutAction');

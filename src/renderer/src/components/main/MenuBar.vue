@@ -265,6 +265,19 @@ onMounted(() => {
                                  @click="store.dispatch('activateOpenFileDialogAction'); store.commit('mainManuAllHide');">
                                 <p class="fonts">打开...</p>
                             </div>
+                            <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
+                                ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
+                                : false">
+                                <div class="menu-element" id="main-menu-save"
+                                     @click="''">
+                                    <p class="fonts">保存</p>
+                                </div>
+                                <div class="menu-element" id="main-menu-save-as"
+                                     @click="''">
+                                    <p class="fonts">另存为...</p>
+                                </div>
+                            </template>
+
                             <template v-if="store.state.tab.tabList.size !== 0">
                                 <div class="menu-element" id="main-menu-close"
                                      @click="closeCurrentPage(); store.commit('mainManuAllHide');">
@@ -369,10 +382,12 @@ onMounted(() => {
                                  @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': 'AME使用指南', 'isExistFile': false, 'docName': 'usage'}); store.commit('mainManuAllHide');">
                                 <p class="fonts">使用指南...</p>
                             </div>
-                            <div class="menu-element" id="donate" @click="store.commit('toggleModal', {'kind': 'donate'}); store.commit('mainManuAllHide');">
+                            <div class="menu-element" id="donate"
+                                 @click="store.commit('toggleModal', {'kind': 'donate'}); store.commit('mainManuAllHide');">
                                 <p class="fonts" style="color: red;">打赏...</p>
                             </div>
-                            <div class="menu-element" id="learn-more" @click="openOfficialWebsite(); store.commit('mainManuAllHide');">
+                            <div class="menu-element" id="learn-more"
+                                 @click="openOfficialWebsite(); store.commit('mainManuAllHide');">
                                 <p class="fonts">官方网站...</p>
                             </div>
                         </div>
