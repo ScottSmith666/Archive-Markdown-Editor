@@ -15,6 +15,15 @@ const openOfficialWebsite = () => {
     window.openURLPreload.openURL('https://scottsmith666.github.io/');
 };
 
+const save = () => {
+    // 检测当前打开的是不是已存在文件，如果不是，则说明是新建文件，直接调用另存为逻辑
+    if (!store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("isExistFile")) {
+        store.commit('toggleModal', {'kind': 'save-as'});
+    } else {
+        store.dispatch('directSaveAction');
+    }
+};
+
 const openUsageByHotkey = (e) => {
     // Ctrl/Command + Shift + H打开Archive Markdown Editor使用指南
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'h' || e.key === 'H')) {
@@ -31,6 +40,11 @@ const openUsageByHotkey = (e) => {
     if ((e.ctrlKey || e.metaKey) && (e.key === 'o' || e.key === 'O')) {
         e.preventDefault();
         store.dispatch('activateOpenFileDialogAction');
+    }
+    // Ctrl/Command + S保存文件
+    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        save();
     }
     // Ctrl/Command + W关闭页面
     if ((e.ctrlKey || e.metaKey) && (e.key === 'w' || e.key === 'W')) {
@@ -269,11 +283,11 @@ onMounted(() => {
                                 ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                                 : false">
                                 <div class="menu-element" id="main-menu-save"
-                                     @click="''">
+                                     @click="save(); store.commit('mainManuAllHide');">
                                     <p class="fonts">保存</p>
                                 </div>
                                 <div class="menu-element" id="main-menu-save-as"
-                                     @click="''">
+                                     @click="store.commit('toggleModal', {'kind': 'save-as'}); store.commit('mainManuAllHide');">
                                     <p class="fonts">另存为...</p>
                                 </div>
                             </template>

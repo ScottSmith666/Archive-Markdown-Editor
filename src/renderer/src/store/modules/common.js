@@ -342,3 +342,125 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
         });
     });
 };
+
+export const getMdzMediaPathToDirectPathEdits = (model, presentPath, presentPureFileName, savePath, savePureFileName) => {
+    // 将mdz媒体路径转为普通绝对路径
+    const imageRegex = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+["']([^"']*)["'])?\)/;
+    const matches = model.findMatches(
+        imageRegex,  // 要查找的字符串或正则表达式
+        false,  // 是否只在可编辑范围内查找
+        true,  // searchString 是否为正则表达式
+        false,  // 是否区分大小写
+        null,  // 字分隔符（如需要匹配整个单词）
+        true  // 是否捕获匹配组（仅对正则有效）
+    );
+    if (matches.length > 0) {
+        let edits = [];
+        let copies = [];
+        for (let i = 0; i < matches.length; i++) {
+            let alt = matches[i].matches[1];
+            let url = matches[i].matches[2];
+            let textAfterUrl = matches[i].matches[3] ? ` "${matches[i].matches[3]}"` : '';
+            const mdzPattern = /^(\$MDZ_MEDIA)\/\S+/;
+            const imageBase64Pattern = /data:image\/(.*?);base64,/;
+            const urlPattern = /^(http(s?))(:\/\/)(\S+)/;
+            if (mdzPattern.test(url) && (!imageBase64Pattern.test(url) || !urlPattern.test(url))) {
+                // 符合mdz媒体路径语法
+                let mediaFileName = url.replace("$MDZ_MEDIA/", "");
+                edits.push({
+                    range: matches[i].matches.range,
+                    text: `![${alt}](${savePath + "/" + savePureFileName + ".media_dir/" + mediaFileName}${textAfterUrl})`,
+                    forceMoveMarkers: true // 确保光标和标记跟随替换移动
+                });
+                copies.push(
+                    [
+                        // 源文件 -> 拷贝文件
+                        `${presentPath}/._mdz_content.${presentPureFileName}/mdz_contents/media_src/${mediaFileName}`,
+                        `${savePath}/${savePureFileName}.media_dir/${mediaFileName}`,
+                    ]
+                );
+            }
+        }
+        // 使用applyEdits直接原地修改，不记录到撤销栈
+        // model.applyEdits(edits);
+        return [edits, copies];
+    } else {
+        return [[], []];
+    }
+};
+
+export const getDirectPathToMdzMediaPathEdits = (model, savePureFileName, savePath) => {
+    // 将普通绝对路径转为mdz媒体路径
+    const imageRegex = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+["']([^"']*)["'])?\)/;
+    const matches = model.findMatches(
+        imageRegex,
+        false,
+        true,
+        false,
+        null,
+        true
+    );
+    if (matches.length > 0) {
+        let edits = [];
+        let copies = [];
+        for (let i = 0; i < matches.length; i++) {
+            let alt = matches[i].matches[1];
+            let url = matches[i].matches[2];
+            let textAfterUrl = matches[i].matches[3] ? ` "${matches[i].matches[3]}"` : '';
+            const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+            const posixPathPattern = /^(\/)(\S+)(\/\S+)+/;
+            const imageBase64Pattern = /data:image\/(.*?);base64,/;
+            const urlPattern = /^(http(s?))(:\/\/)(\S+)/;
+
+            // 这里需要注意，为了不把代码块中的image语句的url也给转换了，所以先把：
+            // ---------------------------
+            // 1. 内联代码语句
+            // ---------------------------
+            // 2. 代码块语句
+            // ---------------------------
+            // 3. <pre>...</pre>
+            // ---------------------------
+            // 4. <pre>
+            //        ...
+            //    </pre>
+            // ---------------------------
+            // 5. <code>...</code>
+            // ---------------------------
+            // 6. <code>
+            //        ...
+            //    </code>
+            // ---------------------------
+            // 7. <pre><code>...</code></pre>
+            // ---------------------------
+            // 8. <pre><code>
+            //        ...
+            //    </code></pre>
+            // ---------------------------
+            // 9. <pre>
+            //        <code>
+            //            ...
+            //        </code>
+            //    </pre>
+            // 都识别出来，统一以“$CODE-HERE-index”做替换，替换下来的以[[content, $CODE-HERE-index], ...]二维数组暂时保存入变量，这可能要用到worker了
+            // 然后剩下的再进行多媒体url的修改和替换
+
+            if ((win32PathPattern.test(url) || posixPathPattern.test(url))
+                && (!imageBase64Pattern.test(url) || !urlPattern.test(url))) {
+                // 符合本地绝对路径语法
+                let mediaFileName = url.split(/\\|\//).pop();
+                edits.push({
+                    range: matches[i].matches.range,
+                    text: `![${alt}]($MDZ_MEDIA/${mediaFileName}${textAfterUrl})`,
+                    forceMoveMarkers: true
+                });
+                copies.push(
+                    [url, `${savePath}/._mdz_content.${savePureFileName}/mdz_contents/media_src/${mediaFileName}`]  // 源文件 -> 拷贝文件
+                );
+            }
+        }
+        // model.applyEdits(edits);
+        return [edits, copies];
+    } else {
+        return [[], []];
+    }
+};

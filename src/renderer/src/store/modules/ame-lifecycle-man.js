@@ -20,6 +20,8 @@ export const ameLifecycleMan = {
             state.showModal = !state.showModal;
             if (object.kind === 'donate') {  // kind是提示框的类型，none则是仅弹出背景模态框
                 state.showDonate = !state.showDonate;
+            } else if (object.kind === 'save-as') {
+                state.showSaveAs = !state.showSaveAs;
             }
         },
         autoTips(state, object) {

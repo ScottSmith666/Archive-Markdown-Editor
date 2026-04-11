@@ -8,6 +8,9 @@ import {sqliteIpc} from "./modules/sqliteipc.js";
 import {SqliteMan} from "../sqlite-man";
 import os from "os";
 
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+
 let prompt;
 let mdzUtils;
 let docRootPath;
@@ -48,8 +51,8 @@ const getNow = () => {
     }).replace(/\//g, '-');
 };
 
-export const ipc = (sqliteConnection) => {
-    const sqliteMan = new SqliteMan(sqliteConnection);
+export const ipc = (Sqlite3, dbPath) => {
+    const sqliteMan = new SqliteMan(Sqlite3, dbPath);
     sqliteMan.init();  // 检查相关sqlite表是否存在，如不存在就新建
 
     ipcMain.handle("activate-open-file-dialog", (event, title, content) => {
@@ -62,8 +65,14 @@ export const ipc = (sqliteConnection) => {
         return {'success': true, 'filePath': filePath[0], 'fileName': filePath[0].split(path.sep).pop()};
     });
 
-    ipcMain.handle("activate-save-file-dialog", (event) => {
+    ipcMain.handle("activate-save-file-dialog", (event, title, btLabel) => {
         // 打开“选择保存文件到某地”的操作系统组件，以向渲染端（前端）返回计划保存的文件路径
+        let filePath = dialogs.saveFileDialog(title, btLabel);  // 获得打开的文件路径
+        if (!filePath) {
+            // 用户中途取消打开文件，直接关闭了openFileDialog
+            return {'success': false};
+        }
+        return {'success': true, 'savePath': filePath[0]};
     });
 
     ipcMain.handle("show-input-mdz-password-dialog", async (event, title, content) => {
@@ -167,17 +176,63 @@ export const ipc = (sqliteConnection) => {
         }
     });
 
+    ipcMain.handle("make-mdz-directory", async (event, purePath, pureFileName) => {
+        try {
+            await fs.promises.mkdir(purePath + path.sep + "._mdz_content." + pureFileName + path.sep
+                + "mdz_contents" + path.sep + "media_src", { recursive: true });
+            if (process.platform === "win32") {
+                // Windows平台运行 attrib +h X:/path/to/folder 命令隐藏文件夹
+                await exec(`attrib +h ${purePath + path.sep + "._mdz_content." + pureFileName}`);
+            }
+            return {"success": true, "message": "创建文件夹成功"};
+        } catch (e) {
+            return {"success": false, message: `${e.name}: ${e.message}`};
+        }
+    });
+
+    ipcMain.handle("copy-mdz-media-files", async (event, filePathArray) => {
+        try {
+            for (let i = 0; i < filePathArray.length; i++) {
+                await fs.promises.copyFile(filePathArray[i][0], filePathArray[i][1]);
+            }
+            return {"success": true, "message": "拷贝媒体成功"};
+        } catch (e) {
+            return {"success": false, message: `${e.name}: ${e.message}`};
+        }
+    });
+
     ipcMain.handle('clean-mdz-folder', async (event, cleanPath) => {
         try {
             await rm(cleanPath, {recursive: true, force: true});
             return {"success": true, "message": "清理成功"};
-        } catch (err) {
-            return {"success": false, "message": "清理失败"};
+        } catch (e) {
+            return {"success": false, message: `${e.name}: ${e.message}`};
         }
     });
 
-    ipcMain.handle("save-file-content", async (event, title, filePath) => {
+    ipcMain.handle("save-file-content", async (event, purePath, pureFileName, content) => {
+        try {
+            await fs.promises.writeFile(purePath + path.sep + "._mdz_content." + pureFileName + path.sep
+                + "mdz_contents" + path.sep + pureFileName + ".md", content, 'utf8');
+            return {"success": true, "message": "写入文件成功"};
+        } catch (e) {
+            return {"success": false, message: `${e.name}: ${e.message}`};
+        }
+    });
 
+    ipcMain.handle("compress-to-mdz", async (event, purePath, pureFileName, password) => {
+        try {
+            await mdzUtils.genOrDecompressMdz(
+                purePath + path.sep + "._mdz_content." + pureFileName,
+                purePath + path.sep + pureFileName + ".mdz",
+                "compress",
+                password,
+                ""
+            );
+            return {"success": true, "message": "保存成功"};
+        } catch (e) {
+            return {"success": false, message: `${e.name}: ${e.message}`};
+        }
     });
 
     ipcMain.on("save-file-in-mdz", async (event, title, filePath) => {
@@ -231,5 +286,5 @@ export const ipc = (sqliteConnection) => {
     });
 
     // sqlite ipc
-    sqliteIpc(sqliteConnection);
+    sqliteIpc(Sqlite3, dbPath);
 };

@@ -10,6 +10,7 @@ const api = {
     },
     'sqliteDataManPreload': {
         getRecentOpenedHistory: () => ipcRenderer.invoke('get-recent-opened-history'),
+        setRecentOpenedHistory: (fileName, filePath, openTime) => ipcRenderer.invoke('set-recent-opened-history', fileName, filePath, openTime),
         deleteRecentOpenedHistory: (hsId) => ipcRenderer.invoke('delete-recent-opened-history', hsId),
     },
     'fileManPreload': {
@@ -19,6 +20,12 @@ const api = {
         loadEncryptedMdzFileContent: (filePath, password) => ipcRenderer.invoke('load-encrypted-mdz-content', filePath, password),
         cleanMdzFolder: (cleanPath) => ipcRenderer.invoke('clean-mdz-folder', cleanPath),
         saveFileInMdz: (title, filePathOrURL) => ipcRenderer.send('save-file-in-mdz', title, filePathOrURL),
+        getSavePath: (title, btLabel) => ipcRenderer.invoke('activate-save-file-dialog', title, btLabel),
+        makeMdzDirectory: (purePath, pureFileName) => ipcRenderer.invoke('make-mdz-directory', purePath, pureFileName),
+        copyMdzMediaFiles: (filePathArray) => ipcRenderer.invoke('copy-mdz-media-files', filePathArray),
+        defaultOpenFile: (callback) => ipcRenderer.on('default-open-file', (event, value) => callback(value)),
+        saveFileContent: (purePath, pureFileName, content) => ipcRenderer.invoke('save-file-content', purePath, pureFileName, content),
+        compressToMdz: (purePath, pureFileName, password) => ipcRenderer.invoke('compress-to-mdz', purePath, pureFileName, password),
     },
     'confirmPreload': {
         onAskForClose: (callback) => ipcRenderer.on('ask-for-close', callback),

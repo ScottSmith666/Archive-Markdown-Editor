@@ -1,6 +1,6 @@
 <script setup>
 import {useStore} from 'vuex';
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {onBeforeRouteUpdate} from "vue-router";
 
 const store = useStore();
@@ -56,6 +56,13 @@ const openHistoryFile = (filePath, fileName) => {
     });
 };
 
+// computed
+const sortHistory = computed(() => {
+    return [...recentFileHistoryList.value].sort((a, b) => {
+        // 降序 (新 -> 旧)：b - a
+        return new Date(b.openTime).getTime() - new Date(a.openTime).getTime();
+    });
+});
 </script>
 <template>
     <div class="welcome-main fonts">
@@ -224,7 +231,7 @@ const openHistoryFile = (filePath, fileName) => {
                     <div style="color: #6a737d;" id="empty">曾打开的文件将显示于此处。</div>
                 </template>
                 <template v-else>
-                    <div class="recent-file-unit" v-for="(item, index) in recentFileHistoryList" :key="item.hsId">
+                    <div class="recent-file-unit" v-for="(item, index) in sortHistory" :key="item.hsId">
                         <div class="file-info-block">
                             <!--File icon-->
                             <div>

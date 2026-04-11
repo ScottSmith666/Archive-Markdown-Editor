@@ -1,8 +1,29 @@
-import {actModel, tgModel, afterChosenFile} from "./common.js";
+import {
+    actModel,
+    tgModel,
+    afterChosenFile,
+    getMdzMediaPathToDirectPathEdits,
+    getDirectPathToMdzMediaPathEdits
+} from "./common.js";
+
+const getNow = () => {
+    const now = new Date();
+    return now.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false  // 使用24小时制
+    }).replace(/\//g, '-');
+};
 
 export const fileMan = {
     state: () => {
-        return {};
+        return {
+            mEditor: null,
+        };
     },
     mutations: {
         // 激活“打开文件”操作系统组件
@@ -30,6 +51,239 @@ export const fileMan = {
             let rootState = object.rootState;
             let result = object.result;
             afterChosenFile(rootState, result, true);
+        },
+        directSaveMethod(state, args) {
+            let rootState = args[0];
+            let planSaveFileInfo = args[1];
+
+            // 先拿到对应页面的相关信息
+            let currentPageInfo = rootState.tab.tabList.get(rootState.tab.currentOpenedPageId);
+            let currentPageMonacoEditorModel = currentPageInfo.get("monacoEditorModel");
+            let currentPageIsExistFile = currentPageInfo.get("isExistFile");
+            let currentPageIsEncryptedFile = currentPageInfo.get("encrypted");
+            let currentPageIsEncryptedFilePassword = currentPageInfo.get("password");
+            let currentPageExistFileRouter = currentPageInfo.get("path");
+
+            if (currentPageIsExistFile && planSaveFileInfo.length === 0) {
+                // currentPageIsExistFile为true，且用户不提供计划保存文件信息参数
+                // 说明是已存在的文件，且用户进行“保存”操作
+                // 直接在tabList的对应页面的item里拿取文件信息，覆盖保存即可
+
+                // 处理路由为路径
+                let currentOpenedFilePathArray = currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split(/\\|\//);
+                let currentPureFileNameArray = currentOpenedFilePathArray.pop().split(".");
+                currentPureFileNameArray.pop();
+                let currentPureFileName = currentPureFileNameArray.join(".");
+                let currentPurePath = currentOpenedFilePathArray.join("/");
+
+                if (currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "mdz") {
+                    // 这里的逻辑是
+                    // 当已存在的文件执行“保存”操作的时候
+                    // 如果发现这个文件是mdz文件，则多媒体语句中：
+                    // 采用绝对路径的本地多媒体文件将被嵌入mdz文件
+                    // 而base64编码的图片和在线URL将保持不变
+
+                    // 先创建好要保存的mdz文件夹结构（win32平台需要运行命令以使文件夹不可见）
+                    window.fileManPreload.makeMdzDirectory(currentPurePath, currentPureFileName).then(async (result) => {
+                        if (result.success) {
+                            let editsCopies
+                                = getDirectPathToMdzMediaPathEdits(currentPageMonacoEditorModel, currentPureFileName, currentPurePath);
+                            if (editsCopies[0].length > 0) {
+                                // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
+                                let copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                                if (copyResult.success) {
+                                    // 拷贝多媒体文件至mdz文件夹结构完成后，执行monaco editor edit序列操作
+                                    console.log(editsCopies[0]);
+                                    currentPageMonacoEditorModel.applyEdits(editsCopies[0]);
+                                    // edit序列执行完成后，将Model的内容保存至mdz文件夹结构
+                                    let writeResult = await window.fileManPreload.saveFileContent(
+                                        currentPurePath,
+                                        currentPureFileName,
+                                        currentPageMonacoEditorModel.getValue()
+                                    );
+                                    if (writeResult.success) {
+                                        // 最后将文件夹压缩封装为mdz文件
+                                        let makeMdzResult = await window.fileManPreload.compressToMdz(
+                                            currentPurePath,
+                                            currentPureFileName,
+                                            currentPageIsEncryptedFilePassword
+                                        );
+                                        if (makeMdzResult.success) {
+                                            // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
+                                            currentPageInfo.set("saved", true);
+                                            const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                            let sep = win32PathPattern.test(currentPurePath) ? "\\" : "/";
+                                            let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
+                                                `${currentPureFileName}.mdz`,
+                                                `${currentPurePath}${sep}${currentPureFileName}.mdz`,
+                                                getNow()
+                                            );
+                                            if (sqlResult.success) {
+                                                // 停止加载
+                                                // 显示保存成功按钮
+                                                actModel(rootState, {
+                                                    'kind': 'tip',
+                                                    'tipLevel': 'success',
+                                                    'content': '保存成功',
+                                                    'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                                });
+                                            } else {
+                                                // 发送错误信息
+                                                console.error(sqlResult.message);
+                                                return 0;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // 发送错误信息
+                                    console.error(copyResult.message);
+                                    return 0;
+                                }
+                            }
+                        } else {
+                            // 发送错误信息
+                            console.error(result.message);
+                            return 0;
+                        }
+                    }).catch((err) => {
+                        // 发送错误信息
+                        console.error(err);
+                        return 0;
+                    });
+                } else {
+                    // 如果发现这个文件不是mdz文件，则多媒体语句保持不变
+                    // 将Model的内容保存至指定的保存路径
+                    window.fileManPreload.saveFileContent(
+                        currentPurePath,
+                        currentPureFileName,
+                        currentPageMonacoEditorModel.getValue()
+                    ).then((writeResult) => {
+                        if (writeResult.success) {
+                            // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
+                            currentPageInfo.set("saved", true);
+                            const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                            let sep = win32PathPattern.test(currentPurePath) ? "\\" : "/";
+                            window.sqliteDataManPreload.setRecentOpenedHistory(
+                                `${currentPureFileName}.mdz`,
+                                `${currentPurePath}${sep}${currentPureFileName}.mdz`,
+                                getNow()
+                            ).then((sqlResult) => {
+                                if (sqlResult.success) {
+                                    // 停止加载
+                                    // 显示保存成功按钮
+                                    actModel(rootState, {
+                                        'kind': 'tip',
+                                        'tipLevel': 'success',
+                                        'content': '保存成功',
+                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                    });
+                                } else {
+                                    // 发送错误信息
+                                    console.error(sqlResult.message);
+                                    return 0;
+                                }
+                            }).catch((err) => {
+                                console.error(err);
+                            });
+                        } else {
+                            console.error(writeResult.message);
+                        }
+                    }).catch((err) => {
+                        console.error(err);
+                    });
+                }
+            } else {
+                // 校验文件名内有没有非法字符
+                const fileForbiddenChars = [">", "<", ":", "'", "|", "*", "?"];
+                for (let i = 0; i < fileForbiddenChars.length; i++) {
+                    if (planSaveFileInfo[0].includes(fileForbiddenChars[i])) {
+                        actModel(rootState, {
+                            'kind': 'tip',
+                            'tipLevel': 'fail',
+                            'content': "文件名内有非法字符 > < : ' | * ?",
+                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                        });
+                        return 0;
+                    }
+                }
+                if (currentPageIsExistFile && planSaveFileInfo.length !== 0) {
+                    // 说明用户对一个已存在文件进行“另存为”操作
+                    // 需要接收用户提供的计划保存文件信息参数
+                    if (
+                        (
+                            currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "md"
+                            || currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "txt"
+                        ) && (
+                            planSaveFileInfo[1] === "md"
+                            || planSaveFileInfo[1] === "txt"
+                        )
+                    ) {
+                        // 当(md或txt)另存为(md或txt)
+                        // 则多媒体语句保持不变
+
+                    } else if (
+                        (
+                            currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "md"
+                            || currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "txt"
+                            || currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "mdz"
+                        ) && planSaveFileInfo[1] === "mdz"
+                    ) {
+                        // 当(md或txt或mdz)另存为mdz
+                        // 则多媒体语句中：
+                        // 采用绝对路径的本地多媒体文件将被嵌入mdz文件
+                        // 而base64编码的图片和在线URL将保持不变
+
+                        // 先创建好要保存的mdz文件夹结构
+                        let editsCopies = getDirectPathToMdzMediaPathEdits(currentPageMonacoEditorModel, planSaveFileInfo[0], planSaveFileInfo[2]);
+
+                    } else if (
+                        currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "mdz"
+                        && (
+                            planSaveFileInfo[1] === "md"
+                            || planSaveFileInfo[1] === "txt"
+                        )
+                    ) {
+                        // 当mdz另存为(md或txt)
+                        // 则多媒体语句中：
+                        // 采用mdz媒体路径语法的本地多媒体文件将被解压出mdz文件
+                        // 在mdz文件同一路径中创建“文件名.media_dir”文件夹，并把多媒体放置其中
+                        // 然后将mdz媒体路径语法改成指向这个文件夹的媒体文件路径
+                        // 而base64编码的图片和在线URL将保持不变
+                        let currentOpenedFilePathArray = currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split(/\\|\//);
+                        let currentPureFileNameArray = currentOpenedFilePathArray.pop().split(".");
+                        currentPureFileNameArray.pop();
+                        let currentPureFileName = currentPureFileNameArray.join(".");
+                        let currentPurePath = currentOpenedFilePathArray.join("/");
+
+                        // 先创建好要保存的md或txt文件的媒体文件夹
+
+                        let editsCopies = getMdzMediaPathToDirectPathEdits(
+                            currentPageMonacoEditorModel,
+                            currentPurePath,
+                            currentPureFileName,
+                            planSaveFileInfo[2],
+                            planSaveFileInfo[0]
+                        );
+
+                    }
+
+                } else if (!currentPageIsEncryptedFile && planSaveFileInfo.length !== 0) {
+                    // 说明用户对一个新建文件进行“保存”或“另存为”操作
+                    // 需要接收用户提供的计划保存文件信息参数
+                    if (planSaveFileInfo[1] === "mdz") {
+                        // 如果计划保存的是mdz文件，则多媒体语句中：
+                        // 采用绝对路径的本地多媒体文件将被嵌入mdz文件
+                        // 而base64编码的图片和在线URL将保持不变
+
+                        // 先创建好要保存的mdz文件夹结构
+                        let editsCopies = getDirectPathToMdzMediaPathEdits(currentPageMonacoEditorModel, planSaveFileInfo[0], planSaveFileInfo[2]);
+
+                    } else {
+                        // 如果计划保存的文件不是mdz文件，则多媒体语句保持不变
+
+                    }
+                }
+            }
         }
     },
     actions: {
@@ -44,6 +298,12 @@ export const fileMan = {
                 'result': result  // result: {'filePath': '...', 'fileName': '...'}
             };
             commit('openFileFromHistoryMethod', object);
-        }
+        },
+        // 保存文件
+        directSaveAction({commit, rootState}, data = []) {
+            // 如果是用户提供的文件信息，则包含：data = [单纯文件名, 扩展名, 保存路径, 密码]
+            // 如果用户不提供的文件信息，则data为空列表
+            commit('directSaveMethod', [rootState, data]);
+        },
     },
 }

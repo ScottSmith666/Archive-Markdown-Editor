@@ -32,20 +32,16 @@ export class Dialogs {
         });
     }
 
-    saveFileDialog(title = "保存文件") {
-        return dialog.showSaveDialogSync({
+    saveFileDialog(title = "保存文件", btLabel = "确定") {
+        return dialog.showOpenDialogSync({
             /**
              * 另存为文件
              */
             title: title,
             defaultPath: os.homedir(),
-            buttonLabel: '保存',
+            properties: ['openDirectory'], // 设置为只能选择文件夹
+            buttonLabel: btLabel,
             message: title,
-            filters: [
-                { name: 'Markdown File', extensions: ['md'] },
-                { name: 'Archive Markdown File', extensions: ['mdz'] },
-                { name: 'Text File', extensions: ['txt'] },
-            ]
         });
     }
 

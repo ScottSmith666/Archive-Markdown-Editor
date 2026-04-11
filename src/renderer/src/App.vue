@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import TabMan from "./components/main/TabMan.vue";
 import MenuBar from "./components/main/MenuBar.vue";
 import {useStore} from 'vuex';
@@ -11,8 +11,12 @@ store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相
 
 // data
 const quitConfirmDialog = ref(false);
-
-// created
+// data-form
+const savePath = ref("");
+const saveName = ref("");
+const saveExt = ref("mdz");
+const setPassword = ref("");
+const setPasswordAgain = ref("");
 
 // mounted
 onMounted(() => {
@@ -32,6 +36,16 @@ onMounted(() => {
             // 发现都保存了，就直接退出
             window.confirmPreload.confirmClose(true, getAllMdzFolderPaths());
         }
+    });
+
+    // 默认应用直接打开文件
+    window.fileManPreload.defaultOpenFile((filePath) => {
+        let fileName = filePath.split(/\\|\//).pop();
+        console.error(fileName);
+        store.dispatch('openFileFromHistoryAction', {
+            'filePath': filePath,
+            'fileName': fileName
+        });
     });
 });
 
@@ -56,6 +70,33 @@ const getAllMdzFolderPaths = () => {
 const forceQuit = () => {
     window.confirmPreload.confirmClose(true, getAllMdzFolderPaths());
 }
+const getSavePathFromDialog = () => {
+    window.fileManPreload.getSavePath("选择保存路径", "确定").then(result => {
+        if (result.success) {
+            console.log(result);
+            savePath.value = result.savePath;
+        } else {
+            savePath.value = "";
+        }
+    }).catch(error => {
+        store.commit('toggleModal', {kind: "none"});
+        store.commit('autoTips', {kind: "tip", tipLevel: "fail", content: `${error.name}: ${error.message}`});
+    });
+};
+
+// computed
+const syncMdzPassword = computed({
+    get: () => {
+        if (store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("encrypted")) {  // 检测当前打开的是不是加密mdz
+            return store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("password");  // 打开加密mdz时存储在tab变量中的密码（当然页面关闭就被销毁了，不会持久化储存）
+        } else {
+            return setPassword.value;
+        }
+    },
+    set: (val) => {
+        setPassword.value = val;  // 更新本地data
+    }
+});
 </script>
 
 <template>
@@ -72,7 +113,8 @@ const forceQuit = () => {
                     <div
                         style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
                         <div class="ame-circle" style="height: 26px; width: 26px;">
-                            <svg style="width: 26px; height: 26px;" width="100" height="100" viewBox="0 0 100 100" xmlns="http://w3.org">
+                            <svg style="width: 26px; height: 26px;" width="100" height="100" viewBox="0 0 100 100"
+                                 xmlns="http://w3.org">
                                 <!-- 外层容器控制整体匀速旋转 -->
                                 <g>
                                     <animateTransform
@@ -132,9 +174,30 @@ const forceQuit = () => {
                     <div
                         style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
                         <div class="ame-circle" style="height: 26px; width: 26px;">
-                            <svg v-if="store.state.lifecycle.tLevel === 'success'" style="width: 26px; height: 26px;" t="1775527773905" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4825" width="200" height="200"><path d="M512 97.52381c228.912762 0 414.47619 185.563429 414.47619 414.47619s-185.563429 414.47619-414.47619 414.47619S97.52381 740.912762 97.52381 512 283.087238 97.52381 512 97.52381z m193.194667 218.331428L447.21981 581.315048l-103.936-107.812572-52.662858 50.761143 156.379429 162.230857 310.662095-319.683047-52.467809-50.956191z" p-id="4826" data-spm-anchor-id="a313x.search_index.0.i0.73623a81mIlQ8V" class="selected" fill="#42b883"></path></svg>
-                            <svg v-else-if="store.state.lifecycle.tLevel === 'fail'" style="width: 26px; height: 26px;" t="1775527938245" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5890" width="200" height="200"><path d="M512.697 75.445c-247.539 0-448.208 200.669-448.208 448.208 0 247.54 200.669 448.208 448.208 448.208 247.54 0 448.208-200.668 448.208-448.208 0-247.539-200.668-448.208-448.208-448.208zM690.686 657.208c12.265 12.274 12.265 32.171 0 44.427-12.283 12.274-32.171 12.274-44.453 0l-133.316-133.316-133.327 133.316c-12.274 12.274-32.161 12.274-44.445 0-12.265-12.256-12.265-32.153 0-44.427l133.335-133.353-133.335-133.317c-12.265-12.256-12.265-32.171 0-44.444 12.283-12.256 32.171-12.256 44.445 0l133.327 133.335 133.316-133.335c12.283-12.256 32.171-12.256 44.453 0 12.265 12.274 12.265 32.189 0 44.444l-133.335 133.317 133.335 133.353z" fill="#e7305b" p-id="5891"></path></svg>
-                            <svg v-else-if="store.state.lifecycle.tLevel === 'info'" style="width: 26px; height: 26px;" t="1775536482406" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4788" width="200" height="200"><path d="M0 0h1024v1024H0z" fill="#FFFFFF" p-id="4789"></path><path d="M512 938.666667a426.666667 426.666667 0 1 1 426.666667-426.666667 427.136 427.136 0 0 1-426.666667 426.666667z m-21.333333-426.666667a21.333333 21.333333 0 0 0-21.333334 21.333333v128a21.333333 21.333333 0 0 0 21.333334 21.333334h42.666666a21.333333 21.333333 0 0 0 21.333334-21.333334v-128a21.333333 21.333333 0 0 0-21.333334-21.333333z m0-170.666667a21.333333 21.333333 0 0 0-21.333334 21.333334v42.666666a21.333333 21.333333 0 0 0 21.333334 21.333334h42.666666a21.333333 21.333333 0 0 0 21.333334-21.333334v-42.666666a21.333333 21.333333 0 0 0-21.333334-21.333334z" p-id="4790" data-spm-anchor-id="a313x.search_index.0.i0.753e3a81ekgc9d" class="selected" fill="#42b883"></path></svg>
+                            <svg v-if="store.state.lifecycle.tLevel === 'success'" style="width: 26px; height: 26px;"
+                                 t="1775527773905" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                 xmlns="http://www.w3.org/2000/svg" p-id="4825" width="200" height="200">
+                                <path
+                                    d="M512 97.52381c228.912762 0 414.47619 185.563429 414.47619 414.47619s-185.563429 414.47619-414.47619 414.47619S97.52381 740.912762 97.52381 512 283.087238 97.52381 512 97.52381z m193.194667 218.331428L447.21981 581.315048l-103.936-107.812572-52.662858 50.761143 156.379429 162.230857 310.662095-319.683047-52.467809-50.956191z"
+                                    p-id="4826" data-spm-anchor-id="a313x.search_index.0.i0.73623a81mIlQ8V"
+                                    class="selected" fill="#42b883"></path>
+                            </svg>
+                            <svg v-else-if="store.state.lifecycle.tLevel === 'fail'" style="width: 26px; height: 26px;"
+                                 t="1775527938245" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                 xmlns="http://www.w3.org/2000/svg" p-id="5890" width="200" height="200">
+                                <path
+                                    d="M512.697 75.445c-247.539 0-448.208 200.669-448.208 448.208 0 247.54 200.669 448.208 448.208 448.208 247.54 0 448.208-200.668 448.208-448.208 0-247.539-200.668-448.208-448.208-448.208zM690.686 657.208c12.265 12.274 12.265 32.171 0 44.427-12.283 12.274-32.171 12.274-44.453 0l-133.316-133.316-133.327 133.316c-12.274 12.274-32.161 12.274-44.445 0-12.265-12.256-12.265-32.153 0-44.427l133.335-133.353-133.335-133.317c-12.265-12.256-12.265-32.171 0-44.444 12.283-12.256 32.171-12.256 44.445 0l133.327 133.335 133.316-133.335c12.283-12.256 32.171-12.256 44.453 0 12.265 12.274 12.265 32.189 0 44.444l-133.335 133.317 133.335 133.353z"
+                                    fill="#e7305b" p-id="5891"></path>
+                            </svg>
+                            <svg v-else-if="store.state.lifecycle.tLevel === 'info'" style="width: 26px; height: 26px;"
+                                 t="1775536482406" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                 xmlns="http://www.w3.org/2000/svg" p-id="4788" width="200" height="200">
+                                <path d="M0 0h1024v1024H0z" fill="#FFFFFF" p-id="4789"></path>
+                                <path
+                                    d="M512 938.666667a426.666667 426.666667 0 1 1 426.666667-426.666667 427.136 427.136 0 0 1-426.666667 426.666667z m-21.333333-426.666667a21.333333 21.333333 0 0 0-21.333334 21.333333v128a21.333333 21.333333 0 0 0 21.333334 21.333334h42.666666a21.333333 21.333333 0 0 0 21.333334-21.333334v-128a21.333333 21.333333 0 0 0-21.333334-21.333333z m0-170.666667a21.333333 21.333333 0 0 0-21.333334 21.333334v42.666666a21.333333 21.333333 0 0 0 21.333334 21.333334h42.666666a21.333333 21.333333 0 0 0 21.333334-21.333334v-42.666666a21.333333 21.333333 0 0 0-21.333334-21.333334z"
+                                    p-id="4790" data-spm-anchor-id="a313x.search_index.0.i0.753e3a81ekgc9d"
+                                    class="selected" fill="#42b883"></path>
+                            </svg>
                         </div>
                         <div style="width: 20px;"></div>
                         <div id="circle-loading-title" class="window-title fonts"
@@ -151,7 +214,13 @@ const forceQuit = () => {
         <div v-if="store.state.tab.showConfirm" class="confirm-dialog fonts">
             <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
                 <div style="width: 25px; height: 25px; margin-right: 6px;">
-                    <svg style="width: 100%; height: 100%;" t="1775567305068" class="icon" viewBox="0 0 1315 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5417" width="200" height="200"><path d="M800.102094 365.963004l479.449535 100.113681c17.026633 3.507633 28.280288 21.703477 25.064958 40.630078-2.849952 16.807406-16.07665 28.499515-30.984088 28.42644l-5.626827-0.584606-433.850311-90.540767 3.21533 17.903541a37.999353 37.999353 0 0 1-4.749919 26.234169l-3.946087 5.334525-68.691139 75.560253 37.122446 124.66711a36.903218 36.903218 0 0 1-12.495942 40.045472l-5.4076 3.142254-64.45275 29.449499 13.445926 74.756421 372.101361 113.48653c16.734331 5.115298 26.526472 24.261126 21.922704 42.822348-4.019162 16.515104-18.122769 27.038001-32.957132 25.576488l-5.553752-1.169211-390.808735-119.113357a32.737905 32.737905 0 0 1-20.826568-20.607342l-1.680741-6.211433-22.288082-124.082504a36.53784 36.53784 0 0 1 13.884379-36.172462l4.969146-2.923027 61.383571-27.987985-34.053267-114.290363a38.145505 38.145505 0 0 1 3.946087-30.691786l3.799935-5.042222 70.444955-77.533296-8.988308-50.129916c-3.653784-20.168888 9.061384-38.364732 26.014942-41.287759l5.115297-0.365378z m-265.55702 39.826245l42.9685 61.091269-48.522251 123.863277 114.948044 127.151683-80.090945 84.767788 67.960382 97.044503-491.507022 80.67555a73.07568 73.07568 0 0 1-84.037031-60.798965L1.019537 566.921123a73.07568 73.07568 0 0 1 60.360511-83.37935l473.165026-77.752524zM491.211196 486.97633L73.218308 555.667469l55.245214 352.66323 376.778205-61.895101-35.441705-50.56837L544.556442 716.799342 444.442761 606.162763l46.768435-119.113358z m489.607054-308.744747a36.53784 36.53784 0 0 1 0 51.664505l-103.402086 103.402087a36.53784 36.53784 0 0 1-51.664506-51.664505l103.329011-103.402087a36.53784 36.53784 0 0 1 51.664506 0z m-546.898387-4.23839l5.115298 4.23839 103.255935 103.402087a36.53784 36.53784 0 0 1-46.622283 55.902895l-5.042222-4.23839-103.329011-103.402087a36.53784 36.53784 0 0 1 46.622283-55.902895zM694.361586 0a36.53784 36.53784 0 0 1 36.53784 36.53784v219.227039a36.53784 36.53784 0 0 1-73.07568 0v-219.227039a36.53784 36.53784 0 0 1 36.53784-36.53784z" fill="#42b883" p-id="5418" data-spm-anchor-id="a313x.search_index.0.i0.4a203a81fSsTC2" class="selected"></path></svg>
+                    <svg style="width: 100%; height: 100%;" t="1775567305068" class="icon" viewBox="0 0 1315 1024"
+                         version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5417" width="200" height="200">
+                        <path
+                            d="M800.102094 365.963004l479.449535 100.113681c17.026633 3.507633 28.280288 21.703477 25.064958 40.630078-2.849952 16.807406-16.07665 28.499515-30.984088 28.42644l-5.626827-0.584606-433.850311-90.540767 3.21533 17.903541a37.999353 37.999353 0 0 1-4.749919 26.234169l-3.946087 5.334525-68.691139 75.560253 37.122446 124.66711a36.903218 36.903218 0 0 1-12.495942 40.045472l-5.4076 3.142254-64.45275 29.449499 13.445926 74.756421 372.101361 113.48653c16.734331 5.115298 26.526472 24.261126 21.922704 42.822348-4.019162 16.515104-18.122769 27.038001-32.957132 25.576488l-5.553752-1.169211-390.808735-119.113357a32.737905 32.737905 0 0 1-20.826568-20.607342l-1.680741-6.211433-22.288082-124.082504a36.53784 36.53784 0 0 1 13.884379-36.172462l4.969146-2.923027 61.383571-27.987985-34.053267-114.290363a38.145505 38.145505 0 0 1 3.946087-30.691786l3.799935-5.042222 70.444955-77.533296-8.988308-50.129916c-3.653784-20.168888 9.061384-38.364732 26.014942-41.287759l5.115297-0.365378z m-265.55702 39.826245l42.9685 61.091269-48.522251 123.863277 114.948044 127.151683-80.090945 84.767788 67.960382 97.044503-491.507022 80.67555a73.07568 73.07568 0 0 1-84.037031-60.798965L1.019537 566.921123a73.07568 73.07568 0 0 1 60.360511-83.37935l473.165026-77.752524zM491.211196 486.97633L73.218308 555.667469l55.245214 352.66323 376.778205-61.895101-35.441705-50.56837L544.556442 716.799342 444.442761 606.162763l46.768435-119.113358z m489.607054-308.744747a36.53784 36.53784 0 0 1 0 51.664505l-103.402086 103.402087a36.53784 36.53784 0 0 1-51.664506-51.664505l103.329011-103.402087a36.53784 36.53784 0 0 1 51.664506 0z m-546.898387-4.23839l5.115298 4.23839 103.255935 103.402087a36.53784 36.53784 0 0 1-46.622283 55.902895l-5.042222-4.23839-103.329011-103.402087a36.53784 36.53784 0 0 1 46.622283-55.902895zM694.361586 0a36.53784 36.53784 0 0 1 36.53784 36.53784v219.227039a36.53784 36.53784 0 0 1-73.07568 0v-219.227039a36.53784 36.53784 0 0 1 36.53784-36.53784z"
+                            fill="#42b883" p-id="5418" data-spm-anchor-id="a313x.search_index.0.i0.4a203a81fSsTC2"
+                            class="selected"></path>
+                    </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
                     主人，真的要关闭吗？
@@ -169,9 +238,13 @@ const forceQuit = () => {
             <div style="display: flex; flex-direction: column; width: 100%;">
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
-                    <div class="confirm-dialog-cancel-button fonts" @click="store.commit('confirmDialogInteractive', false)">忘保存啦~</div>
+                    <div class="confirm-dialog-cancel-button fonts"
+                         @click="store.commit('confirmDialogInteractive', false)">忘保存啦~
+                    </div>
                     <div style="width: 10px;"></div>
-                    <div class="confirm-dialog-confirm-button fonts" @click="store.commit('confirmDialogInteractive', true)">我非要走！</div>
+                    <div class="confirm-dialog-confirm-button fonts"
+                         @click="store.commit('confirmDialogInteractive', true)">我非要走！
+                    </div>
                 </div>
             </div>
         </div>
@@ -182,7 +255,13 @@ const forceQuit = () => {
         <div v-if="quitConfirmDialog" class="confirm-dialog fonts">
             <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
                 <div style="width: 25px; height: 25px; margin-right: 6px;">
-                    <svg style="width: 100%; height: 100%;" t="1775567305068" class="icon" viewBox="0 0 1315 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5417" width="200" height="200"><path d="M800.102094 365.963004l479.449535 100.113681c17.026633 3.507633 28.280288 21.703477 25.064958 40.630078-2.849952 16.807406-16.07665 28.499515-30.984088 28.42644l-5.626827-0.584606-433.850311-90.540767 3.21533 17.903541a37.999353 37.999353 0 0 1-4.749919 26.234169l-3.946087 5.334525-68.691139 75.560253 37.122446 124.66711a36.903218 36.903218 0 0 1-12.495942 40.045472l-5.4076 3.142254-64.45275 29.449499 13.445926 74.756421 372.101361 113.48653c16.734331 5.115298 26.526472 24.261126 21.922704 42.822348-4.019162 16.515104-18.122769 27.038001-32.957132 25.576488l-5.553752-1.169211-390.808735-119.113357a32.737905 32.737905 0 0 1-20.826568-20.607342l-1.680741-6.211433-22.288082-124.082504a36.53784 36.53784 0 0 1 13.884379-36.172462l4.969146-2.923027 61.383571-27.987985-34.053267-114.290363a38.145505 38.145505 0 0 1 3.946087-30.691786l3.799935-5.042222 70.444955-77.533296-8.988308-50.129916c-3.653784-20.168888 9.061384-38.364732 26.014942-41.287759l5.115297-0.365378z m-265.55702 39.826245l42.9685 61.091269-48.522251 123.863277 114.948044 127.151683-80.090945 84.767788 67.960382 97.044503-491.507022 80.67555a73.07568 73.07568 0 0 1-84.037031-60.798965L1.019537 566.921123a73.07568 73.07568 0 0 1 60.360511-83.37935l473.165026-77.752524zM491.211196 486.97633L73.218308 555.667469l55.245214 352.66323 376.778205-61.895101-35.441705-50.56837L544.556442 716.799342 444.442761 606.162763l46.768435-119.113358z m489.607054-308.744747a36.53784 36.53784 0 0 1 0 51.664505l-103.402086 103.402087a36.53784 36.53784 0 0 1-51.664506-51.664505l103.329011-103.402087a36.53784 36.53784 0 0 1 51.664506 0z m-546.898387-4.23839l5.115298 4.23839 103.255935 103.402087a36.53784 36.53784 0 0 1-46.622283 55.902895l-5.042222-4.23839-103.329011-103.402087a36.53784 36.53784 0 0 1 46.622283-55.902895zM694.361586 0a36.53784 36.53784 0 0 1 36.53784 36.53784v219.227039a36.53784 36.53784 0 0 1-73.07568 0v-219.227039a36.53784 36.53784 0 0 1 36.53784-36.53784z" fill="#42b883" p-id="5418" data-spm-anchor-id="a313x.search_index.0.i0.4a203a81fSsTC2" class="selected"></path></svg>
+                    <svg style="width: 100%; height: 100%;" t="1775567305068" class="icon" viewBox="0 0 1315 1024"
+                         version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5417" width="200" height="200">
+                        <path
+                            d="M800.102094 365.963004l479.449535 100.113681c17.026633 3.507633 28.280288 21.703477 25.064958 40.630078-2.849952 16.807406-16.07665 28.499515-30.984088 28.42644l-5.626827-0.584606-433.850311-90.540767 3.21533 17.903541a37.999353 37.999353 0 0 1-4.749919 26.234169l-3.946087 5.334525-68.691139 75.560253 37.122446 124.66711a36.903218 36.903218 0 0 1-12.495942 40.045472l-5.4076 3.142254-64.45275 29.449499 13.445926 74.756421 372.101361 113.48653c16.734331 5.115298 26.526472 24.261126 21.922704 42.822348-4.019162 16.515104-18.122769 27.038001-32.957132 25.576488l-5.553752-1.169211-390.808735-119.113357a32.737905 32.737905 0 0 1-20.826568-20.607342l-1.680741-6.211433-22.288082-124.082504a36.53784 36.53784 0 0 1 13.884379-36.172462l4.969146-2.923027 61.383571-27.987985-34.053267-114.290363a38.145505 38.145505 0 0 1 3.946087-30.691786l3.799935-5.042222 70.444955-77.533296-8.988308-50.129916c-3.653784-20.168888 9.061384-38.364732 26.014942-41.287759l5.115297-0.365378z m-265.55702 39.826245l42.9685 61.091269-48.522251 123.863277 114.948044 127.151683-80.090945 84.767788 67.960382 97.044503-491.507022 80.67555a73.07568 73.07568 0 0 1-84.037031-60.798965L1.019537 566.921123a73.07568 73.07568 0 0 1 60.360511-83.37935l473.165026-77.752524zM491.211196 486.97633L73.218308 555.667469l55.245214 352.66323 376.778205-61.895101-35.441705-50.56837L544.556442 716.799342 444.442761 606.162763l46.768435-119.113358z m489.607054-308.744747a36.53784 36.53784 0 0 1 0 51.664505l-103.402086 103.402087a36.53784 36.53784 0 0 1-51.664506-51.664505l103.329011-103.402087a36.53784 36.53784 0 0 1 51.664506 0z m-546.898387-4.23839l5.115298 4.23839 103.255935 103.402087a36.53784 36.53784 0 0 1-46.622283 55.902895l-5.042222-4.23839-103.329011-103.402087a36.53784 36.53784 0 0 1 46.622283-55.902895zM694.361586 0a36.53784 36.53784 0 0 1 36.53784 36.53784v219.227039a36.53784 36.53784 0 0 1-73.07568 0v-219.227039a36.53784 36.53784 0 0 1 36.53784-36.53784z"
+                            fill="#42b883" p-id="5418" data-spm-anchor-id="a313x.search_index.0.i0.4a203a81fSsTC2"
+                            class="selected"></path>
+                    </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
                     主人，真的要退出吗？
@@ -201,7 +280,9 @@ const forceQuit = () => {
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts"
-                         @click="store.commit('toggleModal', {'kind': 'none'}); quitConfirmDialog = !quitConfirmDialog;">Sorry，点错啦~</div>
+                         @click="store.commit('toggleModal', {'kind': 'none'}); quitConfirmDialog = !quitConfirmDialog;">
+                        Sorry，点错啦~
+                    </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" @click="forceQuit">就要退出！</div>
                 </div>
@@ -211,8 +292,94 @@ const forceQuit = () => {
 
     <Transition>
         <!--另存为提示-->
-        <div v-if="store.state.lifecycle.showSaveAs">
+        <div v-if="store.state.lifecycle.showSaveAs" class="save-as-dialog fonts">
+            <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
+                <div style="width: 25px; height: 25px; margin-right: 6px;">
+                    <svg t="1775874212869" class="icon" style="width: 100%; height: 100%;" viewBox="0 0 1024 1024"
+                         version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5223" width="200" height="200">
+                        <path
+                            d="M870.826667 273.493333l-120.32-120.32A85.333333 85.333333 0 0 0 689.92 128H213.333333a85.333333 85.333333 0 0 0-85.333333 85.333333v597.333334a85.333333 85.333333 0 0 0 85.333333 85.333333h597.333334a85.333333 85.333333 0 0 0 85.333333-85.333333V334.08a85.333333 85.333333 0 0 0-25.173333-60.586667zM384 277.333333V213.333333h256v64a21.333333 21.333333 0 0 1-21.333333 21.333334h-213.333334a21.333333 21.333333 0 0 1-21.333333-21.333334zM725.333333 810.666667H298.666667v-320a21.333333 21.333333 0 0 1 21.333333-21.333334h384a21.333333 21.333333 0 0 1 21.333333 21.333334z m-106.666666-170.666667h-213.333334a21.333333 21.333333 0 0 0-21.333333 21.333333v42.666667a21.333333 21.333333 0 0 0 21.333333 21.333333h213.333334a21.333333 21.333333 0 0 0 21.333333-21.333333v-42.666667a21.333333 21.333333 0 0 0-21.333333-21.333333z"
+                            p-id="5224" data-spm-anchor-id="a313x.search_index.0.i6.61b73a81Dkxobz" class="selected"
+                            fill="#42b883"></path>
+                    </svg>
+                </div>
+                <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
+                    另存为
+                </div>
+            </div>
 
+            <div style="height: 15px;"></div>
+
+            <div style="display: flex; flex-direction: column; width: 100%;">
+
+                <div style="display: flex; flex-direction: row; width: 100%;">
+                    <input class="save-as-input" style="flex: 1; width: 0;" placeholder="保存文件名" v-model="saveName">
+                    <div style="width: 15px;"></div>
+                    <select class="save-as-input" id="ext" name="ext" style="flex: 1; width: 0;" v-model="saveExt">
+                        <option value="mdz">mdz文件（*.mdz）</option>
+                        <option value="md">md文件（*.md）</option>
+                        <option value="txt" selected>文本文件（*.txt）</option>
+                    </select>
+                </div>
+
+                <div style="height: 15px;"></div>
+
+                <div style="display: flex; flex-direction: row; width: 100%;">
+                    <input class="save-as-input" style="flex: 3; width: 0;" placeholder="保存路径" v-model="savePath">
+                    <div style="width: 15px;"></div>
+                    <div class="confirm-dialog-confirm-button fonts" style="width: 70px;"
+                         @click="getSavePathFromDialog">
+                        选择...
+                    </div>
+                </div>
+
+                <div style="height: 15px;"></div>
+
+                <Transition>
+                    <div style="display: flex; flex-direction: column; width: 100%;" v-if="saveExt === 'mdz'">
+                        <div class="wrapper-info fonts-info info-border info-bg">
+                            <svg style="width: 36px; height: 36px;" t="1661061891516" class="icon"
+                                 viewBox="0 0 1024 1024"
+                                 version="1.1"
+                                 xmlns="http://www.w3.org/2000/svg"
+                                 p-id="2381" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200">
+                                <path d="M512 512m-448 0a448 448 0 1 0 896 0 448 448 0 1 0-896 0Z" fill="#2196F3"
+                                      p-id="2382"></path>
+                                <path d="M469.333333 469.333333h85.333334v234.666667h-85.333334z" fill="#FFFFFF"
+                                      p-id="2383"></path>
+                                <path
+                                    d="M512 352m-53.333333 0a53.333333 53.333333 0 1 0 106.666666 0 53.333333 53.333333 0 1 0-106.666666 0Z"
+                                    fill="#FFFFFF" p-id="2384"></path>
+                            </svg>
+                            <div id="info-donate-explain" style="margin-left: 5px;">
+                                ● 请注意，为防止数据泄露，AME不会以任何方式持久化保存您的密码，请自行牢记密码！<br>
+                                ● 建议设置复杂度较高的密码以免被暴力破解！
+                                ● 如您想创建无密码的mdz文件，则不用输入密码，直接保存即可。
+                            </div>
+                        </div>
+                        <div style="height: 15px;"></div>
+                        <input class="save-as-input" type="password" placeholder="输入密码" v-model="syncMdzPassword">
+                        <div style="height: 15px;"></div>
+                        <input class="save-as-input" type="password" placeholder="再次输入密码"
+                               v-model="setPasswordAgain">
+                    </div>
+                </Transition>
+            </div>
+
+            <div style="height: 15px;"></div>
+
+            <div style="display: flex; flex-direction: column; width: 100%;">
+                <!--按钮组-->
+                <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
+                    <div class="confirm-dialog-cancel-button fonts" style="width: 60px;"
+                         @click="store.commit('toggleModal', {'kind': 'save-as'})">取消
+                    </div>
+                    <div style="width: 10px;"></div>
+                    <div class="confirm-dialog-confirm-button fonts" style="width: 60px;"
+                         @click="''">保存
+                    </div>
+                </div>
+            </div>
         </div>
     </Transition>
 
@@ -268,7 +435,9 @@ const forceQuit = () => {
                 </div>
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
-                    <div class="donate-close-button fonts" @click="store.commit('toggleModal', {'kind': 'donate'})">关闭</div>
+                    <div class="donate-close-button fonts" @click="store.commit('toggleModal', {'kind': 'donate'})">
+                        关闭
+                    </div>
                 </div>
             </div>
         </div>

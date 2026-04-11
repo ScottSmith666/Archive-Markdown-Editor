@@ -178,6 +178,44 @@ html, body {
     background-color: #f3f3f3;
 }
 
+.save-as-dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;  /* 禁止拖选文字 */
+    width: 400px;
+    /*height: 400px;*/
+    background-color: white;
+    z-index: 51;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.save-as-input {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px; /* 圆角 */
+    outline: none; /* 去掉点击时的蓝色外框 */
+    transition: all 0.3s ease; /* 过渡动画 */
+    font-size: 16px;
+}
+
+/* 焦点状态：变蓝色边框并加点发光阴影 */
+.save-as-input:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 0 8px rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.2);
+}
+
+/* 占位符颜色 */
+.save-as-input::placeholder {
+    color: #aaa;
+}
+
 /* Transition animation */
 .v-enter-active,
 .v-leave-active {

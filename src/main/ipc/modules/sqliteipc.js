@@ -1,11 +1,17 @@
 import {SqliteMan} from "../../sqlite-man";
 import {ipcMain} from "electron";
 
-export const sqliteIpc = (sqliteConnection) => {
-    const sqliteMan = new SqliteMan(sqliteConnection);
+export const sqliteIpc = (Sqlite3, dbPath) => {
+    const sqliteMan = new SqliteMan(Sqlite3, dbPath);
     ipcMain.handle("get-recent-opened-history", (event) => {
         // 获取曾经打开的文件的历史记录
         return sqliteMan.getAllHistories();
+    });
+
+    ipcMain.handle("set-recent-opened-history", (event, fileName, filePath, openTime) => {
+        // 写入一条历史记录
+        let hsId = crypto.randomUUID();
+        return sqliteMan.setHistory(hsId, fileName, filePath, openTime);
     });
 
     ipcMain.handle("delete-recent-opened-history", (event, hsId) => {
