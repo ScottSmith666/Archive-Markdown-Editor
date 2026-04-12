@@ -203,6 +203,7 @@ export const ipc = (Sqlite3, dbPath) => {
     ipcMain.handle("copy-mdz-media-files", async (event, filePathArray) => {
         try {
             for (let i = 0; i < filePathArray.length; i++) {
+                console.log(`第${i + 1}个，共${filePathArray.length}个。${filePathArray[i][0]} -> ${filePathArray[i][1]}`);
                 await fs.promises.copyFile(filePathArray[i][0], filePathArray[i][1]);
             }
             return {"success": true, "message": "拷贝媒体成功"};

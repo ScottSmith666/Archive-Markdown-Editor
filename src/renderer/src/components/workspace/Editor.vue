@@ -3,6 +3,7 @@
 import '../../../../../libs/third_party/monaco-editor/esm/vs/nls/lang/switch-lang.js';
 
 // init monaco editor
+import "./monaco_editor_worker.js";
 import * as monaco from '../../../../../libs/third_party/monaco-editor/esm/vs/editor/editor.api.js';
 import '../../../../../libs/third_party/monaco-editor/esm/vs/basic-languages/monaco.contribution.js';
 import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js';
@@ -31,7 +32,12 @@ const monacoEditorStateMap = ref(new Map());  // 存储每个标签页的状态�
 // emit
 const emit = defineEmits(['update', 'top', 'bottom']);
 
+const updateMonacoEditorTheme = (monacoInstance) => {
+    console.log(monacoInstance);
+};
+
 onBeforeRouteUpdate((to, from) => {
+    updateMonacoEditorTheme(monacoInstance);
     // 页面变动时存储上一个旧页面的state
     monacoEditorStateMap.value.set(from.query.pageid, monacoInstance.saveViewState());
     // 页面变动时切换Monaco Editor Model
@@ -57,6 +63,7 @@ onMounted(() => {
         wordWrap: true,
         largeFileOptimizations: false, // 禁用大文件自动优化
     });
+    updateMonacoEditorTheme(monacoInstance);
 
     // 加载页面对应的model
     let model = store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel');

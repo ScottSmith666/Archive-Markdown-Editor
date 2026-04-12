@@ -1,5 +1,9 @@
 <script setup>
+import {onBeforeRouteLeave} from "vue-router";
 
+onBeforeRouteLeave((to, from) => {
+    console.log("修改设置");
+});
 </script>
 
 <template>

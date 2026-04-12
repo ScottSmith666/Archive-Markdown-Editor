@@ -16,6 +16,7 @@ import 'prismjs/components/prism-css.js';
 import 'prismjs/components/prism-javascript.js';
 import 'prismjs/components/prism-typescript.js';
 import 'prismjs/components/prism-python.js';
+import 'prismjs/components/prism-markdown.js';
 // 引入 Toolbar 插件
 import 'prismjs/plugins/toolbar/prism-toolbar.js';
 import 'prismjs/plugins/toolbar/prism-toolbar.css';

@@ -393,21 +393,25 @@ const extractMediaMdInCode = (model) => {
             console.log('originContent', originContent);
             let originContentRange = blockCodeMatches[i].range;
             let replaceId = `$CODE-HERE-${crypto.randomUUID()}`;
+            let replaceIdReg = `\\${replaceId}`;
             editArray.push({
                 range: originContentRange,
                 text: replaceId,
-                forceMoveMarkers: true // 确保光标和标记跟随替换移动
+                forceMoveMarkers: false // 确保光标和标记跟随替换移动
             });
             imageInCodeKV.push([
                 originContent,
                 replaceId,
+                replaceIdReg
             ]);
         }
     }
 
     if (editArray.length > 0) {
         // 每次一个条件匹配完就要马上修改
+        model.pushStackElement();
         model.applyEdits(editArray, false);  // 开始将原始code内容替换成ID
+        model.pushStackElement();
     }
     editArray = [];
     const blockCodeSpaceTabMatches = model.findMatches(
@@ -424,21 +428,25 @@ const extractMediaMdInCode = (model) => {
             console.log('originContentSpaceTab', originContent);
             let originContentRange = blockCodeSpaceTabMatches[i].range;
             let replaceId = `$CODE-HERE-${crypto.randomUUID()}`;
+            let replaceIdReg = `\\${replaceId}`;
             editArray.push({
                 range: originContentRange,
                 text: replaceId,
-                forceMoveMarkers: true // 确保光标和标记跟随替换移动
+                forceMoveMarkers: false // 确保光标和标记跟随替换移动
             });
             imageInCodeKV.push([
                 originContent,
                 replaceId,
+                replaceIdReg
             ]);
         }
     }
 
     if (editArray.length > 0) {
         // 每次一个条件匹配完就要马上修改
+        model.pushStackElement();
         model.applyEdits(editArray, false);
+        model.pushStackElement();
     }
     editArray = [];
     const inlineCodeMatches = model.findMatches(
@@ -454,20 +462,24 @@ const extractMediaMdInCode = (model) => {
             let originContent = inlineCodeMatches[i].matches[0];
             let originContentRange = inlineCodeMatches[i].range;
             let replaceId = `$CODE-HERE-${crypto.randomUUID()}`;
+            let replaceIdReg = `\\${replaceId}`;
             editArray.push({
                 range: originContentRange,
                 text: replaceId,
-                forceMoveMarkers: true // 确保光标和标记跟随替换移动
+                forceMoveMarkers: false // 确保光标和标记跟随替换移动
             });
             imageInCodeKV.push([
                 originContent,
                 replaceId,
+                replaceIdReg
             ]);
         }
     }
 
     if (editArray.length > 0) {
+        model.pushStackElement();
         model.applyEdits(editArray, false);
+        model.pushStackElement();
     }
     editArray = [];
     const preTagMatches = model.findMatches(
@@ -483,20 +495,24 @@ const extractMediaMdInCode = (model) => {
             let originContent = preTagMatches[i].matches[0];
             let originContentRange = preTagMatches[i].range;
             let replaceId = `$CODE-HERE-${crypto.randomUUID()}`;
+            let replaceIdReg = `\\${replaceId}`;
             editArray.push({
                 range: originContentRange,
                 text: replaceId,
-                forceMoveMarkers: true // 确保光标和标记跟随替换移动
+                forceMoveMarkers: false // 确保光标和标记跟随替换移动
             });
             imageInCodeKV.push([
                 originContent,
                 replaceId,
+                replaceIdReg
             ]);
         }
     }
 
     if (editArray.length > 0) {
+        model.pushStackElement();
         model.applyEdits(editArray, false);
+        model.pushStackElement();
     }
     console.log("code -> ID替换完成");
     editArray = null;
@@ -504,7 +520,7 @@ const extractMediaMdInCode = (model) => {
     return imageInCodeKV;
 };
 
-export const getMdzMediaPathToDirectPathEdits = (model, presentPath, presentPureFileName, savePath, savePureFileName) => {
+export const getMdzMediaPathToDirectPathEdits = async (model, presentPath, presentPureFileName, savePath, savePureFileName) => {
     // 将mdz媒体路径转为普通绝对路径
     let replaceArray = extractMediaMdInCode(model);
     const imageRegex = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+["']([^"']*)["'])?\)/;
@@ -532,7 +548,7 @@ export const getMdzMediaPathToDirectPathEdits = (model, presentPath, presentPure
                 edits.push({
                     range: matches[i].range,
                     text: `![${alt}](${savePath + "/" + savePureFileName + ".media_dir/" + mediaFileName}${textAfterUrl})`,
-                    forceMoveMarkers: true // 确保光标和标记跟随替换移动
+                    forceMoveMarkers: false // 确保光标和标记跟随替换移动
                 });
                 copies.push(
                     [
@@ -549,9 +565,9 @@ export const getMdzMediaPathToDirectPathEdits = (model, presentPath, presentPure
     }
 };
 
-export const getDirectPathToMdzMediaPathEdits = (model, savePureFileName,
-                                                 savePath, saveAs = false,
-                                                 originPureFileName = "", originPurePath = ""
+export const getDirectPathToMdzMediaPathEdits = async (model, savePureFileName,
+                                                       savePath, saveAs = false,
+                                                       originPureFileName = "", originPurePath = ""
 ) => {
     // 将普通绝对路径转为mdz媒体路径
     let replaceArray = extractMediaMdInCode(model);
@@ -585,7 +601,7 @@ export const getDirectPathToMdzMediaPathEdits = (model, savePureFileName,
                 edits.push({
                     range: matches[i].range,
                     text: `![${alt}]($MDZ_MEDIA/${mediaFileName}${textAfterUrl})`,
-                    forceMoveMarkers: true
+                    forceMoveMarkers: false
                 });
                 copies.push(
                     [url, `${savePath}/._mdz_content.${savePureFileName}/mdz_contents/media_src/${mediaFileName}`]  // 源文件 -> 拷贝文件
@@ -609,30 +625,38 @@ export const getDirectPathToMdzMediaPathEdits = (model, savePureFileName,
     }
 };
 
-export const replaceIdToOriginCode = (model, replaceArray) => {
+export const replaceIdToOriginCode = async (model, replaceArray) => {
     let edits = [];
     for (let i = 0; i < replaceArray.length; i++) {
-        let id = replaceArray[i][1];
+
+        if (i % 50 === 0) {
+            await new Promise(resolve => setTimeout(resolve, 150));
+        }
+
+        console.log(`(${i + 1}) replaceArray[i]`, replaceArray[i]);
         let content = replaceArray[i][0];
         const idMatches = model.findMatches(
-            id,
-            false,
+            replaceArray[i][2],
             false,
             true,
+            true,
             null,
-            false
+            true,
+            100
         );
+        console.log("idMatches", idMatches);
         if (idMatches.length > 0) {
-            for (let j = 0; j < idMatches.length; j++) {
-                edits.push({
-                    range: idMatches[j].range,
-                    text: content,
-                    forceMoveMarkers: true // 确保光标和标记跟随替换移动
-                });
-            }
+            edits.push({
+                range: idMatches[0].range,
+                text: content,
+                forceMoveMarkers: false // 确保光标和标记跟随替换移动
+            });
         }
     }
+    console.log("edits in replaceIdToOriginCode", edits);
+    model.pushStackElement();
     model.applyEdits(edits);
+    model.pushStackElement();
     edits = null;  // 用完就把变量回收
     console.log("ID -> code替换完成");
 }

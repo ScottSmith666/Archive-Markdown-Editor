@@ -83,6 +83,9 @@ const getSavePathFromDialog = () => {
         store.commit('autoTips', {kind: "tip", tipLevel: "fail", content: `${error.name}: ${error.message}`});
     });
 };
+const vFocus = {
+    mounted: (el) => el.focus()
+}
 
 // computed
 const syncMdzPassword = computed({
@@ -223,14 +226,14 @@ const syncMdzPassword = computed({
                     </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
-                    主人，真的要关闭吗？
+                    确认关闭
                 </div>
             </div>
 
             <div style="height: 15px;"></div>
 
             <div style="font-weight: bold; color: #555555;">
-                主人，您想关闭的页面还没保存呢😭，就这样急匆匆地走了嘛～主人别走嘛😭
+                您计划关闭的页面内容未保存，如果现在关闭则失去该页面所有未保存进度，是否继续关闭？
             </div>
 
             <div style="height: 15px;"></div>
@@ -239,11 +242,11 @@ const syncMdzPassword = computed({
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts"
-                         @click="store.commit('confirmDialogInteractive', false)">忘保存啦~
+                         @click="store.commit('confirmDialogInteractive', false)">否
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts"
-                         @click="store.commit('confirmDialogInteractive', true)">我非要走！
+                         @click="store.commit('confirmDialogInteractive', true)">是
                     </div>
                 </div>
             </div>
@@ -264,14 +267,14 @@ const syncMdzPassword = computed({
                     </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
-                    主人，真的要退出吗？
+                    确认退出
                 </div>
             </div>
 
             <div style="height: 15px;"></div>
 
             <div style="font-weight: bold; color: #555555;">
-                主人，小A为您发现了1个或多个页面还没保存呢😭，真的要狠心退出嘛😭
+                您有1个或多个页面的内容未保存，如果现在退出则失去所有未保存进度，是否继续退出？
             </div>
 
             <div style="height: 15px;"></div>
@@ -281,10 +284,10 @@ const syncMdzPassword = computed({
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts"
                          @click="store.commit('toggleModal', {'kind': 'none'}); quitConfirmDialog = !quitConfirmDialog;">
-                        Sorry，点错啦~
+                        否
                     </div>
                     <div style="width: 10px;"></div>
-                    <div class="confirm-dialog-confirm-button fonts" @click="forceQuit">就要退出！</div>
+                    <div class="confirm-dialog-confirm-button fonts" @click="forceQuit">是</div>
                 </div>
             </div>
         </div>
@@ -313,7 +316,7 @@ const syncMdzPassword = computed({
             <div style="display: flex; flex-direction: column; width: 100%;">
 
                 <div style="display: flex; flex-direction: row; width: 100%;">
-                    <input class="save-as-input" style="flex: 1; width: 0;" placeholder="保存文件名" v-model="saveName">
+                    <input v-focus class="save-as-input" style="flex: 1; width: 0;" placeholder="保存文件名" v-model="saveName">
                     <div style="width: 15px;"></div>
                     <select class="save-as-input" id="ext" name="ext" style="flex: 1; width: 0;" v-model="saveExt">
                         <option value="mdz">mdz文件（*.mdz）</option>
