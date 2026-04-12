@@ -3,7 +3,11 @@ import {
     tgModel,
     afterChosenFile,
     getMdzMediaPathToDirectPathEdits,
-    getDirectPathToMdzMediaPathEdits
+    getDirectPathToMdzMediaPathEdits,
+    hdLoading,
+    replaceIdToOriginCode,
+    verifySaveForm,
+    hdSaveForm
 } from "./common.js";
 
 const getNow = () => {
@@ -22,7 +26,7 @@ const getNow = () => {
 export const fileMan = {
     state: () => {
         return {
-            mEditor: null,
+            isListenFileChange: true,
         };
     },
     mutations: {
@@ -65,6 +69,11 @@ export const fileMan = {
             let currentPageExistFileRouter = currentPageInfo.get("path");
 
             if (currentPageIsExistFile && planSaveFileInfo.length === 0) {
+                tgModel(rootState, {kind: "none"});
+                actModel(rootState, {
+                    'kind': 'loading',
+                    'content': '正在保存...',
+                });
                 // currentPageIsExistFile为true，且用户不提供计划保存文件信息参数
                 // 说明是已存在的文件，且用户进行“保存”操作
                 // 直接在tabList的对应页面的item里拿取文件信息，覆盖保存即可
@@ -76,7 +85,10 @@ export const fileMan = {
                 let currentPureFileName = currentPureFileNameArray.join(".");
                 let currentPurePath = currentOpenedFilePathArray.join("/");
 
-                if (currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "mdz") {
+                let currentOpenedFileExt = currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop();
+
+                if (currentOpenedFileExt === "mdz") {
+                    // DONE
                     // 这里的逻辑是
                     // 当已存在的文件执行“保存”操作的时候
                     // 如果发现这个文件是mdz文件，则多媒体语句中：
@@ -86,77 +98,101 @@ export const fileMan = {
                     // 先创建好要保存的mdz文件夹结构（win32平台需要运行命令以使文件夹不可见）
                     window.fileManPreload.makeMdzDirectory(currentPurePath, currentPureFileName).then(async (result) => {
                         if (result.success) {
+                            state.isListenFileChange = false;
                             let editsCopies
                                 = getDirectPathToMdzMediaPathEdits(currentPageMonacoEditorModel, currentPureFileName, currentPurePath);
-                            if (editsCopies[0].length > 0) {
-                                // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
-                                let copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
-                                if (copyResult.success) {
-                                    // 拷贝多媒体文件至mdz文件夹结构完成后，执行monaco editor edit序列操作
-                                    console.log(editsCopies[0]);
-                                    currentPageMonacoEditorModel.applyEdits(editsCopies[0]);
-                                    // edit序列执行完成后，将Model的内容保存至mdz文件夹结构
-                                    let writeResult = await window.fileManPreload.saveFileContent(
+                            // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
+                            let copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                            if (copyResult.success) {
+                                // 拷贝多媒体文件至mdz文件夹结构完成后，执行monaco editor edit序列操作
+                                if (editsCopies[0].length > 0) {
+                                    currentPageMonacoEditorModel.applyEdits(editsCopies[0], false);
+                                    console.log("image url替换完成");
+                                }
+                                if (editsCopies[2].length > 0) {
+                                    replaceIdToOriginCode(currentPageMonacoEditorModel, editsCopies[2]);
+                                }
+                                // edit序列执行完成后，将Model的内容保存至mdz文件夹结构
+                                let writeResult = await window.fileManPreload.saveFileContent(
+                                    currentPurePath,
+                                    currentPureFileName,
+                                    currentPageMonacoEditorModel.getValue(),
+                                    currentOpenedFileExt
+                                );
+                                console.log("writeResult", writeResult);
+                                if (writeResult.success) {
+                                    // 最后将文件夹压缩封装为mdz文件
+                                    let makeMdzResult = await window.fileManPreload.compressToMdz(
                                         currentPurePath,
                                         currentPureFileName,
-                                        currentPageMonacoEditorModel.getValue()
+                                        currentPageIsEncryptedFilePassword
                                     );
-                                    if (writeResult.success) {
-                                        // 最后将文件夹压缩封装为mdz文件
-                                        let makeMdzResult = await window.fileManPreload.compressToMdz(
-                                            currentPurePath,
-                                            currentPureFileName,
-                                            currentPageIsEncryptedFilePassword
+                                    console.log("makeMdzResult", makeMdzResult);
+                                    if (makeMdzResult.success) {
+                                        // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
+                                        currentPageInfo.set("saved", true);
+                                        console.log("修改保存状态");
+                                        const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                        let sep = win32PathPattern.test(currentPurePath) ? "\\" : "/";
+                                        let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
+                                            `${currentPureFileName}.mdz`,
+                                            `${currentPurePath}${sep}${currentPureFileName}.mdz`,
+                                            getNow()
                                         );
-                                        if (makeMdzResult.success) {
-                                            // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
-                                            currentPageInfo.set("saved", true);
-                                            const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
-                                            let sep = win32PathPattern.test(currentPurePath) ? "\\" : "/";
-                                            let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
-                                                `${currentPureFileName}.mdz`,
-                                                `${currentPurePath}${sep}${currentPureFileName}.mdz`,
-                                                getNow()
-                                            );
-                                            if (sqlResult.success) {
-                                                // 停止加载
-                                                // 显示保存成功按钮
-                                                actModel(rootState, {
-                                                    'kind': 'tip',
-                                                    'tipLevel': 'success',
-                                                    'content': '保存成功',
-                                                    'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                                });
-                                            } else {
-                                                // 发送错误信息
-                                                console.error(sqlResult.message);
-                                                return 0;
-                                            }
+                                        console.log("sqlResult", sqlResult);
+                                        if (sqlResult.success) {
+                                            // 停止加载
+                                            hdLoading(rootState);
+                                            state.isListenFileChange = true;
+                                        } else {
+                                            // 发送错误信息
+                                            console.error(sqlResult.message);
+                                            // 停止加载
+                                            hdLoading(rootState);
+                                            state.isListenFileChange = true;
+                                            return 0;
                                         }
                                     }
-                                } else {
-                                    // 发送错误信息
-                                    console.error(copyResult.message);
-                                    return 0;
                                 }
+                            } else {
+                                // 发送错误信息
+                                console.error(copyResult.message);
+                                // 停止加载
+                                hdLoading(rootState);
+                                tgModel(rootState, {kind: "none"});
+                                actModel(rootState, {
+                                    'kind': 'tip',
+                                    'tipLevel': 'fail',
+                                    'content': '保存失败，请马上直接关闭文件以回滚到您上次保存的状态！',
+                                    'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                });
+                                state.isListenFileChange = true;
+                                return 0;
                             }
                         } else {
                             // 发送错误信息
                             console.error(result.message);
+                            // 停止加载
+                            hdLoading(rootState);
+                            state.isListenFileChange = true;
                             return 0;
                         }
                     }).catch((err) => {
                         // 发送错误信息
                         console.error(err);
+                        // 停止加载
+                        hdLoading(rootState);
                         return 0;
                     });
                 } else {
+                    // DONE
                     // 如果发现这个文件不是mdz文件，则多媒体语句保持不变
                     // 将Model的内容保存至指定的保存路径
                     window.fileManPreload.saveFileContent(
                         currentPurePath,
                         currentPureFileName,
-                        currentPageMonacoEditorModel.getValue()
+                        currentPageMonacoEditorModel.getValue(),
+                        currentOpenedFileExt
                     ).then((writeResult) => {
                         if (writeResult.success) {
                             // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
@@ -164,85 +200,289 @@ export const fileMan = {
                             const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
                             let sep = win32PathPattern.test(currentPurePath) ? "\\" : "/";
                             window.sqliteDataManPreload.setRecentOpenedHistory(
-                                `${currentPureFileName}.mdz`,
-                                `${currentPurePath}${sep}${currentPureFileName}.mdz`,
+                                `${currentPureFileName}.${ext}`,
+                                `${currentPurePath}${sep}${currentPureFileName}.${ext}`,
                                 getNow()
                             ).then((sqlResult) => {
                                 if (sqlResult.success) {
                                     // 停止加载
-                                    // 显示保存成功按钮
-                                    actModel(rootState, {
-                                        'kind': 'tip',
-                                        'tipLevel': 'success',
-                                        'content': '保存成功',
-                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                    });
+                                    hdLoading(rootState);
                                 } else {
+                                    // 停止加载
+                                    hdLoading(rootState);
                                     // 发送错误信息
                                     console.error(sqlResult.message);
                                     return 0;
                                 }
                             }).catch((err) => {
+                                // 停止加载
+                                hdLoading(rootState);
                                 console.error(err);
                             });
                         } else {
+                            // 停止加载
+                            hdLoading(rootState);
                             console.error(writeResult.message);
                         }
                     }).catch((err) => {
+                        // 停止加载
+                        hdLoading(rootState);
                         console.error(err);
                     });
                 }
             } else {
-                // 校验文件名内有没有非法字符
-                const fileForbiddenChars = [">", "<", ":", "'", "|", "*", "?"];
-                for (let i = 0; i < fileForbiddenChars.length; i++) {
-                    if (planSaveFileInfo[0].includes(fileForbiddenChars[i])) {
-                        actModel(rootState, {
-                            'kind': 'tip',
-                            'tipLevel': 'fail',
-                            'content': "文件名内有非法字符 > < : ' | * ?",
-                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                        });
-                        return 0;
-                    }
+                actModel(rootState, {
+                    'kind': 'loading',
+                    'content': '正在保存...',
+                });
+
+                // 表单验证
+                let verifyResult = verifySaveForm(planSaveFileInfo);
+                if (!verifyResult.success) {
+                    alert(verifyResult.message);
+                    // 停止加载
+                    hdLoading(rootState);
+                    // 隐藏保存表单
+                    tgModel(rootState, {kind: "none"});
+                    hdSaveForm(rootState);
+                    return 0;
                 }
                 if (currentPageIsExistFile && planSaveFileInfo.length !== 0) {
                     // 说明用户对一个已存在文件进行“另存为”操作
+                    // 处理路由为路径
+                    let currentOpenedFilePathArray = currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split(/\\|\//);
+                    let currentPureFileNameArray = currentOpenedFilePathArray.pop().split(".");
+                    currentPureFileNameArray.pop();
+                    let currentPureFileName = currentPureFileNameArray.join(".");
+                    let currentPurePath = currentOpenedFilePathArray.join("/");
+                    let currentOpenedFileExt = currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop();
                     // 需要接收用户提供的计划保存文件信息参数
                     if (
-                        (
-                            currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "md"
-                            || currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "txt"
-                        ) && (
-                            planSaveFileInfo[1] === "md"
-                            || planSaveFileInfo[1] === "txt"
-                        )
+                        (currentOpenedFileExt === "md" || currentOpenedFileExt === "txt")
+                        && (planSaveFileInfo[1] === "md" || planSaveFileInfo[1] === "txt")
                     ) {
+                        // DONE
                         // 当(md或txt)另存为(md或txt)
                         // 则多媒体语句保持不变
+                        // 需要用户提供的文件信息了
+                        window.fileManPreload.saveFileContent(
+                            planSaveFileInfo[2],
+                            planSaveFileInfo[0],
+                            currentPageMonacoEditorModel.getValue(),
+                            planSaveFileInfo[1]
+                        ).then((writeResult) => {
+                            if (writeResult.success) {
+                                // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
+                                const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
+                                currentPageInfo.set("saved", true);
+                                currentPageInfo.set("label",
+                                    `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                currentPageInfo.set("path", `/workspace?` +
+                                    `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                    `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                currentPageInfo.set("isExistFile", true);
+                                currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
 
+                                window.sqliteDataManPreload.setRecentOpenedHistory(
+                                    `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
+                                    `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
+                                    getNow()
+                                ).then((sqlResult) => {
+                                    if (sqlResult.success) {
+                                        // 停止加载
+                                        hdLoading(rootState);
+                                        // 隐藏保存表单
+                                        tgModel(rootState, {kind: "none"});
+                                        hdSaveForm(rootState);
+                                    } else {
+                                        // 停止加载
+                                        hdLoading(rootState);
+                                        // 隐藏保存表单
+                                        tgModel(rootState, {kind: "none"});
+                                        hdSaveForm(rootState);
+                                        // 发送错误信息
+                                        console.error(sqlResult.message);
+                                        return 0;
+                                    }
+                                }).catch((err) => {
+                                    // 停止加载
+                                    hdLoading(rootState);
+                                    // 隐藏保存表单
+                                    tgModel(rootState, {kind: "none"});
+                                    hdSaveForm(rootState);
+                                    console.error(err);
+                                });
+                            } else {
+                                // 停止加载
+                                hdLoading(rootState);
+                                // 隐藏保存表单
+                                tgModel(rootState, {kind: "none"});
+                                hdSaveForm(rootState);
+                                console.error(writeResult.message);
+                            }
+                        }).catch((err) => {
+                            // 停止加载
+                            hdLoading(rootState);
+                            // 隐藏保存表单
+                            tgModel(rootState, {kind: "none"});
+                            hdSaveForm(rootState);
+                            console.error(err);
+                        });
                     } else if (
-                        (
-                            currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "md"
-                            || currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "txt"
-                            || currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "mdz"
-                        ) && planSaveFileInfo[1] === "mdz"
+                        (currentOpenedFileExt === "md" || currentOpenedFileExt === "txt" || currentOpenedFileExt === "mdz") && planSaveFileInfo[1] === "mdz"
                     ) {
+                        // DONE
                         // 当(md或txt或mdz)另存为mdz
                         // 则多媒体语句中：
                         // 采用绝对路径的本地多媒体文件将被嵌入mdz文件
                         // 而base64编码的图片和在线URL将保持不变
-
                         // 先创建好要保存的mdz文件夹结构
-                        let editsCopies = getDirectPathToMdzMediaPathEdits(currentPageMonacoEditorModel, planSaveFileInfo[0], planSaveFileInfo[2]);
+                        window.fileManPreload.makeMdzDirectory(planSaveFileInfo[2], planSaveFileInfo[0])
+                            .then(async (result) => {
+                                if (result.success) {
+                                    state.isListenFileChange = false;
+                                    let editsCopies;
+                                    if (currentOpenedFileExt === "mdz") {
+                                        editsCopies = getDirectPathToMdzMediaPathEdits(
+                                            currentPageMonacoEditorModel,
+                                            planSaveFileInfo[0],
+                                            planSaveFileInfo[2],
+                                            true,
+                                            currentPureFileName,
+                                            currentPurePath
+                                        );
+                                    } else {
+                                        editsCopies = getDirectPathToMdzMediaPathEdits(
+                                            currentPageMonacoEditorModel,
+                                            planSaveFileInfo[0],
+                                            planSaveFileInfo[2]
+                                        );
+                                    }
+                                    // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
+                                    let copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                                    if (copyResult.success) {
+                                        // 拷贝多媒体文件至mdz文件夹结构完成后，执行monaco editor edit序列操作
+                                        if (editsCopies[0].length > 0) {
+                                            currentPageMonacoEditorModel.applyEdits(editsCopies[0], false);
+                                            console.log("image url替换完成");
+                                        }
+                                        if (editsCopies[2].length > 0) {
+                                            replaceIdToOriginCode(currentPageMonacoEditorModel, editsCopies[2]);
+                                        }
+                                        // edit序列执行完成后，将Model的内容保存至mdz文件夹结构
+                                        let writeResult = await window.fileManPreload.saveFileContent(
+                                            planSaveFileInfo[2],
+                                            planSaveFileInfo[0],
+                                            currentPageMonacoEditorModel.getValue(),
+                                            planSaveFileInfo[1]
+                                        );
+                                        console.log("writeResult", writeResult);
+                                        if (writeResult.success) {
+                                            // 最后将文件夹压缩封装为mdz文件
+                                            let makeMdzResult = await window.fileManPreload.compressToMdz(
+                                                planSaveFileInfo[2],
+                                                planSaveFileInfo[0],
+                                                planSaveFileInfo[3]
+                                            );
+                                            console.log("makeMdzResult", makeMdzResult);
+                                            if (makeMdzResult.success) {
+                                                // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
+                                                const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                                let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
+                                                currentPageInfo.set("saved", true);
+                                                currentPageInfo.set("label",
+                                                    `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                                currentPageInfo.set("path", `/workspace?` +
+                                                    `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                                    `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                                currentPageInfo.set("isExistFile", true);
+                                                currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
+                                                currentPageInfo.set("encrypted", planSaveFileInfo[3] !== "");
+                                                currentPageInfo.set("password", planSaveFileInfo[3]);
 
-                    } else if (
-                        currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop() === "mdz"
-                        && (
-                            planSaveFileInfo[1] === "md"
-                            || planSaveFileInfo[1] === "txt"
-                        )
-                    ) {
+                                                console.log("修改保存状态");
+
+                                                let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
+                                                    `${planSaveFileInfo[0]}.mdz`,
+                                                    `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.mdz`,
+                                                    getNow()
+                                                );
+                                                console.log("sqlResult", sqlResult);
+                                                if (sqlResult.success) {
+                                                    // 停止加载
+                                                    hdLoading(rootState);
+                                                    // 隐藏保存表单
+                                                    tgModel(rootState, {kind: "none"});
+                                                    hdSaveForm(rootState);
+                                                    state.isListenFileChange = true;
+                                                } else {
+                                                    // 发送错误信息
+                                                    console.error(sqlResult.message);
+                                                    // 停止加载
+                                                    hdLoading(rootState);
+                                                    // 隐藏保存表单
+                                                    tgModel(rootState, {kind: "none"});
+                                                    hdSaveForm(rootState);
+                                                    state.isListenFileChange = true;
+                                                    return 0;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // 发送错误信息
+                                        console.error(copyResult.message);
+                                        // 停止加载
+                                        hdLoading(rootState);
+                                        // 隐藏保存表单
+                                        tgModel(rootState, {kind: "none"});
+                                        hdSaveForm(rootState);
+                                        tgModel(rootState, {kind: "none"});
+                                        actModel(rootState, {
+                                            'kind': 'tip',
+                                            'tipLevel': 'fail',
+                                            'content': '保存失败，请马上直接关闭文件以回滚到您上次保存的状态！',
+                                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                        });
+                                        state.isListenFileChange = true;
+                                        return 0;
+                                    }
+                                } else {
+                                    // 发送错误信息
+                                    console.error(result.message);
+                                    // 停止加载
+                                    hdLoading(rootState);
+                                    // 隐藏保存表单
+                                    tgModel(rootState, {kind: "none"});
+                                    hdSaveForm(rootState);
+                                    tgModel(rootState, {kind: "none"});
+                                    actModel(rootState, {
+                                        'kind': 'tip',
+                                        'tipLevel': 'fail',
+                                        'content': result.message,
+                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                    });
+                                    state.isListenFileChange = true;
+                                    return 0;
+                                }
+                            }).catch((err) => {
+                            // 发送错误信息
+                            console.error(err);
+                            // 停止加载
+                            hdLoading(rootState);
+                            // 隐藏保存表单
+                            tgModel(rootState, {kind: "none"});
+                            hdSaveForm(rootState);
+                            tgModel(rootState, {kind: "none"});
+                            actModel(rootState, {
+                                'kind': 'tip',
+                                'tipLevel': 'fail',
+                                'content': err,
+                                'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                            });
+                            return 0;
+                        });
+                    } else if (currentOpenedFileExt === "mdz" && (planSaveFileInfo[1] === "md" || planSaveFileInfo[1] === "txt")) {
                         // 当mdz另存为(md或txt)
                         // 则多媒体语句中：
                         // 采用mdz媒体路径语法的本地多媒体文件将被解压出mdz文件
@@ -256,17 +496,130 @@ export const fileMan = {
                         let currentPurePath = currentOpenedFilePathArray.join("/");
 
                         // 先创建好要保存的md或txt文件的媒体文件夹
+                        window.fileManPreload.makeMdMediaDirectory(planSaveFileInfo[2], planSaveFileInfo[0])
+                            .then(async (result) => {
+                                if (result.success) {
+                                    state.isListenFileChange = false;
+                                    let editsCopies = getMdzMediaPathToDirectPathEdits(
+                                        currentPageMonacoEditorModel,
+                                        currentPurePath,
+                                        currentPureFileName,
+                                        planSaveFileInfo[2],
+                                        planSaveFileInfo[0]
+                                    );
+                                    // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
+                                    let copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                                    if (copyResult.success) {
+                                        // 拷贝多媒体文件至mdz文件夹结构完成后，执行monaco editor edit序列操作
+                                        if (editsCopies[0].length > 0) {
+                                            currentPageMonacoEditorModel.applyEdits(editsCopies[0], false);
+                                            console.log("image url替换完成");
+                                        }
+                                        if (editsCopies[2].length > 0) {
+                                            replaceIdToOriginCode(currentPageMonacoEditorModel, editsCopies[2]);
+                                        }
+                                        // edit序列执行完成后，将Model的内容保存至保存目录
+                                        let writeResult = await window.fileManPreload.saveFileContent(
+                                            planSaveFileInfo[2],
+                                            planSaveFileInfo[0],
+                                            currentPageMonacoEditorModel.getValue(),
+                                            planSaveFileInfo[1]
+                                        );
+                                        console.log("writeResult", writeResult);
+                                        // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
+                                        const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                        let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
+                                        currentPageInfo.set("saved", true);
+                                        currentPageInfo.set("label",
+                                            `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                        currentPageInfo.set("path", `/workspace?` +
+                                            `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                            `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                        currentPageInfo.set("isExistFile", true);
+                                        currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
+                                        currentPageInfo.set("encrypted", false);
+                                        currentPageInfo.set("password", "");
 
-                        let editsCopies = getMdzMediaPathToDirectPathEdits(
-                            currentPageMonacoEditorModel,
-                            currentPurePath,
-                            currentPureFileName,
-                            planSaveFileInfo[2],
-                            planSaveFileInfo[0]
-                        );
+                                        console.log("修改保存状态");
 
+                                        let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
+                                            `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
+                                            `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
+                                            getNow()
+                                        );
+                                        console.log("sqlResult", sqlResult);
+                                        if (sqlResult.success) {
+                                            // 停止加载
+                                            hdLoading(rootState);
+                                            // 隐藏保存表单
+                                            tgModel(rootState, {kind: "none"});
+                                            hdSaveForm(rootState);
+                                            state.isListenFileChange = true;
+                                        } else {
+                                            // 发送错误信息
+                                            console.error(sqlResult.message);
+                                            // 停止加载
+                                            hdLoading(rootState);
+                                            // 隐藏保存表单
+                                            tgModel(rootState, {kind: "none"});
+                                            hdSaveForm(rootState);
+                                            state.isListenFileChange = true;
+                                            return 0;
+                                        }
+                                    } else {
+                                        // 发送错误信息
+                                        console.error(copyResult.message);
+                                        // 停止加载
+                                        hdLoading(rootState);
+                                        // 隐藏保存表单
+                                        tgModel(rootState, {kind: "none"});
+                                        hdSaveForm(rootState);
+                                        tgModel(rootState, {kind: "none"});
+                                        actModel(rootState, {
+                                            'kind': 'tip',
+                                            'tipLevel': 'fail',
+                                            'content': '保存失败！',
+                                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                        });
+                                        state.isListenFileChange = true;
+                                        return 0;
+                                    }
+                                } else {
+                                    // 发送错误信息
+                                    console.error(result.message);
+                                    // 停止加载
+                                    hdLoading(rootState);
+                                    // 隐藏保存表单
+                                    tgModel(rootState, {kind: "none"});
+                                    hdSaveForm(rootState);
+                                    tgModel(rootState, {kind: "none"});
+                                    actModel(rootState, {
+                                        'kind': 'tip',
+                                        'tipLevel': 'fail',
+                                        'content': result.message,
+                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                    });
+                                    state.isListenFileChange = true;
+                                    return 0;
+                                }
+                            }).catch((err) => {
+                            // 发送错误信息
+                            console.error(err);
+                            // 停止加载
+                            hdLoading(rootState);
+                            // 隐藏保存表单
+                            tgModel(rootState, {kind: "none"});
+                            hdSaveForm(rootState);
+                            tgModel(rootState, {kind: "none"});
+                            actModel(rootState, {
+                                'kind': 'tip',
+                                'tipLevel': 'fail',
+                                'content': err,
+                                'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                            });
+                            return 0;
+                        });
                     }
-
                 } else if (!currentPageIsEncryptedFile && planSaveFileInfo.length !== 0) {
                     // 说明用户对一个新建文件进行“保存”或“另存为”操作
                     // 需要接收用户提供的计划保存文件信息参数
@@ -276,11 +629,206 @@ export const fileMan = {
                         // 而base64编码的图片和在线URL将保持不变
 
                         // 先创建好要保存的mdz文件夹结构
-                        let editsCopies = getDirectPathToMdzMediaPathEdits(currentPageMonacoEditorModel, planSaveFileInfo[0], planSaveFileInfo[2]);
+                        window.fileManPreload.makeMdzDirectory(planSaveFileInfo[2], planSaveFileInfo[0])
+                            .then(async (result) => {
+                                if (result.success) {
+                                    state.isListenFileChange = false;
+                                    let editsCopies = getDirectPathToMdzMediaPathEdits(
+                                        currentPageMonacoEditorModel,
+                                        planSaveFileInfo[0],
+                                        planSaveFileInfo[2]
+                                    );
+                                    // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
+                                    let copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                                    if (copyResult.success) {
+                                        // 拷贝多媒体文件至mdz文件夹结构完成后，执行monaco editor edit序列操作
+                                        if (editsCopies[0].length > 0) {
+                                            currentPageMonacoEditorModel.applyEdits(editsCopies[0], false);
+                                            console.log("image url替换完成");
+                                        }
+                                        if (editsCopies[2].length > 0) {
+                                            replaceIdToOriginCode(currentPageMonacoEditorModel, editsCopies[2]);
+                                        }
+                                        // edit序列执行完成后，将Model的内容保存至mdz文件夹结构
+                                        let writeResult = await window.fileManPreload.saveFileContent(
+                                            planSaveFileInfo[2],
+                                            planSaveFileInfo[0],
+                                            currentPageMonacoEditorModel.getValue(),
+                                            planSaveFileInfo[1]
+                                        );
+                                        console.log("writeResult", writeResult);
+                                        if (writeResult.success) {
+                                            // 最后将文件夹压缩封装为mdz文件
+                                            let makeMdzResult = await window.fileManPreload.compressToMdz(
+                                                planSaveFileInfo[2],
+                                                planSaveFileInfo[0],
+                                                planSaveFileInfo[3]
+                                            );
+                                            console.log("makeMdzResult", makeMdzResult);
+                                            if (makeMdzResult.success) {
+                                                // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
+                                                const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                                let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
+                                                currentPageInfo.set("saved", true);
+                                                currentPageInfo.set("label",
+                                                    `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                                currentPageInfo.set("path", `/workspace?` +
+                                                    `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                                    `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                                currentPageInfo.set("isExistFile", true);
+                                                currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
+                                                currentPageInfo.set("encrypted", planSaveFileInfo[3] !== "");
+                                                currentPageInfo.set("password", planSaveFileInfo[3]);
 
+                                                console.log("修改保存状态");
+
+                                                let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
+                                                    `${planSaveFileInfo[0]}.mdz`,
+                                                    `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.mdz`,
+                                                    getNow()
+                                                );
+                                                console.log("sqlResult", sqlResult);
+                                                if (sqlResult.success) {
+                                                    // 停止加载
+                                                    hdLoading(rootState);
+                                                    // 隐藏保存表单
+                                                    tgModel(rootState, {kind: "none"});
+                                                    hdSaveForm(rootState);
+                                                    state.isListenFileChange = true;
+                                                } else {
+                                                    // 发送错误信息
+                                                    console.error(sqlResult.message);
+                                                    // 停止加载
+                                                    hdLoading(rootState);
+                                                    // 隐藏保存表单
+                                                    tgModel(rootState, {kind: "none"});
+                                                    hdSaveForm(rootState);
+                                                    state.isListenFileChange = true;
+                                                    return 0;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // 发送错误信息
+                                        console.error(copyResult.message);
+                                        // 停止加载
+                                        hdLoading(rootState);
+                                        // 隐藏保存表单
+                                        tgModel(rootState, {kind: "none"});
+                                        hdSaveForm(rootState);
+                                        tgModel(rootState, {kind: "none"});
+                                        actModel(rootState, {
+                                            'kind': 'tip',
+                                            'tipLevel': 'fail',
+                                            'content': '保存失败！',
+                                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                        });
+                                        state.isListenFileChange = true;
+                                        return 0;
+                                    }
+                                } else {
+                                    // 发送错误信息
+                                    console.error(result.message);
+                                    // 停止加载
+                                    hdLoading(rootState);
+                                    // 隐藏保存表单
+                                    tgModel(rootState, {kind: "none"});
+                                    hdSaveForm(rootState);
+                                    tgModel(rootState, {kind: "none"});
+                                    actModel(rootState, {
+                                        'kind': 'tip',
+                                        'tipLevel': 'fail',
+                                        'content': result.message,
+                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                    });
+                                    state.isListenFileChange = true;
+                                    return 0;
+                                }
+                            }).catch((err) => {
+                            // 发送错误信息
+                            console.error(err);
+                            // 停止加载
+                            hdLoading(rootState);
+                            // 隐藏保存表单
+                            tgModel(rootState, {kind: "none"});
+                            hdSaveForm(rootState);
+                            tgModel(rootState, {kind: "none"});
+                            actModel(rootState, {
+                                'kind': 'tip',
+                                'tipLevel': 'fail',
+                                'content': err,
+                                'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                            });
+                            return 0;
+                        });
                     } else {
+                        // DONE
                         // 如果计划保存的文件不是mdz文件，则多媒体语句保持不变
+                        // 需要用户提供的文件信息了
+                        window.fileManPreload.saveFileContent(
+                            planSaveFileInfo[2],
+                            planSaveFileInfo[0],
+                            currentPageMonacoEditorModel.getValue(),
+                            planSaveFileInfo[1]
+                        ).then((writeResult) => {
+                            if (writeResult.success) {
+                                // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
+                                const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
+                                currentPageInfo.set("saved", true);
+                                currentPageInfo.set("label",
+                                    `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                currentPageInfo.set("path", `/workspace?` +
+                                    `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                    `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
+                                currentPageInfo.set("isExistFile", true);
+                                currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
 
+                                window.sqliteDataManPreload.setRecentOpenedHistory(
+                                    `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
+                                    `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
+                                    getNow()
+                                ).then((sqlResult) => {
+                                    if (sqlResult.success) {
+                                        // 停止加载
+                                        hdLoading(rootState);
+                                        // 隐藏保存表单
+                                        tgModel(rootState, {kind: "none"});
+                                        hdSaveForm(rootState);
+                                    } else {
+                                        // 停止加载
+                                        hdLoading(rootState);
+                                        // 隐藏保存表单
+                                        tgModel(rootState, {kind: "none"});
+                                        hdSaveForm(rootState);
+                                        // 发送错误信息
+                                        console.error(sqlResult.message);
+                                        return 0;
+                                    }
+                                }).catch((err) => {
+                                    // 停止加载
+                                    hdLoading(rootState);
+                                    // 隐藏保存表单
+                                    tgModel(rootState, {kind: "none"});
+                                    hdSaveForm(rootState);
+                                    console.error(err);
+                                });
+                            } else {
+                                // 停止加载
+                                hdLoading(rootState);
+                                // 隐藏保存表单
+                                tgModel(rootState, {kind: "none"});
+                                hdSaveForm(rootState);
+                                console.error(writeResult.message);
+                            }
+                        }).catch((err) => {
+                            // 停止加载
+                            hdLoading(rootState);
+                            // 隐藏保存表单
+                            tgModel(rootState, {kind: "none"});
+                            hdSaveForm(rootState);
+                            console.error(err);
+                        });
                     }
                 }
             }
@@ -301,7 +849,7 @@ export const fileMan = {
         },
         // 保存文件
         directSaveAction({commit, rootState}, data = []) {
-            // 如果是用户提供的文件信息，则包含：data = [单纯文件名, 扩展名, 保存路径, 密码]
+            // 如果是用户提供的文件信息，则包含：data = [单纯文件名, 扩展名, 保存路径, 密码, 再次输入密码]
             // 如果用户不提供的文件信息，则data为空列表
             commit('directSaveMethod', [rootState, data]);
         },

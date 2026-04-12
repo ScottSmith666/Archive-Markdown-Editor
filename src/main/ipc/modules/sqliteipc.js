@@ -11,7 +11,8 @@ export const sqliteIpc = (Sqlite3, dbPath) => {
     ipcMain.handle("set-recent-opened-history", (event, fileName, filePath, openTime) => {
         // 写入一条历史记录
         let hsId = crypto.randomUUID();
-        return sqliteMan.setHistory(hsId, fileName, filePath, openTime);
+        sqliteMan.setHistory(hsId, fileName, filePath, openTime);
+        return {'success': true, 'message': '写入成功'};
     });
 
     ipcMain.handle("delete-recent-opened-history", (event, hsId) => {

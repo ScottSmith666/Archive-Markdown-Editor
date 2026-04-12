@@ -167,6 +167,7 @@ export const ipc = (Sqlite3, dbPath) => {
             try {
                 await mdzUtils.genOrDecompressMdz(filePath, filePathArray.join(path.sep), "decompress", "", "");
                 let fileContent = await fs.promises.readFile(realFilePathInMdz, 'utf8');
+                setOpenedFileHistory(sqliteMan, fileName, filePath, getNow());
                 return {success: true, content: fileContent, name: fileName, path: filePath, encrypted: false};
             } catch (e) {
                 return {success: false, message: (e.name + ": " + e.message)};
@@ -184,6 +185,15 @@ export const ipc = (Sqlite3, dbPath) => {
                 // Windows平台运行 attrib +h X:/path/to/folder 命令隐藏文件夹
                 await exec(`attrib +h ${purePath + path.sep + "._mdz_content." + pureFileName}`);
             }
+            return {"success": true, "message": "创建文件夹成功"};
+        } catch (e) {
+            return {"success": false, message: `${e.name}: ${e.message}`};
+        }
+    });
+
+    ipcMain.handle("make-md-media-directory", async (event, purePath, pureFileName) => {
+        try {
+            await fs.promises.mkdir(purePath + path.sep + pureFileName + ".media_dir", { recursive: true });
             return {"success": true, "message": "创建文件夹成功"};
         } catch (e) {
             return {"success": false, message: `${e.name}: ${e.message}`};
@@ -210,10 +220,15 @@ export const ipc = (Sqlite3, dbPath) => {
         }
     });
 
-    ipcMain.handle("save-file-content", async (event, purePath, pureFileName, content) => {
+    ipcMain.handle("save-file-content", async (event, purePath, pureFileName, content, ext) => {
+        console.log(ext);
         try {
-            await fs.promises.writeFile(purePath + path.sep + "._mdz_content." + pureFileName + path.sep
-                + "mdz_contents" + path.sep + pureFileName + ".md", content, 'utf8');
+            if (ext === "mdz") {
+                await fs.promises.writeFile(purePath + path.sep + "._mdz_content." + pureFileName + path.sep
+                    + "mdz_contents" + path.sep + pureFileName + ".md", content, 'utf8');
+            } else if (ext === "md" || ext === "txt") {
+                await fs.promises.writeFile(purePath + path.sep + pureFileName + `.${ext}`, content, 'utf8');
+            }
             return {"success": true, "message": "写入文件成功"};
         } catch (e) {
             return {"success": false, message: `${e.name}: ${e.message}`};
@@ -222,6 +237,9 @@ export const ipc = (Sqlite3, dbPath) => {
 
     ipcMain.handle("compress-to-mdz", async (event, purePath, pureFileName, password) => {
         try {
+            // 先删除原来的mdz包
+            await rm(purePath + path.sep + pureFileName + ".mdz", {recursive: true, force: true});
+            // 再压缩产生新的
             await mdzUtils.genOrDecompressMdz(
                 purePath + path.sep + "._mdz_content." + pureFileName,
                 purePath + path.sep + pureFileName + ".mdz",

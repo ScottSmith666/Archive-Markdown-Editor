@@ -376,7 +376,9 @@ const syncMdzPassword = computed({
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" style="width: 60px;"
-                         @click="''">保存
+                         @click="store.dispatch('directSaveAction',
+                         [saveName, saveExt, savePath,
+                         saveExt === 'mdz' ? setPassword : '', saveExt === 'mdz' ? setPasswordAgain : '']);">保存
                     </div>
                 </div>
             </div>

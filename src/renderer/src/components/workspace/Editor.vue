@@ -119,14 +119,17 @@ onMounted(() => {
 
     // 监测内容改变事件
     monacoInstance.onDidChangeModelContent((event) => {
-        runDebounceChange(() => {
-            store.commit('changePropsOfTab', {  // 将标签上的关闭按钮换成圆形
-                'pageId': route.query.pageid,
-                'propName': 'saved',
-                'propValue': false,
+        if (store.state.file.isListenFileChange) {
+            runDebounceChange(() => {
+                console.log("内容改变了！");
+                store.commit('changePropsOfTab', {  // 将标签上的关闭按钮换成圆形
+                    'pageId': route.query.pageid,
+                    'propName': 'saved',
+                    'propValue': false,
+                });
+                getPlanPiece(monacoInstance, route.query.pageid);
             });
-            getPlanPiece(monacoInstance, route.query.pageid);
-        });
+        }
     });
 
     // Monaco Editor滚动事件

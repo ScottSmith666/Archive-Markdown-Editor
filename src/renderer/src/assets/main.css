@@ -48,11 +48,13 @@ html, body {
     align-items: center;
     justify-content: center;
     user-select: none;  /* 禁止拖选文字 */
-    width: 300px;
+    /*width: 300px;*/
     height: 60px;
     background-color: white;
     z-index: 51;
     border-radius: 8px;
+    padding-left: 40px;
+    padding-right: 40px;
 }
 
 .donate {
