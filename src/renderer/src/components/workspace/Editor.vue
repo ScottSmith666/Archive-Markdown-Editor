@@ -32,15 +32,42 @@ const monacoEditorStateMap = ref(new Map());  // 存储每个标签页的状态�
 const emit = defineEmits(['update', 'top', 'bottom']);
 
 const updateMonacoEditorTheme = (monacoInstance) => {
-    console.log(monacoInstance);
+    monacoInstance.updateOptions({
+        // 基础属性，固定不变
+        contextmenu: true,
+        language: 'markdown',
+        automaticLayout: true,
+        scrollBeyondLastLine: false,
+        autoIndent: "advanced",
+        formatOnPaste: true,
+        dragAndDrop: false,
+
+        // 可调节属性
+        tabSize: Number(store.state.settings.userSettings.editor_tab_size),
+        fontSize: Number(store.state.settings.userSettings.editor_font_size),
+        lineNumbers: store.state.settings.userSettings.enable_line_num,
+        folding: store.state.settings.userSettings.enable_code_fold === 1,
+        wordWrap: store.state.settings.userSettings.enable_auto_wrap_line,
+        autoClosingBrackets: store.state.settings.userSettings.enable_auto_closure,
+        autoClosingDelete: store.state.settings.userSettings.enable_auto_closure,
+        autoClosingQuotes: store.state.settings.userSettings.enable_auto_closure,
+        scrollbar: {
+            "vertical": store.state.settings.userSettings.display_vertical_scrollbar,
+            "horizontal": store.state.settings.userSettings.display_horizon_scrollbar,
+        },
+        minimap: {
+            enabled: store.state.settings.userSettings.display_code_scale === 1,
+        },
+        cursorSmoothCaretAnimation: store.state.settings.userSettings.display_editor_animation === 1,
+    });
 };
 
 onBeforeRouteUpdate((to, from) => {
-    updateMonacoEditorTheme(monacoInstance);
     // 页面变动时存储上一个旧页面的state
     monacoEditorStateMap.value.set(from.query.pageid, monacoInstance.saveViewState());
     // 页面变动时切换Monaco Editor Model
     let model = store.state.tab.tabList.get(to.query.pageid).get('monacoEditorModel');
+    updateMonacoEditorTheme(monacoInstance);
     monacoInstance.setModel(model);
 
     // 加载新编辑器页面的state
@@ -54,20 +81,38 @@ onBeforeRouteUpdate((to, from) => {
 
 onMounted(() => {
     monacoInstance = monaco.editor.create(document.getElementById("editor"), {
+        // 基础属性，固定不变
         contextmenu: true,
         language: 'markdown',
         automaticLayout: true,
-        cursorSmoothCaretAnimation: true,
         scrollBeyondLastLine: false,
-        wordWrap: true,
-        largeFileOptimizations: false, // 禁用大文件自动优化
+        autoIndent: "advanced",
+        formatOnPaste: true,
+        dragAndDrop: false,
+
+        // 可调节属性
+        tabSize: store.state.settings.userSettings.editor_tab_size,
+        fontSize: Number(store.state.settings.userSettings.editor_font_size),
+        lineNumbers: Number(store.state.settings.userSettings.enable_line_num),
+        folding: store.state.settings.userSettings.enable_code_fold === 1,
+        wordWrap: store.state.settings.userSettings.enable_auto_wrap_line,
+        autoClosingBrackets: store.state.settings.userSettings.enable_auto_closure,
+        autoClosingDelete: store.state.settings.userSettings.enable_auto_closure,
+        autoClosingQuotes: store.state.settings.userSettings.enable_auto_closure,
+        scrollbar: {
+            "vertical": store.state.settings.userSettings.display_vertical_scrollbar,
+            "horizontal": store.state.settings.userSettings.display_horizon_scrollbar,
+        },
+        minimap: {
+            enabled: store.state.settings.userSettings.display_code_scale === 1,
+        },
+        cursorSmoothCaretAnimation: store.state.settings.userSettings.display_editor_animation === 1,
     });
-    updateMonacoEditorTheme(monacoInstance);
 
     // 加载页面对应的model
     let model = store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel');
+    updateMonacoEditorTheme(monacoInstance);
     monacoInstance.setModel(model);
-
     // 加载对应编辑器页面的state
     if (monacoEditorStateMap.value.get(route.query.pageid)) {
         monacoInstance.restoreViewState(monacoEditorStateMap.value.get(route.query.pageid));
@@ -278,4 +323,11 @@ const getPlanPiece = (monacoInstance, pageId) => {
 
 <style scoped>
 @import "./styles/editor.css";
+</style>
+<style>
+/* 强制行号数字在一行显示，不准折行 */
+/* 强制行号数字在一行显示，不准折行 */
+.monaco-editor .line-numbers {
+    white-space: nowrap !important;
+}
 </style>

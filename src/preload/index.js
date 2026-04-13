@@ -8,6 +8,9 @@ const api = {
     'openURLPreload': {
         openURL: (url) => ipcRenderer.send('open-url', url),
     },
+    'loadLangPreload': {
+        loadLang: () => ipcRenderer.invoke('get-system-lang'),
+    },
     'sqliteDataManPreload': {
         getRecentOpenedHistory: () => ipcRenderer.invoke('get-recent-opened-history'),
         setRecentOpenedHistory: (fileName, filePath, openTime) => ipcRenderer.invoke('set-recent-opened-history', fileName, filePath, openTime),
@@ -50,6 +53,8 @@ if (process.contextIsolated) {
         contextBridge.exposeInMainWorld('fileManPreload', api.fileManPreload);
         // 关闭前确认
         contextBridge.exposeInMainWorld('confirmPreload', api.confirmPreload);
+        // 加载语言
+        contextBridge.exposeInMainWorld('loadLangPreload', api.loadLangPreload);
     } catch (error) {
         console.error(error);
     }

@@ -1,4 +1,4 @@
-import {dialog, ipcMain, shell} from "electron";
+import {dialog, ipcMain, shell, app} from "electron";
 import {Dialogs} from "../dialogs";
 import {is} from "@electron-toolkit/utils";
 import path from "path";
@@ -311,6 +311,24 @@ export const ipc = (Sqlite3, dbPath) => {
 
     ipcMain.on('open-url', (event, url) => {
         shell.openExternal(url);
+    });
+
+    ipcMain.handle('get-system-lang', (event) => {
+        // 检测操作系统的语言设置并返回
+        let locale = app.getLocale();
+        console.log(locale);
+        if (['zh-CN', 'zh', 'zh-Hans'].includes(locale)) {
+            // 加载简体中文
+            return 'zh-CN';
+        } else if (['zh-TW', 'zh-HK', 'zh-MO', 'zh-Hant'].includes(locale)) {
+            // 这些地区统一加载繁体中文
+            return 'zh-TW';
+        } else if (locale.startsWith('en')) {
+            return 'en';
+        } else {
+            // 其他语言，默认英文
+            return 'en';
+        }
     });
 
     // sqlite ipc

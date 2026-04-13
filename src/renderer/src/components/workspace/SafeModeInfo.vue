@@ -23,7 +23,7 @@
                 </svg>
                 <div style="width: 10px;"></div>
                 <div style="margin-left: 5px; color: #d73f3e;">
-                    您已开启安全模式，渲染已暂停。请确认所有计划打开的内容安全后，进入“设置”关闭安全模式并重启Archive Markdown Editor。
+                    您已开启安全模式，渲染已暂停。请确认所有计划打开的内容安全后，进入“设置”关闭安全模式。
                 </div>
             </div>
         </div>

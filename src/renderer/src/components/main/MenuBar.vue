@@ -57,6 +57,12 @@ const openUsageByHotkey = (e) => {
         e.preventDefault();
         window.confirmPreload.tryClose();
     }
+
+    // Ctrl/Command + ,打开设置
+    if ((e.ctrlKey || e.metaKey) && e.code === 'Comma') {
+        e.preventDefault();
+        store.commit('addTabPage', {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false});
+    }
 };
 
 onMounted(() => {
@@ -349,29 +355,29 @@ onMounted(() => {
                         </Transition>
                     </template>
 
-                    <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
-                        ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
-                        : false">
-                        <div class="main-menu-separator"></div>
-                        <div id="tool" class="bar-menu-element-txt fonts"
-                             @click="store.commit('mainManuClick', 'tool')">工具
-                        </div>
-                        <Transition name="slide-fade">
-                            <div id="view-expand" class="upper menu"
-                                 :style="`margin-left: calc((3 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
-                                    ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
-                                    : false) ? 0 : 1}) * (25px + 18px));`"
-                                 v-if="store.state.menu.toolMenuStyleStatus">
-                                <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
-                                    ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
-                                    : false">
-                                    <div class="menu-element" id="mdz-media-man">
-                                        <p class="fonts">mdz媒体管理工具...</p>
-                                    </div>
-                                </template>
-                            </div>
-                        </Transition>
-                    </template>
+                    <!--                    <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)-->
+                    <!--                        ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'-->
+                    <!--                        : false">-->
+                    <!--                        <div class="main-menu-separator"></div>-->
+                    <!--                        <div id="tool" class="bar-menu-element-txt fonts"-->
+                    <!--                             @click="store.commit('mainManuClick', 'tool')">工具-->
+                    <!--                        </div>-->
+                    <!--                        <Transition name="slide-fade">-->
+                    <!--                            <div id="view-expand" class="upper menu"-->
+                    <!--                                 :style="`margin-left: calc((3 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)-->
+                    <!--                                    ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'-->
+                    <!--                                    : false) ? 0 : 1}) * (25px + 18px));`"-->
+                    <!--                                 v-if="store.state.menu.toolMenuStyleStatus">-->
+                    <!--                                <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)-->
+                    <!--                                    ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'-->
+                    <!--                                    : false">-->
+                    <!--                                    <div class="menu-element" id="mdz-media-man">-->
+                    <!--                                        <p class="fonts">mdz媒体管理工具...</p>-->
+                    <!--                                    </div>-->
+                    <!--                                </template>-->
+                    <!--                            </div>-->
+                    <!--                        </Transition>-->
+                    <!--                    </template>-->
 
                     <div class="main-menu-separator"></div>
 
@@ -382,7 +388,7 @@ onMounted(() => {
                         <div id="help-expand" class="upper menu"
                              :style="`margin-left: calc((4 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
                                 ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
-                                : false) ? 0 : 2}) * (25px + 18px));`"
+                                : false) ? 1 : 2}) * (25px + 18px));`"
                              v-if="store.state.menu.helpMenuStyleStatus">
                             <div class="menu-element"
                                  @click="store.commit('addTabPage', {'pageType': 'welcome', 'pageTitle': '欢迎', 'isExistFile': false}); store.commit('mainManuAllHide');">

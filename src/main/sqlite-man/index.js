@@ -7,16 +7,6 @@ export class SqliteMan {
     }
 
     // 私有方法
-    #settingsTable(needType = true) {
-        return {
-            'AME_SETTINGS': [
-                // colName colType
-                `instruction${needType ? ' TEXT' : ""}`,
-                `value${needType ? ' INT' : ""}`,
-            ]
-        };
-    };
-
     #historiesTable(needType = true) {
         return {
             'AME_OPEN_HISTORIES': [

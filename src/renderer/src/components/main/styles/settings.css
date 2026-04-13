@@ -1,0 +1,129 @@
+@import "../../../assets/base.css";
+
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    user-select: none;
+    height: calc(100vh - 36px - 31px);
+    overflow-y: scroll;
+}
+
+.settings {
+    width: 70%;
+}
+
+.title1 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.title1-block {
+    height: 2rem;
+    width: 8px;
+    background-color: var(--main-color);
+}
+
+.title2 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.title2-block {
+    height: 1.5rem;
+    width: 6px;
+    background-color: var(--main-color);
+}
+
+.wrapper-info {
+    padding: 1rem;
+    border-radius: 12px 12px 12px 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    word-break: break-word;
+    outline-color: #359BEE !important;
+}
+
+.fonts-info {
+    color: #1660d0;
+    font-weight: bold;
+}
+
+.wrapper-info:hover {
+    transition: outline-color 0.5s;
+    outline-color: #359BEE;
+}
+
+.info-border {
+    outline: 1px rgba(255, 255, 255, 0) solid;
+    transition: outline-color 0.5s;
+    outline-offset: -2px;
+}
+
+.info-bg {
+    background-color: #eff3fd;
+}
+
+.settings-item {
+    display: flex;
+    flex-direction: row;
+    background-color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.1);
+    border-radius: 8px;
+}
+
+.settings-item:hover {
+    border: 1px solid var(--main-color);
+}
+
+.settings-item:hover .settings-description {
+    color: var(--main-color);
+    font-weight: bold;
+}
+
+.settings-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tab-icon {
+    width: 24px;
+    height: 24px;
+    line-height: 1;
+    margin-right: 5px;
+}
+
+.settings-description {
+
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.input {
+    padding: 5px 7px;
+    /*border: 1px solid #ccc;*/
+    border: none;
+    border-radius: 5px; /* 圆角 */
+    outline: none; /* 去掉点击时的蓝色外框 */
+    transition: all 0.3s ease; /* 过渡动画 */
+    font-size: 14px;
+}
+
+/* 焦点状态：变蓝色边框并加点发光阴影 */
+.input:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 0 8px rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.2);
+}
+
+/* 占位符颜色 */
+.input::placeholder {
+    color: #aaa;
+}

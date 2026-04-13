@@ -139,7 +139,7 @@ const contextMenuPositionStyle = ref('');
 const viewerTocShow = ref(false);
 
 onMounted(() => {
-    if ((!store.state.settings.safeMode) || (!props.enableSafe)) {
+    if ((!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)) {
         render(props.mdPiece);
     }
     window.addEventListener('keydown', copyInViewerByHotkey);
@@ -326,7 +326,7 @@ defineExpose({
 watch(
     () => [props.mdPiece, props.middleLineNumber],
     ([newMdPiece, newMiddleLineNumber], [oldMdPiece, oldMiddleLineNumber]) => {
-        if ((!store.state.settings.safeMode) || (!props.enableSafe)) {
+        if ((!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)) {
             render(newMdPiece);
             if (newMiddleLineNumber !== oldMiddleLineNumber) {
                 scrollCustomLineElementToCenter(
@@ -341,7 +341,9 @@ watch(
 watch(confirmContentSafe, (newValue, oldValue) => {
     if (newValue) {
         nextTick().then(() => {
-            render(props.mdPiece);
+            if ((!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)) {
+                render(props.mdPiece);
+            }
         });
     }
 });
@@ -350,7 +352,7 @@ watch(confirmContentSafe, (newValue, oldValue) => {
 
 <template>
     <Transition>
-        <nav v-if="(!store.state.settings.safeMode) && props.enableToc && viewerTocShow" class="custom-toc">
+        <nav v-if="(!(Number(store.state.settings.userSettings.safe_mode) === 1)) && props.enableToc && viewerTocShow" class="custom-toc">
             <div class="toc fonts">
                 <div class="toc-title-block"></div>
                 <div class="toc-title">目录</div>
@@ -445,10 +447,10 @@ watch(confirmContentSafe, (newValue, oldValue) => {
          @contextmenu.prevent="displayViewerContextMenu"
          @click="viewerContextMenuShow = false"
          @blur="viewerContextMenuShow = false">
-        <div v-if="(!store.state.settings.safeMode) || (!props.enableSafe)" id="write">
+        <div v-if="(!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)" id="write">
             <!--Generated HTML was injected here...-->
         </div>
-        <safe-mode-info v-if="store.state.settings.safeMode && props.enableSafe"></safe-mode-info>
+        <safe-mode-info v-if="Number(store.state.settings.userSettings.safe_mode) === 1 && props.enableSafe"></safe-mode-info>
     </div>
 </template>
 

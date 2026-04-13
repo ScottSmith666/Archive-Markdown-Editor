@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref} from "vue";
+import {onMounted, ref} from "vue";
 import TabMan from "./components/main/TabMan.vue";
 import MenuBar from "./components/main/MenuBar.vue";
 import {useStore} from 'vuex';
@@ -8,6 +8,7 @@ const store = useStore();
 
 // dispatch
 store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
+store.dispatch('initUserSettingsAction');  // 启动App时即加载user settings相关store变量
 
 // data
 const quitConfirmDialog = ref(false);
