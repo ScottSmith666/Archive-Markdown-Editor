@@ -9,10 +9,23 @@
 #include <bitfilecompressor.hpp>
 #include <bitarchivereader.hpp>
 #include <utility>
+#include <filesystem>
 
 
-bool verifyMdzHasPassword(const std::string& filePath, const std::string& sevenZlibPath)
+std::string verifyMdzHasPassword(const std::string& filePath, const std::string& sevenZlibPath)
 {
+    // 先判断要验证的文件存不存在
+    if (!std::filesystem::exists(filePath))
+    {
+        return "FILE_NOT_FOUND";
+    }
+
+    // 再判断7z动态链接库存不存在
+    if (!std::filesystem::exists(sevenZlibPath))
+    {
+        return "SEVEN_ZLIB_NOT_FOUND";
+    }
+
     try
     {
         const bit7z::Bit7zLibrary sevenZlib(sevenZlibPath);
@@ -20,13 +33,17 @@ bool verifyMdzHasPassword(const std::string& filePath, const std::string& sevenZ
         const bit7z::BitArchiveReader reader{sevenZlib, filePath};
         // 如果能运行到这里，说明文件头没加密
         // 进一步检查内部是否有文件被加密
-        return reader.hasEncryptedItems();
+        if (reader.hasEncryptedItems())
+        {
+            return "PASSWORD_REQUIRED";
+        }
+        return "NO_PASSWORD";
     }
     catch ([[maybe_unused]] const bit7z::BitException& exception)
     {
         // 如果抛出异常，通常是因为文件头加密导致无法读取元数据
         // 此时可以认定该压缩包是受密码保护的
-        return true;
+        return "PASSWORD_REQUIRED";
     }
 }
 
@@ -88,11 +105,15 @@ public:
             }
             else if (operationKind == "decompress")
             {
-                if (verifyMdzHasPassword(inputPath, sevenZlibPath)) // 如果经验证这个mdz文件带密码
+                if (verifyMdzHasPassword(inputPath, sevenZlibPath) == "PASSWORD_REQUIRED") // 如果经验证这个mdz文件带密码
                 {
                     extractor.setPassword(decompressPassword); // 设置解压密码
+                    extractor.extract(inputPath, destPath);
                 }
-                extractor.extract(inputPath, destPath);
+                else if (verifyMdzHasPassword(inputPath, sevenZlibPath) == "NO_PASSWORD")
+                {
+                    extractor.extract(inputPath, destPath);
+                }
                 message = "打开mdz成功！";
                 success = true;
             }
@@ -211,7 +232,7 @@ Napi::Object verifyMdzIsEncrypted(const Napi::CallbackInfo& info)
     std::string sevenZlibPath = info[1].As<Napi::String>();
 
     obj.Set("success", Napi::Boolean::New(env, true));
-    obj.Set("message", Napi::Boolean::New(env, verifyMdzHasPassword(inputPath, sevenZlibPath)));
+    obj.Set("message", Napi::String::New(env, verifyMdzHasPassword(inputPath, sevenZlibPath)));
     return obj;
 }
 

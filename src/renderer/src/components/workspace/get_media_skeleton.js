@@ -3,7 +3,7 @@ export const regExps = () => {
         imageBase64: /data:image\/(.*?);base64,/,
         url: /^(http(s?))(:\/\/)(\S+)/,
         path: {
-            win32: /^([A-Za-z]:)(\/\S+)+/,
+            win32: /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/,
             posix: /^(\/)(\S+)(\/\S+)+/,
             mdz: /^(\$MDZ_MEDIA)\/\S+/,
             document: /^(\$DOCUMENT_MEDIA)\/\S+/,

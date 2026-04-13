@@ -89,7 +89,7 @@ export const fileMan = {
         // 保存文件
         async directSaveAction({commit, rootState}, data = []) {
             // 如果是用户提供的文件信息，则包含：data = [单纯文件名, 扩展名, 保存路径, 密码, 再次输入密码]
-            // 如果用户不提供的文件信息，则data为空列表
+            // 如果用户不提供文件信息，则data为空列表
             let planSaveFileInfo = data;
 
             // 先拿到对应页面的相关信息
@@ -143,7 +143,12 @@ export const fileMan = {
                             let editsCopies
                                 = await getDirectPathToMdzMediaPathEdits(currentPageMonacoEditorModel, currentPureFileName, currentPurePath);
                             // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
-                            let copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                            let copyResult;
+                            if (editsCopies[1].length === 0) {  // 没有可以拷贝的文件，可以直接走了
+                                copyResult = {"success": true};
+                            } else {
+                                copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                            }
                             if (copyResult.success) {
                                 // 拷贝多媒体文件至mdz文件夹结构完成后，执行monaco editor edit序列操作
                                 if (editsCopies[0].length > 0) {
@@ -175,7 +180,7 @@ export const fileMan = {
                                         // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
                                         currentPageInfo.set("saved", true);
                                         console.log("修改保存状态");
-                                        const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                        const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
                                         let sep = win32PathPattern.test(currentPurePath) ? "\\" : "/";
                                         let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                             `${currentPureFileName}.mdz`,
@@ -248,7 +253,7 @@ export const fileMan = {
                         if (writeResult.success) {
                             // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
                             currentPageInfo.set("saved", true);
-                            const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                            const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
                             let sep = win32PathPattern.test(currentPurePath) ? "\\" : "/";
 
                             try {
@@ -339,7 +344,7 @@ export const fileMan = {
                             );
                             if (writeResult.success) {
                                 // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
-                                const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
                                 let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
                                 currentPageInfo.set("saved", true);
                                 currentPageInfo.set("label",
@@ -455,7 +460,7 @@ export const fileMan = {
                                         console.log("makeMdzResult", makeMdzResult);
                                         if (makeMdzResult.success) {
                                             // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
-                                            const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                            const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
                                             let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
                                             currentPageInfo.set("saved", true);
                                             currentPageInfo.set("label",
@@ -564,8 +569,6 @@ export const fileMan = {
                         currentPureFileNameArray.pop();
                         let currentPureFileName = currentPureFileNameArray.join(".");
                         let currentPurePath = currentOpenedFilePathArray.join("/");
-
-
                         try {
                             let result = await window.fileManPreload.makeMdMediaDirectory(planSaveFileInfo[2], planSaveFileInfo[0]);
                             if (result.success) {
@@ -578,9 +581,14 @@ export const fileMan = {
                                     planSaveFileInfo[0]
                                 );
                                 // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
-                                let copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                                let copyResult;
+                                if (editsCopies[1].length === 0) {  // 没有可以拷贝的文件，可以直接走了
+                                    copyResult = {"success": true};
+                                } else {
+                                    copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                                }
                                 if (copyResult.success) {
-                                    // 拷贝多媒体文件至mdz文件夹结构完成后，执行monaco editor edit序列操作
+                                    // 拷贝多媒体文件至mdz文件夹完成后，执行monaco editor edit序列操作
                                     if (editsCopies[0].length > 0) {
                                         currentPageMonacoEditorModel.pushStackElement();
                                         currentPageMonacoEditorModel.applyEdits(editsCopies[0], false);
@@ -599,7 +607,7 @@ export const fileMan = {
                                     );
                                     console.log("writeResult", writeResult);
                                     // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
-                                    const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                    const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
                                     let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
                                     currentPageInfo.set("saved", true);
                                     currentPageInfo.set("label",
@@ -702,9 +710,7 @@ export const fileMan = {
                         // 如果计划保存的是mdz文件，则多媒体语句中：
                         // 采用绝对路径的本地多媒体文件将被嵌入mdz文件
                         // 而base64编码的图片和在线URL将保持不变
-
                         // 先创建好要保存的mdz文件夹结构
-
                         try {
                             let result = await window.fileManPreload.makeMdzDirectory(planSaveFileInfo[2], planSaveFileInfo[0]);
                             if (result.success) {
@@ -715,7 +721,12 @@ export const fileMan = {
                                     planSaveFileInfo[2]
                                 );
                                 // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
-                                let copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                                let copyResult;
+                                if (editsCopies[1].length === 0) {  // 没有可以拷贝的文件，可以直接走了
+                                    copyResult = {"success": true};
+                                } else {
+                                    copyResult = await window.fileManPreload.copyMdzMediaFiles(editsCopies[1]);
+                                }
                                 if (copyResult.success) {
                                     // 拷贝多媒体文件至mdz文件夹结构完成后，执行monaco editor edit序列操作
                                     if (editsCopies[0].length > 0) {
@@ -745,7 +756,7 @@ export const fileMan = {
                                         console.log("makeMdzResult", makeMdzResult);
                                         if (makeMdzResult.success) {
                                             // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
-                                            const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                            const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
                                             let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
                                             currentPageInfo.set("saved", true);
                                             currentPageInfo.set("label",
@@ -846,7 +857,6 @@ export const fileMan = {
                         // DONE
                         // 如果计划保存的文件不是mdz文件，则多媒体语句保持不变
                         // 需要用户提供的文件信息了
-
                         try {
                             let writeResult = await window.fileManPreload.saveFileContent(
                                 planSaveFileInfo[2],
@@ -856,7 +866,7 @@ export const fileMan = {
                             );
                             if (writeResult.success) {
                                 // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
-                                const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+                                const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
                                 let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
                                 currentPageInfo.set("saved", true);
                                 currentPageInfo.set("label",

@@ -9,7 +9,6 @@ import '../../../../../libs/third_party/monaco-editor/esm/vs/basic-languages/mon
 import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js';
 import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js';
 import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/inlineCompletions/browser/inlineCompletions.contribution.js';
-import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/placeholderText/browser/placeholderText.contribution.js';
 import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/find/browser/findController.js';
 import './suggestions.js';
 

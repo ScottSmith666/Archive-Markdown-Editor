@@ -328,11 +328,12 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                         }
                     }
                 } else {
+                    hdLoading(rootState);
                     tgModel(rootState, {kind: "none"});
                     actModel(rootState, {
                         'kind': 'tip',
                         'tipLevel': 'fail',
-                        'content': result2.message,
+                        'content': result2.message === "FILE_NOT_FOUND" ? "无法打开不存在的文件" : result2.message,
                         'showTimeSecond': rootState.lifecycle.tipDisplayTime
                     });
                 }
@@ -541,10 +542,14 @@ export const getMdzMediaPathToDirectPathEdits = async (model, presentPath, prese
             let textAfterUrl = matches[i].matches[3] ? ` "${matches[i].matches[3]}"` : '';
             const mdzPattern = /^(\$MDZ_MEDIA)\/\S+/;
             const imageBase64Pattern = /data:image\/(.*?);base64,/;
+            const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
             const urlPattern = /^(http(s?))(:\/\/)(\S+)/;
             if (mdzPattern.test(url) && (!imageBase64Pattern.test(url) || !urlPattern.test(url))) {
                 // 符合mdz媒体路径语法
                 let mediaFileName = url.replace("$MDZ_MEDIA/", "");
+                if (win32PathPattern.test(savePath)) {
+                    savePath = savePath.split(/\\|\//).join("/");  // 把路径分隔符洗一遍
+                }
                 edits.push({
                     range: matches[i].range,
                     text: `![${alt}](${savePath + "/" + savePureFileName + ".media_dir/" + mediaFileName}${textAfterUrl})`,
@@ -588,7 +593,7 @@ export const getDirectPathToMdzMediaPathEdits = async (model, savePureFileName,
             let alt = matches[i].matches[1];
             let url = matches[i].matches[2];
             let textAfterUrl = matches[i].matches[3] ? ` "${matches[i].matches[3]}"` : '';
-            const win32PathPattern = /^([A-Za-z]:)(\/\S+)+/;
+            const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
             const posixPathPattern = /^(\/)(\S+)(\/\S+)+/;
             const imageBase64Pattern = /data:image\/(.*?);base64,/;
             const mdzPattern = /^(\$MDZ_MEDIA)\/\S+/;
@@ -663,6 +668,7 @@ export const replaceIdToOriginCode = async (model, replaceArray) => {
 
 export const verifySaveForm = (formArray) => {
     // 用户提供的文件信息，则包含：data = [单纯文件名, 扩展名, 保存路径, 密码, 再次输入密码]
+    console.log("verifySaveForm", formArray);
     const fileForbiddenChars = [">", "<", ":", "'", "|", "*", "?"];
 
     if (formArray[0] === '') {

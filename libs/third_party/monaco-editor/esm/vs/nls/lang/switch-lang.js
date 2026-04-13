@@ -5,6 +5,7 @@
  * https://github.com/microsoft/vscode/blob/main/LICENSE.txt
  *-----------------------------------------------------------*/
 
+
 let lang = localStorage.getItem("lang");
 if (lang === 'en') {
     // 无事发生

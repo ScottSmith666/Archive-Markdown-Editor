@@ -142,11 +142,17 @@ export const ipc = (Sqlite3, dbPath) => {
             }
         } else if (extensionTail === 'mdz') {
             // 不能直接读取，需要经历解压等步骤拿到真正的md文件路径
-            // 先判断mdz文件有没有密码
-            if (mdzUtils.verifyMdzIsEncrypted(filePath).message) {
+
+            // 判断mdz文件有没有密码
+            console.log(mdzUtils.verifyMdzIsEncrypted(filePath));
+            if (mdzUtils.verifyMdzIsEncrypted(filePath).message === "PASSWORD_REQUIRED") {
                 // 如果存在密码
                 return {success: false, message: "PASSWORD_REQUIRED", encMdzPath: filePath};  // 返回“PASSWORD_REQUIRED”用于前端判断弹出输入密码框
+            } else if (mdzUtils.verifyMdzIsEncrypted(filePath).message === "FILE_NOT_FOUND") {
+                // mdz文件不存在
+                return {success: false, message: "FILE_NOT_FOUND", encMdzPath: filePath};
             }
+
             // mdz文件（以/path/to/test.mdz为例）打开后的文件结构：
             // ._mdz_content.test/    # 这里的文件夹名格式是："._mdz_content." + mdz文件名去掉ext
             //          |             # 在posix平台，开头为“.”的文件和文件夹本身不可见（除非设置显示隐藏项目）
@@ -180,7 +186,7 @@ export const ipc = (Sqlite3, dbPath) => {
     ipcMain.handle("make-mdz-directory", async (event, purePath, pureFileName) => {
         try {
             await fs.promises.mkdir(purePath + path.sep + "._mdz_content." + pureFileName + path.sep
-                + "mdz_contents" + path.sep + "media_src", { recursive: true });
+                + "mdz_contents" + path.sep + "media_src", {recursive: true});
             if (process.platform === "win32") {
                 // Windows平台运行 attrib +h X:/path/to/folder 命令隐藏文件夹
                 await exec(`attrib +h ${purePath + path.sep + "._mdz_content." + pureFileName}`);
@@ -193,7 +199,7 @@ export const ipc = (Sqlite3, dbPath) => {
 
     ipcMain.handle("make-md-media-directory", async (event, purePath, pureFileName) => {
         try {
-            await fs.promises.mkdir(purePath + path.sep + pureFileName + ".media_dir", { recursive: true });
+            await fs.promises.mkdir(purePath + path.sep + pureFileName + ".media_dir", {recursive: true});
             return {"success": true, "message": "创建文件夹成功"};
         } catch (e) {
             return {"success": false, message: `${e.name}: ${e.message}`};
@@ -201,15 +207,18 @@ export const ipc = (Sqlite3, dbPath) => {
     });
 
     ipcMain.handle("copy-mdz-media-files", async (event, filePathArray) => {
-        try {
-            for (let i = 0; i < filePathArray.length; i++) {
-                console.log(`第${i + 1}个，共${filePathArray.length}个。${filePathArray[i][0]} -> ${filePathArray[i][1]}`);
+        for (let i = 0; i < filePathArray.length; i++) {
+            console.log(`第${i + 1}个，共${filePathArray.length}个。${filePathArray[i][0]} -> ${filePathArray[i][1]}`);
+            try {
                 await fs.promises.copyFile(filePathArray[i][0], filePathArray[i][1]);
+            } catch (e) {
+                // 有时候用户写的Markdown文档中会发现找不到媒体文件，就跳过拷贝这个文件
+                if (!e.message.includes('ENOENT: no such file or directory, copyfile')) {
+                    return {"success": false, message: `${e.name}: ${e.message}`};
+                }
             }
-            return {"success": true, "message": "拷贝媒体成功"};
-        } catch (e) {
-            return {"success": false, message: `${e.name}: ${e.message}`};
         }
+        return {"success": true, "message": "拷贝媒体成功"};
     });
 
     ipcMain.handle('clean-mdz-folder', async (event, cleanPath) => {

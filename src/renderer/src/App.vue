@@ -87,19 +87,6 @@ const vFocus = {
     mounted: (el) => el.focus()
 }
 
-// computed
-const syncMdzPassword = computed({
-    get: () => {
-        if (store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("encrypted")) {  // 检测当前打开的是不是加密mdz
-            return store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("password");  // 打开加密mdz时存储在tab变量中的密码（当然页面关闭就被销毁了，不会持久化储存）
-        } else {
-            return setPassword.value;
-        }
-    },
-    set: (val) => {
-        setPassword.value = val;  // 更新本地data
-    }
-});
 </script>
 
 <template>
@@ -316,11 +303,11 @@ const syncMdzPassword = computed({
             <div style="display: flex; flex-direction: column; width: 100%;">
 
                 <div style="display: flex; flex-direction: row; width: 100%;">
-                    <input v-focus class="save-as-input" style="flex: 1; width: 0;" placeholder="保存文件名" v-model="saveName">
+                    <input v-focus class="save-as-input" style="flex: 0.65; width: 0;" placeholder="保存文件名" v-model="saveName">
                     <div style="width: 15px;"></div>
                     <select class="save-as-input" id="ext" name="ext" style="flex: 1; width: 0;" v-model="saveExt">
-                        <option value="mdz">mdz文件（*.mdz）</option>
-                        <option value="md">md文件（*.md）</option>
+                        <option value="mdz">Archive md文件（*.mdz）</option>
+                        <option value="md">Markdown文件（*.md）</option>
                         <option value="txt" selected>文本文件（*.txt）</option>
                     </select>
                 </div>
@@ -357,11 +344,11 @@ const syncMdzPassword = computed({
                             <div id="info-donate-explain" style="margin-left: 5px;">
                                 ● 请注意，为防止数据泄露，AME不会以任何方式持久化保存您的密码，请自行牢记密码！<br>
                                 ● 建议设置复杂度较高的密码以免被暴力破解！
-                                ● 如您想创建无密码的mdz文件，则不用输入密码，直接保存即可。
+                                ● 如您想创建无密码的Archive md文件，则不用输入密码，直接保存即可。
                             </div>
                         </div>
                         <div style="height: 15px;"></div>
-                        <input class="save-as-input" type="password" placeholder="输入密码" v-model="syncMdzPassword">
+                        <input class="save-as-input" type="password" placeholder="输入密码" v-model="setPassword">
                         <div style="height: 15px;"></div>
                         <input class="save-as-input" type="password" placeholder="再次输入密码"
                                v-model="setPasswordAgain">
