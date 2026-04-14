@@ -105,10 +105,15 @@ export const ipc = (Sqlite3, dbPath) => {
         let pureFileName = fileNameArray.join(".");
         let realFilePathInMdz
             = path.join(filePathArray.join(path.sep), `._mdz_content.${pureFileName}`, "mdz_contents", `${pureFileName}.md`);
+        let realDirPathInMdz = path.join(filePathArray.join(path.sep), `._mdz_content.${pureFileName}`);
 
         // 解压加密mdz文件并读取文件内容
         try {
             await mdzUtils.genOrDecompressMdz(filePath, filePathArray.join(path.sep), "decompress", "", password);
+            if (process.platform === "win32") {
+                // Windows平台运行 attrib +h X:/path/to/folder 命令隐藏文件夹
+                await exec(`attrib +h "${realDirPathInMdz}"`);
+            }
             let fileContent = await fs.promises.readFile(realFilePathInMdz, 'utf8');
             setOpenedFileHistory(sqliteMan, fileName, filePath, getNow());
             return {success: true, content: fileContent, name: fileName, path: filePath, encrypted: true};
@@ -142,17 +147,6 @@ export const ipc = (Sqlite3, dbPath) => {
             }
         } else if (extensionTail === 'mdz') {
             // 不能直接读取，需要经历解压等步骤拿到真正的md文件路径
-
-            // 判断mdz文件有没有密码
-            console.log(mdzUtils.verifyMdzIsEncrypted(filePath));
-            if (mdzUtils.verifyMdzIsEncrypted(filePath).message === "PASSWORD_REQUIRED") {
-                // 如果存在密码
-                return {success: false, message: "PASSWORD_REQUIRED", encMdzPath: filePath};  // 返回“PASSWORD_REQUIRED”用于前端判断弹出输入密码框
-            } else if (mdzUtils.verifyMdzIsEncrypted(filePath).message === "FILE_NOT_FOUND") {
-                // mdz文件不存在
-                return {success: false, message: "FILE_NOT_FOUND", encMdzPath: filePath};
-            }
-
             // mdz文件（以/path/to/test.mdz为例）打开后的文件结构：
             // ._mdz_content.test/    # 这里的文件夹名格式是："._mdz_content." + mdz文件名去掉ext
             //          |             # 在posix平台，开头为“.”的文件和文件夹本身不可见（除非设置显示隐藏项目）
@@ -168,14 +162,25 @@ export const ipc = (Sqlite3, dbPath) => {
             // 因此/path/to/test.mdz文件的实际文件路径是：/path/to/._mdz_content.test/mdz_contents/test.md
             let realFilePathInMdz
                 = path.join(filePathArray.join(path.sep), `._mdz_content.${pureFileName}`, "mdz_contents", `${pureFileName}.md`);
-
+            let realDirPathInMdz = path.join(filePathArray.join(path.sep), `._mdz_content.${pureFileName}`);
             // 解压mdz文件并读取文件内容
             try {
                 await mdzUtils.genOrDecompressMdz(filePath, filePathArray.join(path.sep), "decompress", "", "");
+                if (process.platform === "win32") {
+                    // Windows平台运行 attrib +h "X:/path/to/folder" 命令隐藏文件夹
+                    await exec(`attrib +h "${realDirPathInMdz}"`);
+                }
                 let fileContent = await fs.promises.readFile(realFilePathInMdz, 'utf8');
                 setOpenedFileHistory(sqliteMan, fileName, filePath, getNow());
                 return {success: true, content: fileContent, name: fileName, path: filePath, encrypted: false};
             } catch (e) {
+                if (e.message.includes('password is required but none was provided') ||
+                    e.message.includes('wrong password')) {
+                    return {success: false, message: "PASSWORD_REQUIRED", encMdzPath: filePath};  // 返回“PASSWORD_REQUIRED”用于前端判断弹出输入密码框
+                }
+                if (e.message.includes('No such file or directory')) {
+                    return {success: false, message: "FILE_NOT_FOUND", encMdzPath: filePath};
+                }
                 return {success: false, message: (e.name + ": " + e.message)};
             }
         } else {
@@ -189,7 +194,7 @@ export const ipc = (Sqlite3, dbPath) => {
                 + "mdz_contents" + path.sep + "media_src", {recursive: true});
             if (process.platform === "win32") {
                 // Windows平台运行 attrib +h X:/path/to/folder 命令隐藏文件夹
-                await exec(`attrib +h ${purePath + path.sep + "._mdz_content." + pureFileName}`);
+                await exec(`attrib +h "${purePath + path.sep + "._mdz_content." + pureFileName}"`);
             }
             return {"success": true, "message": "创建文件夹成功"};
         } catch (e) {

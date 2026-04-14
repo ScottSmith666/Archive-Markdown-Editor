@@ -99,10 +99,25 @@ export const rules = (md, documentPathObject, displayKind) => {
             // 文件不能包括这些字符，而且如果路径或/和文件名包含空格，则渲染器不会解析多媒体Markdown，直接返回原字符串，因此需要以%20代替空格
             // 由于“?”可能会存在于url，因此在文件路径分支进行判断
             const fileForbiddenChars = [">", "<", ":", "\"", "'", "|", "*", "?"];
+            const fileForbiddenCharsWin32 = [">", "<", "\"", "'", "|", "*", "?"];
             let fileName = url.split("/").pop();
+
+            // 由于Windows有盘符+冒号的结构，因此，符合win32格式的路径 && 整个带文件的路径只有1个冒号 && 文件名没有禁止符号，这三个条件同时符合符合就OK
             for (let i = 0; i < fileForbiddenChars.length; i++) {
-                if (fileName.includes(fileForbiddenChars[i]) || url.includes(fileForbiddenChars[i])) {
-                    return `<p style="color: red; font-weight: bold;">🚫错误：媒体文件名或路径中有非法字符</p>`;
+                if (regs.path.win32.test(url)) {
+                    let colonNum = (url.match(/\:/g) || []).length;
+                    if (colonNum !== 1) {
+                        return `<p style="color: red; font-weight: bold;">🚫错误：媒体文件名或路径中有非法字符</p>`;
+                    } else {
+                        if (fileName.includes(fileForbiddenCharsWin32[i]) || url.includes(fileForbiddenCharsWin32[i])) {
+                            return `<p style="color: red; font-weight: bold;">🚫错误：媒体文件名或路径中有非法字符</p>`;
+                        }
+                    }
+                }
+                if (regs.path.posix.test(url)) {
+                    if (fileName.includes(fileForbiddenChars[i]) || url.includes(fileForbiddenChars[i])) {
+                        return `<p style="color: red; font-weight: bold;">🚫错误：媒体文件名或路径中有非法字符</p>`;
+                    }
                 }
             }
             if (regs.path.win32.test(url) || regs.path.posix.test(url)) {

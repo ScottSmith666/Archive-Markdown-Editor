@@ -32,6 +32,10 @@ button:focus {
     padding-bottom: 5px;
 }
 
+:deep(.md-block::-webkit-scrollbar) {
+    display: none; /* 或者高度设为0 */
+}
+
 :deep(.table-container) {
     overflow-x: scroll;
 }

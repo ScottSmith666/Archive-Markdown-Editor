@@ -6,7 +6,6 @@ declare const mdzUtils: {
         compressPassword: String,
         decompressPassword: String
     ): Promise;
-    verifyMdzIsEncrypted(inputPath: String): boolean;
 };
 
 export = mdzUtils;

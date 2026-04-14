@@ -2,22 +2,24 @@ let mdzUtils;
 
 mdzUtils = require("./libs/napi_cpp/mdz_utils");
 
-let input = "/Users/scottsmith/Desktop/tst/._mdz_content.Large12";  // 压缩的时候要带上隐藏文件夹名
-let output = "/Users/scottsmith/Desktop/tst/Large12.mdz";
-// let output = "/Users/scottsmith/Desktop/sm1234.mdz";
+let input = "/Users/scottsmith/Desktop/tst/gooddd";  // 压缩的时候要带上隐藏文件夹名
+let output = "/Users/scottsmith/Desktop/sample.mdz";
+let outputPs = "/Users/scottsmith/Desktop/NOPASS.7z";
 
-let ds = '/Users/scottsmith/Desktop/TEST';  // 解压的时候直接根目录即可
+let ds = '/Users/scottsmith/Destop/NOPS';  // 解压的时候直接根目录即可
 
-mdzUtils.genOrDecompressMdz(input, output, "compress", "12", "").then((result) => {
+mdzUtils.genOrDecompressMdz(ds, outputPs, "compress", "", "").then((result) => {
     console.log(result);
 }).catch((e) => {
     console.error(e);
+    // 包含“No such file or directory”则说明找不到文件/文件夹
 });
 
-// mdzUtils.genOrDecompressMdz(outputPs, ds, "decompress", "", "1234").then((result) => {
-//     console.log(result);
-// }).catch((e) => {
-//     console.error(e.message);
-// });
-
-// console.log(mdzUtils.verifyMdzIsEncrypted(output));
+mdzUtils.genOrDecompressMdz(output, ds, "decompress", "", "").then((result) => {
+    console.log(result);
+}).catch((e) => {
+    console.error(e.message);
+    // 包含“No such file or directory”则说明找不到文件
+    // 包含“password is required but none was provided”或“wrong password”说明密码错误
+    // 可以传空字符串密码至无密码文件，能成功打开
+});

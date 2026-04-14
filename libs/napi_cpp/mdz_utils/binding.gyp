@@ -48,7 +48,7 @@
       # 针对 Windows 开启异常
       "msvs_settings": {
         "VCCLCompilerTool": {
-          "AdditionalOptions": [ "-std:c++17" ],
+          "AdditionalOptions": [ "-std:c++17", "/EHa" ],
           "ExceptionHandling": 1,
           "Optimization": 3,  # 3 对应 /Ox (Full Optimization)
           "FavorSizeOrSpeed": 1,  # 1 对应 /Ot (Favor Fast Code)
