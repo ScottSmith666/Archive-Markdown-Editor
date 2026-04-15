@@ -48,7 +48,17 @@ media_src文件夹内部的media文件名称没有要求
 
 在另存为对话框的文件格式选择下拉框中，选择“Archive md文件（*.mdz）”即可。
 
-然后你发现下面有设置密码的输入框。没错，你可以为你的mdz文件设置密码，保护内容安全！这个下面会详细讲到。
+![]($DOCUMENT_MEDIA/save-as-dialog.png)
+
+另外，当你保存为mdz文件时，引入的多媒体文件（通过你的本地绝对路径）
+
+![md.png]($DOCUMENT_MEDIA/md.png)
+
+会自动嵌入mdz文件并转化为mdz媒体路径。所以，不用担心多媒体的管理问题，AME会自动帮你收入囊中！
+
+![md.png]($DOCUMENT_MEDIA/mdz.png)
+
+保存的时候，你发现下面有设置密码的输入框。没错，你可以为你的mdz文件设置密码，保护内容安全！这个下面会详细讲到。
 
 ![]($DOCUMENT_MEDIA/save-as-dialog.png)
 
