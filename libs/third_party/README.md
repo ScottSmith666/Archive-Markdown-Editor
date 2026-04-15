@@ -11,11 +11,11 @@ make -j -f ../../cmpl_mac_arm64.mak
 cd /path/to/bit7z
 mkdir build
 cd build
-cmake ../ -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION=26.00 -DBIT7Z_CUSTOM_7ZIP_PATH=/Volumes/Execute/Files/project/ame_new/archive_markdown_editor/libs/third_party/7z2600-src
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION="26.00" -DBIT7Z_CUSTOM_7ZIP_PATH=/Volumes/Execute/Files/project/ame_new/archive_markdown_editor/libs/third_party/7z2600-src
 cmake --build . -j --config Release
 ```
 
-# 3. 下载、编译、安装better-sqlite3
+# 3. 下载、编译、安装better-sqlite3（如果项目能跑起来不出错就不用管这条）
 ```bash
 npm install --save-dev electron-rebuild
 npm install better-sqlite3
