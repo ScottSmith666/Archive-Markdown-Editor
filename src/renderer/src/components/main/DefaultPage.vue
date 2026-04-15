@@ -199,11 +199,9 @@
             <div style="height: 10px;"></div>
             <div class="hotkeys-container">
                 <div class="hotkey">Ctrl</div>
-                <div>/</div>
+                /
                 <div class="hotkey">⌘</div>
-                <div>+</div>
                 <div class="hotkey">⇧</div>
-                <div>+</div>
                 <div class="hotkey">H</div>
             </div>
             <div style="height: 10px;"></div>

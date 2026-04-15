@@ -80,7 +80,8 @@ export const rules = (md, documentPathObject, displayKind) => {
                     let mediaFileName = url.split("/").pop();
                     return returnMediaElement(false, kind, documentPathObject.path + '/' + mediaFileName, getCaption);
                 } else {
-                    return returnMediaElement(false, "image", documentPathObject.path + '/' + mediaFileName, getCaption);
+                    let mediaFileName = url.split("/").pop();
+                    return returnMediaElement(false, "image", documentPathObject.path + '/' + mediaFileName, caption);
                 }
             }
         }

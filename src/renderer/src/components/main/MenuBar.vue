@@ -25,6 +25,7 @@ const save = () => {
 };
 
 const openUsageByHotkey = (e) => {
+    let currentPage = store.state.tab.tabList.get(store.state.tab.currentOpenedPageId);
     // Ctrl/Command + Shift + H打开Archive Markdown Editor使用指南
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'h' || e.key === 'H')) {
         e.preventDefault(); // 阻止浏览器默认保存行为
@@ -41,11 +42,15 @@ const openUsageByHotkey = (e) => {
         e.preventDefault();
         store.dispatch('activateOpenFileDialogAction');
     }
-    // Ctrl/Command + S保存文件
-    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
-        e.preventDefault();
-        save();
+
+    if (store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("type") === "file") {  // 只有文件页面才能保存
+        // Ctrl/Command + S保存文件
+        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+            e.preventDefault();
+            save();
+        }
     }
+
     // Ctrl/Command + W关闭页面
     if ((e.ctrlKey || e.metaKey) && (e.key === 'w' || e.key === 'W')) {
         e.preventDefault();
@@ -400,7 +405,11 @@ onMounted(() => {
                             </div>
                             <div class="menu-element" id="about"
                                  @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': 'AME使用指南', 'isExistFile': false, 'docName': 'usage'}); store.commit('mainManuAllHide');">
-                                <p class="fonts">使用指南...</p>
+                                <p class="fonts">AME使用指南...</p>
+                            </div>
+                            <div class="menu-element" id="syntax"
+                                 @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': 'Markdown语法学习', 'isExistFile': false, 'docName': 'syntax'}); store.commit('mainManuAllHide');">
+                                <p class="fonts">Markdown语法学习...</p>
                             </div>
                             <div class="menu-element" id="donate"
                                  @click="store.commit('toggleModal', {'kind': 'donate'}); store.commit('mainManuAllHide');">

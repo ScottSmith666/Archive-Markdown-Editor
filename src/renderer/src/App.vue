@@ -343,7 +343,7 @@ const vFocus = {
                                     fill="#FFFFFF" p-id="2384"></path>
                             </svg>
                             <div id="info-donate-explain" style="margin-left: 5px;">
-                                ● 请注意，为防止数据泄露，AME不会以任何方式持久化保存您的密码，请自行牢记密码！<br>
+                                ● 请注意，为防止数据泄露，AME不会以任何方式持久化保存您的密码，请自行牢记密码！如因自身原因密码丢失导致加密mdz文件打不开的，后果自负！<br>
                                 ● 建议设置复杂度较高的密码以免被暴力破解！
                                 ● 如您想创建无密码的Archive md文件，则不用输入密码，直接保存即可。
                             </div>
