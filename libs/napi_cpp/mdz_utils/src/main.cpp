@@ -77,9 +77,8 @@ public:
         }
         catch (const bit7z::BitException& exception)
         {
-            message = "操作出错了！" + std::string(exception.what()) + " (错误码: " + std::to_string(
-                    exception.code().value()) +
-                ")";
+            message = u8"操作出错了！" + std::string(exception.what()) + u8" (错误码: " + std::to_string(
+                exception.code().value()) + u8")";
             SetError(message);
         }
         catch ([[maybe_unused]] const std::exception& otherException)
@@ -126,8 +125,8 @@ private:
 
 Napi::Value genOrDecompressMdz(const Napi::CallbackInfo& info)
 {
-    // js传入5个字符串参数，第1个是输入路径，第2个是输出路径，第3个是指示压缩还是解压（"compress"或"decompress"）
-    // 第4个是压缩密码（默认空字符串），第5个是解压密码（默认空字符串）
+    // js传入6个字符串参数，第1个是输入路径，第2个是输出路径，第3个是指示压缩还是解压（"compress"或"decompress"）
+    // 第4个是7z动态链接库位置，第5个是压缩密码（默认空字符串），第6个是解压密码（默认空字符串）
     Napi::Env env = info.Env();
 
     // 参数校验
