@@ -3,7 +3,6 @@
 import '../../../../../libs/third_party/monaco-editor/esm/vs/nls/lang/switch-lang.js';
 
 // init monaco editor
-import "./monaco_editor_worker.js";
 import * as monaco from '../../../../../libs/third_party/monaco-editor/esm/vs/editor/editor.api.js';
 import '../../../../../libs/third_party/monaco-editor/esm/vs/basic-languages/monaco.contribution.js';
 import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js';
