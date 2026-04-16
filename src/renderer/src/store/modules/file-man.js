@@ -45,7 +45,7 @@ export const fileMan = {
                     actModel(rootState, {
                         'kind': 'tip',
                         'tipLevel': 'info',
-                        'content': '用户已取消打开文件',
+                        'content': result.message,
                         'showTimeSecond': rootState.lifecycle.tipDisplayTime
                     });
                 }

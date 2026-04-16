@@ -321,8 +321,8 @@ const safe_mode = computed({
                     <div class="settings-description">代码缩略图</div>
                     <div style="height: 10px;"></div>
                     <select v-model="display_code_scale" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="1">显示</option>
-                        <option value="0">不显示</option>
+                        <option value="1">开启</option>
+                        <option value="0">关闭</option>
                     </select>
                 </div>
             </div>

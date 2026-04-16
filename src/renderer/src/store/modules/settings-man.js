@@ -41,6 +41,7 @@ export const settingsMan = {
             }
             // 初始化语言
             window.loadLangPreload.loadLang().then((lang) => {
+                state.lang = lang;
                 localStorage.setItem('lang', lang);
             }).catch((err) => {
                 console.error(err);
