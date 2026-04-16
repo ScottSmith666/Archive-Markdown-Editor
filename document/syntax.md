@@ -203,7 +203,7 @@
 ```javascript
 // 这是一段代码块
 function method(arg) {
-    console.log("Hello World");
+    console.log(arg);
 }
 
 method("Hello World");
@@ -215,7 +215,7 @@ method("Hello World");
 ```javascript
 // 这是一段代码块
 function method(arg) {
-    console.log("Hello World");
+    console.log(arg);
 }
 
 method("Hello World");

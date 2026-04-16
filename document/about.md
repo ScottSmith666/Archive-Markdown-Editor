@@ -85,7 +85,7 @@
     </div>
 </div>
 
-**版本 `1.1.0`** [检查更新<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://github.com/ScottSmith666/Archive-Markdown-Editor/releases)
+**版本 `1.2.0`** [检查更新<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://github.com/ScottSmith666/Archive-Markdown-Editor/releases)
 
 <u>Designed</u> and <u>developed</u> by **Scott Smith**
 
