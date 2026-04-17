@@ -1,0 +1,167 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+/*
+ * bit7z - A C++ static library to interface with the 7-zip shared libraries.
+ * Copyright (c) 2014-2023 Riccardo Ostani - All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+#include "internal/fileextractcallback.hpp"
+
+#include "bitexception.hpp"
+#include "bitinputarchive.hpp"
+#include "bittypes.hpp"
+#include "internal/extractcallback.hpp"
+#include "internal/fsutil.hpp"
+#include "internal/operationresult.hpp"
+#include "internal/stringutil.hpp"
+#include "internal/util.hpp"
+
+#include <cstdint>
+#include <system_error>
+
+using namespace NWindows;
+
+namespace bit7z {
+
+FileExtractCallback::FileExtractCallback( const BitInputArchive& inputArchive,
+                                          const tstring& directoryPath,
+                                          FilterCallback filterCallback,
+                                          RenameCallback renameCallback )
+    : ExtractCallback( inputArchive, std::move( filterCallback ) ),
+      mOutPathBuilder( directoryPath ),
+      mRetainDirectories( inputArchive.handler().retainDirectories() ),
+      mRenameCallback{ std::move( renameCallback ) },
+      mExtractionAttempted{ false } {}
+
+auto FileExtractCallback::extractionAttempted() const -> bool {
+    return mExtractionAttempted;
+}
+
+void FileExtractCallback::releaseStream() {
+    mFileOutStream.Release(); // We need to release the file to change its modified time.
+}
+
+auto FileExtractCallback::finishOperation( OperationResult operationResult ) -> HRESULT {
+    const HRESULT result = operationResult != OperationResult::Success ? E_FAIL : S_OK;
+    if ( mFileOutStream == nullptr ) {
+        return result;
+    }
+
+    mFileOutStream.Release(); // We need to release the file to change its modified time.
+
+    if ( extractMode() != ExtractMode::Extract ) { // No need to set attributes or modified time of the file.
+        return result;
+    }
+
+    // Note: here mCurrentItem is engaged with a value, so there's no need to check if it has one.
+
+#ifdef _WIN32
+    const auto creationTime = mCurrentItem->creationTime();
+    const auto accessTime = mCurrentItem->accessTime();
+    const auto modifiedTime = mCurrentItem->modifiedTime();
+    filesystem::fsutil::set_file_time( mFilePathOnDisk, creationTime, accessTime, modifiedTime );
+#else
+    if ( mCurrentItem->hasModifiedTime() ) {
+        filesystem::fsutil::set_file_modified_time( mFilePathOnDisk, mCurrentItem->modifiedTime() );
+    }
+#endif
+
+    if ( mCurrentItem->areAttributesDefined() ) {
+        filesystem::fsutil::set_file_attributes( mOutPathBuilder, mFilePathOnDisk, mCurrentItem->attributes() );
+    }
+    return result;
+}
+
+
+constexpr auto kCannotDeleteOutput = "Cannot delete output file";
+
+auto FileExtractCallback::getOutStream( std::uint32_t index, ISequentialOutStream** outStream ) -> HRESULT {
+    const auto& item = mCurrentItem.emplace( inputArchive(), index );
+
+    auto filePath = item.path();
+
+    if ( mRenameCallback ) {
+#if !defined( _WIN32 ) || defined( BIT7Z_USE_NATIVE_STRING )
+        // Here we don't use the path_to_tstring function to avoid allocating a new string object.
+        const auto& filePathString = filePath.native();
+#else
+        const auto filePathString = path_to_tstring( filePath );
+#endif
+        filePath = tstring_to_path( mRenameCallback( index, filePathString ) );
+    }
+
+    if ( filePath.empty() || ( isItemFolder( index ) && filePath == L"/" ) ) {
+        return S_OK;
+    }
+
+    mFilePathOnDisk = mOutPathBuilder.buildPath( filePath );
+
+#if defined( _WIN32 ) && defined( BIT7Z_AUTO_PREFIX_LONG_PATHS )
+    if ( filesystem::fsutil::should_format_long_path( mFilePathOnDisk ) ) {
+        mFilePathOnDisk = filesystem::fsutil::format_long_path( mFilePathOnDisk );
+    }
+#endif
+
+    if ( !isItemFolder( index ) ) { // File
+        if ( mHandler.fileCallback() ) {
+#if !defined( _WIN32 ) || defined( BIT7Z_USE_NATIVE_STRING )
+            // Here we don't use the path_to_tstring function to avoid allocating a new string object.
+            const auto& filePathString = filePath.native();
+#else
+            const auto filePathString = path_to_tstring( filePath );
+#endif
+            mHandler.fileCallback()( filePathString );
+        }
+
+        std::error_code error;
+
+        if ( fs::exists( mFilePathOnDisk, error ) ) {
+            const OverwriteMode overwriteMode = mHandler.overwriteMode();
+
+            switch ( overwriteMode ) {
+                case OverwriteMode::None: {
+                    throw BitException( kCannotDeleteOutput,
+                                        make_hresult_code( E_ABORT ),
+                                        path_to_tstring( mFilePathOnDisk ) );
+                }
+                case OverwriteMode::Skip: {
+                    return S_OK;
+                }
+                case OverwriteMode::Overwrite:
+                default: {
+                    if ( !fs::remove( mFilePathOnDisk, error ) ) {
+                        throw BitException( kCannotDeleteOutput, error, path_to_tstring( mFilePathOnDisk ) );
+                    }
+                    break;
+                }
+            }
+        } else {
+            const auto parentPath = mFilePathOnDisk.parent_path();
+            if ( !fs::exists( parentPath, error ) ) {
+                fs::create_directories( parentPath, error );
+            }
+            // TODO: Handle errors
+        }
+
+        auto outStreamLoc = bit7z::make_com< CFileOutStream >( mFilePathOnDisk, true );
+        mFileOutStream = outStreamLoc;
+        *outStream = outStreamLoc.Detach();
+    } else if ( mRetainDirectories ) { // Directory, and we must retain it
+        std::error_code error;
+        if ( !fs::exists( mFilePathOnDisk, error ) ) {
+            fs::create_directories( mFilePathOnDisk, error );
+        }
+        // TODO: Handle errors
+    } else {
+        // No action needed
+    }
+    mExtractionAttempted = true;
+    return S_OK;
+}
+
+} // namespace bit7z
