@@ -270,7 +270,7 @@ ___
 
 ## 二、进阶语法
 
-#### 1. HTML内容
+#### 1. HTML
 
 HTML内容较多，可移步至[RUNOOB](https://www.runoob.com/html/html-tutorial.html)进一步学习，它能支持Markdown渲染出更丰富复杂的效果。
 
