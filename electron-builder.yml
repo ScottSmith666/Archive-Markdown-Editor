@@ -60,11 +60,9 @@ win:
 nsis:
   oneClick: false                           # 必须设置为 false，否则会直接一键安装到 C 盘，不给用户选择机会
   allowToChangeInstallationDirectory: true # 开启自定义安装路径按钮
-  license: "build/license_zh_CN.txt"
   installerIcon: "resources/icon.ico"           # 安装程序图标
   uninstallerIcon: "resources/icon.ico"         # 卸载程序图标
   installerHeaderIcon: "resources/icon.ico"     # 安装界面左上角小图标
-  displayLanguageSelect: true
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
