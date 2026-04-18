@@ -56,7 +56,7 @@ win:
     - target: nsis
       arch:
         - x64
-        - arm64
+#        - arm64
 nsis:
   oneClick: false                           # 必须设置为 false，否则会直接一键安装到 C 盘，不给用户选择机会
   allowToChangeInstallationDirectory: true # 开启自定义安装路径按钮
