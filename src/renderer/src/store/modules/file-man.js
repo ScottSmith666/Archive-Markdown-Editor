@@ -27,6 +27,7 @@ export const fileMan = {
     state: () => {
         return {
             isListenFileChange: true,
+            saveAsError: '',
         };
     },
     mutations: {
@@ -301,13 +302,13 @@ export const fileMan = {
                 // 表单验证
                 let verifyResult = verifySaveForm(planSaveFileInfo);
                 if (!verifyResult.success) {
-                    alert(verifyResult.message);
                     // 停止加载
                     commit('hdLoading', rootState);
                     commit('tgModel', {
                         rootState: rootState,
                         object: {kind: "none"}
                     });
+                    rootState.file.saveAsError = verifyResult.message;
                     return 0;
                 }
 

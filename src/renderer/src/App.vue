@@ -89,9 +89,7 @@ const getSavePathFromDialog = () => {
 };
 const vFocus = {
     mounted: (el) => {
-        setTimeout(() => {
-            el.focus();
-        }, 300);
+        el.focus();
     }
 }
 
@@ -238,12 +236,16 @@ const vFocus = {
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts"
                          @click="store.commit('confirmDialogInteractive', false)">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.cancelButton }}
+                        {{
+                            store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.cancelButton
+                        }}
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts"
                          @click="store.commit('confirmDialogInteractive', true)">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.confirmButton }}
+                        {{
+                            store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.confirmButton
+                        }}
                     </div>
                 </div>
             </div>
@@ -281,11 +283,15 @@ const vFocus = {
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts"
                          @click="store.commit('toggleModal', {'kind': 'none'}); quitConfirmDialog = !quitConfirmDialog;">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.cancelButton }}
+                        {{
+                            store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.cancelButton
+                        }}
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" @click="forceQuit">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.confirmButton }}
+                        {{
+                            store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.confirmButton
+                        }}
                     </div>
                 </div>
             </div>
@@ -315,18 +321,23 @@ const vFocus = {
             <div style="display: flex; flex-direction: column; width: 100%;">
 
                 <div style="display: flex; flex-direction: row; width: 100%;">
-                    <input v-focus class="save-as-input" style="flex: 0.65; width: 0;"
-                           :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.saveNamePlaceholder" v-model="saveName">
+                    <input @input="store.state.file.saveAsError = ''" v-focus class="save-as-input" style="flex: 0.65; width: 0;"
+                           :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.saveNamePlaceholder"
+                           v-model="saveName">
                     <div style="width: 15px;"></div>
-                    <select class="save-as-input" id="ext" name="ext" style="flex: 1; width: 0;" v-model="saveExt">
+                    <select class="save-as-input" @input="store.state.file.saveAsError = ''" id="ext" name="ext" style="flex: 1; width: 0;" v-model="saveExt">
                         <option value="mdz">
-                            {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.mdz }}
+                            {{
+                                store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.mdz
+                            }}
                         </option>
                         <option value="md">
                             {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.md }}
                         </option>
                         <option value="txt" selected>
-                            {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.txt }}
+                            {{
+                                store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.txt
+                            }}
                         </option>
                     </select>
                 </div>
@@ -334,8 +345,9 @@ const vFocus = {
                 <div style="height: 15px;"></div>
 
                 <div style="display: flex; flex-direction: row; width: 100%;">
-                    <input class="save-as-input" style="flex: 3; width: 0;"
-                           :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePathPlaceholder" v-model="savePath">
+                    <input @input="store.state.file.saveAsError = ''" class="save-as-input" style="flex: 3; width: 0;"
+                           :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePathPlaceholder"
+                           v-model="savePath">
                     <div style="width: 15px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" style="width: 70px;"
                          @click="getSavePathFromDialog">
@@ -353,8 +365,9 @@ const vFocus = {
                             </div>
                         </div>
                         <div style="height: 15px;"></div>
-                        <input class="save-as-input" type="password"
-                               :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePasswordPlaceholder" v-model="setPassword">
+                        <input @input="store.state.file.saveAsError = ''" class="save-as-input" type="password"
+                               :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePasswordPlaceholder"
+                               v-model="setPassword">
                         <div style="height: 15px;"></div>
                         <input class="save-as-input" type="password"
                                :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePasswordAgainPlaceholder"
@@ -363,6 +376,10 @@ const vFocus = {
                 </Transition>
             </div>
 
+            <template v-if="store.state.file.saveAsError !== ''">
+                <div style="height: 15px;"></div>
+                <div style="font-weight: bold; color: red;">{{ store.state.file.saveAsError }}</div>
+            </template>
             <div style="height: 15px;"></div>
 
             <div style="display: flex; flex-direction: column; width: 100%;">
@@ -374,9 +391,10 @@ const vFocus = {
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" style="width: 60px;"
-                         @click="store.dispatch('directSaveAction',
+                         @click="store.state.file.saveAsError = ''; store.dispatch('directSaveAction',
                          [saveName, saveExt, savePath,
-                         saveExt === 'mdz' ? setPassword : '', saveExt === 'mdz' ? setPasswordAgain : '']);">{{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.confirmButton }}
+                         saveExt === 'mdz' ? setPassword : '', saveExt === 'mdz' ? setPasswordAgain : '']);">
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.confirmButton }}
                     </div>
                 </div>
             </div>
