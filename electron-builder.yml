@@ -52,13 +52,24 @@ asarUnpack:
 win:
   executableName: archive_markdown_editor
   icon: 'resources/icon.ico'
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - arm64
 nsis:
+  oneClick: false                           # 必须设置为 false，否则会直接一键安装到 C 盘，不给用户选择机会
+  allowToChangeInstallationDirectory: true # 开启自定义安装路径按钮
+  license: "build/license_zh_CN.txt"
+  installerIcon: "resources/icon.ico"           # 安装程序图标
+  uninstallerIcon: "resources/icon.ico"         # 卸载程序图标
+  installerHeaderIcon: "resources/icon.ico"     # 安装界面左上角小图标
+  displayLanguageSelect: true
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
-  entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
@@ -66,8 +77,27 @@ mac:
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
   icon: 'resources/icon.icns'
+  target:
+    - target: dmg
+      arch:
+        - arm64
+#        - x64
 dmg:
   artifactName: ${name}-${version}.${ext}
+  background: "resources/dmg_back.jpg"
+  window:
+    width: 802    # 窗口宽度
+    height: 620   # 窗口高度
+    x: 300        # 窗口在屏幕上的初始 X 坐标
+    y: 300        # 窗口在屏幕上的初始 Y 坐标
+  contents:
+    - x: 173
+      y: 274
+      type: "file"
+    - x: 600
+      y: 278
+      type: "link"
+      path: "/Applications"
 linux:
   icon: 'resources/icon.png'
   target:
