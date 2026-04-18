@@ -30,12 +30,15 @@ const openUsageByHotkey = (e) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'h' || e.key === 'H')) {
         e.preventDefault(); // 阻止浏览器默认保存行为
         store.commit('addTabPage',
-            {'pageType': 'document', 'pageTitle': 'AME使用指南', 'isExistFile': false, 'docName': 'usage'});
+            {'pageType': 'document',
+                'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.usage,
+                'isExistFile': false, 'docName': `usage${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`});
     }
     // Ctrl/Command + N新建文件
     if ((e.ctrlKey || e.metaKey) && (e.key === 'n' || e.key === 'N')) {
         e.preventDefault();
-        store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false});
+        store.commit('addTabPage', {'pageType': 'file',
+            'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false});
     }
     // Ctrl/Command + O打开文件
     if ((e.ctrlKey || e.metaKey) && (e.key === 'o' || e.key === 'O')) {
@@ -43,7 +46,7 @@ const openUsageByHotkey = (e) => {
         store.dispatch('activateOpenFileDialogAction');
     }
 
-    if (store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("type") === "file") {  // 只有文件页面才能保存
+    if (currentPage.get("type") === "file") {  // 只有文件页面才能保存
         // Ctrl/Command + S保存文件
         if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
             e.preventDefault();
@@ -66,7 +69,9 @@ const openUsageByHotkey = (e) => {
     // Ctrl/Command + ,打开设置
     if ((e.ctrlKey || e.metaKey) && e.code === 'Comma') {
         e.preventDefault();
-        store.commit('addTabPage', {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false});
+        store.commit('addTabPage', {'pageType': 'settings',
+            'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.settings,
+            'isExistFile': false});
     }
 };
 
@@ -275,43 +280,44 @@ onMounted(() => {
             <div class="bar-menu-position">
                 <div class="bar-menu-element lower">
                     <div id="file" class="bar-menu-element-txt fonts" @click="store.commit('mainManuClick', 'file')">
-                        文件
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.mainCaption }}
                     </div>
                     <Transition name="slide-fade">
                         <div id="file-expand" class="upper menu" style="margin-left: -10px;"
                              v-if="store.state.menu.fileMenuStyleStatus">
                             <div class="menu-element" id="main-menu-new"
                                  @click="store.commit('addTabPage',
-                                 {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false});
+                                 {'pageType': 'file',
+                                 'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false});
                                  store.commit('mainManuAllHide');">
-                                <p class="fonts">新建</p>
+                                <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.new }}</p>
                             </div>
                             <div class="menu-element" id="main-menu-open"
                                  @click="store.dispatch('activateOpenFileDialogAction'); store.commit('mainManuAllHide');">
-                                <p class="fonts">打开...</p>
+                                <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.open }}</p>
                             </div>
                             <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
                                 ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                                 : false">
                                 <div class="menu-element" id="main-menu-save"
                                      @click="save(); store.commit('mainManuAllHide');">
-                                    <p class="fonts">保存</p>
+                                    <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.save }}</p>
                                 </div>
                                 <div class="menu-element" id="main-menu-save-as"
                                      @click="store.commit('toggleModal', {'kind': 'save-as'}); store.commit('mainManuAllHide');">
-                                    <p class="fonts">另存为...</p>
+                                    <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.saveAs }}</p>
                                 </div>
                             </template>
 
                             <template v-if="store.state.tab.tabList.size !== 0">
                                 <div class="menu-element" id="main-menu-close"
                                      @click="closeCurrentPage(); store.commit('mainManuAllHide');">
-                                    <p class="fonts">关闭</p>
+                                    <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.close }}</p>
                                 </div>
                             </template>
                             <div class="menu-element" id="app-quit" @click="store.commit('quitApp');
                                  store.commit('mainManuAllHide');">
-                                <p class="fonts">退出AME</p>
+                                <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.exitAME }}</p>
                             </div>
                         </div>
                     </Transition>
@@ -320,16 +326,17 @@ onMounted(() => {
 
                     <div id="edit" class="bar-menu-element-txt fonts"
                          @click="store.commit('mainManuClick', 'edit')">
-                        编辑
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.edit.mainCaption }}
                     </div>
                     <Transition name="slide-fade">
                         <div id="edit-expand" class="upper menu" style="margin-left: calc(1 * (25px + 15px));"
                              v-if="store.state.menu.editMenuStyleStatus">
                             <div class="menu-element" id="settings"
                                  @click="store.commit('addTabPage',
-                                 {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false});
+                                 {'pageType': 'settings',
+                                 'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.settings, 'isExistFile': false});
                                  store.commit('mainManuAllHide');">
-                                <p class="fonts">设置...</p>
+                                <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.edit.subCaptions.settings }}</p>
                             </div>
                         </div>
                     </Transition>
@@ -339,22 +346,23 @@ onMounted(() => {
                         : false">
                         <div class="main-menu-separator"></div>
                         <div id="view" class="bar-menu-element-txt fonts"
-                             @click="store.commit('mainManuClick', 'view')">视图
+                             @click="store.commit('mainManuClick', 'view')">
+                            {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.view.mainCaption }}
                         </div>
                         <Transition name="slide-fade">
                             <div id="view-expand" class="upper menu" style="margin-left: calc(2 * (25px + 18px));"
                                  v-if="store.state.menu.viewMenuStyleStatus">
                                 <div class="menu-element" id="preview-mode"
                                      @click="store.commit('changeEditorMode', 'preview'); store.commit('mainManuAllHide');">
-                                    <p class="fonts">预览模式</p>
+                                    <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.view.subCaptions.viewMode }}</p>
                                 </div>
                                 <div class="menu-element" id="edit-mode"
                                      @click="store.commit('changeEditorMode', 'edit'); store.commit('mainManuAllHide');">
-                                    <p class="fonts">编辑模式</p>
+                                    <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.view.subCaptions.editMode }}</p>
                                 </div>
                                 <div class="menu-element" id="mix-mode"
                                      @click="store.commit('changeEditorMode', 'mix'); store.commit('mainManuAllHide');">
-                                    <p class="fonts">混合模式</p>
+                                    <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.view.subCaptions.mixMode }}</p>
                                 </div>
                             </div>
                         </Transition>
@@ -387,7 +395,7 @@ onMounted(() => {
                     <div class="main-menu-separator"></div>
 
                     <div id="help" class="bar-menu-element-txt fonts" @click="store.commit('mainManuClick', 'help')">
-                        帮助
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.mainCaption }}
                     </div>
                     <Transition name="slide-fade">
                         <div id="help-expand" class="upper menu"
@@ -396,28 +404,35 @@ onMounted(() => {
                                 : false) ? 1 : 2}) * (25px + 18px));`"
                              v-if="store.state.menu.helpMenuStyleStatus">
                             <div class="menu-element"
-                                 @click="store.commit('addTabPage', {'pageType': 'welcome', 'pageTitle': '欢迎', 'isExistFile': false}); store.commit('mainManuAllHide');">
-                                <p class="fonts">欢迎</p>
+                                 @click="store.commit('addTabPage', {'pageType': 'welcome',
+                                 'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.welcome, 'isExistFile': false}); store.commit('mainManuAllHide');">
+                                <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.welcome }}</p>
                             </div>
                             <div class="menu-element" id="about"
-                                 @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': '关于AME', 'isExistFile': false, 'docName': 'about'}); store.commit('mainManuAllHide');">
-                                <p class="fonts">关于AME...</p>
+                                 @click="store.commit('addTabPage', {'pageType': 'document',
+                                 'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.about, 'isExistFile': false,
+                                 'docName': `about${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); store.commit('mainManuAllHide');">
+                                <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.about }}</p>
                             </div>
                             <div class="menu-element" id="about"
-                                 @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': 'AME使用指南', 'isExistFile': false, 'docName': 'usage'}); store.commit('mainManuAllHide');">
-                                <p class="fonts">AME使用指南...</p>
+                                 @click="store.commit('addTabPage', {'pageType': 'document',
+                                 'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.usage, 'isExistFile': false,
+                                 'docName': `usage${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); store.commit('mainManuAllHide');">
+                                <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.usage }}</p>
                             </div>
                             <div class="menu-element" id="syntax"
-                                 @click="store.commit('addTabPage', {'pageType': 'document', 'pageTitle': 'Markdown语法学习', 'isExistFile': false, 'docName': 'syntax'}); store.commit('mainManuAllHide');">
-                                <p class="fonts">Markdown语法学习...</p>
+                                 @click="store.commit('addTabPage', {'pageType': 'document',
+                                 'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.syntax, 'isExistFile': false,
+                                 'docName': `syntax${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); store.commit('mainManuAllHide');">
+                                <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.syntax }}</p>
                             </div>
                             <div class="menu-element" id="donate"
                                  @click="store.commit('toggleModal', {'kind': 'donate'}); store.commit('mainManuAllHide');">
-                                <p class="fonts" style="color: red;">打赏...</p>
+                                <p class="fonts" style="color: red;">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.donate }}</p>
                             </div>
                             <div class="menu-element" id="learn-more"
                                  @click="openOfficialWebsite(); store.commit('mainManuAllHide');">
-                                <p class="fonts">官方网站...</p>
+                                <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.officialSite }}</p>
                             </div>
                         </div>
                     </Transition>

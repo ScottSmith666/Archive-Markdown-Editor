@@ -149,7 +149,7 @@ onMounted(() => {
 const render = async (content) => {
     if (content === '') {
         content = '<div style="color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.35);'
-            + ' user-select: none; font-weight: bold; font-size: 2rem; padding-top: 20px;">Markdown渲染区</div>';
+            + ` user-select: none; font-weight: bold; font-size: 2rem; padding-top: 20px;">${store.state.i18n.langPackage[store.state.settings.lang].renderPlaceholder}</div>`;
     }
 
     // apply render HTML content piece
@@ -431,7 +431,7 @@ watch(confirmContentSafe, (newValue, oldValue) => {
         <div v-if="viewerContextMenuShow" class="viewer-contextmenu fonts"
              :style="contextMenuPositionStyle">
             <div class="vc-menu-element" @click="copyInViewer">
-                <p>&nbsp;&nbsp;&nbsp;复制</p>
+                <p>&nbsp;&nbsp;&nbsp;{{ store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inViewer.copy }}</p>
             </div>
             <div v-if="props.enableToc" class="vc-menu-element"
                  @click="viewerTocShow = !viewerTocShow; viewerContextMenuShow = false;">

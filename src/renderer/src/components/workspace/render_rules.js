@@ -45,6 +45,26 @@ export const rules = (md, documentPathObject, displayKind) => {
         const pathForbiddenChar = ["\\"];
         let url = decodeURI(token.attrs[srcIndex][1]);
 
+        let lang = localStorage.getItem('lang');
+
+        let langOption = {
+            "zh-CN": {
+                "forbiddenBackslash": '错误：不支持反斜杠作为路径分割符，请换成正斜杠',
+                "forbiddenChars": '错误：媒体文件名或路径中有非法字符',
+                "mdzMediaFileNotFound": '错误：找不到文件，请检查在线URL是否正确或采用本地绝对路径',
+            },
+            "zh-TW": {
+                "forbiddenBackslash": '錯誤：不支援反斜線作為路徑分割符，請換成正斜杠',
+                "forbiddenChars": '錯誤：媒體檔案名稱或路徑中有非法字符',
+                "mdzMediaFileNotFound": '錯誤：找不到文件，請檢查在線URL是否正確或採用本地絕對路徑',
+            },
+            "en": {
+                "forbiddenBackslash": 'ERROR: Backslashes are not supported as path separators. Please use forward slashes instead',
+                "forbiddenChars": 'ERROR: Illegal characters in media file name or path',
+                "mdzMediaFileNotFound": 'ERROR: File not found. Please check if the online URL is correct or use a local absolute path',
+            },
+        };
+
         // 先判断是不是base64编码的图片
         if (regs.imageBase64.test(url)) {
             return `<img src="${encodeURI(url)}" alt="${caption}">`;
@@ -52,7 +72,7 @@ export const rules = (md, documentPathObject, displayKind) => {
         // 然后判断路径/URl的合法性
         // 这里规定：路径只支持绝对路径，不支持相对路径，且分隔符仅支持正斜杠，不支持反斜杠
         if (url.includes(pathForbiddenChar)) {
-            return `<p style="color: red; font-weight: bold;">🚫错误：不支持反斜杠作为路径分割符，请换成正斜杠</p>`;
+            return `<p style="color: red; font-weight: bold;">🚫${langOption[lang].forbiddenBackslash}</p>`;
         }
 
         // 然后进行正则表达式判断是路径还是URL
@@ -108,16 +128,16 @@ export const rules = (md, documentPathObject, displayKind) => {
                 if (regs.path.win32.test(url)) {
                     let colonNum = (url.match(/\:/g) || []).length;
                     if (colonNum !== 1) {
-                        return `<p style="color: red; font-weight: bold;">🚫错误：媒体文件名或路径中有非法字符</p>`;
+                        return `<p style="color: red; font-weight: bold;">🚫${langOption[lang].forbiddenChars}</p>`;
                     } else {
                         if (fileName.includes(fileForbiddenCharsWin32[i]) || url.includes(fileForbiddenCharsWin32[i])) {
-                            return `<p style="color: red; font-weight: bold;">🚫错误：媒体文件名或路径中有非法字符</p>`;
+                            return `<p style="color: red; font-weight: bold;">🚫${langOption[lang].forbiddenChars}</p>`;
                         }
                     }
                 }
                 if (regs.path.posix.test(url)) {
                     if (fileName.includes(fileForbiddenChars[i]) || url.includes(fileForbiddenChars[i])) {
-                        return `<p style="color: red; font-weight: bold;">🚫错误：媒体文件名或路径中有非法字符</p>`;
+                        return `<p style="color: red; font-weight: bold;">🚫${langOption[lang].forbiddenChars}</p>`;
                     }
                 }
             }
@@ -133,7 +153,7 @@ export const rules = (md, documentPathObject, displayKind) => {
                 // mdz文件处理逻辑
                 return `{"signal": "?MUST_RENDER_MDZ?", "url": "${url}", "caption": "${caption}"}`;  // 返回一个标记，让外面的补充规则渲染mdz media path
             } else {
-                return `<p style="color: red; font-weight: bold;">🚫错误：找不到文件，请检查在线URL是否正确或采用本地绝对路径</p>`;
+                return `<p style="color: red; font-weight: bold;">🚫${langOption[lang].mdzMediaFileNotFound}</p>`;
             }
         }
     };

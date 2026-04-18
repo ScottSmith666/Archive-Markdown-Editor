@@ -88,9 +88,28 @@ export const tMan = {
     actions: {
         // 初始化（即软件启动后）打开的页面，计划分为：不打开任何页面、打开欢迎页面
         initOpenAppTab: ({state, commit}) => {  // 第一次打开AME时加载的页面，可进行更改
+            let lang = localStorage.getItem('lang');
+            console.log(lang);
+            let langOptions = {
+                "zh-CN": {
+                    "tabBar": {
+                        "welcome": '欢迎',
+                    },
+                },
+                "zh-TW": {
+                    "tabBar": {
+                        "welcome": '歡迎',
+                    },
+                },
+                "en": {
+                    "tabBar": {
+                        "welcome": 'Welcome',
+                    },
+                },
+            };
             let initPageId = crypto.randomUUID();
             let initPage = new Map(Object.entries({
-                "label": '欢迎',
+                "label": langOptions[lang].tabBar.welcome,
                 "type": 'welcome',  // 标签页类型，分为文件（file）、欢迎页面（welcome）、设置页面（settings）和文档页面（document）
                                     // 其中文档页面可以渲染“关于”“更新日志”“使用指南”等自定义内容
                                     // 并且欢迎页面（welcome）和设置页面（settings）禁止打开多个
@@ -115,6 +134,7 @@ export const tMan = {
                 // 如果设置为启动时不打开任何页面，即展示的就是默认页面，当前打开的页面ID就设置为“DEFAULT_PAGE”
                 router.replace('/');
             }
+            console.log("state.tabList", state.tabList);
         },
     },
 }

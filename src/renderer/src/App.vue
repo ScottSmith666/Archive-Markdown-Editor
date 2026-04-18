@@ -7,8 +7,8 @@ import {useStore} from 'vuex';
 const store = useStore();
 
 // dispatch
-store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
 store.dispatch('initUserSettingsAction');  // 启动App时即加载user settings相关store变量
+store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
 
 // data
 const quitConfirmDialog = ref(false);
@@ -72,7 +72,10 @@ const forceQuit = () => {
     window.confirmPreload.confirmClose(true, getAllMdzFolderPaths());
 }
 const getSavePathFromDialog = () => {
-    window.fileManPreload.getSavePath("选择保存路径", "确定").then(result => {
+    window.fileManPreload.getSavePath(
+        store.state.i18n.langPackage[store.state.settings.lang].dialog.systemDialogChoosePath.title,
+        store.state.i18n.langPackage[store.state.settings.lang].dialog.systemDialogChoosePath.confirmButton
+    ).then(result => {
         if (result.success) {
             console.log(result);
             savePath.value = result.savePath;
@@ -214,14 +217,14 @@ const vFocus = {
                     </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
-                    确认关闭
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.title }}
                 </div>
             </div>
 
             <div style="height: 15px;"></div>
 
             <div style="font-weight: bold; color: #555555;">
-                您计划关闭的页面内容未保存，如果现在关闭则失去该页面所有未保存进度，是否继续关闭？
+                {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.content }}
             </div>
 
             <div style="height: 15px;"></div>
@@ -230,11 +233,13 @@ const vFocus = {
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts"
-                         @click="store.commit('confirmDialogInteractive', false)">否
+                         @click="store.commit('confirmDialogInteractive', false)">
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.cancelButton }}
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts"
-                         @click="store.commit('confirmDialogInteractive', true)">是
+                         @click="store.commit('confirmDialogInteractive', true)">
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.confirmButton }}
                     </div>
                 </div>
             </div>
@@ -255,14 +260,14 @@ const vFocus = {
                     </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
-                    确认退出
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.title }}
                 </div>
             </div>
 
             <div style="height: 15px;"></div>
 
             <div style="font-weight: bold; color: #555555;">
-                您有1个或多个页面的内容未保存，如果现在退出则失去所有未保存进度，是否继续退出？
+                {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.content }}
             </div>
 
             <div style="height: 15px;"></div>
@@ -272,10 +277,12 @@ const vFocus = {
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts"
                          @click="store.commit('toggleModal', {'kind': 'none'}); quitConfirmDialog = !quitConfirmDialog;">
-                        否
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.cancelButton }}
                     </div>
                     <div style="width: 10px;"></div>
-                    <div class="confirm-dialog-confirm-button fonts" @click="forceQuit">是</div>
+                    <div class="confirm-dialog-confirm-button fonts" @click="forceQuit">
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.confirmButton }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -295,7 +302,7 @@ const vFocus = {
                     </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
-                    另存为
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.title }}
                 </div>
             </div>
 
@@ -304,23 +311,31 @@ const vFocus = {
             <div style="display: flex; flex-direction: column; width: 100%;">
 
                 <div style="display: flex; flex-direction: row; width: 100%;">
-                    <input v-focus class="save-as-input" style="flex: 0.65; width: 0;" placeholder="保存文件名" v-model="saveName">
+                    <input v-focus class="save-as-input" style="flex: 0.65; width: 0;"
+                           :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.saveNamePlaceholder" v-model="saveName">
                     <div style="width: 15px;"></div>
                     <select class="save-as-input" id="ext" name="ext" style="flex: 1; width: 0;" v-model="saveExt">
-                        <option value="mdz">Archive md文件（*.mdz）</option>
-                        <option value="md">Markdown文件（*.md）</option>
-                        <option value="txt" selected>文本文件（*.txt）</option>
+                        <option value="mdz">
+                            {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.mdz }}
+                        </option>
+                        <option value="md">
+                            {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.md }}
+                        </option>
+                        <option value="txt" selected>
+                            {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.txt }}
+                        </option>
                     </select>
                 </div>
 
                 <div style="height: 15px;"></div>
 
                 <div style="display: flex; flex-direction: row; width: 100%;">
-                    <input class="save-as-input" style="flex: 3; width: 0;" placeholder="保存路径" v-model="savePath">
+                    <input class="save-as-input" style="flex: 3; width: 0;"
+                           :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePathPlaceholder" v-model="savePath">
                     <div style="width: 15px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" style="width: 70px;"
                          @click="getSavePathFromDialog">
-                        选择...
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePathChooseButton }}
                     </div>
                 </div>
 
@@ -329,29 +344,16 @@ const vFocus = {
                 <Transition>
                     <div style="display: flex; flex-direction: column; width: 100%;" v-if="saveExt === 'mdz'">
                         <div class="wrapper-info fonts-info info-border info-bg">
-                            <svg style="width: 36px; height: 36px;" t="1661061891516" class="icon"
-                                 viewBox="0 0 1024 1024"
-                                 version="1.1"
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 p-id="2381" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200">
-                                <path d="M512 512m-448 0a448 448 0 1 0 896 0 448 448 0 1 0-896 0Z" fill="#2196F3"
-                                      p-id="2382"></path>
-                                <path d="M469.333333 469.333333h85.333334v234.666667h-85.333334z" fill="#FFFFFF"
-                                      p-id="2383"></path>
-                                <path
-                                    d="M512 352m-53.333333 0a53.333333 53.333333 0 1 0 106.666666 0 53.333333 53.333333 0 1 0-106.666666 0Z"
-                                    fill="#FFFFFF" p-id="2384"></path>
-                            </svg>
                             <div id="info-donate-explain" style="margin-left: 5px;">
-                                ● 请注意，为防止数据泄露，AME不会以任何方式持久化保存您的密码，请自行牢记密码！如因自身原因密码丢失导致加密mdz文件打不开的，后果自负！<br>
-                                ● 建议设置复杂度较高的密码以免被暴力破解！
-                                ● 如您想创建无密码的Archive md文件，则不用输入密码，直接保存即可。
+                                {{  store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.attention  }}
                             </div>
                         </div>
                         <div style="height: 15px;"></div>
-                        <input class="save-as-input" type="password" placeholder="输入密码" v-model="setPassword">
+                        <input class="save-as-input" type="password"
+                               :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePasswordPlaceholder" v-model="setPassword">
                         <div style="height: 15px;"></div>
-                        <input class="save-as-input" type="password" placeholder="再次输入密码"
+                        <input class="save-as-input" type="password"
+                               :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePasswordAgainPlaceholder"
                                v-model="setPasswordAgain">
                     </div>
                 </Transition>
@@ -363,13 +365,14 @@ const vFocus = {
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts" style="width: 60px;"
-                         @click="store.commit('toggleModal', {'kind': 'save-as'})">取消
+                         @click="store.commit('toggleModal', {'kind': 'save-as'})">
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.cancelButton }}
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" style="width: 60px;"
                          @click="store.dispatch('directSaveAction',
                          [saveName, saveExt, savePath,
-                         saveExt === 'mdz' ? setPassword : '', saveExt === 'mdz' ? setPasswordAgain : '']);">保存
+                         saveExt === 'mdz' ? setPassword : '', saveExt === 'mdz' ? setPasswordAgain : '']);">{{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.confirmButton }}
                     </div>
                 </div>
             </div>
@@ -395,7 +398,8 @@ const vFocus = {
                             p-id="4629" fill="#42b883"></path>
                     </svg>
                 </div>
-                <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">打赏
+                <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.donate.title }}
                 </div>
             </div>
 
@@ -415,7 +419,7 @@ const vFocus = {
                         fill="#FFFFFF" p-id="2384"></path>
                 </svg>
                 <div id="info-donate-explain" style="margin-left: 5px;">
-                    如果本软件对您有所帮助，不妨请我喝一杯小小的咖啡吧～各位用户的鼎力支持是我完善软件的最大动力:)。
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.donate.info }}
                 </div>
             </div>
 
@@ -429,7 +433,7 @@ const vFocus = {
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="donate-close-button fonts" @click="store.commit('toggleModal', {'kind': 'donate'})">
-                        关闭
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.donate.closeButton }}
                     </div>
                 </div>
             </div>

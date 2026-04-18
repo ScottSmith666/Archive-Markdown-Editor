@@ -56,7 +56,8 @@ watch(
 
 <template>
     <div class="tab-man-main fonts" v-if="store.state.tab.tabList.size > 0" id="tabs-container"
-         @dblclick="store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false})">
+         @dblclick="store.commit('addTabPage', {'pageType': 'file',
+         'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false})">
         <div v-if="showScroller" class="tab-scroller-sticky" @dblclick.stop="() => null">
             <div class="tab-scroller">
                 <div style="width: 10px;"></div>

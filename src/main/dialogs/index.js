@@ -14,16 +14,15 @@ export class Dialogs {
         }));
     }
 
-    openFileDialog() {
+    openFileDialog(title) {
         return dialog.showOpenDialogSync({
             /**
              * 打开文件
              */
-            title: "打开文件",
+            title: title,
             properties: ['openFile'],
             defaultPath: os.homedir(),
-            buttonLabel: '打开',
-            message: '打开文件',
+            message: title,
             filters: [
                 { name: 'Markdown File', extensions: ['md'] },
                 { name: 'Archive Markdown File', extensions: ['mdz'] },

@@ -110,7 +110,9 @@ const safe_mode = computed({
             <div class="title1">
                 <div class="title1-block"></div>
                 <div style="width: 8px"></div>
-                <h1>设置</h1>
+                <h1>
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].settings.title }}
+                </h1>
             </div>
 
             <div class="wrapper-info fonts-info info-border info-bg">
@@ -128,14 +130,14 @@ const safe_mode = computed({
                         fill="#FFFFFF" p-id="2384"></path>
                 </svg>
                 <div id="info-donate-explain" style="margin-left: 5px;">
-                    设置更改后即时生效，无需重启应用。
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].settings.attention }}
                 </div>
             </div>
 
             <div class="title2">
                 <div class="title2-block"></div>
                 <div style="width: 8px"></div>
-                <h2>编辑器</h2>
+                <h2>{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.mainCaption }}</h2>
             </div>
 
             <div class="settings-item">
@@ -149,7 +151,7 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">字体大小（px）</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.fontSize }}</div>
                     <div style="height: 10px;"></div>
                     <input v-model="editor_font_size" class="input" type="number" min="10" max="100" />
                 </div>
@@ -167,7 +169,7 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">制表符缩进长度</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.tabSize }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="editor_tab_size" class="input" style="flex: 1; min-width: 150px;">
                         <option value="2">2</option>
@@ -190,11 +192,11 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">行号</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.lineNum.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="enable_line_num" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="on">开启</option>
-                        <option value="off">关闭</option>
+                        <option value="on">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.lineNum.options.enable }}</option>
+                        <option value="off">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.lineNum.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -211,11 +213,11 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">代码折叠</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeFold.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="enable_code_fold" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="1">开启</option>
-                        <option value="0">关闭</option>
+                        <option value="1">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeFold.options.enable }}</option>
+                        <option value="0">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeFold.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -232,11 +234,11 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">自动折行</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoWrap.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="enable_auto_wrap_line" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="on">开启</option>
-                        <option value="off">关闭</option>
+                        <option value="on">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoWrap.options.enable }}</option>
+                        <option value="off">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoWrap.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -253,11 +255,11 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">自动输入闭合引号/括号和成对删除引号/括号</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoClosure.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="enable_auto_closure" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="always">开启</option>
-                        <option value="never">关闭</option>
+                        <option value="always">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoClosure.options.enable }}</option>
+                        <option value="never">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoClosure.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -274,12 +276,12 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">垂直滚动条状态</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.verticalScrollbarStatus.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="display_vertical_scrollbar" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="visible">始终显示</option>
-                        <option value="auto">鼠标移入编辑器时时显示</option>
-                        <option value="hidden">不显示</option>
+                        <option value="visible">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.verticalScrollbarStatus.options.always }}</option>
+                        <option value="auto">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.verticalScrollbarStatus.options.untilMouseIn }}</option>
+                        <option value="hidden">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.verticalScrollbarStatus.options.hidden }}</option>
                     </select>
                 </div>
             </div>
@@ -296,12 +298,12 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">水平滚动条状态</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.horizonalScrollbarStatus.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="display_horizon_scrollbar" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="visible">始终显示</option>
-                        <option value="auto">鼠标移入编辑器时时显示</option>
-                        <option value="hidden">不显示</option>
+                        <option value="visible">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.horizonalScrollbarStatus.options.always }}</option>
+                        <option value="auto">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.horizonalScrollbarStatus.options.untilMouseIn }}</option>
+                        <option value="hidden">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.horizonalScrollbarStatus.options.hidden }}</option>
                     </select>
                 </div>
             </div>
@@ -318,11 +320,11 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">代码缩略图</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeScale.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="display_code_scale" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="1">开启</option>
-                        <option value="0">关闭</option>
+                        <option value="1">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeScale.options.enable }}</option>
+                        <option value="0">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeScale.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -339,11 +341,11 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">编辑器动画效果</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.editorAnimation.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="display_editor_animation" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="1">开启</option>
-                        <option value="0">关闭</option>
+                        <option value="1">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.editorAnimation.options.enable }}</option>
+                        <option value="0">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.editorAnimation.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -352,7 +354,7 @@ const safe_mode = computed({
             <div class="title2">
                 <div class="title2-block"></div>
                 <div style="width: 8px"></div>
-                <h2>安全</h2>
+                <h2>{{ store.state.i18n.langPackage[store.state.settings.lang].settings.safe.mainCaption }}</h2>
             </div>
             <div class="settings-item">
                 <div class="settings-icon">
@@ -365,18 +367,18 @@ const safe_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">安全模式</div>
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.safe.subCaptions.safeMode.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="safe_mode" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="1">开启</option>
-                        <option value="0">关闭</option>
+                        <option value="1">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.safe.subCaptions.safeMode.options.enable }}</option>
+                        <option value="0">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.safe.subCaptions.safeMode.options.disable }}</option>
                     </select>
                 </div>
             </div>
             <div style="height: 15px;"></div>
             <div class="confirm-dialog-confirm-button fonts" style="width: 70px;"
                  @click="store.commit('forceResetUserSettings')">
-                重置
+                {{ store.state.i18n.langPackage[store.state.settings.lang].settings.resetButton }}
             </div>
             <div style="height: 40px;"></div>
         </div>

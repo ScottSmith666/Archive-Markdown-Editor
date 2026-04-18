@@ -71,7 +71,7 @@ const sortHistory = computed(() => {
             <!--title-->
             <div class="title">Archive Markdown Editor</div>
             <!--subtitle-->
-            <div class="subtitle">简约、美观、功能强大</div>
+            <div class="subtitle">{{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.subTitle }}</div>
         </div>
         <div class="welcome-body">
             <div class="side">
@@ -81,27 +81,35 @@ const sortHistory = computed(() => {
                     <div class="recent-file-title-body">
                         <div class="block"></div>
                         <div style="width: 6px;"></div>
-                        <div style="font-weight: bold; font-size: 1.3rem;" id="history">开始</div>
+                        <div style="font-weight: bold; font-size: 1.3rem;" id="history">
+                            {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.start }}
+                        </div>
                     </div>
                 </div>
                 <!--Separator-->
                 <div class="separator"></div>
                 <!--New File-->
                 <div
-                    @click="store.commit('addTabPage', {'pageType': 'file', 'pageTitle': '无标题文档', 'isExistFile': false})"
-                    class="options" id="new"><span class="options-icon">㊢</span>新建文件...
+                    @click="store.commit('addTabPage', {'pageType': 'file',
+                    'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false})"
+                    class="options" id="new"><span class="options-icon">㊢</span>
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.new }}
                 </div>
                 <!--Open-->
                 <div class="options" id="open" @click="store.dispatch('activateOpenFileDialogAction')"><span
-                    class="options-icon">㊠</span>打开文件...
+                    class="options-icon">㊠</span>
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.open }}
                 </div>
                 <!--Open-->
                 <div
-                    @click="store.commit('addTabPage', {'pageType': 'settings', 'pageTitle': '设置', 'isExistFile': false})"
-                    class="settings" id="settings"><span class="options-icon">㊕</span>设置...
+                    @click="store.commit('addTabPage', {'pageType': 'settings',
+                    'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.settings, 'isExistFile': false})"
+                    class="settings" id="settings"><span class="options-icon">㊕</span>
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.settings }}
                 </div>
                 <!--Quit-->
-                <div class="options-quit" id="quit" @click="store.commit('quitApp')"><span class="options-icon">㊡</span>退出AME
+                <div class="options-quit" id="quit" @click="store.commit('quitApp')"><span class="options-icon">㊡</span>
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.exitAME }}
                 </div>
 
                 <!--Powered-->
@@ -219,16 +227,17 @@ const sortHistory = computed(() => {
                     <div class="recent-file-title-body">
                         <div class="block"></div>
                         <div style="width: 6px;"></div>
-                        <div style="font-weight: bold; font-size: 1.3rem;" id="history">历史记录</div>
+                        <div style="font-weight: bold; font-size: 1.3rem;" id="history">{{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.history.title }}</div>
                     </div>
-                    <div id="clear" class="clear-all-history" v-if="recentFileHistoryList.length > 0" @click="deleteHistory('ALL')">清空
+                    <div id="clear" class="clear-all-history" v-if="recentFileHistoryList.length > 0" @click="deleteHistory('ALL')">
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.history.clearButton }}
                     </div>
                 </div>
                 <!--Separator-->
                 <div class="separator"></div>
                 <!--Recent file unit-->
                 <template v-if="recentFileHistoryList.length === 0">
-                    <div style="color: #6a737d;" id="empty">曾打开的文件将显示于此处。</div>
+                    <div style="color: #6a737d;" id="empty">{{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.history.describe }}</div>
                 </template>
                 <template v-else>
                     <div class="recent-file-unit" v-for="(item, index) in sortHistory" :key="item.hsId">

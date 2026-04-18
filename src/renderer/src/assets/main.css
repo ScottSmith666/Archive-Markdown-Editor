@@ -150,7 +150,7 @@ html, body {
 }
 
 .confirm-dialog-confirm-button {
-    width: 120px;
+    min-width: 120px;
     height: 35px;
     border-radius: 10px;
     background-color: #42b883;
@@ -165,7 +165,7 @@ html, body {
 }
 
 .confirm-dialog-cancel-button {
-    width: 120px;
+    min-width: 120px;
     height: 35px;
     border-radius: 10px;
     background-color: #ffffff;

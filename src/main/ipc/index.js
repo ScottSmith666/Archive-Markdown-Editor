@@ -56,6 +56,7 @@ export const ipc = (Sqlite3, dbPath) => {
     sqliteMan.init();  // 检查相关sqlite表是否存在，如不存在就新建
 
     ipcMain.handle("activate-open-file-dialog", (event, title, content) => {
+        console.log(`[${title}] ${content}`);
         // 打开“选择打开文件”的操作系统组件，以向渲染端（前端）返回计划打开的文件路径
         let filePath = dialogs.openFileDialog(title);  // 获得打开的文件路径
         if (!filePath) {

@@ -125,7 +125,7 @@ onMounted(() => {
         // 唯一 ID
         id: 'custom-undo',
         // 菜单上显示的文字
-        label: '撤销',
+        label: store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inEditor.undo,
         // 指定快捷键 (可选)
         keybindings: [
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ,
@@ -141,7 +141,7 @@ onMounted(() => {
     });
     monacoInstance.addAction({
         id: 'custom-redo',
-        label: '重做',
+        label: store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inEditor.redo,
         keybindings: [
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY,
         ],

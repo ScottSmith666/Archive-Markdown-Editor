@@ -13,12 +13,29 @@ export const regExps = () => {
 };
 
 export const returnMediaElement = (isURL, kind, url, caption = "") => {
+    let lang = localStorage.getItem('lang');
+
+    let langOption = {
+        "zh-CN": {
+            "saveFileInMdz": '保存mdz内嵌媒体文件',
+            "unrecognizedFileFlag": '🚫错误：无法识别的文件类型标志：',
+        },
+        "zh-TW": {
+            "saveFileInMdz": '儲存mdz內嵌媒體文件',
+            "unrecognizedFileFlag": '🚫錯誤：無法辨識的文件類型標誌：',
+        },
+        "en": {
+            "saveFileInMdz": 'Save mdz embedded media files as',
+            "unrecognizedFileFlag": '🚫ERROR: Unrecognized file type flag: ',
+        },
+    };
     if (kind === 'video') {
         return `<video controls><source src="${isURL ? encodeURI(url) : ('file://' + url)}"></video>`;
     } else if (kind === 'audio') {
         return `<audio style="width: 100%;" controls src="${isURL ? encodeURI(url) : ('file://' + url)}"></audio>`;
     } else if (kind === 'file') {
-        return `<div onclick="window.fileManPreload.saveFileInMdz('保存mdz内嵌媒体文件', '${"file://" + url}');" `
+
+        return `<div onclick="window.fileManPreload.saveFileInMdz('${langOption[lang].saveFileInMdz}', '${"file://" + url}');" `
             + `style="cursor:pointer; display: flex; flex-direction: row; align-items: center; padding: 15px; `
             + `border-radius: 5px; background-color: #42b98330; border: 1px solid #42b983;"><div>`
             + `<svg style="width: 50px; height: 50px;" t="1763025308845" class="icon" viewBox="0 0 1024 1024" `
@@ -40,6 +57,6 @@ export const returnMediaElement = (isURL, kind, url, caption = "") => {
     } else if (kind === 'image') {
         return `<img src="${isURL ? encodeURI(url) : ('file://' + url)}" alt="${caption}">`;
     } else {
-        return `<p style="color: red; font-weight: bold;">🚫错误：无法识别的文件类型标志：${kind}</p>`;
+        return `<p style="color: red; font-weight: bold;">🚫${langOption[lang].unrecognizedFileFlag}${kind}</p>`;
     }
 };

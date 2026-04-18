@@ -210,7 +210,7 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
         actModel(rootState, {
             'kind': 'tip',
             'tipLevel': 'fail',
-            'content': "禁止重复打开已打开的文件",
+            'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.repeatOpenForbidden,
             'showTimeSecond': rootState.lifecycle.tipDisplayTime
         });
         return 0;
@@ -223,19 +223,20 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
             actModel(rootState, {
                 'kind': 'tip',
                 'tipLevel': 'fail',
-                'content': "文件名内有非法字符 > < : ' | * ?",
+                'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.forbiddenCharsInFileName,
                 'showTimeSecond': rootState.lifecycle.tipDisplayTime
             });
             return 0;
         }
     }
 
-    actModel(rootState, {kind: "loading", content: "正在打开文件..."});  // 显示加载
+    actModel(rootState, {kind: "loading",
+        content: rootState.i18n.langPackage[rootState.settings.lang].dialog.loading.open});  // 显示加载
     // 获得文件路径后，异步打开文件获得内容
     let planOpenFilePath = result.filePath;
     let planOpenFileName = result.fileName;
     let ext = planOpenFileName.split(".").pop();
-    let content = "不支持打开这种类型的文件！";
+    let content = rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.unsupportedFileType;
     window.fileManPreload.loadFileContent(planOpenFilePath, content).then(async (result2) => {
         if (result2.success) {  // 符合条件的md、txt文件以及不带密码的mdz文件可直接打开
             // 然后将其装载入Monaco Editor Model
@@ -256,7 +257,7 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                     'kind': 'tip',
                     'tipLevel': 'fail',
                     'content': result2.message.includes('no such file or directory')
-                        ? '无法打开不存在的文件'
+                        ? rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.fileNotFound
                         : result2.message,
                     'showTimeSecond': rootState.lifecycle.tipDisplayTime
                 });
@@ -266,8 +267,8 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                 if (result2.message === "PASSWORD_REQUIRED") {
                     // 说明mdz设置了密码
                     // 那就弹出需要解锁密码的弹框输入密码
-                    let promTitle = "输入密码";
-                    let promContent = "此文件已加密，需要输入密码查看内容";
+                    let promTitle = rootState.i18n.langPackage[rootState.settings.lang].dialog.openEncMdzPasswordRequired.title;
+                    let promContent = rootState.i18n.langPackage[rootState.settings.lang].dialog.openEncMdzPasswordRequired.description;
                     while (true) {
                         try {
                             let returnFromInputMdzPasswordDialog = await window.fileManPreload.activateInputMdzPasswordDialog(promTitle, promContent);
@@ -290,7 +291,7 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                                     break;
                                 } else {
                                     if (result4.message === "WRONG_PASSWORD_ERROR") {
-                                        promTitle = "密码错误，请重试";
+                                        promTitle = rootState.i18n.langPackage[rootState.settings.lang].dialog.openEncMdzPasswordRequired.wrongPasswordTitle;
                                     }
                                     // 如果不点取消则会一直重试
                                 }
@@ -302,7 +303,7 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                                     actModel(rootState, {
                                         'kind': 'tip',
                                         'tipLevel': 'info',
-                                        'content': '用户已取消输入密码!',
+                                        'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.cancelPasswordInput,
                                         'showTimeSecond': rootState.lifecycle.tipDisplayTime
                                     });
                                 } else {
@@ -333,10 +334,19 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                     actModel(rootState, {
                         'kind': 'tip',
                         'tipLevel': 'fail',
-                        'content': result2.message === "FILE_NOT_FOUND" ? "无法打开不存在的文件" : result2.message,
+                        'content': result2.message === "FILE_NOT_FOUND" ? rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.fileNotFound : result2.message,
                         'showTimeSecond': rootState.lifecycle.tipDisplayTime
                     });
                 }
+            } else {
+                hdLoading(rootState);
+                tgModel(rootState, {kind: "none"});
+                actModel(rootState, {
+                    'kind': 'tip',
+                    'tipLevel': 'fail',
+                    'content': result2.message,
+                    'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                });
             }
         }
     }).catch((e) => {
@@ -668,28 +678,50 @@ export const replaceIdToOriginCode = async (model, replaceArray) => {
 
 export const verifySaveForm = (formArray) => {
     // 用户提供的文件信息，则包含：data = [单纯文件名, 扩展名, 保存路径, 密码, 再次输入密码]
+
+    let lang = localStorage.getItem('lang');
+    let langOptions = {
+        "zh-CN": {
+            "fileNameRequired": '保存失败，请填写文件名！',
+            "forbiddenChars": '保存失败，文件名内含有非法字符 > < : \' | * ?',
+            "savePathRequired": '保存失败，未指定保存路径！',
+            "twicePasswordNotSame": '保存失败，两次输入的密码不一致，请重新输入！',
+        },
+        "zh-TW": {
+            "fileNameRequired": '儲存失敗，請填寫檔案名稱！',
+            "forbiddenChars": '儲存失敗，檔案名稱內含有非法字符 > < : \' | * ?',
+            "savePathRequired": '儲存失敗，未指定儲存路徑！',
+            "twicePasswordNotSame": '儲存失敗，兩次輸入的密碼不一致，請重新輸入！',
+        },
+        "en": {
+            "fileNameRequired": 'Save failed. File name required.',
+            "forbiddenChars": 'Failed. File name contains illegal chars > < : \' | * ?',
+            "savePathRequired": 'Failed. Save path required.',
+            "twicePasswordNotSame": 'Failed. Two passwords do not match. Please re-enter.',
+        },
+    };
+
     console.log("verifySaveForm", formArray);
     const fileForbiddenChars = [">", "<", ":", "'", "|", "*", "?"];
 
     if (formArray[0] === '') {
-        return {"success": false, message: "保存失败，请填写文件名！"};
+        return {"success": false, message: langOptions[lang].fileNameRequired};
     }
 
     for (let i = 0; i < fileForbiddenChars.length; i++) {
         if (formArray[0].includes(fileForbiddenChars[i])) {
-            return {"success": false, message: "保存失败，文件名内含有非法字符 > < : ' | * ?"};
+            return {"success": false, message: langOptions[lang].forbiddenChars};
         }
     }
 
     if (formArray[2] === '') {
-        return {"success": false, message: "保存失败，未指定保存路径！"};
+        return {"success": false, message: langOptions[lang].savePathRequired};
     }
 
     console.log("formArray[3]", formArray[3]);
     console.log("formArray[4]", formArray[4]);
     if (formArray[3] !== formArray[4]) {
-        return {"success": false, message: "保存失败，两次输入的密码不一致，请重新输入！"};
+        return {"success": false, message: langOptions[lang].twicePasswordNotSame};
     }
-
     return {"success": true};
 };

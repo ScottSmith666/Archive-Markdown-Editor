@@ -1,3 +1,8 @@
+<script setup>
+import {useStore} from 'vuex';
+
+const store = useStore();
+</script>
 <template>
 <div class="element-in-center">
     <!--AME图标-->
@@ -195,7 +200,9 @@
     <!--代表性快捷键提示-->
     <div>
         <div class="container fonts">
-            <div class="explain">激活如下所示热键</div>
+            <div class="explain">
+                {{ store.state.i18n.langPackage[store.state.settings.lang].defaultPage.activateHotKey }}
+            </div>
             <div style="height: 10px;"></div>
             <div class="hotkeys-container">
                 <div class="hotkey">Ctrl</div>
@@ -205,7 +212,9 @@
                 <div class="hotkey">H</div>
             </div>
             <div style="height: 10px;"></div>
-            <div class="explain">打开Archive Markdown Editor使用指南</div>
+            <div class="explain">
+                {{ store.state.i18n.langPackage[store.state.settings.lang].defaultPage.motivation }}
+            </div>
         </div>
     </div>
 </div>
@@ -213,5 +222,3 @@
 <style scoped>
 @import "./styles/default-page.css";
 </style>
-<script setup lang="ts">
-</script>

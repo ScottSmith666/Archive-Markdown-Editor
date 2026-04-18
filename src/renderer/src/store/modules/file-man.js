@@ -33,8 +33,9 @@ export const fileMan = {
         // 激活“打开文件”操作系统组件
         activateOpenFileDialogMethod(state, rootState) {
             tgModel(rootState, {kind: "none"});
-            let title = "打开文件";
-            let content = "用户已取消打开文件";
+            let title = rootState.i18n.langPackage[rootState.settings.lang].dialog.systemDialogOpenFile;
+            console.log("in activateOpenFileDialogMethod title: ", title);
+            let content = rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.userCancelOpen;
             window.fileManPreload.activateOpenFileDialog(title, content).then((result) => {
                 // 如果result.success是true则在新标签页打开文件
                 // 如果是false，则不触发任何事件
@@ -111,7 +112,7 @@ export const fileMan = {
                     rootState: rootState,
                     object: {
                         'kind': 'loading',
-                        'content': '正在保存...',
+                        'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.loading.save,
                     }
                 });
                 // currentPageIsExistFile为true，且用户不提供计划保存文件信息参数
@@ -216,7 +217,7 @@ export const fileMan = {
                                     object: {
                                         'kind': 'tip',
                                         'tipLevel': 'fail',
-                                        'content': '保存失败，请马上直接关闭文件以回滚到您上次保存的状态！',
+                                        'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.saveFailed,
                                         'showTimeSecond': rootState.lifecycle.tipDisplayTime
                                     }
                                 });
@@ -293,7 +294,7 @@ export const fileMan = {
                     rootState: rootState,
                     object: {
                         'kind': 'loading',
-                        'content': '正在保存...',
+                        'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.loading.save,
                     }
                 });
                 // 隐藏保存表单
@@ -509,7 +510,7 @@ export const fileMan = {
                                         object: {
                                             'kind': 'tip',
                                             'tipLevel': 'fail',
-                                            'content': '保存失败，请马上直接关闭文件以回滚到您上次保存的状态！',
+                                            'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.saveFailed,
                                             'showTimeSecond': rootState.lifecycle.tipDisplayTime
                                         }
                                     });
