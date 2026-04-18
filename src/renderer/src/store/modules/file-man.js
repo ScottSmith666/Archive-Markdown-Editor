@@ -297,12 +297,6 @@ export const fileMan = {
                         'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.loading.save,
                     }
                 });
-                // 隐藏保存表单
-                commit('hdSaveForm', rootState);
-                commit('tgModel', {
-                    rootState: rootState,
-                    object: {kind: "none"}
-                });
 
                 // 表单验证
                 let verifyResult = verifySaveForm(planSaveFileInfo);
@@ -310,8 +304,20 @@ export const fileMan = {
                     alert(verifyResult.message);
                     // 停止加载
                     commit('hdLoading', rootState);
+                    commit('tgModel', {
+                        rootState: rootState,
+                        object: {kind: "none"}
+                    });
                     return 0;
                 }
+
+                // 隐藏保存表单
+                commit('hdSaveForm', rootState);
+                commit('tgModel', {
+                    rootState: rootState,
+                    object: {kind: "none"}
+                });
+
                 console.log("表单验证完成");
                 console.log("currentPageIsExistFile", currentPageIsExistFile);
                 console.log("planSaveFileInfo.length", planSaveFileInfo.length);

@@ -88,7 +88,11 @@ const getSavePathFromDialog = () => {
     });
 };
 const vFocus = {
-    mounted: (el) => el.focus()
+    mounted: (el) => {
+        setTimeout(() => {
+            el.focus();
+        }, 300);
+    }
 }
 
 </script>
@@ -345,7 +349,7 @@ const vFocus = {
                     <div style="display: flex; flex-direction: column; width: 100%;" v-if="saveExt === 'mdz'">
                         <div class="wrapper-info fonts-info info-border info-bg">
                             <div id="info-donate-explain" style="margin-left: 5px;">
-                                {{  store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.attention  }}
+                                {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.attention }}
                             </div>
                         </div>
                         <div style="height: 15px;"></div>
