@@ -12,11 +12,15 @@ get_filename_component( CPM_DOWNLOAD_LOCATION ${CPM_DOWNLOAD_LOCATION} ABSOLUTE 
 set( CPM_USE_NAMED_CACHE_DIRECTORIES ON )
 if( NOT ( EXISTS ${CPM_DOWNLOAD_LOCATION} ) )
     message( STATUS "Downloading CPM.cmake to ${CPM_DOWNLOAD_LOCATION}" )
-    file( DOWNLOAD
-          https://github.com/cpm-cmake/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake
-          ${CPM_DOWNLOAD_LOCATION}
-          SHOW_PROGRESS
-          EXPECTED_HASH SHA256=${CPM_DOWNLOAD_HASH}
+    # file( DOWNLOAD
+          # https://github.com/cpm-cmake/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake
+          # ${CPM_DOWNLOAD_LOCATION}
+          # SHOW_PROGRESS
+          # EXPECTED_HASH SHA256=${CPM_DOWNLOAD_HASH}
+    # )
+    file(COPY
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake"
+        DESTINATION "${CPM_DOWNLOAD_LOCATION}/CPM_${CPM_DOWNLOAD_VERSION}.cmake" # 注意：COPY 到目标目录的父级，它会自动保持文件名
     )
 endif()
 include( ${CPM_DOWNLOAD_LOCATION} )
