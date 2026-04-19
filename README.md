@@ -50,23 +50,23 @@ The names of the media files inside the `media_src` folder do not need to be fix
 
 Saving as an MDZ file is very easy. Just click "Save As".
 
-![]($DOCUMENT_MEDIA/save-as.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/save-as.png)
 
 In the Save As dialog box, select "Archive MD file (*.mdz)" from the file format drop-down menu.
 
-![]($DOCUMENT_MEDIA/save-as-dialog.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/save-as-dialog.png)
 
 Additionally, when you save as an .mdz file, any imported multimedia files (via your local absolute path)
 
-![md.png]($DOCUMENT_MEDIA/md.png)
+![md.png](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/md.png)
 
 will be automatically embedded in the .mdz file and converted to .mdz media paths. Therefore, you don't need to worry about multimedia management; AME will handle it all for you!
 
-![md.png]($DOCUMENT_MEDIA/mdz.png)
+![md.png](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/mdz.png)
 
 When you save, you'll find a password input box at the bottom. That's right, you can set a password for your .mdz file to protect its content! This will be explained in detail below.
 
-![]($DOCUMENT_MEDIA/save-as-dialog.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/save-as-dialog.png)
 
 #### 2. Set a password for "mdz"
 
@@ -78,15 +78,15 @@ Go back to the "Save As" dialog box, where there is a password input box at the 
 
 Of course, if you don't fill in the password box below when saving the .mdz file, the final saved file will be an unencrypted .mdz file without a password.
 
-![]($DOCUMENT_MEDIA/save-as-dialog.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/save-as-dialog.png)
 
 When Archive Markdown Editor opens an encrypted .mdz file, a password input box will immediately pop up for you to enter a password. If you enter an incorrect password, the file will not open; instead, the window will repeatedly pop up for you to re-enter the password. The input box will only disappear if you click "Cancel" manually.
 
-![]($DOCUMENT_MEDIA/require-password.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/require-password.png)
 
 When you successfully open an encrypted .mdz file, you will find that the corresponding label icon is a security shield. This is a unique identifier for encrypted .mdz files, and it is different from the label icons for ordinary Markdown files and unencrypted .mdz files.
 
-![]($DOCUMENT_MEDIA/encrypt-tab.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/encrypt-tab.png)
 
 > [!caution]
 >
@@ -112,29 +112,17 @@ If your multimedia filename contains spaces (such as "media space.mp4"), you can
 
 In this section, the caption, which was originally a Markdown image statement, has been further subdivided to support multimedia: `${video}:` can contain any content. The `${video}:` part is a fixed-structure multimedia format identifier (note the colon).
 
-The effect is as follows:
-
-![${video}:这里可以填写任何内容]($DOCUMENT_MEDIA/media.mp4)
-
 When you want to insert audio, AME's specific syntax is as follows:
 
 ```AME-specific-syntax
 ![${audio}:anything here](/path/to/media.mp3)
 ```
 
-The effect is as follows:
-
-![${audio}:这里可以填写任何内容]($DOCUMENT_MEDIA/media.mp3)
-
 Of course, some might also say that Archive Markdown Editor also supports sharing an interesting file along with the .mdz file. AME's unique syntax is as follows:
 
 ```AME-specific-syntax
 ![${file}:anything here](/path/to/download.txt)
 ```
-
-The effect is as follows:
-
-![${file}:这里可以填写任何内容]($DOCUMENT_MEDIA/download.txt)
 
 Click to save to any location (if you can).
 
@@ -146,17 +134,13 @@ Of course, if you find the audio or video content interesting, you can change it
 ![${file}:anything here](/path/to/media.mp3)
 ```
 
-![${file}:这里可以填写任何内容]($DOCUMENT_MEDIA/media.mp4)
-
-![${file}:这里可以填写任何内容]($DOCUMENT_MEDIA/media.mp3)
-
 #### 4. Intelligent suggestions make writing easier
 
 Archive Markdown Editor features excellent Markdown intelligent suggestions. When you type specific keywords in the editor while editing a document, Archive Markdown Editor will automatically match and display the Markdown statements you want to enter based on those keywords; you simply need to select them.
 
 For intelligent keyword suggestions, please refer to `Menu bar > Help > Markdown Learning...`.
 
-![]($DOCUMENT_MEDIA/suggestions.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/suggestions.png)
 
 #### 5. Safe Mode
 
@@ -168,17 +152,17 @@ For intelligent keyword suggestions, please refer to `Menu bar > Help > Markdown
 
 If you suspect that the content of a file you are about to open is problematic, you can refrain from opening the file beforehand and go to settings first.
 
-![]($DOCUMENT_MEDIA/settings.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/settings.png)
 
 Enable safe mode, then exit settings.
 
-![]($DOCUMENT_MEDIA/open-safe-mode.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/open-safe-mode.png)
 
 When safe mode is enabled, the connection between the editor and the renderer will be broken, so the renderer will not work when a file is opened, and therefore malicious code will not be executed.
 
 The next step is simply to eliminate malicious code.
 
-![]($DOCUMENT_MEDIA/pause-render.png)
+![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/pause-render.png)
 
 ## II. Archive Markdown Editor Hotkey Table
 
