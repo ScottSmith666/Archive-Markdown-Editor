@@ -37,9 +37,12 @@ let doCopy7ZDyLib;
 if (process.platform === "win32") {
     echoCopy7ZipToMdzUtilsLibDir = `echo "Copying 7-Zip library to: ${path.join(mdzUtilsLibDir, "7z.dll")}"`;
     doCopy7ZDyLib = `copy "${path.join(sevenZDir, "Format7zF", process.arch, "7z.dll")}" "${path.join(mdzUtilsLibDir, "7z.dll")}"`;
-} else {
+} else if (process.platform === "darwin") {
     echoCopy7ZipToMdzUtilsLibDir = `echo "Copying 7-Zip library to: ${path.join(mdzUtilsLibDir, "7z.so")}"`;
     doCopy7ZDyLib = `cp "${path.join(sevenZDir, "Format7zF", "b", "m_" + process.arch, "7z.so")}" "${path.join(mdzUtilsLibDir, "7z.so")}"`;
+} else if (process.platform === "linux") {
+    echoCopy7ZipToMdzUtilsLibDir = `echo "Copying 7-Zip library to: ${path.join(mdzUtilsLibDir, "7z.so")}"`;
+    doCopy7ZDyLib = `cp "${path.join(sevenZDir, "Format7zF", "b", "g", "7z.so")}" "${path.join(mdzUtilsLibDir, "7z.so")}"`;
 }
 let echoCopy7ZipFinish = `echo "Copy 7-Zip library finished, leaving dir."`;
 // 接下来编译bit7z库
