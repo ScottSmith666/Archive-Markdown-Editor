@@ -36,7 +36,7 @@ try {
 
 try {
     fs.rmSync(path.join(__dirname, "..", "libs", "third_party", "7z2600-src",
-        "CPP", "7zip", "Bundles", "Format7zF", process.platform === 'win32' ? "o" : "b"), { recursive: true, force: true });
+        "CPP", "7zip", "Bundles", "Format7zF", process.platform === 'win32' ? process.arch : "b"), { recursive: true, force: true });
 } catch (err) {}
 
 try {
