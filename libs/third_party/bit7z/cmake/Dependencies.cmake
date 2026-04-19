@@ -18,9 +18,10 @@ if( NOT ( EXISTS ${CPM_DOWNLOAD_LOCATION} ) )
           # SHOW_PROGRESS
           # EXPECTED_HASH SHA256=${CPM_DOWNLOAD_HASH}
     # )
-    file(COPY
+    file(INSTALL
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake"
-        DESTINATION "${CPM_DOWNLOAD_LOCATION}/CPM_${CPM_DOWNLOAD_VERSION}.cmake" # 注意：COPY 到目标目录的父级，它会自动保持文件名
+        DESTINATION "${CMAKE_BINARY_DIR}/cmake/"
+        RENAME "CPM_${CPM_DOWNLOAD_VERSION}.cmake"
     )
 endif()
 include( ${CPM_DOWNLOAD_LOCATION} )
