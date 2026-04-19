@@ -161,7 +161,7 @@ namespace BitFormat {
 /**
  * @brief Automatic Format Detection (available only when compiling bit7z using the `BIT7Z_AUTO_FORMAT` option).
  */
-extern const BitInOutFormat Auto;
+extern const BitInFormat Auto;
 #endif
 extern const BitInFormat Rar;       ///< RAR Archive Format
 extern const BitInFormat Arj;       ///< ARJ Archive Format

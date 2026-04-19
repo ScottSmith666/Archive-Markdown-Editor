@@ -77,7 +77,8 @@ public:
         }
         catch (const bit7z::BitException& exception)
         {
-            message = u8"操作出错了！" + std::string(exception.what()) + u8" (错误码: " + std::to_string(
+            std::string utf8_path = std::filesystem::path(exception.what()).u8string();
+            message = u8"操作出错了！" + utf8_path + u8" (错误码: " + std::to_string(
                 exception.code().value()) + u8")";
             SetError(message);
         }
