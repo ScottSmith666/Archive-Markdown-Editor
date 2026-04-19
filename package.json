@@ -4,9 +4,6 @@
     "description": "A simple, beautiful and powerful markdown & mdz file editor.",
     "main": "./out/main/index.js",
     "author": "Scott Smith",
-    "bin": {
-        "install-ame": "./install.js"
-    },
     "keywords": [
         "archive",
         "markdown",
@@ -21,11 +18,12 @@
         "start": "electron-vite preview",
         "dev": "electron-vite dev",
         "build": "electron-vite build && node ./utils/copy-mathjax",
-        "postinstall": "electron-builder install-app-deps",
+        "postinstall": "electron-builder install-app-deps && node ./utils/compile.js",
         "build:unpack": "npm run build && electron-builder --dir",
         "build:win": "npm run build && electron-builder --win",
         "build:mac": "npm run build && electron-builder --mac",
-        "build:linux": "npm run build && electron-builder --linux"
+        "build:linux": "npm run build && electron-builder --linux",
+        "clean": "node ./utils/clear.js"
     },
     "dependencies": {
         "@electron-toolkit/preload": "^3.0.2",

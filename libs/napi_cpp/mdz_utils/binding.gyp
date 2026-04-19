@@ -48,14 +48,24 @@
       # 针对 Windows 开启异常
       "msvs_settings": {
         "VCCLCompilerTool": {
-          "AdditionalOptions": [ "-std:c++17", "/EHa" ],
+          "AdditionalOptions": [ "-std:c++17", "/EHsc", "/MD" ],
           "ExceptionHandling": 1,
+          "RuntimeLibrary": 2,
           "Optimization": 3,  # 3 对应 /Ox (Full Optimization)
           "FavorSizeOrSpeed": 1,  # 1 对应 /Ot (Favor Fast Code)
           "WholeProgramOptimization": "true",  # 开启全程序优化 (LTCG)
         },
         "VCLinkerTool": {
           "LinkTimeCodeGeneration": 1  # 配合全程序优化
+        },
+        "configurations": {
+          "Release": {
+            "msvs_settings": {
+              "VCCLCompilerTool": {
+                "RuntimeLibrary": 2,
+              }
+            }
+          }
         }
       },
 
@@ -64,32 +74,33 @@
         ["OS=='win'", {
           "conditions": [
             ["target_arch=='x64'", {
-              "sources": [ "" ],
-              "libraries": [ "" ]
-            }],
-            ["target_arch=='arm64'", {
-              "defines": [ "" ],
-              "sources": [ "" ],
-              "libraries": [ "" ]
+              "libraries": [ "../lib/win32/x64/bit7z.lib" ]
             }]
+#             ,
+#             ["target_arch=='arm64'", {
+#               "defines": [ "" ],
+#               "sources": [ "" ],
+#               "libraries": [ "" ]
+#             }]
           ]
         }],
         ["OS=='linux'", {
           "conditions": [
             ["target_arch=='x64'", {
-              "libraries": [ "" ]
-            }],
-            ["target_arch=='arm64'", {
-              "libraries": [ "" ]
+              "libraries": [ "../lib/linux/x64/libbit7z64.a" ]
             }]
+#             ,
+#             ["target_arch=='arm64'", {
+#               "libraries": [ "" ]
+#             }]
           ]
         }],
         ["OS=='mac'", {
           "conditions": [
-            ["target_arch=='x64'", {
-              "libraries": [ "" ],
-              "cflags_cc": [ "-std=c++17", "-stdlib=libc++" ]
-            }],
+#             ["target_arch=='x64'", {
+#               "libraries": [ "" ],
+#               "cflags_cc": [ "-std=c++17", "-stdlib=libc++" ]
+#             }],
             ["target_arch=='arm64'", {
               "libraries": [ "../lib/darwin/arm64/libbit7z64.a" ],
               "cflags_cc": [ "-std=c++17", "-stdlib=libc++" ]
