@@ -53,7 +53,8 @@ let makeAndEnterBit7zBuildDir = `mkdir build && cd build`;
 // 开启编译
 let configureBit7z = `cmake ../` +
     ` -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON` +
-    ` -DBIT7Z_7ZIP_VERSION="26.00" -DBIT7Z_CUSTOM_7ZIP_PATH=${path.join(__dirname, "..", "libs", "third_party", "7z2600-src")}`;
+    ` -DBIT7Z_7ZIP_VERSION="26.00" -DBIT7Z_CUSTOM_7ZIP_PATH=${path.join(__dirname, "..", "libs", "third_party", "7z2600-src")} ` +
+    `${process.platform === 'linux' ? '-DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_C_FLAGS="-fPIC" -DCMAKE_POSITION_INDEPENDENT_CODE=ON' : ''}`;
 let buildBit7z = `cmake --build . -j --config Release`;
 // 编译完成后复制编译完成的库进入mdz_utils的lib目录中
 let echoCopyBit7ZipToMdzUtilsLibDir;
