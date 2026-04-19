@@ -16,7 +16,7 @@ let bit7zDir = path.join(__dirname, "..", "libs", "third_party", "bit7z");
 
 if (process.platform === "win32") {
     fs.rmSync(path.join(__dirname, "..", "libs", "third_party", "bit7z", "src", "internal", "fsutil.cpp"), { recursive: true, force: true });
-    fs.renameSync(path.join(__dirname, "..", "libs", "third_party", "bit7z", "src", "internal", "fsutil_win32.cpp"),
+    fs.copyFileSync(path.join(__dirname, "..", "libs", "third_party", "bit7z", "src", "internal", "fsutil_win32.cpp"),
         path.join(__dirname, "..", "libs", "third_party", "bit7z", "src", "internal", "fsutil.cpp"));
 }
 
