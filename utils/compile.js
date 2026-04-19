@@ -21,7 +21,7 @@ let enterSevenZBuildDir = `cd "${path.join(sevenZDir, "Format7zF")}"`;
 let echoGetOSAndArch = `echo "Get your OS & arch type: ${process.platform} ${process.arch}, Setting 7-Zip build options..."`;
 let build7Zip;
 if (process.platform === "win32") {
-    let vsToolsPath = 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\Tools\\VsDevCmd.bat';
+    let vsToolsPath = 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat';
     build7Zip = `call "${vsToolsPath}" && nmake NEW_COMPILER=1 MY_STATIC_LINK=1`;
 } else if (process.platform === "darwin") {
     if (process.arch === "arm64") {
