@@ -3,7 +3,6 @@ import pkg from '../package.json' with { type: 'json' };
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import fs from "node:fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,12 +12,6 @@ let sevenZDir = path.join(__dirname, "..", "libs", "third_party", "7z2600-src", 
 let mdzUtilsDir = path.join(__dirname, "..", "libs", "napi_cpp", "mdz_utils");
 let mdzUtilsLibDir = path.join(__dirname, "..", "libs", "napi_cpp", "mdz_utils", "lib", process.platform, process.arch);
 let bit7zDir = path.join(__dirname, "..", "libs", "third_party", "bit7z");
-
-if (process.platform === "win32") {
-    fs.rmSync(path.join(__dirname, "..", "libs", "third_party", "bit7z", "src", "internal", "fsutil.cpp"), { recursive: true, force: true });
-    fs.copyFileSync(path.join(__dirname, "..", "libs", "third_party", "bit7z", "src", "internal", "fsutil_win32.cpp"),
-        path.join(__dirname, "..", "libs", "third_party", "bit7z", "src", "internal", "fsutil.cpp"));
-}
 
 let echoGet7ZipBuildDir = `echo "Get 7-Zip build dir: ${path.join(sevenZDir, "Format7zF")}"`;
 // 然后进入这个编译目录

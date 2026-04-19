@@ -25,10 +25,10 @@ cmake --build . -j --config Release
 如果在Windows平台上编译发现下面的错误：
 
 ```text
-C:\path\to\bit7z\src\internal\fsutil.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+C:\path\to\bit7z\src\internal\xxx.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 ```
 
-则用Visual Studio打开bit7z项目中的fsutil.cpp文件，导航到菜单栏`文件` > `高级保存选项`，设置文件编码为`Unicode (UTF-8 带签名) - 代码页 65001`并保存。
+则用Visual Studio打开bit7z项目中的xxx.cpp文件，导航到菜单栏`文件` > `高级保存选项`，设置文件编码为`Unicode (UTF-8 带签名) - 代码页 65001`并保存。
 
 然后继续编译，就不会报错了。
 
