@@ -2,9 +2,12 @@
 
 ## I. Installation
 
+> [!caution]
+>
+> CAUTION: DON'T use `npm install -g archive-markdown-editor`, it's useless. you just run `npm install archive-markdown-editor --ignore-script` to get source code.
+
 1. You can download the installation package corresponding to your system from GitHub Release or the official website and install it.
 2. Git clone this repo, and run `npm install`.
-3. Install through npm. You just run `npm install -g archive-markdown-editor`. If you don't want to keep source code, you can uninstall with npm.
 
 > The installation just cover Windows x64, macOS arm64, and Linux x64.
 > 
