@@ -426,6 +426,28 @@ $$
 
 剩下的Emoji，可查詢[此處](https://github.com/markdown-it/markdown-it-emoji/blob/master/lib/data/full.mjs)。
 
+#### 4. Mermaid
+
+Mermaid也是一塊很大的內容，可移步至[Mermaid](https://mermaid.js.org/)進一步學習。這裡只展示Mermaid在Archive Markdown Editor的呈現效果。
+
+````markdown
+```mermaid
+graph LR
+A(Start) -->
+input[/Input a,b/] --> if{a % b = 0 ?}
+if --->|yes| f1[GCD = b] --> B(End)
+if --->|no| f2["a, b = b, a % b "]-->if
+```
+````
+
+```mermaid
+graph LR
+A(Start) -->
+input[/Input a,b/] --> if{a % b = 0 ?}
+if --->|yes| f1[GCD = b] --> B(End)
+if --->|no| f2["a, b = b, a % b "]-->if
+```
+
 ## 三、Archive Markdown Editor特有語法
 
 #### 1. 影片

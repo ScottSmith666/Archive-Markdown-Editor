@@ -426,7 +426,29 @@ $$
 
 The remaining emojis can be found [here](https://github.com/markdown-it/markdown-it-emoji/blob/master/lib/data/full.mjs).
 
-## 三、Archive Markdown Editor specific syntax
+#### 4. Mermaid
+
+Mermaid are a large topic, and you can refer to [Mermaid official site](https://mermaid.js.org/) for further study. This section only demonstrates how Mermaid are presented in the Archive Markdown Editor.
+
+````markdown
+```mermaid
+graph LR
+A(Start) -->
+input[/Input a,b/] --> if{a % b = 0 ?}
+if --->|yes| f1[GCD = b] --> B(End)
+if --->|no| f2["a, b = b, a % b "]-->if
+```
+````
+
+```mermaid
+graph LR
+A(Start) -->
+input[/Input a,b/] --> if{a % b = 0 ?}
+if --->|yes| f1[GCD = b] --> B(End)
+if --->|no| f2["a, b = b, a % b "]-->if
+```
+
+## III. Archive Markdown Editor specific syntax
 
 #### 1. Video
 <h4 style="color: red;">(Intelligent keyword suggestion: video)</h4>
