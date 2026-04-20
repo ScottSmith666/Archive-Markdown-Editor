@@ -5,36 +5,36 @@
 #### 1. Header <div style="color: red;">(Intelligent keyword suggestion: header)</div>
 
 ```markdown
-# 等级1
+# First Level
 
-这个同样表示等级1
+Same as First Level
 ===
 
-## 等级2
+## Second Level
 
-这个同样表示等级2
+Same as Second Level
 ---
 
-### 等级3
-#### 等级4
-##### 等级5
-###### 等级6
+### Third Level
+#### Fourth Level
+##### Fifth Level
+###### Sixth Level
 ```
 
-# 等级1
+# First Level
 
-这个同样表示等级1
+Same as First Level
 ===
 
-## 等级2
+## Second Level
 
-这个同样表示等级2
+Same as Second Level
 ---
 
-### 等级3
-#### 等级4
-##### 等级5
-###### 等级6
+### Third Level
+#### Fourth Level
+##### Fifth Level
+###### Sixth Level
 
 > [!note]
 > 
@@ -43,20 +43,20 @@
 #### 2. Paragraph <div style="color: red;">(Intelligent keyword suggestion of line break: br)</div>
 
 ```markdown
-这是一个普通段落。
+Common paragraph.
 
-这是一个\
-换行段落。
+Wrap line\
+paragraph.
 
-这是另一个<br>换行段落。
+Another wrap line<br>paragraph.
 ```
 
-这是一个普通段落。
+Common paragraph.
 
-这是一个\
-换行段落。
+Wrap line\
+paragraph.
 
-这是另一个<br>换行段落。
+Another wrap line<br>paragraph.
 
 #### 3. Emphasize
 <h4 style="color: red;">(Intelligent keyword suggestion of font bold: strong)</h4>
@@ -68,140 +68,140 @@
 <h4 style="color: red;">(Intelligent keyword suggestion of subscript: sub)</h4>
 
 ```markdown
-这是**粗体**、*斜体*、==高亮==、~~删除线~~、<u>下划线</u>、<sup>上标</sup>、<sub>下标</sub>
+These are **bold**, *italic*, ==highlight==, ~~delete~~, <u>underline</u>, <sup>sup</sup>, <sub>sub</sub>.
 ```
 
-这是**粗体**、*斜体*、==高亮==、~~删除线~~、<u>下划线</u>、<sup>上标</sup>、<sub>下标</sub>
+These are **bold**, *italic*, ==highlight==, ~~delete~~, <u>underline</u>, <sup>sup</sup>, <sub>sub</sub>.
 
 #### 4. Quote
 <h4 style="color: red;">(Intelligent keyword suggestion: quote)</h4>
 
 ```markdown
-> 这是一段普通引用
+> Common quote
 
 > [!tip]
-> 这是一段提示引用
+> Tip quote
 
 > [!note]
-> 这是一段信息引用
+> Note quote
 
 > [!warning]
-> 这是一段警告引用
+> Warning quote
 
 > [!caution]
-> 这是一段强烈警告引用
+> Caution quote
 ```
 
-> 这是一段普通引用
+> Common quote
 
 > [!tip]
-> 这是一段提示引用
+> Tip quote
 
 > [!note]
-> 这是一段信息引用
+> Note quote
 
 > [!warning]
-> 这是一段警告引用
+> Warning quote
 
 > [!caution]
-> 这是一段强烈警告引用
+> Caution quote
 
 #### 5. List
 <h4 style="color: red;">(Intelligent keyword suggestion: list)</h4>
 
 ```markdown
-1. 有序列表1
-2. 有序列表2
-   1. 子列表1
-   2. 子列表2
-   3. 子列表3
-3. 有序列表2
+1. Ordered 1
+2. Ordered 2
+   1. Sub 1
+   2. Sub 2
+   3. Sub 3
+3. Ordered 3
 
-+ 加号无序列表1
-+ 加号无序列表2
-    + 加号无序列表3
-+ 加号无序列表4
++ Non-order 1
++ Non-order 2
+    + Non-order 3
++ Non-order 4
 
-- 减号无序列表1
-- 减号无序列表2
-    - 减号无序列表3
-- 减号无序列表4
+- Non-order 1
+- Non-order 2
+    - Non-order 3
+- Non-order 4
 
-* 星号无序列表1
-* 星号无序列表2
-    * 星号无序列表3
-* 星号无序列表4
+* Non-order 1
+* Non-order 2
+    * Non-order 3
+* Non-order 4
 
-- [ ] 任务列表1
-- [x] 任务列表2
-    - [ ] 任务列表3
-- [ ] 任务列表4
+- [ ] Mission 1
+- [x] Mission 2
+    - [ ] Mission 3
+- [ ] Mission 4
 ```
 
-1. 有序列表1
-2. 有序列表2
-    1. 子列表1
-    2. 子列表2
-    3. 子列表3
-3. 有序列表2
+1. Ordered 1
+2. Ordered 2
+    1. Sub 1
+    2. Sub 2
+    3. Sub 3
+3. Ordered 3
 
-+ 加号无序列表1
-+ 加号无序列表2
-  + 加号无序列表3
-+ 加号无序列表4
++ Non-order 1
++ Non-order 2
+    + Non-order 3
++ Non-order 4
 
-- 减号无序列表1
-- 减号无序列表2
-  - 减号无序列表3
-- 减号无序列表4
+- Non-order 1
+- Non-order 2
+    - Non-order 3
+- Non-order 4
 
-* 星号无序列表1
-* 星号无序列表2
-    * 星号无序列表3
-* 星号无序列表4
+* Non-order 1
+* Non-order 2
+    * Non-order 3
+* Non-order 4
 
-- [ ] 任务列表1
-- [x] 任务列表2
-  - [ ] 任务列表3
-- [ ] 任务列表4
+- [ ] Mission 1
+- [x] Mission 2
+    - [ ] Mission 3
+- [ ] Mission 4
 
 #### 6. Table
 <h4 style="color: red;">(Intelligent keyword suggestion: table)</h4>
 
 ```markdown
-| 字段1     | 字段2    | 字段3    |
+| Head 1     | Head 2    | Head 3    |
 |----------|---------|----------|
-| 内容1-1   | 内容1-2  | 内容1-3  |
-| 内容2-1   | 内容2-2  | 内容2-2  |
-| 内容3-1   | 内容3-2  | 内容3-2  |
+| Content 1-1   | Content 1-2  | Content 1-3  |
+| Content 2-1   | Content 2-2  | Content 2-2  |
+| Content 3-1   | Content 3-2  | Content 3-2  |
 
-| 居左字段1     | 居中字段2    | 居右字段3    |
+| Left 1     | Center 2    | Right 3    |
 |:----------|:---------:|----------:|
-| 居左内容1-1   | 居中内容1-2  | 居右内容1-3  |
-| 居左内容2-1   | 居中内容2-2  | 居右内容2-2  |
-| 居左内容3-1   | 居中内容3-2  | 居右内容3-2  |
+| Left 1-1   | Center 1-2  | Right 1-3  |
+| Left 2-1   | Center 2-2  | Right 2-2  |
+| Left 3-1   | Center 3-2  | Right 3-2  |
 ```
 
-| 字段1     | 字段2    | 字段3    |
+| Head 1     | Head 2    | Head 3    |
 |----------|---------|----------|
-| 内容1-1   | 内容1-2  | 内容1-3  |
-| 内容2-1   | 内容2-2  | 内容2-2  |
-| 内容3-1   | 内容3-2  | 内容3-2  |
+| Content 1-1   | Content 1-2  | Content 1-3  |
+| Content 2-1   | Content 2-2  | Content 2-2  |
+| Content 3-1   | Content 3-2  | Content 3-2  |
 
-| 居左字段1   |  居中字段2  |   居右字段3 |
-|:--------|:-------:|--------:|
-| 居左内容1-1 | 居中内容1-2 | 居右内容1-3 |
-| 居左内容2-1 | 居中内容2-2 | 居右内容2-2 |
-| 居左内容3-1 | 居中内容3-2 | 居右内容3-2 |
+| Left 1     | Center 2    | Right 3    |
+|:----------|:---------:|----------:|
+| Left 1-1   | Center 1-2  | Right 1-3  |
+| Left 2-1   | Center 2-2  | Right 2-2  |
+| Left 3-1   | Center 3-2  | Right 3-2  |
 
 #### 7. Code
 <h4 style="color: red;">(Intelligent keyword suggestion: code)</h4>
 
 ````markdown
-这是一段内联代码`console.log("Hello World");`
+This is an inline code `console.log("Hello World");`.
 
 ```javascript
-// 这是一段代码块
+// This is a code block.
 function method(arg) {
     console.log(arg);
 }
@@ -210,10 +210,10 @@ method("Hello World");
 ```
 ````
 
-这是一段内联代码`console.log("Hello World");`
+This is an inline code `console.log("Hello World");`.
 
 ```javascript
-// 这是一段代码块
+// This is a code block.
 function method(arg) {
     console.log(arg);
 }
@@ -226,19 +226,19 @@ method("Hello World");
 
 ```markdown
 ***
-空隙1
+Gap1
 
 ---
-空隙2
+Gap2
 
 ___
 ```
 
 ***
-空隙1
+Gap1
 
 ---
-空隙2
+Gap2
 
 ___
 
@@ -246,10 +246,10 @@ ___
 <h4 style="color: red;">(Intelligent keyword suggestion: link)</h4>
 
 ```markdown
-[赶紧关注收藏点赞转发投币！！！关注Scott_Smith谢谢喵～](https://space.bilibili.com/435780464)
+[Subscribe now! Follow Scott_Smith. Thank you!](https://space.bilibili.com/435780464)
 ```
 
-[赶紧关注收藏点赞转发投币！！！关注Scott_Smith谢谢喵～](https://space.bilibili.com/435780464)
+[Subscribe now! Follow Scott_Smith. Thank you!](https://space.bilibili.com/435780464)
 
 Of course, you can also embed images so that users can click on the image to jump to a link.
 
@@ -385,9 +385,9 @@ However, it can be rendered using HTML.
 LaTeX formulas are a large topic, and you can refer to [Complete Collection of LaTeX Mathematical Formulas](https://www.luogu.com.cn/article/1gxob6zc) for further study. This section only demonstrates how LaTeX formulas are presented in the Archive Markdown Editor.
 
 ```markdown
-这是内联LaTeX：$\exp_a b = a^b, \exp b = e^b, 10^m \iiint_M^Ndx\,dy\,dz$
+This is an inline LaTeX: $\exp_a b = a^b, \exp b = e^b, 10^m \iiint_M^Ndx\,dy\,dz$.
 
-这是LaTeX块：
+This is a LaTeX block:
 
 $$
 \boxed{\begin{aligned}
@@ -402,9 +402,9 @@ $$
 $$
 ```
 
-这是内联LaTeX：$\exp_a b = a^b, \exp b = e^b, 10^m \iiint_M^Ndx\,dy\,dz$
+This is an inline LaTeX: $\exp_a b = a^b, \exp b = e^b, 10^m \iiint_M^Ndx\,dy\,dz$.
 
-这是LaTeX块：
+This is a LaTeX block:
 
 $$
 \boxed{\begin{aligned}
@@ -420,9 +420,9 @@ $$
 
 #### 3. Emoji
 
-| 语句       | Emoji  | 语句           | Emoji     | 语句   | Emoji | 语句        | Emoji   | 语句       | Emoji  | ...  |
-|:---------|:-------|:-------------|:----------|:-----|:------|:----------|:--------|:---------|:-------| :-------|
-| `:100:`  | :100:  | `:grinning:` | :grinning:     | `:smiley:` | :smiley:    | `:smile:` | :smile: | `:grin:` | :grin: | ...  |
+| Chars   | Emoji  | Chars           | Emoji     | Chars   | Emoji | Chars        | Emoji   | Chars       | Emoji  | ...  |
+|:--------|:-------|:-------------|:----------|:-----|:------|:----------|:--------|:---------|:-------| :-------|
+| `:100:` | :100:  | `:grinning:` | :grinning:     | `:smiley:` | :smiley:    | `:smile:` | :smile: | `:grin:` | :grin: | ...  |
 
 The remaining emojis can be found [here](https://github.com/markdown-it/markdown-it-emoji/blob/master/lib/data/full.mjs).
 
@@ -459,7 +459,7 @@ if --->|no| f2["a, b = b, a % b "]-->if
 
 ![${video}:这里可以填写任何内容]($DOCUMENT_MEDIA/media.mp4)
 
-#### 2. 音频
+#### 2. Audio
 <h4 style="color: red;">(Intelligent keyword suggestion: audio)</h4>
 
 ```AME-specific-syntax
@@ -468,7 +468,7 @@ if --->|no| f2["a, b = b, a % b "]-->if
 
 ![${audio}:这里可以填写任何内容]($DOCUMENT_MEDIA/media.mp3)
 
-#### 3. 可保存文件
+#### 3. Save File
 <h4 style="color: red;">(Intelligent keyword suggestion: file)</h4>
 
 ```AME-specific-syntax
