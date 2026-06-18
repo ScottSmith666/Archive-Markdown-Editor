@@ -20,6 +20,7 @@ if (is.dev) {
 } else {
     // 在生产环境
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
+    const unpackedRootWin10 = path.join(process.resourcesPath, 'app.asar.unpacked');  // Win10的process.resourcesPath可能与Win11不同
     mdzUtils = require(path.join(unpackedRoot, "libs", "napi_cpp", "mdz_utils"));
     docRootPath = path.join(
         unpackedRoot,
