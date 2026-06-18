@@ -6,10 +6,6 @@ import {useStore} from 'vuex';
 
 const store = useStore();
 
-// dispatch
-store.dispatch('initUserSettingsAction');  // 启动App时即加载user settings相关store变量
-store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
-
 // data
 const quitConfirmDialog = ref(false);
 // data-form
@@ -20,7 +16,11 @@ const setPassword = ref("");
 const setPasswordAgain = ref("");
 
 // mounted
-onMounted(() => {
+onMounted(async () => {
+    // dispatch
+    await store.dispatch('initUserSettingsAction');  // 启动App时即加载user settings相关store变量
+    store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
+
     window.confirmPreload.onAskForClose(() => {
         // 遍历所有标签页查看是否存在未保存文件
         let isSaved = true;
@@ -100,6 +100,42 @@ const vFocus = {
         <!--模态框背景-->
         <div class="modal" v-if="store.state.lifecycle.showModal || store.state.tab.showConfirmModal"></div>
     </Transition>
+
+    <!--模态框背景-输入密码专用-->
+    <div class="modal modal-pwd" id="pwd-modal"></div>
+
+    <!--打开mdz输入密码-->
+    <div class="save-as-dialog fonts pwd-form" id="pwd-form">
+        <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
+            <div style="width: 25px; height: 25px; margin-right: 6px;">
+                <svg style="width: 100%; height: 100%;" t="1777183402322" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6683" width="200" height="200"><path d="M0 0h1024v1024H0z" fill="#FFFFFF" p-id="6684"></path><path d="M362.666667 896a234.666667 234.666667 0 0 1 0-469.333333h0.256a229.290667 229.290667 0 0 1 93.866666 20.053333l306.517334-306.346667a43.008 43.008 0 0 1 29.866666-12.373333H853.333333a42.666667 42.666667 0 0 1 42.666667 42.666667v106.666666a21.333333 21.333333 0 0 1-21.333333 21.333334h-79.786667a20.821333 20.821333 0 0 0-15.36 8.533333h-2.133333a32.213333 32.213333 0 0 0-9.386667 22.613333v75.093334a21.333333 21.333333 0 0 1-21.333333 21.333333h-75.946667a31.914667 31.914667 0 0 0-22.613333 9.386667l-11.050667 11.093333a32.085333 32.085333 0 0 0-9.386667 22.613333v30.72a43.008 43.008 0 0 1-12.373333 29.866667l-37.546667 37.504A234.666667 234.666667 0 0 1 362.666667 896z m-45.226667-274.773333a85.333333 85.333333 0 1 0 85.333333 85.333333 85.333333 85.333333 0 0 0-85.333333-85.333333z" p-id="6685" data-spm-anchor-id="a313x.search_index.0.i0.2d0b3a81DOzG8w" class="selected" fill="#42b883"></path></svg>
+            </div>
+            <div id="pwd-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em"></div>
+        </div>
+
+        <div style="height: 15px;"></div>
+
+        <div style="display: flex; flex-direction: column; width: 100%;">
+            <div style="display: flex; flex-direction: column; width: 100%;" v-if="saveExt === 'mdz'">
+                <div class="wrapper-info fonts-info info-border info-bg">
+                    <div id="pwd-msg" style="margin-left: 5px;"></div>
+                </div>
+                <div style="height: 15px;"></div>
+                <input class="save-as-input" type="password" placeholder="密码/Password" id="pwd-input">
+            </div>
+        </div>
+
+        <div style="height: 15px;"></div>
+
+        <div style="display: flex; flex-direction: column; width: 100%;">
+            <!--按钮组-->
+            <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
+                <div id="pwd-cancel" class="confirm-dialog-cancel-button fonts" style="width: 60px;">取消/Cancel</div>
+                <div style="width: 10px;"></div>
+                <div id="pwd-ok" class="confirm-dialog-confirm-button fonts" style="width: 60px;">打开/Open</div>
+            </div>
+        </div>
+    </div>
 
     <Transition>
         <!--加载提示-->

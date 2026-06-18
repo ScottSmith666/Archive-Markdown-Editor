@@ -201,6 +201,44 @@ export const isOpened = (rootState, filePath) => {
     return isOpenedFile;
 };
 
+// 密码弹出框
+const showPasswordPrompt = (t, message, isWrongPassword) => {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('pwd-modal');
+        const form = document.getElementById('pwd-form');
+        const input = document.getElementById('pwd-input');
+        const title = document.getElementById('pwd-title');
+        const msg = document.getElementById('pwd-msg');
+
+        title.innerText = t;
+        // 如果密码错误，则字体呈现红色
+        if (isWrongPassword) {
+            title.style.color = "red";
+        }
+        msg.innerText = message;
+        input.value = ''; // 清空上次输入
+        modal.style.display = 'block'; // 显示遮罩
+        form.style.display = 'block'; // 显示窗体
+        input.focus();
+
+        // 绑定确定按钮
+        document.getElementById('pwd-ok').onclick = () => {
+            modal.style.display = 'none';
+            form.style.display = 'none';
+            title.style.color = "#42b983";
+            resolve(input.value); // 返回输入的密码
+        };
+
+        // 绑定取消按钮
+        document.getElementById('pwd-cancel').onclick = () => {
+            modal.style.display = 'none';
+            form.style.display = 'none';
+            title.style.color = "#42b983";
+            resolve(null); // 返回 null 代表取消
+        };
+    });
+}
+
 export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
     if (isHistoryMethod) {
         tgModel(rootState, {kind: "none"});
@@ -269,13 +307,16 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                     // 那就弹出需要解锁密码的弹框输入密码
                     let promTitle = rootState.i18n.langPackage[rootState.settings.lang].dialog.openEncMdzPasswordRequired.title;
                     let promContent = rootState.i18n.langPackage[rootState.settings.lang].dialog.openEncMdzPasswordRequired.description;
+                    let isPasswordWrong = false;  // 指示是否输入密码出错，如为true则说明密码输错
                     while (true) {
                         try {
-                            let returnFromInputMdzPasswordDialog = await window.fileManPreload.activateInputMdzPasswordDialog(promTitle, promContent);
-                            if (returnFromInputMdzPasswordDialog.success) {
-                                let userMdzPassword = returnFromInputMdzPasswordDialog.password;
+                            let returnFromInputMdzPasswordDialog = await showPasswordPrompt(promTitle, promContent, isPasswordWrong);
+                            console.log("密码是：", returnFromInputMdzPasswordDialog);
+                            if (returnFromInputMdzPasswordDialog) {
+                                let userMdzPassword = returnFromInputMdzPasswordDialog;
                                 // 开始尝试用输入的密码打开加密mdz
                                 let result4 = await window.fileManPreload.loadEncryptedMdzFileContent(planOpenFilePath, userMdzPassword);
+                                console.log("result4: ", result4);
                                 if (result4.success) {
                                     // 说明密码正确，开始加载内容
                                     addTabPage(rootState.tab, {
@@ -291,29 +332,22 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                                     break;
                                 } else {
                                     if (result4.message === "WRONG_PASSWORD_ERROR") {
+                                        isPasswordWrong = true;
                                         promTitle = rootState.i18n.langPackage[rootState.settings.lang].dialog.openEncMdzPasswordRequired.wrongPasswordTitle;
                                     }
                                     // 如果不点取消则会一直重试
                                 }
                             } else {
+                                // 用户点击了取消
+                                isPasswordWrong = false;
                                 hdLoading(rootState);
                                 tgModel(rootState, {kind: "none"});
-                                // 用户点击了取消
-                                if (returnFromInputMdzPasswordDialog.message === "USER_PASSWORD_CANCELLED") {
-                                    actModel(rootState, {
-                                        'kind': 'tip',
-                                        'tipLevel': 'info',
-                                        'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.cancelPasswordInput,
-                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                    });
-                                } else {
-                                    actModel(rootState, {
-                                        'kind': 'tip',
-                                        'tipLevel': 'fail',
-                                        'content': returnFromInputMdzPasswordDialog.message,
-                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                    });
-                                }
+                                actModel(rootState, {
+                                    'kind': 'tip',
+                                    'tipLevel': 'info',
+                                    'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.cancelPasswordInput,
+                                    'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                });
                                 break;
                             }
                         } catch (e) {

@@ -11,19 +11,16 @@ import os from "os";
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
-let prompt;
 let mdzUtils;
 let docRootPath;
 if (is.dev) {
     // 在开发环境
     mdzUtils = require(path.join(__dirname, "..", "..", "libs", "napi_cpp", "mdz_utils"));
-    prompt = require('electron-prompt');
     docRootPath = path.join(__dirname, "..", "..", "document");
 } else {
     // 在生产环境
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
     mdzUtils = require(path.join(unpackedRoot, "libs", "napi_cpp", "mdz_utils"));
-    prompt = require(path.join(unpackedRoot, "node_modules", "electron-prompt"));
     docRootPath = path.join(
         unpackedRoot,
         `document`
@@ -74,27 +71,6 @@ export const ipc = (Sqlite3, dbPath) => {
             return {'success': false};
         }
         return {'success': true, 'savePath': filePath[0]};
-    });
-
-    ipcMain.handle("show-input-mdz-password-dialog", async (event, title, content) => {
-        try {
-            let userInputPassword = await prompt({
-                title: title,
-                label: content,
-                value: '',
-                inputAttrs: {
-                    type: 'password',
-                },
-                type: 'input'
-            });
-            if (userInputPassword !== null) {
-                return {"success": true, password: userInputPassword};
-            } else {
-                return {"success": false, message: "USER_PASSWORD_CANCELLED"};
-            }
-        } catch (e) {
-            return {"success": false, message: `${e.name}: ${e.message}`};
-        }
     });
 
     ipcMain.handle("load-encrypted-mdz-content", async (event, filePath, password) => {

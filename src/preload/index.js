@@ -19,7 +19,6 @@ const api = {
     'fileManPreload': {
         activateOpenFileDialog: (title, content) => ipcRenderer.invoke('activate-open-file-dialog', title, content),
         loadFileContent: (filePath, content) => ipcRenderer.invoke('load-file-content', filePath, content),
-        activateInputMdzPasswordDialog: (title, content) => ipcRenderer.invoke('show-input-mdz-password-dialog', title, content),
         loadEncryptedMdzFileContent: (filePath, password) => ipcRenderer.invoke('load-encrypted-mdz-content', filePath, password),
         cleanMdzFolder: (cleanPath) => ipcRenderer.invoke('clean-mdz-folder', cleanPath),
         saveFileInMdz: (title, filePathOrURL) => ipcRenderer.send('save-file-in-mdz', title, filePathOrURL),

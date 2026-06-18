@@ -72,7 +72,8 @@ watch(
                 <div
                     class="tab" :class="tabObject.get('focus') ? 'tab-activated' : ''"
                     @click="store.commit('switchToCurrentTab', {'pageId': pageId})"
-                    @dblclick.stop="() => null">
+                    @dblclick.stop="() => null"
+                    @click.middle="store.commit('closeTabPage', {'pageId': pageId, 'model': tabObject.get('monacoEditorModel')})"><!--鼠标中键点击关闭-->
                     <!--图标-->
                     <div class="tab-icon" v-if="tabObject.get('type') === 'welcome'">
                         <svg t="1773895753581" class="tab-icon" viewBox="0 0 1024 1024" version="1.1"

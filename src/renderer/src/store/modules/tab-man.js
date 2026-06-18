@@ -134,6 +134,7 @@ export const tMan = {
                 // 如果设置为启动时不打开任何页面，即展示的就是默认页面，当前打开的页面ID就设置为“DEFAULT_PAGE”
                 router.replace('/');
             }
+            console.log("初始化Tab设置");
             console.log("state.tabList", state.tabList);
         },
     },

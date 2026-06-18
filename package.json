@@ -1,6 +1,6 @@
 {
     "name": "archive-markdown-editor",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "A simple, beautiful and powerful markdown & mdz file editor.",
     "main": "./out/main/index.js",
     "author": "Scott Smith",
@@ -31,7 +31,6 @@
         "@mdit/plugin-alert": "^0.23.2",
         "@toycode/markdown-it-class": "^1.2.4",
         "better-sqlite3": "^12.8.0",
-        "electron-prompt": "^1.7.0",
         "incremental-dom": "^0.7.0",
         "markdown-it": "^14.1.1",
         "markdown-it-emoji": "^3.0.0",

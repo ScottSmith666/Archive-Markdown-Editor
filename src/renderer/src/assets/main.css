@@ -38,6 +38,10 @@ html, body {
     z-index: 50;
 }
 
+.modal-pwd {
+    display: none;
+}
+
 .tip {
     position: absolute;
     top: 100px;
@@ -196,6 +200,10 @@ html, body {
     z-index: 51;
     border-radius: 8px;
     padding: 20px;
+}
+
+.pwd-form {
+    display: none;
 }
 
 .save-as-input {

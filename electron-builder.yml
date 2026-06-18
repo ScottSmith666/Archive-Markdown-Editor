@@ -67,6 +67,8 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  perMachine: true
+  include: custom_nsis/default.nsh
 mac:
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.

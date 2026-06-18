@@ -66,6 +66,7 @@ export const settingsMan = {
     },
     actions: {
         initUserSettingsAction({commit}) {
+            console.log("初始化用户设置，包括语言");
             commit('initUserSettings');
         }
     },
