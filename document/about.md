@@ -1,97 +1,63 @@
 # 关于本应用 :computer:
+<div style="display: flex; flex-direction: row; align-items: center;"> 
+<svg width="160" height="160" version="1.1" id="图层_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 160.2 143.7" style="enable-background:new 0 0 160.2 143.7;" xml:space="preserve">
+<path style="fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;" class="st0" d="M36.9,100.1l0.8-0.5l23.5,26.1l-0.5,0.7c-7.3,6.5-18.5,6-25-1.3C29,117.9,29.6,106.7,36.9,100.1z"/>
+<path class="st1" style="fill:none;stroke:#040000;stroke-width:6;stroke-miterlimit:8;" d="M36.9,100.1l0.8-0.5l23.5,26.1l-0.5,0.7c-7.3,6.5-18.5,6-25-1.3C29,117.9,29.6,106.7,36.9,100.1z"/>
+<path class="st2" style="fill-rule:evenodd;clip-rule:evenodd;fill:#F5BA1A;" d="M54.6,3c28.2-0.4,51.4,22.2,51.8,50.4S84.2,104.8,56,105.2c-0.5,0-1,0-1.4,0l-1.4-0.2v20l-27.7-23.2
+	c-9.6-8-16.6-18.7-20-30.7l-0.9-5.2l-0.5-1.5l-0.3-2.5l-0.5-2.6V58h0.1L3,54C3.2,25.7,26.2,2.9,54.6,3L54.6,3z"/>
+<path class="st1" style="fill:none;stroke:#040000;stroke-width:6;stroke-miterlimit:8;" d="M54.6,3c28.2-0.4,51.4,22.2,51.8,50.4S84.2,104.8,56,105.2c-0.5,0-1,0-1.4,0l-1.4-0.2v20l-27.7-23.2
+	c-9.6-8-16.6-18.7-20-30.7l-0.9-5.2l-0.5-1.5l-0.3-2.5l-0.5-2.6V58h0.1L3,54C3.2,25.7,26.2,2.9,54.6,3L54.6,3z"/>
+<path class="st2" style="fill-rule:evenodd;clip-rule:evenodd;fill:#F5BA1A;" d="M34,16.4l20.6,10.2l18.3-10.1l4.6,3.8c13,13.2,13.2,34.2,0.5,46.8L54.8,89.8l-23.7-24
+	c-13-13.2-13.2-34.2-0.5-46.8L34,16.4z"/>
+<path class="st1" style="fill:none;stroke:#040000;stroke-width:6;stroke-miterlimit:8;" d="M34,16.4l20.6,10.2l18.3-10.1l4.6,3.8l0,0c13,13.2,13.2,34.2,0.5,46.8L54.8,89.8l-23.7-24
+	c-13-13.2-13.2-34.2-0.5-46.8L34,16.4z"/>
+<path class="st3" style="fill-rule:evenodd;clip-rule:evenodd;fill:#F9E198;" d="M66.5,23.1l2.9,2.4l0,0c8.2,8.3,8.1,21.7-0.2,29.9L54.1,70.3L39.2,55.2c-8.2-8.3-8.1-21.7,0.2-29.9l0,0l0,0
+	l2.2-1.7l13.1,6.3L66.5,23.1z"/>
+<path class="st4" style="fill-rule:evenodd;clip-rule:evenodd;fill:#040000;" d="M55.6,129l-0.5-0.2V94.2l0.5-0.2c5.8,0,10.5,7.8,10.5,17.5S61.4,129,55.6,129z"/>
+<path class="st1" style="fill:none;stroke:#040000;stroke-width:6;stroke-miterlimit:8;" d="M55.6,129l-0.5-0.2V94.2l0.5-0.2c5.8,0,10.5,7.8,10.5,17.5S61.4,129,55.6,129z"/>
+<polygon class="st5" style="fill:#040000;" points="58.3,126.2 59.3,112.1 38.3,93.9 37.3,107.9 "/>
+<polygon class="st5" style="fill:#040000;" points="57.7,114 60.2,100.2 52,91.1 49.4,104.9 "/>
+<path class="st0" style="fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;" d="M67.1,101.1l8-6.4c9.2-8.7,17.4-18.4,24.4-29l3.1-5.6l-0.5,6.5c-1.5,5.8-5.2,12.6-10.5,18.9s-11.5,11.1-17,13.6
+	L67.1,101.1z"/>
+<path class="st6" style="fill:#FFFFFF;" d="M77.2,97.7c-4.9-3.8-9.3-3.4-9.9,0.9c-0.1,0.6-0.1,1.3,0,1.9L77.2,97.7z"/>
+<line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="73.1" y1="55.9" x2="57.6" y2="52.5"/>
+<line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="71.5" y1="58.6" x2="57.6" y2="53.5"/>
+<line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="69.7" y1="62.8" x2="57.6" y2="55.5"/>
+<line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="54.6" y1="60.9" x2="54.6" y2="48.5"/>
+<path class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" d="M54.1,60.6c-0.7,1.7-2.9,2-4.8,0.8c-0.4-0.3-0.7-0.5-1-0.9"/>
+<path class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" d="M53.5,60.6c0.7,1.7,2.9,2,4.9,0.8c0.4-0.2,0.7-0.5,1-0.9"/>
+<line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="35.6" y1="55.9" x2="51.1" y2="52.5"/>
+<line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="36.6" y1="59.6" x2="50.5" y2="54.5"/>
+<line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="38.6" y1="62.8" x2="50.7" y2="55.5"/>
+<path class="st6" style="fill:#FFFFFF;" d="M65.6,42.7c-1.6,1.7-4.3,1.7-6,0.1l-3-3l3-3c1.6-1.7,4.3-1.7,6-0.1C67.3,38.4,67.3,41.1,65.6,42.7L65.6,42.7
+	L65.6,42.7z"/>
+<path class="st6" style="fill:#FFFFFF;" d="M60.1,36.5c1.8-1.5,4.5-1.3,6,0.5l0,0l2.7,3.3L65.5,43c-1.9,1.4-4.5,1.1-6-0.8C58.1,40.5,58.4,37.9,60.1,36.5z"
+	/>
+<ellipse class="st5" style="fill:#040000;" cx="63.1" cy="40" rx="2" ry="4"/>
+<path class="st6" style="fill:#FFFFFF;" d="M48.1,42.2c-1.6,1.7-4.3,1.7-6,0.1l-3-3l3-3c1.6-1.7,4.3-1.7,6-0.1C49.8,37.9,49.9,40.5,48.1,42.2L48.1,42.2
+	L48.1,42.2z"/>
+<path class="st6" style="fill:#FFFFFF;" d="M42.6,36c1.8-1.5,4.5-1.3,6,0.6l0,0l0,0l2.7,3.3L48,42.6c-1.7,1.6-4.4,1.6-6-0.1c-1.6-1.7-1.6-4.4,0.1-6
+	C42.3,36.3,42.5,36.1,42.6,36L42.6,36z"/>
+<ellipse class="st5" style="fill:#040000;" cx="45.1" cy="39.5" rx="2" ry="4.5"/>
+<path d="M134.9,133.7H88.7c-2.1,0-3.9-1.7-3.9-3.9v-25.4c0-2.1,1.7-3.9,3.9-3.9h46.2c2.1,0,3.9,1.7,3.9,3.9v25.4
+	C138.8,132,137,133.7,134.9,133.7L134.9,133.7z M97.8,126v-10.1l5.2,6.5l5.2-6.5V126h5.2v-17.6h-5.2l-5.2,6.5l-5.2-6.5h-5.2V126
+	H97.8L97.8,126z M132.5,117.2h-5.2v-8.8h-5.2v8.8H117l7.8,9.1L132.5,117.2z"/>
+</svg>
 
-<div style="display: flex; flex-direction: row; align-items: center;">
-    <svg viewBox="0 0 1002 927" style="width: 160px; height: 160px;" width="1002" height="927"
-         xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve"
-         overflow="hidden"><defs><clipPath id="clip0"><rect x="743" y="380" width="1002" height="927"/></clipPath></defs>
-        <g clip-path="url(#clip0)" transform="translate(-743 -380)"><path d="M1035.17 963.18 1038.78 961.052 1146.35 1080.68 1143.85 1084.04C1110.48 1114.05 1059.09 1111.32 1029.08 1077.95 999.072 1044.58 1001.8 993.191 1035.17 963.18Z" stroke="#000000" stroke-width="27.5" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
-            <path
-                    d="M1116.5 516C1246.56 516 1352 621.355 1352 751.316 1352 881.278 1246.56 986.633 1116.5 986.633L1110.01 985.979 1110.01 1078 983.565 971.177C937.995 932.679 907.372 883.073 892.314 829.699L887.992 805.846 885.785 798.741 884.629 787.283 882.465 775.342 882.535 769.548 882.839 769.548 881 751.316C881 621.355 986.437 516 1116.5 516Z"
-                    stroke="#000000" stroke-width="27.5" stroke-miterlimit="8" fill="#FFC000"
-                    fill-rule="evenodd"/>
-            <path
-                    d="M1021.61 579.196 1116.22 625.818 1199.93 579.638 1220.77 597.062 1220.77 597.062C1280.66 657.859 1281.77 753.861 1223.27 811.487L1117.33 915.83 1008.9 805.747C949.02 744.95 947.905 648.948 1006.41 591.322Z"
-                    stroke="#000000" stroke-width="27.5" stroke-miterlimit="8" fill="#FFC000"
-                    fill-rule="evenodd"/>
-            <path
-                    d="M1170.83 610.286 1183.96 621.182 1183.96 621.182C1221.56 659.357 1221.1 720.788 1182.92 758.39L1113.8 826.474 1045.71 757.35C1008.11 719.174 1008.58 657.744 1046.75 620.142L1056.64 612.195 1116.65 640.871Z"
-                    fill="#FFE699" fill-rule="evenodd"/>
-            <path
-                    d="M1121.36 1097 1119 1096.17 1119 934.831 1121.36 934C1147.12 934 1168 970.489 1168 1015.5 1168 1060.51 1147.12 1097 1121.36 1097Z"
-                    stroke="#000000" stroke-width="27.5" stroke-miterlimit="8" fill-rule="evenodd"/>
-            <path d="M0 51.4799 38.8601 0 166.423 0 127.563 51.4799Z" fill-rule="evenodd"
-                  transform="matrix(-0.75471 -0.656059 -0.656059 0.75471 1167.02 1043.57)"/>
-            <path d="M0 51.4799 38.8601 0 95.037 0 56.1769 51.4799Z" fill-rule="evenodd"
-                  transform="matrix(-0.674622 -0.738163 -0.738163 0.674622 1168.19 991.865)"/>
-            <path
-                    d="M1173.28 967.595 1209.89 938.244C1229.62 919.964 1249.93 898.704 1269.78 875.152 1289.63 851.599 1307.14 827.985 1321.81 805.449L1336.13 779.588 1333.5 809.536C1326.47 836.201 1309.87 867.231 1285.37 896.307 1260.86 925.382 1233.09 946.997 1208 958.44Z"
-                    fill="#FFFFFF" fill-rule="evenodd"/>
-            <path
-                    d="M54.01 81.1547C46.8068 108.539 29.582 119.353 15.5372 105.308 13.6532 103.424 11.8824 101.138 10.2574 98.4908Z"
-                    fill="#FFFFFF" fill-rule="evenodd"
-                    transform="matrix(0.793383 -0.608722 -0.608722 -0.793383 1226.57 1049.41)"/>
-            <path d="M1200.88 757.851 1129.5 742.5" stroke="#000000" stroke-width="4.58333"
-                  stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
-            <path d="M1193.3 772.783 1129.5 749.5" stroke="#000000" stroke-width="4.58333"
-                  stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
-            <path d="M1184.96 791.022 1129.5 757.5" stroke="#000000" stroke-width="4.58333"
-                  stroke-miterlimit="8" fill="none" fill-rule="evenodd"/>
-            <path d="M0 0 0.000360892 56.8777" stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8"
-                  fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 1113.5 783.378)"/>
-            <path
-                    d="M1113.62 781.714C1110.26 789.493 1100.31 791.096 1091.39 785.293 1089.68 784.185 1088.09 782.847 1086.67 781.332"
-                    stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8" fill="none"
-                    fill-rule="evenodd"/>
-            <path
-                    d="M10.204 0.974339C17.9753-2.40357 26.3347 3.23468 28.8752 13.5677 29.3606 15.5423 29.608 17.6066 29.608 19.684"
-                    stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8" fill="none"
-                    fill-rule="evenodd"
-                    transform="matrix(0.729652 0.683818 0.683818 -0.729652 1103.27 775.638)"/>
-            <path d="M0 0 71.3805 15.3513" stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8"
-                  fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 1025.5 757.851)"/>
-            <path d="M0 0 63.7968 23.283" stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8"
-                  fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 1033.5 773.783)"/>
-            <path d="M0 0 55.4551 33.5219" stroke="#000000" stroke-width="4.58333" stroke-miterlimit="8"
-                  fill="none" fill-rule="evenodd" transform="matrix(1 0 0 -1 1041.5 792.022)"/>
-            <path
-                    d="M1166.58 699.926C1159.06 707.618 1146.73 707.756 1139.04 700.235 1134.4 695.696 1129.75 691.157 1125.11 686.617 1129.65 681.975 1134.19 677.332 1138.73 672.689 1146.25 664.997 1158.58 664.859 1166.27 672.38 1173.97 679.901 1174.11 692.234 1166.58 699.926Z"
-                    fill="#FFFFFF" fill-rule="evenodd"/>
-            <path
-                    d="M1141.45 671.248C1149.76 664.424 1162.04 665.635 1168.86 673.952 1172.98 678.972 1177.1 683.992 1181.22 689.012 1176.2 693.13 1171.18 697.248 1166.16 701.367 1157.84 708.19 1145.57 706.979 1138.74 698.662 1131.92 690.345 1133.13 678.071 1141.45 671.248Z"
-                    fill="#FFFFFF" fill-rule="evenodd"/>
-            <path
-                    d="M0 19.5001C-1.01849e-15 8.73049 3.58168-2.48262e-15 7.9999-4.96525e-15 12.4181-9.93049e-15 15.9998 8.73049 15.9998 19.5001 15.9998 30.2697 12.4181 39.0002 7.9999 39.0002 3.58168 39.0002-5.09247e-15 30.2697 0 19.5001Z"
-                    fill-rule="evenodd" transform="matrix(-1 0 0 1 1162 668)"/>
-            <path
-                    d="M1086.56 697.594C1079.04 705.286 1066.71 705.425 1059.02 697.904 1054.37 693.364 1049.73 688.825 1045.09 684.285 1049.63 679.643 1054.17 675 1058.71 670.358 1066.23 662.666 1078.56 662.527 1086.25 670.048 1093.95 677.569 1094.08 689.902 1086.56 697.594Z"
-                    fill="#FFFFFF" fill-rule="evenodd"/>
-            <path
-                    d="M1061.43 668.916C1069.74 662.092 1082.02 663.303 1088.84 671.62 1092.96 676.64 1097.08 681.66 1101.2 686.68 1096.18 690.798 1091.16 694.917 1086.14 699.035 1077.82 705.859 1065.55 704.648 1058.72 696.331 1051.9 688.013 1053.11 675.74 1061.43 668.916Z"
-                    fill="#FFFFFF" fill-rule="evenodd"/>
-            <path
-                    d="M0 19.0001C-1.01852e-15 8.50663 3.58176-2.41896e-15 8.00008-4.83793e-15 12.4184-9.67586e-15 16.0002 8.50663 16.0002 19.0001 16.0002 29.4935 12.4184 38.0002 8.00008 38.0002 3.58176 38.0002-5.09259e-15 29.4935 0 19.0001Z"
-                    fill-rule="evenodd" transform="matrix(-1 0 0 1 1082 666)"/>
-            <text font-family="Inconsolata,Inconsolata_MSFontService,sans-serif" font-weight="700"
-                  font-size="83" transform="matrix(1 0 0 1 1191.01 1047)">cott<tspan font-size="83"
-                                                                                     x="206.25"
-                                                                                     y="0">Smith</tspan>
-                <tspan font-size="83" x="0" y="99">is</tspan>
-                <tspan fill="#C00000" font-size="83" x="103.125" y="99">HERE</tspan></text>
-        </g>
-    </svg>
-    <div style="display: flex; flex-direction: column;">
-        <div style="color: #42b983; font-weight: bold; font-size: 2.4rem;">Archive Markdown Editor</div>
-        <div style="color: #555555; font-weight: bold; font-size: 1.2rem;">一款简约、美观、功能强大的Markdown编辑器</div>
-    </div>
+<div style="display: flex; flex-direction: column;">
+    <div style="color: #42b983; font-weight: bold; font-size: 2.4rem;">Archive Markdown Editor</div>
+    <div style="color: #555555; font-weight: bold; font-size: 1.2rem;">一款简约、美观、功能强大的Markdown编辑器</div>
+</div>
 </div>
 
-**版本 `1.2.1`** [检查更新<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://github.com/ScottSmith666/Archive-Markdown-Editor/releases)
+**版本 `1.2.2`** [检查更新<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://github.com/ScottSmith666/Archive-Markdown-Editor/releases)
 
 <u>Designed</u> and <u>developed</u> by **Scott Smith**
 
 [*GitHub*仓库地址<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://github.com/ScottSmith666/Archive-Markdown-Editor)
 [*NPM*仓库地址<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://www.npmjs.com/package/archive-markdown-editor)
-[*Snyk*安全检测<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://snyk.io/test/npm/archive-markdown-editor)
+[*socket.dev*安全检测<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://socket.dev/npm/package/archive-markdown-editor)
 
 > [!caution]
 > 

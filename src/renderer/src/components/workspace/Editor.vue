@@ -16,6 +16,8 @@ import {onMounted, ref} from "vue";
 import {useStore} from 'vuex';
 import {useRoute, onBeforeRouteUpdate} from 'vue-router';
 
+import {exampleContent} from "./example.js";
+
 const route = useRoute();
 const store = useStore();
 
@@ -155,6 +157,52 @@ onMounted(() => {
         }
     });
 
+    // 在 9_cutcopypaste 组添加“添加示例语句”
+    monacoInstance.addAction({
+        id: 'add-example',
+        label: store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inEditor.addExample,
+        contextMenuGroupId: '9_cutcopypaste',
+        run: function () {
+            const selection = monacoInstance.getSelection();
+
+            monacoInstance.executeEdits('example', [
+                {
+                    // 如果使用 selection，当有文本被选中时会替换它；否则在光标处插入
+                    range: selection,
+                    text: exampleContent,
+                    forceMoveMarkers: true // 通常设置为 true
+                }
+            ]);
+
+            // 让编辑器重新获得焦点，确保光标可见
+            monacoInstance.focus();
+            return null;
+        }
+    });
+
+    // 在 9_cutcopypaste 组添加“粘贴多媒体”
+    monacoInstance.addAction({
+        id: 'paste-other-media',
+        label: store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inEditor.pasteMedia,
+        keybindings: [
+            monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.KeyV,
+        ],
+        contextMenuGroupId: '9_cutcopypaste',
+        run: async function () {
+            let mediaMdFromClipboard = await window.clipboardPreload.mediaPaster();
+            const selection = monacoInstance.getSelection();
+            monacoInstance.executeEdits('media-md', [
+                {
+                    range: selection,
+                    text: mediaMdFromClipboard,
+                    forceMoveMarkers: true
+                }
+            ]);
+            monacoInstance.focus();
+            return null;
+        }
+    });
+
     // 剪切快捷键
     monacoInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => {
         monacoInstance.trigger('source', 'editor.action.clipboardCutAction');
@@ -272,6 +320,7 @@ const getLineNumsOfVisualPage = (editor) => {
 };
 
 const getPlanPiece = (monacoInstance, pageId) => {
+    console.log("渲染模式为", store.state.settings.userSettings.render_mode);
     let fileTotalLines = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getLineCount();  // 编辑器内的文本总行数
     let vt = getLineNumsOfVisualPage(monacoInstance);
     let planCutContentLines = vt.linesInVisualPage * store.state.settings.renderDistance;  // 选区总长度，即可视页面行数与渲染距离之积
@@ -279,6 +328,7 @@ const getPlanPiece = (monacoInstance, pageId) => {
     let rangeLastLineNumber = fileTotalLines;  // 选区最后一行行数
 
     // 这里的逻辑是：
+    // 0. 如果设置中开启了质量模式，则默认渲染编辑器内所有内容，下面的规则全部失效
     // 1. 如果编辑器内的文本行数小于等于可视页面行数与渲染距离之积，那就直接获取编辑器内所有内容
     // 2. 如果编辑器内的文本行数大于可视页面行数与渲染距离之积，则又分为3种情况：
     //    这里为了保证体验，则以可视页面中间行为基准向两边扩散截取内容。
@@ -287,27 +337,35 @@ const getPlanPiece = (monacoInstance, pageId) => {
     //     2.3. 如果(文本总行数 - 可视页面中间行行数 + 1)和(可视页面中间行行数)均大于可视页面行数与渲染距离之积的一半
     //        则获取编辑器内第(可视页面中间行行数 - 可视页面行数与渲染距离之积的一半 + 1)行至第(可视页面中间行行数 + 可视页面行数与渲染距离之积的一半)行的内容
     let pieceContent;
-    if (fileTotalLines <= planCutContentLines) {
-        // 分支1
+    // 分支0，开启质量模式
+    if (store.state.settings.userSettings.render_mode === 'quality') {
         pieceContent = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getValue();
-    } else {
-        if ((fileTotalLines - vt.lineNumAtPageCenter + 1) <= Math.floor(planCutContentLines / 2 + 0.5)) {
-            // 分支2.1
-            rangeFirstLineNumber = fileTotalLines - planCutContentLines + 1;
-            rangeLastLineNumber = fileTotalLines;
+    } else if (store.state.settings.userSettings.render_mode === 'performance'
+                || !store.state.settings.userSettings.render_mode  // 当旧版软件没有“渲染模式”这个设置选项时，默认无（undefined）则为性能模式
+    ) {
+        // 开启性能模式
+        if (fileTotalLines <= planCutContentLines) {
+            // 分支1
+            pieceContent = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getValue();
+        } else {
+            if ((fileTotalLines - vt.lineNumAtPageCenter + 1) <= Math.floor(planCutContentLines / 2 + 0.5)) {
+                // 分支2.1
+                rangeFirstLineNumber = fileTotalLines - planCutContentLines + 1;
+                rangeLastLineNumber = fileTotalLines;
+            }
+            if (vt.lineNumAtPageCenter <= Math.floor(planCutContentLines / 2 + 0.5)) {
+                // 分支2.2
+                rangeFirstLineNumber = 1;
+                rangeLastLineNumber = planCutContentLines;
+            }
+            if ((fileTotalLines - vt.lineNumAtPageCenter + 1) > Math.floor(planCutContentLines / 2 + 0.5) &&
+                vt.lineNumAtPageCenter > Math.floor(planCutContentLines / 2 + 0.5)) {
+                // 分支2.3
+                rangeFirstLineNumber = vt.lineNumAtPageCenter - Math.floor(planCutContentLines / 2 + 0.5) + 1;
+                rangeLastLineNumber = vt.lineNumAtPageCenter + Math.floor(planCutContentLines / 2 + 0.5);
+            }
+            pieceContent = getContentOfLineRange(rangeFirstLineNumber, rangeLastLineNumber, pageId);
         }
-        if (vt.lineNumAtPageCenter <= Math.floor(planCutContentLines / 2 + 0.5)) {
-            // 分支2.2
-            rangeFirstLineNumber = 1;
-            rangeLastLineNumber = planCutContentLines;
-        }
-        if ((fileTotalLines - vt.lineNumAtPageCenter + 1) > Math.floor(planCutContentLines / 2 + 0.5) &&
-            vt.lineNumAtPageCenter > Math.floor(planCutContentLines / 2 + 0.5)) {
-            // 分支2.3
-            rangeFirstLineNumber = vt.lineNumAtPageCenter - Math.floor(planCutContentLines / 2 + 0.5) + 1;
-            rangeLastLineNumber = vt.lineNumAtPageCenter + Math.floor(planCutContentLines / 2 + 0.5);
-        }
-        pieceContent = getContentOfLineRange(rangeFirstLineNumber, rangeLastLineNumber, pageId);
     }
     emit('update', [
         pieceContent, // 传内容片段过去

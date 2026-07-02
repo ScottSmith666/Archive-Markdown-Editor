@@ -16,6 +16,9 @@ const api = {
         setRecentOpenedHistory: (fileName, filePath, openTime) => ipcRenderer.invoke('set-recent-opened-history', fileName, filePath, openTime),
         deleteRecentOpenedHistory: (hsId) => ipcRenderer.invoke('delete-recent-opened-history', hsId),
     },
+    "clipboardPreload": {
+        mediaPaster: () => ipcRenderer.invoke('media-paster'),
+    },
     'fileManPreload': {
         activateOpenFileDialog: (title, content) => ipcRenderer.invoke('activate-open-file-dialog', title, content),
         loadFileContent: (filePath, content) => ipcRenderer.invoke('load-file-content', filePath, content),
@@ -54,6 +57,8 @@ if (process.contextIsolated) {
         contextBridge.exposeInMainWorld('confirmPreload', api.confirmPreload);
         // 加载语言
         contextBridge.exposeInMainWorld('loadLangPreload', api.loadLangPreload);
+        // 剪切板相关
+        contextBridge.exposeInMainWorld('clipboardPreload', api.clipboardPreload);
     } catch (error) {
         console.error(error);
     }

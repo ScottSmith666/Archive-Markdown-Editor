@@ -56,6 +56,8 @@ export const i18n = {
                         "inEditor": {
                             "undo": '撤销',
                             "redo": '重做',
+                            "pasteMedia": '粘贴多媒体',
+                            "addExample": '添加示例语句'
                         },
                     },
                     "dialog": {
@@ -189,6 +191,18 @@ export const i18n = {
                                 },
                             },
                         },
+                        "render": {
+                            "mainCaption": '渲染器',
+                            "subCaptions": {
+                                "renderMode": {
+                                    "title": '渲染模式',
+                                    "options": {
+                                        "performance": '性能模式',
+                                        "quality": '质量模式',
+                                    }
+                                },
+                            },
+                        },
                         "safe": {
                             "mainCaption": '安全',
                             "subCaptions": {
@@ -278,6 +292,8 @@ export const i18n = {
                         "inEditor": {
                             "undo": '撤銷',
                             "redo": '重做',
+                            "pasteMedia": '貼上多媒體',
+                            "addExample": '新增範例語句'
                         },
                     },
                     "dialog": {
@@ -411,6 +427,18 @@ export const i18n = {
                                 },
                             },
                         },
+                        "render": {
+                            "mainCaption": '渲染器',
+                            "subCaptions": {
+                                "renderMode": {
+                                    "title": '渲染模式',
+                                    "options": {
+                                        "performance": '性能模式',
+                                        "quality": '品質模式',
+                                    }
+                                },
+                            },
+                        },
                         "safe": {
                             "mainCaption": '安全',
                             "subCaptions": {
@@ -500,6 +528,8 @@ export const i18n = {
                         "inEditor": {
                             "undo": 'Undo',
                             "redo": 'Redo',
+                            "pasteMedia": 'Paste Media',
+                            "addExample": 'Add Example'
                         },
                     },
                     "dialog": {
@@ -629,6 +659,18 @@ export const i18n = {
                                     "options": {
                                         "enable": 'Enable',
                                         "disable": 'Disable',
+                                    }
+                                },
+                            },
+                        },
+                        "render": {
+                            "mainCaption": 'Render',
+                            "subCaptions": {
+                                "renderMode": {
+                                    "title": 'Rendering Mode',
+                                    "options": {
+                                        "performance": 'Performance',
+                                        "quality": 'Quality',
                                     }
                                 },
                             },

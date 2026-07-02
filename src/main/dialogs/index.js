@@ -24,8 +24,8 @@ export class Dialogs {
             defaultPath: os.homedir(),
             message: title,
             filters: [
-                { name: 'Markdown File', extensions: ['md'] },
                 { name: 'Archive Markdown File', extensions: ['mdz'] },
+                { name: 'Markdown File', extensions: ['md'] },
                 { name: 'Text File', extensions: ['txt'] },
             ]
         });

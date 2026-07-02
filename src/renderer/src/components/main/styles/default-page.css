@@ -4,6 +4,15 @@
     width: 300px;
 }
 
+.st0{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
+.st1{fill:none;stroke:#040000;stroke-width:6;stroke-miterlimit:8;}
+.st2{fill-rule:evenodd;clip-rule:evenodd;fill:#F5BA1A;}
+.st3{fill-rule:evenodd;clip-rule:evenodd;fill:#F9E198;}
+.st4{fill-rule:evenodd;clip-rule:evenodd;fill:#040000;}
+.st5{fill:#040000;}
+.st6{fill:#FFFFFF;}
+.st7{fill:none;stroke:#040000;stroke-miterlimit:8;}
+
 .container {
     border-collapse: separate;
     border-spacing: 6px;

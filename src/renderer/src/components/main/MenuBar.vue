@@ -86,195 +86,50 @@ onMounted(() => {
     <div class="keep-head nav" id="nav">
         <div class="nav-ico-position">
             <div class="nav-ico-wrap">
-                <svg class="icon nav-ico" id="图层_1" data-name="图层 1" xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 160.22 143.74"><title>未标题-1</title>
-                    <path d="M36.86,100.11l.78-.47,23.47,26.1-.54.74a17.73,17.73,0,0,1-23.71-26.37Z"
-                          transform="translate(0.06 0.01)" style="fill:#fff;fill-rule:evenodd"/>
-                    <path d="M36.86,100.11l.78-.47,23.47,26.1-.54.74a17.73,17.73,0,0,1-23.71-26.37Z"
-                          transform="translate(0.06 0.01)"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8;stroke-width:6px"/>
-                    <path
-                        d="M54.5,3a51.09,51.09,0,0,1,1.43,102.17c-.48,0-1,0-1.43,0L53.08,105v20L25.43,101.81a62.22,62.22,0,0,1-20-30.71l-.94-5.18L4,64.38l-.26-2.49L3.28,59.3V58h.06l-.4-4A51.29,51.29,0,0,1,54.48,3Z"
-                        transform="translate(0.06 0.01)" style="fill:#f5ba1a;fill-rule:evenodd"/>
-                    <path
-                        d="M54.5,3a51.09,51.09,0,0,1,1.43,102.17c-.48,0-1,0-1.43,0L53.08,105v20L25.43,101.81a62.22,62.22,0,0,1-20-30.71l-.94-5.18L4,64.38l-.26-2.49L3.28,59.3V58h.06l-.4-4A51.29,51.29,0,0,1,54.48,3Z"
-                        transform="translate(0.06 0.01)"
-                        style="fill:none;stroke:#040000;stroke-miterlimit:8;stroke-width:6px"/>
-                    <path
-                        d="M33.9,16.37,54.54,26.54,72.8,16.47l4.55,3.8c13.07,13.26,13.31,34.21.54,46.78L54.78,89.82l-23.66-24C18.06,52.55,17.82,31.61,30.58,19Z"
-                        transform="translate(0.06 0.01)" style="fill:#f5ba1a;fill-rule:evenodd"/>
-                    <path
-                        d="M33.9,16.37,54.54,26.54,72.8,16.47l4.55,3.8h0c13.07,13.26,13.31,34.21.54,46.78L54.78,89.82l-23.66-24C18.06,52.55,17.82,31.61,30.58,19Z"
-                        transform="translate(0.06 0.01)"
-                        style="fill:none;stroke:#040000;stroke-miterlimit:8;stroke-width:6px"/>
-                    <path
-                        d="M66.45,23.11l2.87,2.38h0a21.18,21.18,0,0,1-.23,29.94L54,70.32,39.15,55.24a21.17,21.17,0,0,1,.22-29.94h0l2.16-1.73,13.09,6.26Z"
-                        transform="translate(0.06 0.01)" style="fill:#f9e198;fill-rule:evenodd"/>
-                    <path d="M55.53,129l-.53-.18V94.18l.53-.18C61.31,94,66,101.84,66,111.5S61.31,129,55.53,129Z"
-                          transform="translate(0.06 0.01)" style="fill:#040000;fill-rule:evenodd"/>
-                    <path d="M55.53,129l-.53-.18V94.18l.53-.18C61.31,94,66,101.84,66,111.5S61.31,129,55.53,129Z"
-                          transform="translate(0.06 0.01)"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8;stroke-width:6px"/>
-                    <polygon points="58.31 126.17 59.28 112.14 38.28 93.88 37.31 107.92 58.31 126.17"
-                             style="fill:#040000"/>
-                    <polygon points="57.65 113.98 60.22 100.16 51.95 91.11 49.38 104.94 57.65 113.98"
-                             style="fill:#040000"/>
-                    <path
-                        d="M67,101.11l8-6.4a161.64,161.64,0,0,0,24.42-29l3.12-5.64L102,66.61c-1.54,5.81-5.16,12.58-10.51,18.93S80,96.62,74.56,99.11Z"
-                        transform="translate(0.06 0.01)" style="fill:#fff;fill-rule:evenodd"/>
-                    <path d="M77.19,97.74c-4.89-3.78-9.31-3.37-9.87.93a7.39,7.39,0,0,0,0,1.88Z"
-                          transform="translate(0.06 0.01)" style="fill:#fff"/>
-                    <line x1="73.13" y1="55.86" x2="57.56" y2="52.51"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
-                    <line x1="71.48" y1="58.59" x2="57.56" y2="53.51"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
-                    <line x1="69.66" y1="62.82" x2="57.56" y2="55.51"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
-                    <line x1="54.56" y1="60.92" x2="54.56" y2="48.51"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
-                    <path d="M54,60.56c-.73,1.69-2.9,2-4.85.78a5.89,5.89,0,0,1-1-.87"
-                          transform="translate(0.06 0.01)"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
-                    <path d="M53.48,60.6c.74,1.69,2.91,2,4.86.78a5.53,5.53,0,0,0,1-.87"
-                          transform="translate(0.06 0.01)"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
-                    <line x1="35.56" y1="55.86" x2="51.13" y2="52.51"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
-                    <line x1="36.56" y1="59.59" x2="50.48" y2="54.51"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
-                    <line x1="38.56" y1="62.82" x2="50.66" y2="55.51"
-                          style="fill:none;stroke:#040000;stroke-miterlimit:8"/>
-                    <path d="M65.53,42.71a4.26,4.26,0,0,1-6,.07l-3-3,3-3a4.25,4.25,0,1,1,6.08,5.94h-.08Z"
-                          transform="translate(0.06 0.01)" style="fill:#fff"/>
-                    <path d="M60,36.45A4.27,4.27,0,0,1,66,37h0l2.7,3.29L65.41,43A4.25,4.25,0,0,1,60,36.45Z"
-                          transform="translate(0.06 0.01)" style="fill:#fff"/>
-                    <ellipse cx="63.06" cy="40.01" rx="2" ry="4" style="fill:#040000"/>
-                    <path d="M48.07,42.2a4.26,4.26,0,0,1-6,.07l-3-3,3-3a4.25,4.25,0,0,1,6.08,5.94h-.08Z"
-                          transform="translate(0.06 0.01)" style="fill:#fff"/>
-                    <path d="M42.58,36a4.25,4.25,0,0,1,6,.57l0,0,2.69,3.28L48,42.52A4.25,4.25,0,1,1,42.59,36Z"
-                          transform="translate(0.06 0.01)" style="fill:#fff"/>
-                    <ellipse cx="45.06" cy="39.51" rx="2" ry="4.5" style="fill:#040000"/>
-                    <text transform="translate(70.92 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        c
-                    </text>
-                    <text transform="translate(70.92 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        c
-                    </text>
-                    <text transform="translate(81.67 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        o
-                    </text>
-                    <text transform="translate(81.67 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        o
-                    </text>
-                    <text transform="translate(92.54 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        t
-                    </text>
-                    <text transform="translate(92.54 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        t
-                    </text>
-                    <text transform="translate(98.92 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        t
-                    </text>
-                    <text transform="translate(98.92 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        t
-                    </text>
-                    <text transform="translate(109.79 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        S
-                    </text>
-                    <text transform="translate(109.79 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        S
-                    </text>
-                    <text transform="translate(121.79 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        m
-                    </text>
-                    <text transform="translate(121.79 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        m
-                    </text>
-                    <text transform="translate(137.66 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        i
-                    </text>
-                    <text transform="translate(137.66 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        i
-                    </text>
-                    <text transform="translate(142.54 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        t
-                    </text>
-                    <text transform="translate(142.54 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        t
-                    </text>
-                    <text transform="translate(148.92 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        h
-                    </text>
-                    <text transform="translate(148.92 118.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        h
-                    </text>
-                    <text transform="translate(70.92 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        i
-                    </text>
-                    <text transform="translate(70.92 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        i
-                    </text>
-                    <text transform="translate(75.79 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#040000;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        s
-                    </text>
-                    <text transform="translate(75.79 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#040000;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        s
-                    </text>
-                    <text transform="translate(90.04 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#b41d23;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        H
-                    </text>
-                    <text transform="translate(90.04 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#b41d23;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        H
-                    </text>
-                    <text transform="translate(103.67 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#b41d23;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        E
-                    </text>
-                    <text transform="translate(103.67 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#b41d23;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        E
-                    </text>
-                    <text transform="translate(115.67 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#b41d23;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        R
-                    </text>
-                    <text transform="translate(115.67 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#b41d23;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        R
-                    </text>
-                    <text transform="translate(128.66 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:#b41d23;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        E
-                    </text>
-                    <text transform="translate(128.66 139.59) scale(1.02 1)"
-                          style="isolation:isolate;font-size:17.649999618530273px;fill:none;stroke:#b41d23;stroke-miterlimit:10;stroke-width:0.8600000143051147px;font-family:ArialRoundedMTBold, Arial Rounded MT Bold">
-                        E
-                    </text>
-                </svg>
+                <svg class="icon nav-ico" id="图层_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                     viewBox="0 0 160.2 143.7" style="enable-background:new 0 0 160.2 143.7;" xml:space="preserve">
+<path style="fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;" class="st0" d="M36.9,100.1l0.8-0.5l23.5,26.1l-0.5,0.7c-7.3,6.5-18.5,6-25-1.3C29,117.9,29.6,106.7,36.9,100.1z"/>
+                    <path class="st1" style="fill:none;stroke:#040000;stroke-width:6;stroke-miterlimit:8;" d="M36.9,100.1l0.8-0.5l23.5,26.1l-0.5,0.7c-7.3,6.5-18.5,6-25-1.3C29,117.9,29.6,106.7,36.9,100.1z"/>
+                    <path class="st2" style="fill-rule:evenodd;clip-rule:evenodd;fill:#F5BA1A;" d="M54.6,3c28.2-0.4,51.4,22.2,51.8,50.4S84.2,104.8,56,105.2c-0.5,0-1,0-1.4,0l-1.4-0.2v20l-27.7-23.2
+	c-9.6-8-16.6-18.7-20-30.7l-0.9-5.2l-0.5-1.5l-0.3-2.5l-0.5-2.6V58h0.1L3,54C3.2,25.7,26.2,2.9,54.6,3L54.6,3z"/>
+                    <path class="st1" style="fill:none;stroke:#040000;stroke-width:6;stroke-miterlimit:8;" d="M54.6,3c28.2-0.4,51.4,22.2,51.8,50.4S84.2,104.8,56,105.2c-0.5,0-1,0-1.4,0l-1.4-0.2v20l-27.7-23.2
+	c-9.6-8-16.6-18.7-20-30.7l-0.9-5.2l-0.5-1.5l-0.3-2.5l-0.5-2.6V58h0.1L3,54C3.2,25.7,26.2,2.9,54.6,3L54.6,3z"/>
+                    <path class="st2" style="fill-rule:evenodd;clip-rule:evenodd;fill:#F5BA1A;" d="M34,16.4l20.6,10.2l18.3-10.1l4.6,3.8c13,13.2,13.2,34.2,0.5,46.8L54.8,89.8l-23.7-24
+	c-13-13.2-13.2-34.2-0.5-46.8L34,16.4z"/>
+                    <path class="st1" style="fill:none;stroke:#040000;stroke-width:6;stroke-miterlimit:8;" d="M34,16.4l20.6,10.2l18.3-10.1l4.6,3.8l0,0c13,13.2,13.2,34.2,0.5,46.8L54.8,89.8l-23.7-24
+	c-13-13.2-13.2-34.2-0.5-46.8L34,16.4z"/>
+                    <path class="st3" style="fill-rule:evenodd;clip-rule:evenodd;fill:#F9E198;" d="M66.5,23.1l2.9,2.4l0,0c8.2,8.3,8.1,21.7-0.2,29.9L54.1,70.3L39.2,55.2c-8.2-8.3-8.1-21.7,0.2-29.9l0,0l0,0
+	l2.2-1.7l13.1,6.3L66.5,23.1z"/>
+                    <path class="st4" style="fill-rule:evenodd;clip-rule:evenodd;fill:#040000;" d="M55.6,129l-0.5-0.2V94.2l0.5-0.2c5.8,0,10.5,7.8,10.5,17.5S61.4,129,55.6,129z"/>
+                    <path class="st1" style="fill:none;stroke:#040000;stroke-width:6;stroke-miterlimit:8;" d="M55.6,129l-0.5-0.2V94.2l0.5-0.2c5.8,0,10.5,7.8,10.5,17.5S61.4,129,55.6,129z"/>
+                    <polygon class="st5" style="fill:#040000;" points="58.3,126.2 59.3,112.1 38.3,93.9 37.3,107.9 "/>
+                    <polygon class="st5" style="fill:#040000;" points="57.7,114 60.2,100.2 52,91.1 49.4,104.9 "/>
+                    <path class="st0" style="fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;" d="M67.1,101.1l8-6.4c9.2-8.7,17.4-18.4,24.4-29l3.1-5.6l-0.5,6.5c-1.5,5.8-5.2,12.6-10.5,18.9s-11.5,11.1-17,13.6
+	L67.1,101.1z"/>
+                    <path class="st6" style="fill:#FFFFFF;" d="M77.2,97.7c-4.9-3.8-9.3-3.4-9.9,0.9c-0.1,0.6-0.1,1.3,0,1.9L77.2,97.7z"/>
+                    <line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="73.1" y1="55.9" x2="57.6" y2="52.5"/>
+                    <line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="71.5" y1="58.6" x2="57.6" y2="53.5"/>
+                    <line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="69.7" y1="62.8" x2="57.6" y2="55.5"/>
+                    <line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="54.6" y1="60.9" x2="54.6" y2="48.5"/>
+                    <path class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" d="M54.1,60.6c-0.7,1.7-2.9,2-4.8,0.8c-0.4-0.3-0.7-0.5-1-0.9"/>
+                    <path class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" d="M53.5,60.6c0.7,1.7,2.9,2,4.9,0.8c0.4-0.2,0.7-0.5,1-0.9"/>
+                    <line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="35.6" y1="55.9" x2="51.1" y2="52.5"/>
+                    <line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="36.6" y1="59.6" x2="50.5" y2="54.5"/>
+                    <line class="st7" style="fill:none;stroke:#040000;stroke-miterlimit:8;" x1="38.6" y1="62.8" x2="50.7" y2="55.5"/>
+                    <path class="st6" style="fill:#FFFFFF;" d="M65.6,42.7c-1.6,1.7-4.3,1.7-6,0.1l-3-3l3-3c1.6-1.7,4.3-1.7,6-0.1C67.3,38.4,67.3,41.1,65.6,42.7L65.6,42.7
+	L65.6,42.7z"/>
+                    <path class="st6" style="fill:#FFFFFF;" d="M60.1,36.5c1.8-1.5,4.5-1.3,6,0.5l0,0l2.7,3.3L65.5,43c-1.9,1.4-4.5,1.1-6-0.8C58.1,40.5,58.4,37.9,60.1,36.5z"
+                    />
+                    <ellipse class="st5" style="fill:#040000;" cx="63.1" cy="40" rx="2" ry="4"/>
+                    <path class="st6" style="fill:#FFFFFF;" d="M48.1,42.2c-1.6,1.7-4.3,1.7-6,0.1l-3-3l3-3c1.6-1.7,4.3-1.7,6-0.1C49.8,37.9,49.9,40.5,48.1,42.2L48.1,42.2
+	L48.1,42.2z"/>
+                    <path class="st6" style="fill:#FFFFFF;" d="M42.6,36c1.8-1.5,4.5-1.3,6,0.6l0,0l0,0l2.7,3.3L48,42.6c-1.7,1.6-4.4,1.6-6-0.1c-1.6-1.7-1.6-4.4,0.1-6
+	C42.3,36.3,42.5,36.1,42.6,36L42.6,36z"/>
+                    <ellipse class="st5" style="fill:#040000;" cx="45.1" cy="39.5" rx="2" ry="4.5"/>
+                    <path d="M134.9,133.7H88.7c-2.1,0-3.9-1.7-3.9-3.9v-25.4c0-2.1,1.7-3.9,3.9-3.9h46.2c2.1,0,3.9,1.7,3.9,3.9v25.4
+	C138.8,132,137,133.7,134.9,133.7L134.9,133.7z M97.8,126v-10.1l5.2,6.5l5.2-6.5V126h5.2v-17.6h-5.2l-5.2,6.5l-5.2-6.5h-5.2V126
+	H97.8L97.8,126z M132.5,117.2h-5.2v-8.8h-5.2v8.8H117l7.8,9.1L132.5,117.2z"/>
+</svg>
             </div>
             <div class="break"></div>
             <div class="bar-menu-position">

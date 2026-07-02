@@ -1,4 +1,4 @@
-import {dialog, ipcMain, shell, app} from "electron";
+import {dialog, ipcMain, shell, app, clipboard} from "electron";
 import {Dialogs} from "../dialogs";
 import {is} from "@electron-toolkit/utils";
 import path from "path";
@@ -20,7 +20,6 @@ if (is.dev) {
 } else {
     // 在生产环境
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
-    const unpackedRootWin10 = path.join(process.resourcesPath, 'app.asar.unpacked');  // Win10的process.resourcesPath可能与Win11不同
     mdzUtils = require(path.join(unpackedRoot, "libs", "napi_cpp", "mdz_utils"));
     docRootPath = path.join(
         unpackedRoot,
@@ -61,7 +60,11 @@ export const ipc = (Sqlite3, dbPath) => {
             // 用户中途取消打开文件，直接关闭了openFileDialog
             return {'success': false, 'message': content};
         }
-        return {'success': true, 'filePath': filePath[0], 'fileName': filePath[0].split(path.sep).pop()};
+        return {
+            'success': true,
+            'filePath': filePath[0].replaceAll("\\", "/"),
+            'fileName': filePath[0].replaceAll("\\", "/").split("/").pop()
+        };
     });
 
     ipcMain.handle("activate-save-file-dialog", (event, title, btLabel) => {
@@ -71,12 +74,12 @@ export const ipc = (Sqlite3, dbPath) => {
             // 用户中途取消打开文件，直接关闭了openFileDialog
             return {'success': false};
         }
-        return {'success': true, 'savePath': filePath[0]};
+        return {'success': true, 'savePath': filePath[0].replaceAll("\\", "/")};
     });
 
     ipcMain.handle("load-encrypted-mdz-content", async (event, filePath, password) => {
         // 单独解压加密的mdz文件并获得其内容
-        let filePathArray = filePath.split(path.sep);
+        let filePathArray = filePath.split("/");
         let fileName = filePathArray.pop();
         let fileNameArray = fileName.split(".");
         fileNameArray.pop();
@@ -108,7 +111,7 @@ export const ipc = (Sqlite3, dbPath) => {
     ipcMain.handle("load-file-content", async (event, filePath, content) => {
         // 根据渲染端传过来的filePath，异步加载文件内容
         // 这里要判断文件类型了，到底是txt、md还是mdz
-        let filePathArray = filePath.split(path.sep);
+        let filePathArray = filePath.split("/");
         let fileName = filePathArray.pop();
 
         let fileNameArray = fileName.split(".");
@@ -289,6 +292,78 @@ export const ipc = (Sqlite3, dbPath) => {
             return {success: true, content: docContent, root: docRootPath + path.sep + 'media'};
         } catch (e) {
             return {success: false, message: (e.name + ": " + e.message)};
+        }
+    });
+
+    ipcMain.handle("media-paster", async (event) => {
+        const formats = clipboard.availableFormats();
+        let fileURLs, type;
+        // 常见视频文件的扩展名
+        const videoExts = ["mp4", "mov", "webm", "avi", "wmv", "flv", "mkv", "m4v", "mpeg", "ts"];
+        // 常见音频文件的扩展名
+        const audioExts = ["mp3", "wav", "flac", "ogg", "wma", "aac", "m4a"];
+        // 常见图片文件的扩展名
+        const imageExts = ["jpg", "jpeg", "tif", "tiff", "gif", "bmp", "svg", "png"];
+        // 优先检查是否存在文件专用格式
+        // 只要存在，说明最近一次操作绝对是“复制了文件”
+        const isFile = formats.some(format =>
+            format === 'FileNameW' ||        // Windows
+            format === 'public.file-url' ||  // macOS
+            format === 'text/uri-list'       // Linux
+        );
+        // 如果直接复制已有多媒体文件，则返回文件路径
+        if (isFile) {
+            if (process.platform === 'win32') {
+                // 必须优先检查 FileNameW 格式
+                // 注意：使用 readBuffer 并指定 ucs2 编码，以正确处理中文/特殊字符路径
+                const buffer = clipboard.readBuffer('FileNameW');
+                // Windows 剪贴板中的 MULTI_SZ 格式使用 UTF-16LE 编码 (ucs2)
+                const raw = buffer.toString('ucs2').replaceAll("\\", "/");
+                // 多个文件路径以 \0 分隔，结尾会有两个 \0，过滤掉空字符串即可
+                fileURLs = raw.split('\0').filter(p => p.length > 0);
+            } else if (process.platform === 'darwin') {
+                const raw = clipboard.read('public.file-url');
+                // macOS 复制多个文件时，路径通常以换行符 \n 分隔
+                fileURLs = raw.split('\n')
+                    .map(url => url.trim())
+                    .filter(url => url.startsWith('file://'))
+                    .map(url => {
+                        // 去掉 file:// 前缀，并对特殊字符（如空格、中文）进行 URL 解码
+                        return url.replace('file://', '');
+                    });
+            } else if (process.platform === 'linux') {
+                const raw = clipboard.read('text/uri-list');
+                fileURLs = raw.split('\n')
+                    .map(url => url.trim())
+                    .filter(url => url.startsWith('file://'))
+                    .map(url => {
+                        return url.replace('file://', '');
+                    });
+            }
+            let result = "";
+            for (let i = 0; i < fileURLs.length; i++) {
+                let fileURL = encodeURI(fileURLs[i]);
+                let ext = fileURL.split(".").pop();
+                if (videoExts.includes(ext)) {
+                    type = "${video}:";
+                } else if (audioExts.includes(ext)) {
+                    type = "${audeo}:";
+                } else if (imageExts.includes(ext)) {
+                    type = "";
+                } else {
+                    type = "${file}:";
+                }
+                result = result + ("![" + type + "](" + fileURL + ")\n");
+            }
+            return result;
+        } else {
+            const isImage = formats.some(format => format.includes('image'));
+            // 如果剪切版内为图片的具体内容，则返回base64编码的内容
+            if (isImage) {
+                const image = clipboard.readImage();
+                const imageURL = image.toDataURL();
+                return `![](${imageURL})`;
+            }
         }
     });
 

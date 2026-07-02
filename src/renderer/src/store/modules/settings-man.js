@@ -1,9 +1,16 @@
+const initLangFunc = (state) => {
+
+};
+
 export const settingsMan = {
     state: () => {
         return {
             // 编辑器&渲染器调节相关变量
             editorMode: "mix",   // 编辑器模式，分为预览模式（preview）、编辑模式（edit）和混合模式（mix）
             renderDistance: 10,  // Markdown渲染距离
+            // quality和performance，performance则是应用虚拟滚动，截取编辑器内部分内容节约性能，但有可能会发生渲染错误
+            // quality则是一次性渲染全部内容，虽然耗费更多性能但渲染错误概率明显降低
+            renderMode: 'performance',
             userSettings: {},
             lang: 'zh-CN',
         };
@@ -32,6 +39,7 @@ export const settingsMan = {
                     'display_horizon_scrollbar': 'visible',
                     'display_code_scale': 1,
                     'display_editor_animation': 1,
+                    'render_mode': 'performance',
                     'safe_mode': 0,
                 };
                 localStorage.setItem('userSettings', JSON.stringify(state.userSettings));
@@ -39,13 +47,6 @@ export const settingsMan = {
                 // 如果刚打开时localStorage有user settings，则载入localStorage中的设置
                 state.userSettings = JSON.parse(localStorage.getItem('userSettings'));
             }
-            // 初始化语言
-            window.loadLangPreload.loadLang().then((lang) => {
-                state.lang = lang;
-                localStorage.setItem('lang', lang);
-            }).catch((err) => {
-                console.error(err);
-            });
         },
         forceResetUserSettings(state) {
             state.userSettings = {
@@ -59,14 +60,26 @@ export const settingsMan = {
                 'display_horizon_scrollbar': 'visible',
                 'display_code_scale': 1,
                 'display_editor_animation': 1,
+                'render_mode': 'performance',
                 'safe_mode': 0,
             };
             localStorage.setItem('userSettings', JSON.stringify(state.userSettings));
         }
     },
     actions: {
-        initUserSettingsAction({commit}) {
-            console.log("初始化用户设置，包括语言");
+        async initUserSettingsAction({rootState, commit}) {
+            console.log("初始化用户语言");
+            // 初始化语言
+            try {
+                let lang = await window.loadLangPreload.loadLang();
+                rootState.settings.lang = lang;
+                localStorage.setItem('lang', lang);
+                console.log("已初始化语言");
+            } catch (e) {
+                console.error(e);
+                console.log("初始化语言出错！");
+            }
+            console.log("初始化用户设置");
             commit('initUserSettings');
         }
     },

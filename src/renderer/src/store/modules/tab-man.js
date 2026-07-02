@@ -87,7 +87,7 @@ export const tMan = {
     },
     actions: {
         // 初始化（即软件启动后）打开的页面，计划分为：不打开任何页面、打开欢迎页面
-        initOpenAppTab: ({state, commit}) => {  // 第一次打开AME时加载的页面，可进行更改
+        async initOpenAppTab({rootState, commit}) {  // 第一次打开AME时加载的页面，可进行更改
             let lang = localStorage.getItem('lang');
             console.log(lang);
             let langOptions = {
@@ -126,16 +126,16 @@ export const tMan = {
             // 如果设置为启动时不打开任何页面，则该值为空值
             // let initPage = null;
             if (initPage) {
-                state.tabList.set(initPageId, initPage);
-                state.currentOpenedPageId = initPageId;
-                state.currentOpenedTabNumber = 1;  // 更新目前共打开了几个页面
+                rootState.tab.tabList.set(initPageId, initPage);
+                rootState.tab.currentOpenedPageId = initPageId;
+                rootState.tab.currentOpenedTabNumber = 1;  // 更新目前共打开了几个页面
                 router.replace(initPage.get('path'));
             } else {
                 // 如果设置为启动时不打开任何页面，即展示的就是默认页面，当前打开的页面ID就设置为“DEFAULT_PAGE”
                 router.replace('/');
             }
             console.log("初始化Tab设置");
-            console.log("state.tabList", state.tabList);
+            console.log("state.tabList", rootState.tab.tabList);
         },
     },
 }

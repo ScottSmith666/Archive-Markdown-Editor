@@ -602,8 +602,8 @@ export const getMdzMediaPathToDirectPathEdits = async (model, presentPath, prese
                 copies.push(
                     [
                         // 源文件 -> 拷贝文件
-                        `${presentPath}/._mdz_content.${presentPureFileName}/mdz_contents/media_src/${mediaFileName}`,
-                        `${savePath}/${savePureFileName}.media_dir/${mediaFileName}`,
+                        `${presentPath}/._mdz_content.${presentPureFileName}/mdz_contents/media_src/${decodeURI(mediaFileName)}`,
+                        `${savePath}/${savePureFileName}.media_dir/${decodeURI(mediaFileName)}`,
                     ]
                 );
             }
@@ -652,8 +652,10 @@ export const getDirectPathToMdzMediaPathEdits = async (model, savePureFileName,
                     text: `![${alt}]($MDZ_MEDIA/${mediaFileName}${textAfterUrl})`,
                     forceMoveMarkers: false
                 });
+                console.log("decodeURI(url)", decodeURI(url));
+                console.log("decodeURI(mediaFileName)", decodeURI(mediaFileName));
                 copies.push(
-                    [url, `${savePath}/._mdz_content.${savePureFileName}/mdz_contents/media_src/${mediaFileName}`]  // 源文件 -> 拷贝文件
+                    [decodeURI(url), `${savePath}/._mdz_content.${savePureFileName}/mdz_contents/media_src/${decodeURI(mediaFileName)}`]  // 源文件 -> 拷贝文件
                 );
             }
             // 当saveAs = true时，且当一个已存在的旧mdz文件另存为另一个mdz文件
@@ -662,8 +664,8 @@ export const getDirectPathToMdzMediaPathEdits = async (model, savePureFileName,
                 if (mdzPattern.test(url)) {
                     copies.push(
                         [
-                            `${originPurePath}/._mdz_content.${originPureFileName}/mdz_contents/media_src/${url.split("/").pop()}`,
-                            `${savePath}/._mdz_content.${savePureFileName}/mdz_contents/media_src/${mediaFileName}`]
+                            `${originPurePath}/._mdz_content.${originPureFileName}/mdz_contents/media_src/${decodeURI(url.split("/").pop())}`,
+                            `${savePath}/._mdz_content.${savePureFileName}/mdz_contents/media_src/${decodeURI(mediaFileName)}`]
                     );
                 }
             }

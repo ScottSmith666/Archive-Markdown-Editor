@@ -32,4 +32,7 @@
   DeleteRegKey HKCR "${APP_ID}.md"
   DeleteRegKey HKCR ".mdz"
   DeleteRegKey HKCR "${APP_ID}.mdz"
+
+  SetShellVarContext current
+  RMDir /r "$PROFILE\.ame_conf"
 !macroend

@@ -182,11 +182,9 @@ export const fileMan = {
                                         // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
                                         currentPageInfo.set("saved", true);
                                         console.log("修改保存状态");
-                                        const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
-                                        let sep = win32PathPattern.test(currentPurePath) ? "\\" : "/";
                                         let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                             `${currentPureFileName}.mdz`,
-                                            `${currentPurePath}${sep}${currentPureFileName}.mdz`,
+                                            `${currentPurePath}/${currentPureFileName}.mdz`,
                                             getNow()
                                         );
                                         console.log("sqlResult", sqlResult);
@@ -255,13 +253,10 @@ export const fileMan = {
                         if (writeResult.success) {
                             // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
                             currentPageInfo.set("saved", true);
-                            const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
-                            let sep = win32PathPattern.test(currentPurePath) ? "\\" : "/";
-
                             try {
                                 let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                     `${currentPureFileName}.${currentOpenedFileExt}`,
-                                    `${currentPurePath}${sep}${currentPureFileName}.${currentOpenedFileExt}`,
+                                    `${currentPurePath}/${currentPureFileName}.${currentOpenedFileExt}`,
                                     getNow()
                                 );
                                 if (sqlResult.success) {
@@ -366,7 +361,7 @@ export const fileMan = {
                                 try {
                                     let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                         `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
-                                        `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
+                                        `${planSaveFileInfo[2]}/${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
                                         getNow()
                                     );
                                     if (sqlResult.success) {
@@ -485,7 +480,7 @@ export const fileMan = {
 
                                             let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                                 `${planSaveFileInfo[0]}.mdz`,
-                                                `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.mdz`,
+                                                `${planSaveFileInfo[2]}/${planSaveFileInfo[0]}.mdz`,
                                                 getNow()
                                             );
                                             console.log("sqlResult", sqlResult);
@@ -632,7 +627,7 @@ export const fileMan = {
 
                                     let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                         `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
-                                        `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
+                                        `${planSaveFileInfo[2]}/${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
                                         getNow()
                                     );
                                     console.log("sqlResult", sqlResult);
@@ -781,7 +776,7 @@ export const fileMan = {
 
                                             let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                                 `${planSaveFileInfo[0]}.mdz`,
-                                                `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.mdz`,
+                                                `${planSaveFileInfo[2]}/${planSaveFileInfo[0]}.mdz`,
                                                 getNow()
                                             );
                                             console.log("sqlResult", sqlResult);
@@ -888,7 +883,7 @@ export const fileMan = {
                                 try {
                                     let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                         `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
-                                        `${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
+                                        `${planSaveFileInfo[2]}/${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
                                         getNow()
                                     );
                                     if (sqlResult.success) {

@@ -19,7 +19,7 @@ const setPasswordAgain = ref("");
 onMounted(async () => {
     // dispatch
     await store.dispatch('initUserSettingsAction');  // 启动App时即加载user settings相关store变量
-    store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
+    await store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
 
     window.confirmPreload.onAskForClose(() => {
         // 遍历所有标签页查看是否存在未保存文件

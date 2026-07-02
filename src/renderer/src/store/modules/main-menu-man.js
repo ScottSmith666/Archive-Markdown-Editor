@@ -40,7 +40,4 @@ export const mainMenuMan = {
             }
         },
     },
-    actions: {
-
-    },
 }

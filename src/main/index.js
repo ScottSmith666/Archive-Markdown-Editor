@@ -52,7 +52,7 @@ if (!gotTheLock) {  // 当前打开多个实例
             let arg = commandLine[i];
             if (arg.indexOf("--direct-open-file=") !== -1) {
                 // 将获得的路径传入全局变量
-                fPath = arg.replace("--direct-open-file=", "");
+                fPath = arg.replace("--direct-open-file=", "").replaceAll("\\", "/");
                 break;
             }
         }
