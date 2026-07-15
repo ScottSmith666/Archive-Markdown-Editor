@@ -158,13 +158,14 @@ onMounted(() => {
     border: none;
 }
 
-.video-preview {
-    width: 100%;
-    height: 100%;
+.video-preview video {
+    width: 80%;
+    height: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    object-fit: cover;
 }
 
 .audio-preview {
@@ -176,13 +177,15 @@ onMounted(() => {
     align-items: center;
 }
 
-.image-preview {
-    width: 100%;
-    height: 100%;
+.image-preview img {
+    width: 80%;
+    height: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    object-fit: cover;
+    margin: 0 auto;
 }
 
 .docx-preview {
