@@ -2,7 +2,7 @@ import {dialog, ipcMain, shell, app, clipboard} from "electron";
 import {Dialogs} from "../dialogs";
 import {is} from "@electron-toolkit/utils";
 import path from "path";
-import fs from "fs";
+import fs from 'fs';
 import {rm} from 'fs/promises';
 import {sqliteIpc} from "./modules/sqliteipc.js";
 import {SqliteMan} from "../sqlite-man";
@@ -13,14 +13,17 @@ const exec = util.promisify(require('child_process').exec);
 
 let mdzUtils;
 let docRootPath;
+let XLSX;
 if (is.dev) {
     // 在开发环境
     mdzUtils = require(path.join(__dirname, "..", "..", "libs", "napi_cpp", "mdz_utils"));
     docRootPath = path.join(__dirname, "..", "..", "document");
+    XLSX = require("xlsx");
 } else {
     // 在生产环境
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
     mdzUtils = require(path.join(unpackedRoot, "libs", "napi_cpp", "mdz_utils"));
+    XLSX = require(path.join(unpackedRoot, "node_modules", "xlsx"));
     docRootPath = path.join(
         unpackedRoot,
         `document`
@@ -48,12 +51,65 @@ const getNow = () => {
     }).replace(/\//g, '-');
 };
 
+const stox = (wb) => {
+    let out = [];
+    wb.SheetNames.forEach(function (name) {
+        let o = { name: name, rows: {} };
+        let ws = wb.Sheets[name];
+        if(!ws || !ws["!ref"]) return;
+        let range = XLSX.utils.decode_range(ws['!ref']);
+        // sheet_to_json will lost empty row and col at begin as default
+        range.s = { r: 0, c: 0 };
+        let aoa = XLSX.utils.sheet_to_json(ws, {
+            raw: false,
+            header: 1,
+            range: range
+        });
+
+        aoa.forEach(function (r, i) {
+            let cells = {};
+            r.forEach(function (c, j) {
+                cells[j] = { text: c || String(c) };
+
+                let cellRef = XLSX.utils.encode_cell({ r: i, c: j });
+
+                if ( ws[cellRef] != null && ws[cellRef].f != null) {
+                    cells[j].text = "=" + ws[cellRef].f;
+                }
+            });
+            o.rows[i] = { cells: cells };
+        });
+        o.rows.len = aoa.length;
+
+        o.merges = [];
+        (ws["!merges"]||[]).forEach(function (merge, i) {
+            //Needed to support merged cells with empty content
+            if (o.rows[merge.s.r] == null) {
+                o.rows[merge.s.r] = { cells: {} };
+            }
+            if (o.rows[merge.s.r].cells[merge.s.c] == null) {
+                o.rows[merge.s.r].cells[merge.s.c] = {};
+            }
+
+            o.rows[merge.s.r].cells[merge.s.c].merge = [
+                merge.e.r - merge.s.r,
+                merge.e.c - merge.s.c
+            ];
+
+            o.merges[i] = XLSX.utils.encode_range(merge);
+        });
+
+        out.push(o);
+    });
+
+    return out;
+}
+
 export const ipc = (Sqlite3, dbPath) => {
     const sqliteMan = new SqliteMan(Sqlite3, dbPath);
     sqliteMan.init();  // 检查相关sqlite表是否存在，如不存在就新建
 
     ipcMain.handle("activate-open-file-dialog", (event, title, content) => {
-        console.log(`[${title}] ${content}`);
         // 打开“选择打开文件”的操作系统组件，以向渲染端（前端）返回计划打开的文件路径
         let filePath = dialogs.openFileDialog(title);  // 获得打开的文件路径
         if (!filePath) {
@@ -194,9 +250,8 @@ export const ipc = (Sqlite3, dbPath) => {
 
     ipcMain.handle("copy-mdz-media-files", async (event, filePathArray) => {
         for (let i = 0; i < filePathArray.length; i++) {
-            console.log(`第${i + 1}个，共${filePathArray.length}个。${filePathArray[i][0]} -> ${filePathArray[i][1]}`);
             try {
-                await fs.promises.copyFile(filePathArray[i][0], filePathArray[i][1]);
+                await fs.promises.copyFile(decodeURI(filePathArray[i][0]), decodeURI(filePathArray[i][1]));
             } catch (e) {
                 // 有时候用户写的Markdown文档中会发现找不到媒体文件，就跳过拷贝这个文件
                 if (!e.message.includes('ENOENT: no such file or directory, copyfile')) {
@@ -217,7 +272,6 @@ export const ipc = (Sqlite3, dbPath) => {
     });
 
     ipcMain.handle("save-file-content", async (event, purePath, pureFileName, content, ext) => {
-        console.log(ext);
         try {
             if (ext === "mdz") {
                 await fs.promises.writeFile(purePath + path.sep + "._mdz_content." + pureFileName + path.sep
@@ -251,14 +305,13 @@ export const ipc = (Sqlite3, dbPath) => {
 
     ipcMain.on("save-file-in-mdz", async (event, title, filePath) => {
         // 打开“选择打开文件”的操作系统组件，以向渲染端（前端）返回计划打开的文件路径
-        filePath = filePath.replace("file://", "");
-        let fileName = filePath.split(path.sep).pop();
+        filePath = decodeURI(filePath.replace("file://", ""));
+        let fileName = filePath.split("/").pop();
         let savePath = dialogs.saveMediaDialog(title, (os.homedir() + path.sep + fileName));  // 获得打开的文件路径
         if (savePath) {
             // 开始保存文件
-            await fs.copyFile(filePath, savePath, (err) => {
+            fs.copyFile(filePath, savePath, (err) => {
                 if (err) {
-                    console.log(err);
                     dialog.showMessageBoxSync({
                         type: 'error',
                         message: '保存失败 Save failed!',
@@ -285,6 +338,34 @@ export const ipc = (Sqlite3, dbPath) => {
         }
     });
 
+    ipcMain.handle("get-file-buffer",  (event, path, isXlsx) => {
+        const bufferSize = 64 * 1024;
+        return new Promise((resolve, reject) => {
+            const stream = fs.createReadStream(path, { highWaterMark: bufferSize });
+            const chunks = [];
+            stream.on('data', chunk => chunks.push(chunk));
+            stream.on('end', () => {
+                const buffer = Buffer.concat(chunks);
+                if (!isXlsx) {
+                    resolve(buffer);
+                } else {
+                    const workbook = XLSX.read(buffer);
+                    resolve(stox(workbook));
+                }
+            });
+            stream.on('error', reject);
+        });
+    });
+
+    ipcMain.handle("get-file-as-txt",  async (event, path) => {
+        try {
+            let fileContent = await fs.promises.readFile(path, 'utf8');
+            return {"success": true, "message": fileContent.substring(0, 10000)};  // 截取前10000个字，以免卡死
+        } catch (e) {
+            return {"success": false, "message": e};
+        }
+    });
+
     ipcMain.handle("doc-loader", async (event, fileName) => {
         const filePath = docRootPath + path.sep + fileName + '.md';
         try {
@@ -307,10 +388,9 @@ export const ipc = (Sqlite3, dbPath) => {
         // 优先检查是否存在文件专用格式
         // 只要存在，说明最近一次操作绝对是“复制了文件”
         const isFile = formats.some(format =>
-            format === 'FileNameW' ||        // Windows
-            format === 'public.file-url' ||  // macOS
-            format === 'text/uri-list'       // Linux
-        );
+            format === 'FileNameW' ||  // Windows
+            format === 'public.file-url'  // macOS
+        ) || clipboard.read('x-special/gnome-copied-files').includes("file://");  // Linux（注意这个mime不是通用的，不同的发行版可能有不同的mime，后续开发注意补充）
         // 如果直接复制已有多媒体文件，则返回文件路径
         if (isFile) {
             if (process.platform === 'win32') {
@@ -332,7 +412,7 @@ export const ipc = (Sqlite3, dbPath) => {
                         return url.replace('file://', '');
                     });
             } else if (process.platform === 'linux') {
-                const raw = clipboard.read('text/uri-list');
+                const raw = clipboard.read('x-special/gnome-copied-files');  // 注意补充
                 fileURLs = raw.split('\n')
                     .map(url => url.trim())
                     .filter(url => url.startsWith('file://'))
@@ -343,11 +423,11 @@ export const ipc = (Sqlite3, dbPath) => {
             let result = "";
             for (let i = 0; i < fileURLs.length; i++) {
                 let fileURL = encodeURI(fileURLs[i]);
-                let ext = fileURL.split(".").pop();
+                let ext = fileURL.split(".").pop().toLowerCase();
                 if (videoExts.includes(ext)) {
                     type = "${video}:";
                 } else if (audioExts.includes(ext)) {
-                    type = "${audeo}:";
+                    type = "${audio}:";
                 } else if (imageExts.includes(ext)) {
                     type = "";
                 } else {
@@ -367,6 +447,44 @@ export const ipc = (Sqlite3, dbPath) => {
         }
     });
 
+    ipcMain.handle("get-media-list-in-mdz", async (event, mediaHomePath) => {
+        try {
+            let mediaList = await fs.promises.readdir(mediaHomePath);
+            return {"success": true, "message": {"homeDir": mediaHomePath, "nameList": mediaList}}
+        } catch (e) {
+            return {"success": false, "message": e};
+        }
+    });
+
+    ipcMain.handle("import-media-into-mdz", async (event, title, destinationPath) => {
+        // 打开“选择打开文件”的操作系统组件，以向渲染端（前端）返回计划打开的文件路径
+        let mediaFilePaths = dialogs.openFileDialog(title, true);  // 获得打开的文件路径
+        if (!mediaFilePaths) {
+            // 用户中途取消打开文件，直接关闭了openFileDialog
+            return {'success': false, 'message': ["用户已取消导入媒体/User Canceled"]};
+        }
+        let mediaFilePath = decodeURI(mediaFilePaths[0]);
+        let mediaFileName = mediaFilePath.split(path.sep).pop();
+        try {
+            await fs.promises.copyFile(mediaFilePath, `${destinationPath}/${mediaFileName}`);
+            return {
+                'success': true,
+                'message': ["媒体导入成功/Successfully Imported", mediaFileName],
+            };
+        } catch (e) {
+            return {'success': false, 'message': [e.name]};
+        }
+    });
+
+    ipcMain.handle("delete-media-in-mdz",  async (event, mediaPath) => {
+        try {
+            await rm(mediaPath, {recursive: true, force: true});
+            return {"success": true, "message": "删除成功/Delete Successfully"};
+        } catch (e) {
+            return {"success": false, "message": "删除失败/Delete Failed"};
+        }
+    });
+
     ipcMain.on('open-url', (event, url) => {
         shell.openExternal(url);
     });
@@ -374,7 +492,6 @@ export const ipc = (Sqlite3, dbPath) => {
     ipcMain.handle('get-system-lang', (event) => {
         // 检测操作系统的语言设置并返回
         let locale = app.getLocale();
-        console.log(locale);
         if (['zh-CN', 'zh', 'zh-Hans'].includes(locale)) {
             // 加载简体中文
             return 'zh-CN';

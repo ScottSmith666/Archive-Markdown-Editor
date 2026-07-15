@@ -27,6 +27,14 @@ const handleGoToTop = () => {
 const handleGoToBottom = () => {
     goToTopOrBottom.value?.goToBottom();
 }
+
+const expandPreviewDialog = () => {
+    setTimeout(() => {
+        if (localStorage.getItem(`${store.state.tab.currentOpenedPageId}-click-media-path`)) {
+            store.commit('toggleModal', {'kind': 'preview'});
+        }
+    }, 400);
+};
 </script>
 
 <template>
@@ -34,18 +42,19 @@ const handleGoToBottom = () => {
         <!--Editor不能添加v-if，否则会出问题-->
         <Editor
             :class="store.state.settings.editorMode === 'preview' ? 'editor-down' : ''"
+            :style="store.state.settings.editorMode === 'edit' ? 'width: 100%;' : ''"
             @update="updateParentData"
             @top="handleGoToTop"
             @bottom="handleGoToBottom"
         />
         <Viewer
             v-if="store.state.settings.editorMode === 'mix' || store.state.settings.editorMode === 'preview'"
-            :class="store.state.settings.editorMode === 'preview' ? 'viewer-up' : ''"
             :md-piece="parentPieceContent"
             :start-line-number="parentFirstLineNumber"
             :middle-line-number="parentMiddleLineNumber"
             :enableToc="false"
             ref="goToTopOrBottom"
+            @click="expandPreviewDialog"
         />
     </div>
 </template>

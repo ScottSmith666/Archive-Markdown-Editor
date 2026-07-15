@@ -37,6 +37,14 @@ const readDocument = async (docName) => {
     }
 };
 
+const expandPreviewDialog = () => {
+    setTimeout(() => {
+        if (localStorage.getItem(`${store.state.tab.currentOpenedPageId}-click-media-path`)) {
+            store.commit('toggleModal', {'kind': 'preview'});
+        }
+    }, 400);
+};
+
 onBeforeRouteUpdate(async (to, from) => {
     // 页面变动时切换内容
     await readDocument(to.query.docname);
@@ -55,6 +63,7 @@ onMounted(async () => {
         :enableSafe="false"
         :mdPiece="content"
         :enable-document-media-path="{'isEnabled': true, 'path': rootPath}"
+        @click="expandPreviewDialog"
     ></Viewer>
 </template>
 

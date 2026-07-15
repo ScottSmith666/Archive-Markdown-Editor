@@ -2,6 +2,7 @@
 import {onMounted, ref} from "vue";
 import TabMan from "./components/main/TabMan.vue";
 import MenuBar from "./components/main/MenuBar.vue";
+import Preview from "./components/tools/media_preview/Preview.vue";
 import {useStore} from 'vuex';
 
 const store = useStore();
@@ -42,7 +43,6 @@ onMounted(async () => {
     // 默认应用直接打开文件
     window.fileManPreload.defaultOpenFile((filePath) => {
         let fileName = filePath.split(/\\|\//).pop();
-        console.error(fileName);
         store.dispatch('openFileFromHistoryAction', {
             'filePath': filePath,
             'fileName': fileName
@@ -77,7 +77,6 @@ const getSavePathFromDialog = () => {
         store.state.i18n.langPackage[store.state.settings.lang].dialog.systemDialogChoosePath.confirmButton
     ).then(result => {
         if (result.success) {
-            console.log(result);
             savePath.value = result.savePath;
         } else {
             savePath.value = "";
@@ -87,6 +86,23 @@ const getSavePathFromDialog = () => {
         store.commit('autoTips', {kind: "tip", tipLevel: "fail", content: `${error.name}: ${error.message}`});
     });
 };
+
+const getFocusedMediaFilePath = () => {
+    return localStorage.getItem(`${store.state.tab.currentOpenedPageId}-click-media-path`);
+}
+
+const closeMediaPreview = () => {
+    store.commit('toggleModal', {'kind': 'preview'});
+    localStorage.removeItem(`${store.state.tab.currentOpenedPageId}-click-media-path`);
+};
+
+const saveMediaFile = (url) => {
+    window.fileManPreload.saveFileInMdz(
+        `${store.state.i18n.langPackage[store.state.settings.lang].dialog.saveFileInMdz.title}`,
+        `${"file://" + url}`
+    );
+};
+
 const vFocus = {
     mounted: (el) => {
         el.focus();
@@ -437,13 +453,6 @@ const vFocus = {
         </div>
     </Transition>
 
-    <Transition>
-        <!--mdz媒体管理工具-->
-        <div v-if="store.state.lifecycle.showMdzMediaMan">
-
-        </div>
-    </Transition>
-
     <!--打赏-->
     <Transition>
         <div v-if="store.state.lifecycle.showDonate" class="fonts donate">
@@ -498,10 +507,37 @@ const vFocus = {
         </div>
     </Transition>
 
+    <!--预览文件-->
+    <Transition>
+        <div v-if="store.state.lifecycle.showPreview" class="preview-dialog fonts">
+            <!--标题和关闭按钮-->
+            <div class="dialog-title-bar">
+                <div class="title3">
+                    <div class="title3-block"></div>
+                    <div style="width: 8px"></div>
+                    <div style="font-weight: bold; font-size: 1.2rem;">
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].toolsPage.preview.title }}
+                    </div>
+                </div>
+                <div class="close" @click="closeMediaPreview">
+                    <div style="font-size: 1.8rem; font-weight: bold;">×</div>
+                </div>
+            </div>
+            <!--文件预览区域-->
+            <Preview :media-file-path="getFocusedMediaFilePath()"></Preview>
+            <!--保存toolbar-->
+            <div class="save-toolbar">
+                <div class="save-button" @click="saveMediaFile(getFocusedMediaFilePath())">
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].toolsPage.preview.saveButton }}
+                </div>
+            </div>
+        </div>
+    </Transition>
+
     <div class="main-page">
         <!--菜单栏-->
         <MenuBar/>
-        <div class="work-page" @mouseenter="store.commit('mainManuAllHide')">
+        <div class="work-page" @click="store.commit('mainManuAllHide')">
             <!--标签管理器-->
             <TabMan/>
             <!--变换区，切换成默认页面、新标签页、新建文件或打开的文件内容-->

@@ -25,7 +25,6 @@ export const settingsMan = {
             localStorage.setItem('userSettings', JSON.stringify(state.userSettings));
         },
         initUserSettings(state) {
-            console.log("正在初始化用户设置...");
             if (!localStorage.getItem('userSettings')) {
                 // 如果刚打开时localStorage没有user settings，则初始化
                 state.userSettings = {
@@ -68,18 +67,14 @@ export const settingsMan = {
     },
     actions: {
         async initUserSettingsAction({rootState, commit}) {
-            console.log("初始化用户语言");
             // 初始化语言
             try {
                 let lang = await window.loadLangPreload.loadLang();
                 rootState.settings.lang = lang;
                 localStorage.setItem('lang', lang);
-                console.log("已初始化语言");
             } catch (e) {
                 console.error(e);
-                console.log("初始化语言出错！");
             }
-            console.log("初始化用户设置");
             commit('initUserSettings');
         }
     },

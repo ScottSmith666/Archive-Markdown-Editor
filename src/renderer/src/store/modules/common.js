@@ -20,11 +20,16 @@ export const createMonacoEditorModel = (pageId, content = "") => {
     return monaco.editor.createModel(content, "markdown", uri);
 };
 
+export const switchTo = (path, pageId) => {
+    router.replace(path);
+    localStorage.setItem("currentPageId", pageId);
+};
+
 export const switchToPage = (state, item) => {
     // 更新当前窗口类型状态
     // state.currentActivatedTabType = item.get('type');
     state.currentOpenedPageId = item.get('pageid');
-    router.replace(item.get('path'));
+    switchTo(item.get('path'), item.get('pageid'));
 };
 
 export const changePropsOfTab = (state, pageId, propName, propValue) => {
@@ -83,7 +88,8 @@ export const addTabPage = (state, object) => {  // 新增标签页
     let newPageObject = new Map(Object.entries({
         "label": object.pageTitle,
         "type": object.pageType,
-        "path": `/${urlContent}?pageid=${filePageID}${object.docName ? ("&docname=" + object.docName) : ""}${object.isExistFile ? "&filepath=" + object.filePath : ""}`,
+        // object.toolKind的值有”mdzMediaMan“和”preview“
+        "path": `/${urlContent}?pageid=${filePageID}${object.docName ? ("&docname=" + object.docName) : ""}${object.isExistFile ? "&filepath=" + object.filePath : ""}${object.toolKind ? "&toolkind=" + object.toolKind : ""}${object.previewMediaPath ? "&previewmediapath=" + object.previewMediaPath : ""}`,
         "focus": true,
         "isExistFile": object.isExistFile,
         "saved": true,
@@ -229,6 +235,16 @@ const showPasswordPrompt = (t, message, isWrongPassword) => {
             resolve(input.value); // 返回输入的密码
         };
 
+        // 绑定回车键事件
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                modal.style.display = 'none';
+                form.style.display = 'none';
+                title.style.color = "#42b983";
+                resolve(input.value); // 返回输入的密码
+            }
+        });
+
         // 绑定取消按钮
         document.getElementById('pwd-cancel').onclick = () => {
             modal.style.display = 'none';
@@ -268,8 +284,10 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
         }
     }
 
-    actModel(rootState, {kind: "loading",
-        content: rootState.i18n.langPackage[rootState.settings.lang].dialog.loading.open});  // 显示加载
+    actModel(rootState, {
+        kind: "loading",
+        content: rootState.i18n.langPackage[rootState.settings.lang].dialog.loading.open
+    });  // 显示加载
     // 获得文件路径后，异步打开文件获得内容
     let planOpenFilePath = result.filePath;
     let planOpenFileName = result.fileName;
@@ -311,12 +329,10 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                     while (true) {
                         try {
                             let returnFromInputMdzPasswordDialog = await showPasswordPrompt(promTitle, promContent, isPasswordWrong);
-                            console.log("密码是：", returnFromInputMdzPasswordDialog);
                             if (returnFromInputMdzPasswordDialog) {
                                 let userMdzPassword = returnFromInputMdzPasswordDialog;
                                 // 开始尝试用输入的密码打开加密mdz
                                 let result4 = await window.fileManPreload.loadEncryptedMdzFileContent(planOpenFilePath, userMdzPassword);
-                                console.log("result4: ", result4);
                                 if (result4.success) {
                                     // 说明密码正确，开始加载内容
                                     addTabPage(rootState.tab, {
@@ -435,7 +451,6 @@ const extractMediaMdInCode = (model) => {
     if (blockCodeMatches.length > 0) {
         for (let i = 0; i < blockCodeMatches.length; i++) {
             let originContent = blockCodeMatches[i].matches[0];
-            console.log('originContent', originContent);
             let originContentRange = blockCodeMatches[i].range;
             let replaceId = `$CODE-HERE-${crypto.randomUUID()}`;
             let replaceIdReg = `\\${replaceId}`;
@@ -470,7 +485,6 @@ const extractMediaMdInCode = (model) => {
     if (blockCodeSpaceTabMatches.length > 0) {
         for (let i = 0; i < blockCodeSpaceTabMatches.length; i++) {
             let originContent = blockCodeSpaceTabMatches[i].matches[0];
-            console.log('originContentSpaceTab', originContent);
             let originContentRange = blockCodeSpaceTabMatches[i].range;
             let replaceId = `$CODE-HERE-${crypto.randomUUID()}`;
             let replaceIdReg = `\\${replaceId}`;
@@ -559,7 +573,6 @@ const extractMediaMdInCode = (model) => {
         model.applyEdits(editArray, false);
         model.pushStackElement();
     }
-    console.log("code -> ID替换完成");
     editArray = null;
     imageInCodeKV.reverse();  // 将imageInCodeKV列表进行reverse
     return imageInCodeKV;
@@ -610,7 +623,8 @@ export const getMdzMediaPathToDirectPathEdits = async (model, presentPath, prese
         }
         return [edits, copies, replaceArray];
     } else {
-        return [[], [], []];
+        // 就算没有匹配到多媒体语句，也应该把已经替换的code部分给替换回来
+        return [[], [], replaceArray];
     }
 };
 
@@ -629,7 +643,6 @@ export const getDirectPathToMdzMediaPathEdits = async (model, savePureFileName,
         null,
         true
     );
-    console.log("matches", matches);
     if (matches.length > 0) {
         let edits = [];
         let copies = [];
@@ -652,8 +665,6 @@ export const getDirectPathToMdzMediaPathEdits = async (model, savePureFileName,
                     text: `![${alt}]($MDZ_MEDIA/${mediaFileName}${textAfterUrl})`,
                     forceMoveMarkers: false
                 });
-                console.log("decodeURI(url)", decodeURI(url));
-                console.log("decodeURI(mediaFileName)", decodeURI(mediaFileName));
                 copies.push(
                     [decodeURI(url), `${savePath}/._mdz_content.${savePureFileName}/mdz_contents/media_src/${decodeURI(mediaFileName)}`]  // 源文件 -> 拷贝文件
                 );
@@ -672,7 +683,8 @@ export const getDirectPathToMdzMediaPathEdits = async (model, savePureFileName,
         }
         return [edits, copies, replaceArray];
     } else {
-        return [[], [], []];
+        // 就算没有匹配到多媒体语句，也应该把已经替换的code部分给替换回来
+        return [[], [], replaceArray];
     }
 };
 
@@ -684,7 +696,6 @@ export const replaceIdToOriginCode = async (model, replaceArray) => {
             await new Promise(resolve => setTimeout(resolve, 150));
         }
 
-        console.log(`(${i + 1}) replaceArray[i]`, replaceArray[i]);
         let content = replaceArray[i][0];
         const idMatches = model.findMatches(
             replaceArray[i][2],
@@ -695,7 +706,6 @@ export const replaceIdToOriginCode = async (model, replaceArray) => {
             true,
             100
         );
-        console.log("idMatches", idMatches);
         if (idMatches.length > 0) {
             edits.push({
                 range: idMatches[0].range,
@@ -704,60 +714,44 @@ export const replaceIdToOriginCode = async (model, replaceArray) => {
             });
         }
     }
-    console.log("edits in replaceIdToOriginCode", edits);
     model.pushStackElement();
     model.applyEdits(edits);
     model.pushStackElement();
     edits = null;  // 用完就把变量回收
-    console.log("ID -> code替换完成");
 }
 
-export const verifySaveForm = (formArray) => {
+export const verifySaveForm = (formArray, rootState) => {
     // 用户提供的文件信息，则包含：data = [单纯文件名, 扩展名, 保存路径, 密码, 再次输入密码]
-
-    let lang = localStorage.getItem('lang');
-    let langOptions = {
-        "zh-CN": {
-            "fileNameRequired": '保存失败，请填写文件名！',
-            "forbiddenChars": '保存失败，文件名内含有非法字符 > < : \' | * ?',
-            "savePathRequired": '保存失败，未指定保存路径！',
-            "twicePasswordNotSame": '保存失败，两次输入的密码不一致，请重新输入！',
-        },
-        "zh-TW": {
-            "fileNameRequired": '儲存失敗，請填寫檔案名稱！',
-            "forbiddenChars": '儲存失敗，檔案名稱內含有非法字符 > < : \' | * ?',
-            "savePathRequired": '儲存失敗，未指定儲存路徑！',
-            "twicePasswordNotSame": '儲存失敗，兩次輸入的密碼不一致，請重新輸入！',
-        },
-        "en": {
-            "fileNameRequired": 'Save failed. File name required.',
-            "forbiddenChars": 'Failed. File name contains illegal chars > < : \' | * ?',
-            "savePathRequired": 'Failed. Save path required.',
-            "twicePasswordNotSame": 'Failed. Two passwords do not match. Please re-enter.',
-        },
-    };
-
-    console.log("verifySaveForm", formArray);
     const fileForbiddenChars = [">", "<", ":", "'", "|", "*", "?"];
 
     if (formArray[0] === '') {
-        return {"success": false, message: langOptions[lang].fileNameRequired};
+        return {
+            "success": false,
+            message: rootState.i18n.langPackage[rootState.settings.lang].dialog.saveForm.fileNameRequired
+        };
     }
 
     for (let i = 0; i < fileForbiddenChars.length; i++) {
         if (formArray[0].includes(fileForbiddenChars[i])) {
-            return {"success": false, message: langOptions[lang].forbiddenChars};
+            return {
+                "success": false,
+                message: rootState.i18n.langPackage[rootState.settings.lang].dialog.saveForm.forbiddenChars
+            };
         }
     }
 
     if (formArray[2] === '') {
-        return {"success": false, message: langOptions[lang].savePathRequired};
+        return {
+            "success": false,
+            message: rootState.i18n.langPackage[rootState.settings.lang].dialog.saveForm.savePathRequired
+        };
     }
 
-    console.log("formArray[3]", formArray[3]);
-    console.log("formArray[4]", formArray[4]);
     if (formArray[3] !== formArray[4]) {
-        return {"success": false, message: langOptions[lang].twicePasswordNotSame};
+        return {
+            "success": false,
+            message: rootState.i18n.langPackage[rootState.settings.lang].dialog.saveForm.twicePasswordNotSame
+        };
     }
     return {"success": true};
 };

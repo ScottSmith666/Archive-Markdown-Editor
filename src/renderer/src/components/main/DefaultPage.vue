@@ -52,7 +52,7 @@ const store = useStore();
 	H97.8L97.8,126z M132.5,117.2h-5.2v-8.8h-5.2v8.8H117l7.8,9.1L132.5,117.2z"/>
 </svg>
     </div>
-    <!--代表性快捷键提示-->
+    <!--打开帮助快捷键提示-->
     <div>
         <div class="container fonts">
             <div class="explain">

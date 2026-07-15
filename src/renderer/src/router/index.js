@@ -4,6 +4,7 @@ import WelcomePage from "../components/welcome/WelcomePage.vue";
 import WorkspacePage from "../components/workspace/WorkspacePage.vue";
 import Settings from "../components/main/Settings.vue";
 import Doc from "../components/document/Doc.vue";
+import ToolsPage from "../components/tools/ToolsPage.vue";
 
 const routes = [
     {path: "/", redirect: "/default"},
@@ -12,6 +13,7 @@ const routes = [
     {path: "/workspace", component: WorkspacePage},
     {path: "/settings", component: Settings},
     {path: "/document", component: Doc},
+    {path: "/tools", component: ToolsPage},
 ];
 
 export default createRouter({

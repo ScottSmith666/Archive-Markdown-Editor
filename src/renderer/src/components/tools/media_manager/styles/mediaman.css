@@ -1,0 +1,193 @@
+@import "../../../../assets/base.css";
+
+.media-manager-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    user-select: none;
+    height: calc(100vh - 36px - 31px);
+    overflow-y: scroll;
+}
+
+.media-manager {
+    width: 70%;
+}
+
+.title1 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.title1-block {
+    height: 2rem;
+    width: 8px;
+    background-color: var(--main-color);
+}
+
+.title2 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.title2-block {
+    height: 1.5rem;
+    width: 6px;
+    background-color: var(--main-color);
+}
+
+.title3 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.title3-block {
+    height: 1rem;
+    width: 4px;
+    background-color: var(--main-color);
+}
+
+.input {
+    padding: 5px 7px;
+    /*border: 1px solid #ccc;*/
+    border: none;
+    border-radius: 5px; /* 圆角 */
+    outline: none; /* 去掉点击时的蓝色外框 */
+    transition: all 0.3s ease; /* 过渡动画 */
+    font-size: 14px;
+}
+
+/* 焦点状态：变蓝色边框并加点发光阴影 */
+.input:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 0 8px rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.2);
+}
+
+/* 占位符颜色 */
+.input::placeholder {
+    color: #aaa;
+}
+
+.choose-opened-mdz {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px; /* 圆角 */
+    outline: none; /* 去掉点击时的蓝色外框 */
+    transition: all 0.3s ease; /* 过渡动画 */
+    font-size: 16px;
+}
+
+/* 焦点状态：变蓝色边框并加点发光阴影 */
+.choose-opened-mdz:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 0 8px rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.2);
+}
+
+/* 占位符颜色 */
+.choose-opened-mdz::placeholder {
+    color: #aaa;
+}
+
+.block-line {
+    width: 100%;
+    height: 2px;
+    background-color: var(--main-color);
+}
+
+.insert-media-button {
+    min-width: 120px;
+    height: 35px;
+    border-radius: 10px;
+    background-color: #42b883;
+    color: white;
+    text-align: center;
+    line-height: 35px;
+    cursor: pointer;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.insert-media-button:hover {
+    font-weight: bold;
+}
+
+.toolbar-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.record {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.record-icon {
+    width: 25px;
+    height: 25px;
+}
+
+.media-file-name-icon {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-button-group {
+    width: 15%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.preview-button {
+    height: 35px;
+    color: var(--main-color);
+    text-align: right;
+    line-height: 35px;
+    cursor: pointer;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.preview-button:hover {
+    font-weight: bold;
+}
+
+.copy-code-button {
+    height: 35px;
+    color: #0969DA;
+    text-align: right;
+    line-height: 35px;
+    cursor: pointer;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.copy-code-button:hover {
+    font-weight: bold;
+}
+
+.delete-button {
+    height: 35px;
+    color: #b41d23;
+    text-align: right;
+    line-height: 35px;
+    cursor: pointer;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.delete-button:hover {
+    font-weight: bold;
+}

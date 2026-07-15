@@ -34,8 +34,7 @@ export const returnMediaElement = (isURL, kind, url, caption = "") => {
     } else if (kind === 'audio') {
         return `<audio style="width: 100%;" controls src="${isURL ? encodeURI(url) : ('file://' + url)}"></audio>`;
     } else if (kind === 'file') {
-
-        return `<div onclick="window.fileManPreload.saveFileInMdz('${langOption[lang].saveFileInMdz}', '${"file://" + url}');" `
+        return `<div onclick="localStorage.setItem('` + localStorage.getItem("currentPageId") + `-click-media-path', '` + decodeURI(url) + `');" `
             + `style="cursor:pointer; display: flex; flex-direction: row; align-items: center; padding: 15px; `
             + `border-radius: 5px; background-color: #42b98330; border: 1px solid #42b983;"><div>`
             + `<svg style="width: 50px; height: 50px;" t="1763025308845" class="icon" viewBox="0 0 1024 1024" `
@@ -53,7 +52,7 @@ export const returnMediaElement = (isURL, kind, url, caption = "") => {
             + `32v128c0 12.8-10.24 23.04-23.552 23.04H474.624c-12.8 0-23.552-10.24-23.552-23.04V370.176c0-12.8 `
             + `10.752-23.04 23.552-23.04z m11.264 34.816v80.896h46.592V381.952h-46.592z" fill="#FCFCFC" p-id="5361">`
             + `</path></svg></div><div style="width: 10px;"></div><div style="font-weight: bold; `
-            + `color: #42b983;">${isURL ? decodeURI(url.split(/\//).pop()) : url.split(/\//).pop()}</div></div>`;
+            + `color: #42b983;">${decodeURI(url.split(/\//).pop())}</div></div>`;
     } else if (kind === 'image') {
         return `<img src="${isURL ? encodeURI(url) : ('file://' + url)}" alt="${caption}">`;
     } else {

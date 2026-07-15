@@ -1,1 +1,0 @@
-cmd_Release/mdz_utils.node := c++ -bundle -undefined dynamic_lookup -Wl,-search_paths_first -Wl,-dead_strip -mmacosx-version-min=11.0 -arch arm64 -L./Release -stdlib=libc++ -L/opt/homebrew/opt/ruby/lib -o Release/mdz_utils.node Release/obj.target/mdz_utils/src/main.o Release/nothing.a ../lib/darwin/arm64/libbit7z64.a

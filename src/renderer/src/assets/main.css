@@ -202,6 +202,23 @@ html, body {
     padding: 20px;
 }
 
+.preview-dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+    height: 80%;
+    background-color: white;
+    z-index: 51;
+    border-radius: 8px;
+    padding: 20px;
+}
+
 .pwd-form {
     display: none;
 }
@@ -224,6 +241,66 @@ html, body {
 /* 占位符颜色 */
 .save-as-input::placeholder {
     color: #aaa;
+}
+
+.dialog-title-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.close {
+    color: #8e8e8e !important;
+    margin-left: 5px;
+    padding: 5px;
+    width: 15px;
+    height: 15px;
+    border-radius: 2px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.close:hover {
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+.title3 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.title3-block {
+    height: 1rem;
+    width: 4px;
+    background-color: var(--main-color);
+}
+
+.save-toolbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: right;
+    padding-top: 20px;
+}
+
+.save-button {
+    min-width: 120px;
+    height: 35px;
+    border-radius: 10px;
+    background-color: #42b883;
+    color: white;
+    text-align: center;
+    line-height: 35px;
+    cursor: pointer;
+}
+
+.save-button:hover {
+    font-weight: bold;
 }
 
 /* Transition animation */

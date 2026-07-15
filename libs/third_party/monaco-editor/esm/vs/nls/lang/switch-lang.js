@@ -7,7 +7,6 @@
 
 
 let lang = navigator.language || navigator.userLanguage;
-console.log("monaco editor的右键菜单：", lang);
 if (lang === 'en' || lang.substring(0, 2) === 'en') {
     // 无事发生
 } else if (lang === "zh-CN") {  // 默认中文！

@@ -37,6 +37,8 @@ import SafeModeInfo from "./SafeModeInfo.vue";
 
 const store = useStore();
 
+const emit = defineEmits(["scroll-in-viewer"]);
+
 // props
 const props = defineProps({
     mdPiece: {
@@ -77,6 +79,10 @@ const props = defineProps({
                 path: '',
             };
         }
+    },
+    isViewerScrollEnabled: {  // 当鼠标在Editor区域滚动时，该变量就为false，以禁用Viewer滚动事件防止滚动状态混乱
+        type: Boolean,
+        default: () => true,
     }
 });
 
@@ -184,7 +190,7 @@ const mathJaxRender = () => {
                     // 只渲染特定ID的容器，避免全局扫描，性能更好
                     window.MathJax.typesetPromise([target]).then(() => {
                     }).catch((err) => {
-                        console.log(err);
+                        console.error(err);
                     });
                 }).then(() => {
                 }).catch(err => {
@@ -215,20 +221,16 @@ const mermaidRender = () => {
 const scrollCustomLineElementToCenter = (middleLine, rangeFirstLine) => {
     nextTick().then(() => {
         const container = document.getElementById('viewer-container');  // 外面的容器，包裹着里面的滚动着的高div
-        if (!container || !container.firstChild) {
+        if (!container) {
+            return 0;
+        }
+        if (!container.firstChild) {
             return 0;
         }
         let targetElement;
-        const lineOffsets = [0, -1, 1, -2, 2, -3, 3]; // 查找优先级：当前行 -> 前一行 -> 后一行，以此类推
         // 在右侧容器中查找具有相同 data-source-line 的元素
-        for (const offset of lineOffsets) {
-            targetElement = container.firstChild
-                .querySelector(`[data-source-line="${(middleLine - rangeFirstLine + 1
-                    /* data-source-line的编号是从0开始的，因此需要减1 -> */ - 1) + offset}"]`);
-            if (targetElement) {
-                break;
-            }
-        }
+        targetElement = container.firstChild
+            .querySelector(`[data-source-line="${middleLine - rangeFirstLine + 1 /* data-source-line的编号是从0开始的，因此需要减1 -> */ - 1}"]`);
         if (targetElement) {
             targetElement.scrollIntoView({
                 behavior: 'auto',
@@ -294,7 +296,12 @@ const goToTop = () => {
     try {
         if (document.getElementById('write').children.length !== 0) {
             setTimeout(() => {
-                document.getElementById('viewer-container').scrollTo(0, 0);
+                // document.getElementById('viewer-container').scrollTo(0, 0);
+                document.getElementById('write').firstElementChild.scrollIntoView({
+                    behavior: 'auto',
+                    block: 'center',
+                    inline: 'center',
+                });
             }, 100);
         }
     } catch (e) {
@@ -306,7 +313,7 @@ const goToBottom = () => {
     try {
         if (document.getElementById('write').children.length !== 0) {
             setTimeout(() => {
-                document.getElementById('write').lastChild.scrollIntoView({
+                document.getElementById('write').lastElementChild.scrollIntoView({
                     behavior: 'auto',
                     block: 'center',
                     inline: 'center',
@@ -325,7 +332,8 @@ defineExpose({
 // watch
 watch(
     () => [props.mdPiece, props.middleLineNumber],
-    ([newMdPiece, newMiddleLineNumber], [oldMdPiece, oldMiddleLineNumber]) => {
+    async ([newMdPiece, newMiddleLineNumber], [oldMdPiece, oldMiddleLineNumber]) => {
+        await nextTick();
         if ((!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)) {
             render(newMdPiece);
             if (newMiddleLineNumber !== oldMiddleLineNumber) {
@@ -352,7 +360,8 @@ watch(confirmContentSafe, (newValue, oldValue) => {
 
 <template>
     <Transition>
-        <nav v-if="(!(Number(store.state.settings.userSettings.safe_mode) === 1)) && props.enableToc && viewerTocShow" class="custom-toc">
+        <nav v-if="(!(Number(store.state.settings.userSettings.safe_mode) === 1)) && props.enableToc && viewerTocShow"
+             class="custom-toc">
             <div class="toc fonts">
                 <div class="toc-title-block"></div>
                 <div class="toc-title">目录</div>
@@ -431,7 +440,9 @@ watch(confirmContentSafe, (newValue, oldValue) => {
         <div v-if="viewerContextMenuShow" class="viewer-contextmenu fonts"
              :style="contextMenuPositionStyle">
             <div class="vc-menu-element" @click="copyInViewer">
-                <p>&nbsp;&nbsp;&nbsp;{{ store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inViewer.copy }}</p>
+                <p>&nbsp;&nbsp;&nbsp;{{
+                        store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inViewer.copy
+                    }}</p>
             </div>
             <div v-if="props.enableToc" class="vc-menu-element"
                  @click="viewerTocShow = !viewerTocShow; viewerContextMenuShow = false;">
@@ -441,6 +452,7 @@ watch(confirmContentSafe, (newValue, oldValue) => {
     </Transition>
 
     <div class="viewer-area fonts"
+         :class="store.state.settings.editorMode === 'preview' ? 'viewer-upper' : ''"
          id="viewer-container"
          tabindex="-1"
          v-bind="$attrs"
@@ -450,7 +462,8 @@ watch(confirmContentSafe, (newValue, oldValue) => {
         <div v-if="(!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)" id="write">
             <!--Generated HTML was injected here...-->
         </div>
-        <safe-mode-info v-if="Number(store.state.settings.userSettings.safe_mode) === 1 && props.enableSafe"></safe-mode-info>
+        <safe-mode-info
+            v-if="Number(store.state.settings.userSettings.safe_mode) === 1 && props.enableSafe"></safe-mode-info>
     </div>
 </template>
 

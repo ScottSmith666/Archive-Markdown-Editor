@@ -117,7 +117,7 @@ if (!gotTheLock) {  // 当前打开多个实例
         // 针对冷启动打开文件
         main.webContents.on('did-finish-load', () => {
             if (globalFilePath) {
-                main.webContents.send("default-open-file", globalFilePath);
+                main.webContents.send("default-open-file", globalFilePath.replaceAll("\\", "/"));
                 globalFilePath = null;
             }
         });

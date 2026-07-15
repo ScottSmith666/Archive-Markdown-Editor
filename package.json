@@ -31,6 +31,7 @@
         "@mdit/plugin-alert": "^0.23.2",
         "@toycode/markdown-it-class": "^1.2.4",
         "better-sqlite3": "^12.8.0",
+        "docx-preview": "^0.4.0",
         "incremental-dom": "^0.7.0",
         "markdown-it": "^14.1.1",
         "markdown-it-emoji": "^3.0.0",
@@ -43,7 +44,9 @@
         "prismjs": "^1.30.0",
         "vite-plugin-monaco-editor-nls": "^3.0.1",
         "vue-router": "^4.6.4",
-        "vuex": "^4.0.2"
+        "vuex": "^4.0.2",
+        "x-data-spreadsheet": "^1.1.9",
+        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
     },
     "devDependencies": {
         "@electron-toolkit/eslint-config": "^2.1.0",
@@ -55,6 +58,7 @@
         "electron-vite": "^5.0.0",
         "eslint": "^9.39.1",
         "eslint-plugin-vue": "^10.6.2",
+        "less": "^4.6.7",
         "prettier": "^3.7.4",
         "vite": "^7.2.6",
         "vue": "^3.5.25",

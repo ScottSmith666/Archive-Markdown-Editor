@@ -32,6 +32,11 @@ const api = {
         defaultOpenFile: (callback) => ipcRenderer.on('default-open-file', (event, value) => callback(value)),
         saveFileContent: (purePath, pureFileName, content, ext) => ipcRenderer.invoke('save-file-content', purePath, pureFileName, content, ext),
         compressToMdz: (purePath, pureFileName, password) => ipcRenderer.invoke('compress-to-mdz', purePath, pureFileName, password),
+        getMdzMediaList: (mediaHomePath) => ipcRenderer.invoke('get-media-list-in-mdz', mediaHomePath),
+        getFileBuffer: (filePath, isXlsx = false) => ipcRenderer.invoke('get-file-buffer', filePath, isXlsx),
+        getFileAsText: (filePath) => ipcRenderer.invoke('get-file-as-txt', filePath),
+        deleteMediaInMdz: (mediaPath) => ipcRenderer.invoke('delete-media-in-mdz', mediaPath),
+        importMediaIntoMdz: (title, destinationPath) => ipcRenderer.invoke('import-media-into-mdz', title, destinationPath),
     },
     'confirmPreload': {
         onAskForClose: (callback) => ipcRenderer.on('ask-for-close', callback),

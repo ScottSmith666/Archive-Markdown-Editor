@@ -223,29 +223,28 @@ onMounted(() => {
                         </Transition>
                     </template>
 
-                    <!--                    <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)-->
-                    <!--                        ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'-->
-                    <!--                        : false">-->
-                    <!--                        <div class="main-menu-separator"></div>-->
-                    <!--                        <div id="tool" class="bar-menu-element-txt fonts"-->
-                    <!--                             @click="store.commit('mainManuClick', 'tool')">工具-->
-                    <!--                        </div>-->
-                    <!--                        <Transition name="slide-fade">-->
-                    <!--                            <div id="view-expand" class="upper menu"-->
-                    <!--                                 :style="`margin-left: calc((3 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)-->
-                    <!--                                    ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'-->
-                    <!--                                    : false) ? 0 : 1}) * (25px + 18px));`"-->
-                    <!--                                 v-if="store.state.menu.toolMenuStyleStatus">-->
-                    <!--                                <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)-->
-                    <!--                                    ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'-->
-                    <!--                                    : false">-->
-                    <!--                                    <div class="menu-element" id="mdz-media-man">-->
-                    <!--                                        <p class="fonts">mdz媒体管理工具...</p>-->
-                    <!--                                    </div>-->
-                    <!--                                </template>-->
-                    <!--                            </div>-->
-                    <!--                        </Transition>-->
-                    <!--                    </template>-->
+                        <div class="main-menu-separator"></div>
+                        <div id="tool" class="bar-menu-element-txt fonts"
+                             @click="store.commit('mainManuClick', 'tool')">
+                            {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.tools.mainCaption }}
+                        </div>
+                        <Transition name="slide-fade">
+                            <div id="view-expand" class="upper menu"
+                                 :style="`margin-left: calc((3 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
+                                    ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
+                                    : false) ? 0 : 1}) * (25px + 18px));`"
+                                 v-if="store.state.menu.toolMenuStyleStatus">
+                                <div class="menu-element" id="mdz-media-man"
+                                     @click="store.commit('addTabPage',
+                                        {
+                                            'pageType': 'tools',
+                                            'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].toolsPage.mdzMediaMan.tabTitle,
+                                            'toolKind': 'mdzMediaMan'
+                                        }); store.commit('mainManuAllHide');">
+                                    <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.tools.subCaptions.mdzMediaMan }}</p>
+                                </div>
+                            </div>
+                        </Transition>
 
                     <div class="main-menu-separator"></div>
 
@@ -256,7 +255,7 @@ onMounted(() => {
                         <div id="help-expand" class="upper menu"
                              :style="`margin-left: calc((4 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
                                 ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
-                                : false) ? 1 : 2}) * (25px + 18px));`"
+                                : false) ? 0 : 1}) * (25px + 18px));`"
                              v-if="store.state.menu.helpMenuStyleStatus">
                             <div class="menu-element"
                                  @click="store.commit('addTabPage', {'pageType': 'welcome',

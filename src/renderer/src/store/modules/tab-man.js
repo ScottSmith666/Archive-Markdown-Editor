@@ -2,6 +2,7 @@
 import router from "../../router";
 import {markRaw} from "vue";
 import {
+    switchTo,
     mainManuAllHide,
     addTabPage,
     changePropsOfTab,
@@ -31,13 +32,28 @@ export const tMan = {
             mainManuAllHide(state);
             let isOpenedWelcome = false;
             let isOpenedSettings = false;
+            let isOpenedMdzMediaMan = false;
             // 检查设置页面和欢迎页面有没有打开
             for (let [key, value] of state.tabList) {
                 if (value.get('type') === 'welcome') {
                     isOpenedWelcome = true;
                 }
+
                 if (value.get('type') === 'settings') {
                     isOpenedSettings = true;
+                }
+
+                if (value.get('type') === 'tools') {
+                    let url = value.get('path');
+                    let paramsList = url.split('?')[1].split('&');
+                    for (let paramI = 0; paramI < paramsList.length; paramI++) {
+                        if (paramsList[paramI].split('=')[0] === 'toolkind') {
+                            if (paramsList[paramI].split('=')[1] === 'mdzMediaMan') {
+                                isOpenedMdzMediaMan = true;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -45,6 +61,9 @@ export const tMan = {
                 return 0;
             }
             if (object.pageType === 'settings' && isOpenedSettings) {
+                return 0;
+            }
+            if (object.pageType === 'tools' && isOpenedMdzMediaMan) {
                 return 0;
             }
             addTabPage(state, object);
@@ -89,30 +108,14 @@ export const tMan = {
         // 初始化（即软件启动后）打开的页面，计划分为：不打开任何页面、打开欢迎页面
         async initOpenAppTab({rootState, commit}) {  // 第一次打开AME时加载的页面，可进行更改
             let lang = localStorage.getItem('lang');
-            console.log(lang);
-            let langOptions = {
-                "zh-CN": {
-                    "tabBar": {
-                        "welcome": '欢迎',
-                    },
-                },
-                "zh-TW": {
-                    "tabBar": {
-                        "welcome": '歡迎',
-                    },
-                },
-                "en": {
-                    "tabBar": {
-                        "welcome": 'Welcome',
-                    },
-                },
-            };
             let initPageId = crypto.randomUUID();
+            let i18nObject = rootState.i18n.langPackage;
             let initPage = new Map(Object.entries({
-                "label": langOptions[lang].tabBar.welcome,
-                "type": 'welcome',  // 标签页类型，分为文件（file）、欢迎页面（welcome）、设置页面（settings）和文档页面（document）
+                "label": i18nObject[lang].welcomePage.tabTitle,
+                "type": 'welcome',  // 标签页类型，分为文件（file）、欢迎页面（welcome）、设置页面（settings）、文档页面（document）和工具页面（tools）
                                     // 其中文档页面可以渲染“关于”“更新日志”“使用指南”等自定义内容
-                                    // 并且欢迎页面（welcome）和设置页面（settings）禁止打开多个
+                                    // 工具页面为各类集成工具的使用页面，如“mdz多媒体文件预览”以及“文本比对工具”等
+                                    // 并且禁止打开多个欢迎页面（welcome）和设置页面（settings）
                 "path": '/welcome',
                 "focus": true,
                 "isExistFile": false,  // 是否为一个真实存在的文件
@@ -129,13 +132,11 @@ export const tMan = {
                 rootState.tab.tabList.set(initPageId, initPage);
                 rootState.tab.currentOpenedPageId = initPageId;
                 rootState.tab.currentOpenedTabNumber = 1;  // 更新目前共打开了几个页面
-                router.replace(initPage.get('path'));
+                switchTo(initPage.get('path'), initPageId);
             } else {
                 // 如果设置为启动时不打开任何页面，即展示的就是默认页面，当前打开的页面ID就设置为“DEFAULT_PAGE”
                 router.replace('/');
             }
-            console.log("初始化Tab设置");
-            console.log("state.tabList", rootState.tab.tabList);
         },
     },
 }

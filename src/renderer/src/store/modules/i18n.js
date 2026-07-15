@@ -29,6 +29,12 @@ export const i18n = {
                                 "mixMode": '混合模式',
                             },
                         },
+                        "tools": {
+                            'mainCaption': '工具',
+                            'subCaptions': {
+                                "mdzMediaMan": '本地Mdz媒体管理工具...'
+                            }
+                        },
                         "help": {
                             'mainCaption': '帮助',
                             'subCaptions': {
@@ -80,6 +86,7 @@ export const i18n = {
                             "description": '此文件已加密，需要输入密码查看内容',
                         },
                         "systemDialogOpenFile": '打开文件',
+                        "systemDialogImportMdzMedia": '导入媒体文件',
                         "systemDialogChoosePath": {
                             "title": '选择保存路径',
                             "confirmButton": '确定',
@@ -102,6 +109,15 @@ export const i18n = {
                             "savePasswordAgainPlaceholder": '再次输入密码',
                             "cancelButton": '取消',
                             "confirmButton": '保存',
+                        },
+                        "saveForm": {
+                            "fileNameRequired": '保存失败，请填写文件名！',
+                            "forbiddenChars": '保存失败，文件名内含有非法字符 > < : \' | * ?',
+                            "savePathRequired": '保存失败，未指定保存路径！',
+                            "twicePasswordNotSame": '保存失败，两次输入的密码不一致，请重新输入！',
+                        },
+                        "saveFileInMdz": {
+                            "title": '保存mdz内嵌媒体文件',
                         },
                         "confirm": {
                             "confirmCloseTab": {
@@ -216,8 +232,14 @@ export const i18n = {
                             },
                         },
                         "resetButton": '重置',
+                        "confirmReset": {
+                            "question": '确认重置设置？',
+                            "yes": '是',
+                            "no": '否',
+                        },
                     },
                     "welcomePage": {
+                        "tabTitle": '欢迎',
                         "subTitle": '简约、美观、功能强大',
                         "start": '开始',
                         "startButtonGroup": {
@@ -235,6 +257,39 @@ export const i18n = {
                     "defaultPage": {
                         "activateHotKey": '激活如下所示热键',
                         "motivation": '打开Archive Markdown Editor使用指南',
+                    },
+                    "toolsPage": {
+                        "mdzMediaMan": {
+                            "tabTitle": '本地Mdz媒体管理工具',
+                            "targetMdz": '选择目标mdz文件',
+                            "mediaList": 'Mdz文件中的媒体',
+                            "notExistsMdz": '当前未打开mdz文件',
+                            "chooseOpenedMdz": '请选择已打开的mdz文件',
+                            "cannotShowMediaInMdz": '当前未选择mdz文件，暂无法显示其中的媒体',
+                            "mediaFileListed": ['文件', '中的多媒体列举如下'],
+                            "searchPlaceholder": '搜索...',
+                            "addMedia": '+ 插入媒体至该mdz文件',
+                            "searchNoResult": '暂无结果',
+                            "deleteConfirm": {
+                                "question": '确认删除？',
+                                "yes": '是',
+                                "no": '否',
+                            },
+                            "buttonGroup": {
+                                "preview": '预览',
+                                "copy": '复制',
+                                "delete": '删除',
+                            },
+                            "copyResultPrompt": {
+                                "success": '复制成功',
+                                "fail": '复制失败: ',
+                            },
+                        },
+                        "preview": {
+                            "title": '文件预览器',
+                            "saveButton": '保存',
+                            "notDirectPreview": ['当前媒体文件不支持直接预览，请另存至本地处理', '或', '以文本形式预览部分内容'],
+                        },
                     },
                     "renderPlaceholder": 'Markdown渲染区',
                 },
@@ -263,6 +318,12 @@ export const i18n = {
                                 "viewMode": '預覽模式',
                                 "editMode": '編輯模式',
                                 "mixMode": '混合模式',
+                            },
+                        },
+                        "tools": {
+                            'mainCaption': '工具',
+                            'subCaptions': {
+                                "mdzMediaMan": '本地Mdz媒體管理工具...'
                             },
                         },
                         "help": {
@@ -316,11 +377,12 @@ export const i18n = {
                             "description": '此檔案已加密，需要輸入密碼查看內容',
                         },
                         "systemDialogOpenFile": '開啟文件',
+                        "systemDialogImportMdzMedia": '導入媒體',
                         "systemDialogChoosePath": {
                             "title": '選擇儲存路徑',
                             "confirmButton": '確認',
                         },
-                        "systemDialogSaveMedia": '儲存mdz內嵌媒體文件',
+                        "systemDialogSaveMedia": '儲存mdz內嵌媒體',
                         "saveAs": {
                             "title": '另存為',
                             "saveNamePlaceholder": '儲存檔案名稱',
@@ -338,6 +400,15 @@ export const i18n = {
                             "savePasswordAgainPlaceholder": '再次輸入密碼',
                             "cancelButton": '取消',
                             "confirmButton": '儲存',
+                        },
+                        "saveFileInMdz": {
+                            "title": '儲存mdz內嵌媒體',
+                        },
+                        "saveForm": {
+                            "fileNameRequired": '儲存失敗，請填寫檔案名稱！',
+                            "forbiddenChars": '儲存失敗，檔案名稱內含有非法字符 > < : \' | * ?',
+                            "savePathRequired": '儲存失敗，未指定儲存路徑！',
+                            "twicePasswordNotSame": '儲存失敗，兩次輸入的密碼不一致，請重新輸入！',
                         },
                         "confirm": {
                             "confirmCloseTab": {
@@ -452,8 +523,14 @@ export const i18n = {
                             },
                         },
                         "resetButton": '重置',
+                        "confirmReset": {
+                            "question": '確認重置設定？',
+                            "yes": '是',
+                            "no": '否',
+                        },
                     },
                     "welcomePage": {
+                        "tabTitle": '歡迎',
                         "subTitle": '簡約、美觀、功能強大',
                         "start": '開始',
                         "startButtonGroup": {
@@ -471,6 +548,39 @@ export const i18n = {
                     "defaultPage": {
                         "activateHotKey": '啟動如下所示熱鍵',
                         "motivation": '開啟Archive Markdown Editor使用指南',
+                    },
+                    "toolsPage": {
+                        "mdzMediaMan": {
+                            "tabTitle": '本地Mdz媒體管理工具',
+                            "targetMdz": '選擇目標mdz檔案',
+                            "mediaList": 'Mdz檔案中的媒體',
+                            "notExistsMdz": '目前未開啟mdz檔案',
+                            "chooseOpenedMdz": '請選擇已開啟的mdz檔案',
+                            "cannotShowMediaInMdz": '目前未選擇mdz檔案，暫無法顯示其中的媒體',
+                            "mediaFileListed": ['檔案', '中的多媒體列舉如下'],
+                            "searchPlaceholder": '搜尋...',
+                            "addMedia": '+ 插入媒體至該mdz檔案',
+                            "searchNoResult": '暫無結果',
+                            "deleteConfirm": {
+                                "question": '確認刪除？',
+                                "yes": '是',
+                                "no": '否',
+                            },
+                            "buttonGroup": {
+                                "preview": '預覽',
+                                "copy": '拷貝',
+                                "delete": '删除',
+                            },
+                            "copyResultPrompt": {
+                                "success": '拷貝成功',
+                                "fail": '拷貝失敗: ',
+                            },
+                        },
+                        "preview": {
+                            "title": '檔案預覽器',
+                            "saveButton": '儲存',
+                            "notDirectPreview": ['目前媒體不支援直接預覽，請另存至本地處理', '或', '以文字形式預覽部分內容'],
+                        },
                     },
                     "renderPlaceholder": 'Markdown渲染區',
                 },
@@ -499,6 +609,12 @@ export const i18n = {
                                 "viewMode": 'View Mode',
                                 "editMode": 'Edit Mode',
                                 "mixMode": 'Mix Mode',
+                            },
+                        },
+                        "tools": {
+                            'mainCaption': 'Tools',
+                            'subCaptions': {
+                                "mdzMediaMan": 'Local Mdz MediaMan Tool...'
                             },
                         },
                         "help": {
@@ -548,10 +664,11 @@ export const i18n = {
                         },
                         "openEncMdzPasswordRequired": {
                             "title": 'Enter password',
-                            "wrongPasswordTitle": 'Incorrect password, please try again',
+                            "wrongPasswordTitle": 'Incorrect password! Try again!',
                             "description": 'Encrypted mdz file, password required!',
                         },
                         "systemDialogOpenFile": 'Open',
+                        "systemDialogImportMdzMedia": 'Import Media File',
                         "systemDialogChoosePath": {
                             "title": 'Choose the save path',
                             "confirmButton": 'OK',
@@ -574,6 +691,15 @@ export const i18n = {
                             "savePasswordAgainPlaceholder": 'Enter Password Again',
                             "cancelButton": 'Cancel',
                             "confirmButton": 'Save',
+                        },
+                        "saveFileInMdz": {
+                            "title": 'Save mdz embedded media files as',
+                        },
+                        "saveForm": {
+                            "fileNameRequired": 'Save failed. File name required.',
+                            "forbiddenChars": 'Failed. File name contains illegal chars > < : \' | * ?',
+                            "savePathRequired": 'Failed. Save path required.',
+                            "twicePasswordNotSame": 'Failed. Two passwords do not match. Please re-enter.',
                         },
                         "confirm": {
                             "confirmCloseTab": {
@@ -688,8 +814,14 @@ export const i18n = {
                             },
                         },
                         "resetButton": 'Reset Settings',
+                        "confirmReset": {
+                            "question": 'Confirm reset？',
+                            "yes": 'Yes',
+                            "no": 'No',
+                        },
                     },
                     "welcomePage": {
+                        "tabTitle": 'Welcome',
                         "subTitle": 'Simple, beautiful, and powerful',
                         "start": 'Start',
                         "startButtonGroup": {
@@ -707,6 +839,39 @@ export const i18n = {
                     "defaultPage": {
                         "activateHotKey": 'Activate the hotkey shown below',
                         "motivation": 'To open Archive Markdown Editor User Guide',
+                    },
+                    "toolsPage": {
+                        "mdzMediaMan": {
+                            "tabTitle": 'Local Mdz MediaMan Tool',
+                            "targetMdz": 'Select the Target mdz File',
+                            "mediaList": 'Media in mdz file',
+                            "notExistsMdz": 'No mdz files are currently open',
+                            "chooseOpenedMdz": 'Please select an open mdz file',
+                            "cannotShowMediaInMdz": 'Currently, no mdz file is selected, so the media within it cannot be displayed.',
+                            "mediaFileListed": ['The media files in ', 'are listed below'],
+                            "searchPlaceholder": 'Search...',
+                            "addMedia": '+ Insert Media Into Mdz',
+                            "searchNoResult": 'No result(s)',
+                            "deleteConfirm": {
+                                "question": 'Confirm delete?',
+                                "yes": 'Yes',
+                                "no": 'No',
+                            },
+                            "buttonGroup": {
+                                "preview": 'Preview',
+                                "copy": 'Copy',
+                                "delete": 'Delete',
+                            },
+                            "copyResultPrompt": {
+                                "success": 'Copy Successfully',
+                                "fail": 'Copy Failed: ',
+                            },
+                        },
+                        "preview": {
+                            "title": 'File Reader',
+                            "saveButton": 'Save As',
+                            "notDirectPreview": ['The current media file does not support direct preview; please save it locally for processing.', 'Or ', 'preview part of the content in text format'],
+                        },
                     },
                     "renderPlaceholder": 'Markdown Rendering Area',
                 },

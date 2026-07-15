@@ -1,6 +1,6 @@
 <script setup>
 import {useStore} from 'vuex';
-import {computed} from "vue";
+import {computed, ref} from "vue";
 
 const store = useStore();
 
@@ -21,9 +21,13 @@ const store = useStore();
  * 显示水平滚动条：display_horizon_scrollbar: "visible" || "auto" || "hidden"，初始化默认为"visible"
  * 显示代码缩略图：display_code_scale: 1 || 0，1代表true，0代表false，初始化默认为1
  * 启用编辑器动画效果：display_editor_animation:  1 || 0，1代表true，0代表false，初始化默认为1
+ * -----渲染器-----
+ * 渲染模式：render_mode: "quality" || "performance"，初始化默认为"performance"
  * -----安全-----
  * 安全模式：safe_mode：1 || 0，1代表开启，0代表关闭，初始化默认为0
  */
+
+const showResetConfirm = ref(false);
 
 const editor_tab_size = computed({
     get: () => store.state.settings.userSettings.editor_tab_size,
@@ -407,9 +411,20 @@ const render_mode = computed({
                 </div>
             </div>
             <div style="height: 15px;"></div>
-            <div class="confirm-dialog-confirm-button fonts" style="width: 70px;"
-                 @click="store.commit('forceResetUserSettings')">
+            <div v-if="!showResetConfirm" class="confirm-dialog-confirm-button fonts" style="width: 70px;"
+                 @click="showResetConfirm = true;">
                 {{ store.state.i18n.langPackage[store.state.settings.lang].settings.resetButton }}
+            </div>
+            <div
+                style="display: flex; flex-direction: row; justify-content: space-around; align-items: center;"
+                v-else>
+                <div>{{ store.state.i18n.langPackage[store.state.settings.lang].settings.confirmReset.question }}</div>
+                <div class="confirm-dialog-confirm-button" @click="store.commit('forceResetUserSettings'); showResetConfirm = false;">
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].settings.confirmReset.yes }}
+                </div>
+                <div class="confirm-dialog-cancel-button" @click="showResetConfirm = false;">
+                    {{ store.state.i18n.langPackage[store.state.settings.lang].settings.confirmReset.no }}
+                </div>
             </div>
             <div style="height: 40px;"></div>
         </div>

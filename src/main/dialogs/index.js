@@ -14,7 +14,12 @@ export class Dialogs {
         }));
     }
 
-    openFileDialog(title) {
+    openFileDialog(title, isMedia = false) {
+        let extFilters = isMedia ? [] : [
+            { name: 'Archive Markdown File', extensions: ['mdz'] },
+            { name: 'Markdown File', extensions: ['md'] },
+            { name: 'Text File', extensions: ['txt'] },
+        ];
         return dialog.showOpenDialogSync({
             /**
              * 打开文件
@@ -23,11 +28,7 @@ export class Dialogs {
             properties: ['openFile'],
             defaultPath: os.homedir(),
             message: title,
-            filters: [
-                { name: 'Archive Markdown File', extensions: ['mdz'] },
-                { name: 'Markdown File', extensions: ['md'] },
-                { name: 'Text File', extensions: ['txt'] },
-            ]
+            filters: extFilters
         });
     }
 

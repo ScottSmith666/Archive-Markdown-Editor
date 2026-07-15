@@ -13,6 +13,13 @@
     overflow-anchor: none;
 }
 
+.viewer-upper {
+    position: absolute;
+    z-index: 10;
+    width: calc(100% - 14px) !important;
+    height: 100%;
+}
+
 /* 去除针对所有带 tabindex 的元素或 input的外框或阴影 */
 [tabindex]:focus,
 input:focus,

@@ -12,7 +12,7 @@ import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/find
 import './suggestions.js';
 
 // get Vue API
-import {onMounted, ref} from "vue";
+import {nextTick, onMounted, ref} from "vue";
 import {useStore} from 'vuex';
 import {useRoute, onBeforeRouteUpdate} from 'vue-router';
 
@@ -22,9 +22,6 @@ const route = useRoute();
 const store = useStore();
 
 let monacoInstance;
-
-// props
-const props = defineProps(['pageData']);
 
 // data
 const monacoEditorStateMap = ref(new Map());  // 存储每个标签页的状态（光标位置、滚动位置等）
@@ -38,7 +35,7 @@ const updateMonacoEditorTheme = (monacoInstance) => {
         contextmenu: true,
         language: 'markdown',
         automaticLayout: true,
-        scrollBeyondLastLine: false,
+        scrollBeyondLastLine: true,
         autoIndent: "advanced",
         formatOnPaste: true,
         dragAndDrop: false,
@@ -75,47 +72,18 @@ onBeforeRouteUpdate((to, from) => {
     if (monacoEditorStateMap.value.get(to.query.pageid)) {
         monacoInstance.restoreViewState(monacoEditorStateMap.value.get(to.query.pageid));
     }
-
     monacoInstance.focus();
     update(monacoInstance, to.query.pageid);
 });
 
 onMounted(() => {
     monacoInstance = monaco.editor.create(document.getElementById("editor"), {
-        // 基础属性，固定不变
-        contextmenu: true,
-        language: 'markdown',
         automaticLayout: true,
-        scrollBeyondLastLine: false,
-        autoIndent: "advanced",
-        formatOnPaste: true,
-        dragAndDrop: false,
-        padding: {
-            bottom: 50
-        },
-
-        // 可调节属性
-        tabSize: store.state.settings.userSettings.editor_tab_size,
-        fontSize: Number(store.state.settings.userSettings.editor_font_size),
-        lineNumbers: Number(store.state.settings.userSettings.enable_line_num),
-        folding: store.state.settings.userSettings.enable_code_fold === 1,
-        wordWrap: store.state.settings.userSettings.enable_auto_wrap_line,
-        autoClosingBrackets: store.state.settings.userSettings.enable_auto_closure,
-        autoClosingDelete: store.state.settings.userSettings.enable_auto_closure,
-        autoClosingQuotes: store.state.settings.userSettings.enable_auto_closure,
-        scrollbar: {
-            "vertical": store.state.settings.userSettings.display_vertical_scrollbar,
-            "horizontal": store.state.settings.userSettings.display_horizon_scrollbar,
-        },
-        minimap: {
-            enabled: store.state.settings.userSettings.display_code_scale === 1,
-        },
-        cursorSmoothCaretAnimation: store.state.settings.userSettings.display_editor_animation === 1,
     });
+    updateMonacoEditorTheme(monacoInstance);
 
     // 加载页面对应的model
     let model = store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel');
-    updateMonacoEditorTheme(monacoInstance);
     monacoInstance.setModel(model);
     // 加载对应编辑器页面的state
     if (monacoEditorStateMap.value.get(route.query.pageid)) {
@@ -222,7 +190,6 @@ onMounted(() => {
     monacoInstance.onDidChangeModelContent((event) => {
         if (store.state.file.isListenFileChange) {
             runDebounceChange(() => {
-                console.log("内容改变了！");
                 store.commit('changePropsOfTab', {  // 将标签上的关闭按钮换成圆形
                     'pageId': route.query.pageid,
                     'propName': 'saved',
@@ -236,7 +203,8 @@ onMounted(() => {
     // Monaco Editor滚动事件
     // 滚动事件触发后，将从Monaco Editor中间行号开始，向两边各截取n/2倍Monaco Editor可视行数的文本传进渲染器
     monacoInstance.onDidScrollChange((event) => {
-        if (route.query.pageid === store.state.tab.currentOpenedPageId) {  // 由于Monaco Editor切换Model时会自动执行onDidScrollChange事件，因此需要判断route param是否与打开的页面id相同
+        if (route.query.pageid === store.state.tab.currentOpenedPageId) {
+            // 由于Monaco Editor切换Model时会自动执行onDidScrollChange事件，因此需要判断route param是否与打开的页面id相同
             let isUp = monacoInstance.getVisibleRanges().length === 0
                 ? true
                 : (monacoInstance.getVisibleRanges()[0].startLineNumber === 1);
@@ -255,6 +223,15 @@ onMounted(() => {
             runDebounceScroll(() => {
                 getPlanPiece(monacoInstance, route.query.pageid);
             });
+        }
+    });
+
+    nextTick(() => {
+        let isUp = monacoInstance.getVisibleRanges().length === 0
+            ? true
+            : (monacoInstance.getVisibleRanges()[0].startLineNumber === 1);
+        if (isUp) {  // Editor是否到顶
+            emit('top');
         }
     });
 
@@ -320,7 +297,6 @@ const getLineNumsOfVisualPage = (editor) => {
 };
 
 const getPlanPiece = (monacoInstance, pageId) => {
-    console.log("渲染模式为", store.state.settings.userSettings.render_mode);
     let fileTotalLines = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getLineCount();  // 编辑器内的文本总行数
     let vt = getLineNumsOfVisualPage(monacoInstance);
     let planCutContentLines = vt.linesInVisualPage * store.state.settings.renderDistance;  // 选区总长度，即可视页面行数与渲染距离之积
@@ -341,7 +317,7 @@ const getPlanPiece = (monacoInstance, pageId) => {
     if (store.state.settings.userSettings.render_mode === 'quality') {
         pieceContent = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getValue();
     } else if (store.state.settings.userSettings.render_mode === 'performance'
-                || !store.state.settings.userSettings.render_mode  // 当旧版软件没有“渲染模式”这个设置选项时，默认无（undefined）则为性能模式
+        || !store.state.settings.userSettings.render_mode  // 当旧版软件没有“渲染模式”这个设置选项时，默认无（undefined）则为性能模式
     ) {
         // 开启性能模式
         if (fileTotalLines <= planCutContentLines) {

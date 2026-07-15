@@ -35,7 +35,6 @@ export const fileMan = {
         activateOpenFileDialogMethod(state, rootState) {
             tgModel(rootState, {kind: "none"});
             let title = rootState.i18n.langPackage[rootState.settings.lang].dialog.systemDialogOpenFile;
-            console.log("in activateOpenFileDialogMethod title: ", title);
             let content = rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.userCancelOpen;
             window.fileManPreload.activateOpenFileDialog(title, content).then((result) => {
                 // 如果result.success是true则在新标签页打开文件
@@ -157,7 +156,6 @@ export const fileMan = {
                                     currentPageMonacoEditorModel.pushStackElement();
                                     currentPageMonacoEditorModel.applyEdits(editsCopies[0], false);
                                     currentPageMonacoEditorModel.pushStackElement();
-                                    console.log("image url替换完成");
                                 }
                                 if (editsCopies[2].length > 0) {
                                     await replaceIdToOriginCode(currentPageMonacoEditorModel, editsCopies[2]);
@@ -169,7 +167,6 @@ export const fileMan = {
                                     currentPageMonacoEditorModel.getValue(),
                                     currentOpenedFileExt
                                 );
-                                console.log("writeResult", writeResult);
                                 if (writeResult.success) {
                                     // 最后将文件夹压缩封装为mdz文件
                                     let makeMdzResult = await window.fileManPreload.compressToMdz(
@@ -177,17 +174,14 @@ export const fileMan = {
                                         currentPureFileName,
                                         currentPageIsEncryptedFilePassword
                                     );
-                                    console.log("makeMdzResult", makeMdzResult);
                                     if (makeMdzResult.success) {
                                         // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
                                         currentPageInfo.set("saved", true);
-                                        console.log("修改保存状态");
                                         let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                             `${currentPureFileName}.mdz`,
                                             `${currentPurePath}/${currentPureFileName}.mdz`,
                                             getNow()
                                         );
-                                        console.log("sqlResult", sqlResult);
                                         if (sqlResult.success) {
                                             // 停止加载
                                             commit('hdLoading', rootState);
@@ -295,7 +289,7 @@ export const fileMan = {
                 });
 
                 // 表单验证
-                let verifyResult = verifySaveForm(planSaveFileInfo);
+                let verifyResult = verifySaveForm(planSaveFileInfo, rootState);
                 if (!verifyResult.success) {
                     // 停止加载
                     commit('hdLoading', rootState);
@@ -314,9 +308,6 @@ export const fileMan = {
                     object: {kind: "none"}
                 });
 
-                console.log("表单验证完成");
-                console.log("currentPageIsExistFile", currentPageIsExistFile);
-                console.log("planSaveFileInfo.length", planSaveFileInfo.length);
                 if (currentPageIsExistFile && planSaveFileInfo.length !== 0) {
                     // 说明用户对一个已存在文件进行“另存为”操作
                     // 处理路由为路径
@@ -327,8 +318,6 @@ export const fileMan = {
                     let currentPurePath = currentOpenedFilePathArray.join("/");
                     let currentOpenedFileExt = currentPageExistFileRouter.split("&").pop().replace('filepath=', '').split('.').pop();
 
-                    console.log("currentOpenedFileExt", currentOpenedFileExt);
-                    console.log("planSaveFileInfo", planSaveFileInfo);
                     // 需要接收用户提供的计划保存文件信息参数
                     if (
                         (currentOpenedFileExt === "md" || currentOpenedFileExt === "txt")
@@ -399,7 +388,6 @@ export const fileMan = {
                         // 而base64编码的图片和在线URL将保持不变
                         // 先创建好要保存的mdz文件夹结构
                         try {
-                            console.log("makeMdzDirectory");
                             let result = await window.fileManPreload.makeMdzDirectory(planSaveFileInfo[2], planSaveFileInfo[0]);
                             if (result.success) {
                                 commit('changeFileStoreData', false);
@@ -414,19 +402,13 @@ export const fileMan = {
                                         currentPurePath
                                     );
                                 } else {
-                                    console.log("进入getDirectPathToMdzMediaPathEdits");
                                     editsCopies = await getDirectPathToMdzMediaPathEdits(
                                         currentPageMonacoEditorModel,
                                         planSaveFileInfo[0],
                                         planSaveFileInfo[2]
                                     );
-                                    console.log("出来getDirectPathToMdzMediaPathEdits");
                                 }
                                 // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
-                                console.log("开始copyMdzMediaFiles");
-                                console.log("editsCopies", editsCopies);
-                                console.log("editsCopies[1].length", editsCopies[1].length);
-                                console.log("editsCopies[1]", editsCopies[1]);
                                 let copyResult;
                                 if (editsCopies[1].length === 0) {  // 没有可以拷贝的文件，可以直接走了
                                     copyResult = {"success": true};
@@ -439,10 +421,8 @@ export const fileMan = {
                                         currentPageMonacoEditorModel.pushStackElement();
                                         currentPageMonacoEditorModel.applyEdits(editsCopies[0], false);
                                         currentPageMonacoEditorModel.pushStackElement();
-                                        console.log("image url替换完成");
                                     }
                                     if (editsCopies[2].length > 0) {
-                                        console.log("开始替换了replaceIdToOriginCode");
                                         await replaceIdToOriginCode(currentPageMonacoEditorModel, editsCopies[2]);
                                     }
                                     // edit序列执行完成后，将Model的内容保存至mdz文件夹结构
@@ -452,7 +432,6 @@ export const fileMan = {
                                         currentPageMonacoEditorModel.getValue(),
                                         planSaveFileInfo[1]
                                     );
-                                    console.log("writeResult", writeResult);
                                     if (writeResult.success) {
                                         // 最后将文件夹压缩封装为mdz文件
                                         let makeMdzResult = await window.fileManPreload.compressToMdz(
@@ -460,7 +439,6 @@ export const fileMan = {
                                             planSaveFileInfo[0],
                                             planSaveFileInfo[3]
                                         );
-                                        console.log("makeMdzResult", makeMdzResult);
                                         if (makeMdzResult.success) {
                                             // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
                                             const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
@@ -476,14 +454,11 @@ export const fileMan = {
                                             currentPageInfo.set("encrypted", planSaveFileInfo[3] !== "");
                                             currentPageInfo.set("password", planSaveFileInfo[3]);
 
-                                            console.log("修改保存状态");
-
                                             let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                                 `${planSaveFileInfo[0]}.mdz`,
                                                 `${planSaveFileInfo[2]}/${planSaveFileInfo[0]}.mdz`,
                                                 getNow()
                                             );
-                                            console.log("sqlResult", sqlResult);
                                             if (sqlResult.success) {
                                                 // 停止加载
                                                 commit('hdLoading', rootState);
@@ -596,19 +571,17 @@ export const fileMan = {
                                         currentPageMonacoEditorModel.pushStackElement();
                                         currentPageMonacoEditorModel.applyEdits(editsCopies[0], false);
                                         currentPageMonacoEditorModel.pushStackElement();
-                                        console.log("image url替换完成");
                                     }
                                     if (editsCopies[2].length > 0) {
                                         await replaceIdToOriginCode(currentPageMonacoEditorModel, editsCopies[2]);
                                     }
                                     // edit序列执行完成后，将Model的内容保存至保存目录
-                                    let writeResult = await window.fileManPreload.saveFileContent(
+                                    await window.fileManPreload.saveFileContent(
                                         planSaveFileInfo[2],
                                         planSaveFileInfo[0],
                                         currentPageMonacoEditorModel.getValue(),
                                         planSaveFileInfo[1]
                                     );
-                                    console.log("writeResult", writeResult);
                                     // 保存完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
                                     const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
                                     let sep = win32PathPattern.test(planSaveFileInfo[2]) ? "\\" : "/";
@@ -623,14 +596,11 @@ export const fileMan = {
                                     currentPageInfo.set("encrypted", false);
                                     currentPageInfo.set("password", "");
 
-                                    console.log("修改保存状态");
-
                                     let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                         `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
                                         `${planSaveFileInfo[2]}/${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`,
                                         getNow()
                                     );
-                                    console.log("sqlResult", sqlResult);
                                     if (sqlResult.success) {
                                         // 停止加载
                                         commit('hdLoading', rootState);
@@ -736,7 +706,6 @@ export const fileMan = {
                                         currentPageMonacoEditorModel.pushStackElement();
                                         currentPageMonacoEditorModel.applyEdits(editsCopies[0], false);
                                         currentPageMonacoEditorModel.pushStackElement();
-                                        console.log("image url替换完成");
                                     }
                                     if (editsCopies[2].length > 0) {
                                         await replaceIdToOriginCode(currentPageMonacoEditorModel, editsCopies[2]);
@@ -748,7 +717,6 @@ export const fileMan = {
                                         currentPageMonacoEditorModel.getValue(),
                                         planSaveFileInfo[1]
                                     );
-                                    console.log("writeResult", writeResult);
                                     if (writeResult.success) {
                                         // 最后将文件夹压缩封装为mdz文件
                                         let makeMdzResult = await window.fileManPreload.compressToMdz(
@@ -756,7 +724,6 @@ export const fileMan = {
                                             planSaveFileInfo[0],
                                             planSaveFileInfo[3]
                                         );
-                                        console.log("makeMdzResult", makeMdzResult);
                                         if (makeMdzResult.success) {
                                             // 封装完成后，修改store内tab数据，完成页面更新，并往sqlite历史记录表里写入一条记录
                                             const win32PathPattern = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
@@ -772,14 +739,11 @@ export const fileMan = {
                                             currentPageInfo.set("encrypted", planSaveFileInfo[3] !== "");
                                             currentPageInfo.set("password", planSaveFileInfo[3]);
 
-                                            console.log("修改保存状态");
-
                                             let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
                                                 `${planSaveFileInfo[0]}.mdz`,
                                                 `${planSaveFileInfo[2]}/${planSaveFileInfo[0]}.mdz`,
                                                 getNow()
                                             );
-                                            console.log("sqlResult", sqlResult);
                                             if (sqlResult.success) {
                                                 // 停止加载
                                                 commit('hdLoading', rootState);
