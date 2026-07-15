@@ -378,6 +378,7 @@ export const ipc = (Sqlite3, dbPath) => {
 
     ipcMain.handle("media-paster", async (event) => {
         const formats = clipboard.availableFormats();
+        // console.log("formats: ", formats);
         let fileURLs, type;
         // 常见视频文件的扩展名
         const videoExts = ["mp4", "mov", "webm", "avi", "wmv", "flv", "mkv", "m4v", "mpeg", "ts"];
@@ -388,7 +389,7 @@ export const ipc = (Sqlite3, dbPath) => {
         // 优先检查是否存在文件专用格式
         // 只要存在，说明最近一次操作绝对是“复制了文件”
         const isFile = formats.some(format =>
-            format === 'FileNameW' ||  // Windows
+            format === 'text/uri-list' ||  // Windows
             format === 'public.file-url'  // macOS
         ) || clipboard.read('x-special/gnome-copied-files').includes("file://");  // Linux（注意这个mime不是通用的，不同的发行版可能有不同的mime，后续开发注意补充）
         // 如果直接复制已有多媒体文件，则返回文件路径
@@ -397,6 +398,7 @@ export const ipc = (Sqlite3, dbPath) => {
                 // 必须优先检查 FileNameW 格式
                 // 注意：使用 readBuffer 并指定 ucs2 编码，以正确处理中文/特殊字符路径
                 const buffer = clipboard.readBuffer('FileNameW');
+                // console.log(buffer);
                 // Windows 剪贴板中的 MULTI_SZ 格式使用 UTF-16LE 编码 (ucs2)
                 const raw = buffer.toString('ucs2').replaceAll("\\", "/");
                 // 多个文件路径以 \0 分隔，结尾会有两个 \0，过滤掉空字符串即可
