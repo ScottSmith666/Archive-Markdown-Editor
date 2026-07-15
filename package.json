@@ -44,6 +44,7 @@
         "prismjs": "^1.30.0",
         "vite-plugin-monaco-editor-nls": "^3.0.1",
         "vue-router": "^4.6.4",
+        "vue3-zoomer": "^1.0.11",
         "vuex": "^4.0.2",
         "x-data-spreadsheet": "^1.1.9",
         "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"

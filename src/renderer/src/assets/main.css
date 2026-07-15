@@ -211,8 +211,8 @@ html, body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 80%;
-    height: 80%;
+    width: 90%;
+    height: 90%;
     background-color: white;
     z-index: 51;
     border-radius: 8px;

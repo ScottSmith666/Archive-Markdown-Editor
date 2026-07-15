@@ -30,7 +30,7 @@ import "prismjs/plugins/line-numbers/prism-line-numbers.js";
 import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 // 导入主题
 import 'prismjs/themes/prism.css';
-import path from "path";
+import { ZoomImg } from 'vue3-zoomer';
 
 Spreadsheet.locale("zh-cn", ZhCN);
 
@@ -114,7 +114,16 @@ onMounted(() => {
             <audio style="width: 100%;" controls :src="'file://' + encodeURI(props.mediaFilePath)"></audio>
         </div>
         <div class="image-preview" v-else-if="store.state.exts.imageExts.includes(getExt().toLowerCase())">
-            <img style="object-fit: contain;" :src="'file://' + encodeURI(props.mediaFilePath)" alt=""/>
+            <zoom-img
+                class="h-[30rem]"
+                zoom-type="drag"
+                :zoom-scale="5"
+                :step="1"
+                full-screen-mode
+                :show-zoom-btns="true"
+                :show-img-map="true"
+                :src="'file://' + encodeURI(props.mediaFilePath)"
+            />
         </div>
         <div class="cannot-preview" v-else>
             <div v-if="!isPreviewAsText"
@@ -158,7 +167,7 @@ onMounted(() => {
     border: none;
 }
 
-.video-preview video {
+.video-preview {
     width: 80%;
     height: auto;
     display: flex;
@@ -175,17 +184,6 @@ onMounted(() => {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-}
-
-.image-preview img {
-    width: 80%;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    object-fit: cover;
-    margin: 0 auto;
 }
 
 .docx-preview {
