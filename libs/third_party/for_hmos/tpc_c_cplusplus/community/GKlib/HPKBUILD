@@ -1,0 +1,49 @@
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+pkgname=GKlib
+pkgver=METIS-v5.1.1-DistDGL-0.5 
+pkgrel=0
+pkgdesc="GKlib is a library for graphics programming that provides a series of functions and tools, which can be used to implement basic graphics operations and graphics processing functions."
+url="https://github.com/KarypisLab/GKlib"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0")
+depends=()
+makedepends=()
+
+source="https://github.com/KarypisLab/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

@@ -1,0 +1,281 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: 城meto <myxuan475@126.com>
+# Maintainer: 城meto <myxuan475@126.com>
+
+pkgname=libffi
+pkgver=v3.4.4
+pkgrel=0
+pkgdesc="The libffi library provides a portable, high level programming interface to various calling conventions."
+url="https://github.com/libffi/libffi"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT" "GPL-2.0-only")
+depends=()
+makedepends=("automake" "makeinfo") # makeinfo需要安装的是texinfo
+# 官方下载地址https://github.com/libffi/$pkgname/archive/refs/tags/$pkgver.tar.gz受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.zip"
+buildtools="configure"
+
+autounpack=true
+downloadpackage=true
+genconfigure=true
+autoconfbuild=true
+libtoolbuild=true
+prefixpath=
+oldlibpath=$LD_LIBRARY_PATH
+builddir=$pkgname-$pkgver
+packagename=$pkgname-$pkgver.zip
+
+source envset.sh
+host=
+cc=
+prefixlibffi=
+ # 编译gnu工具
+buildgnutool() {
+    toolname=$1
+    toolver=$2
+    toolpath=$toolname-$toolver
+    prefixpath=`pwd`/$toolpath/install_dir
+    down=0
+    rm -rf $toolpath
+    if [ ! -f  $toolname-$toolver.tar.xz ];then
+        wget -O $toolname-$toolver.tar.gz -c http://ftp.gnu.org/gnu/$toolname/$toolname-$toolver.tar.xz > $publicbuildlog 2>&1
+        down=$?
+    fi
+    if [ $down -ne 0 ];then
+        return -1
+    fi
+    tar -xf $toolname-$toolver.tar.gz
+    cd $toolpath
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure --prefix=$prefixpath >> $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    $MAKE install VERBOSE=1 >> $buildlog 2>&1
+    if [ $? -ne 0 ];then
+        return -2
+    fi
+    cd $OLDPWD
+}
+
+prepare() {
+    # 需要linux 安装automake, autoconf(2.71以上),libtool, libltdl7-dev
+    if [ $libtoolbuild == true ];then
+        buildgnutool libtool 2.4.6
+        if [ $? -ne 0 ];then
+            return -1
+        fi 
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$prefixpath/lib
+        export LIBTOOL=$prefixpath/bin/libtool
+        export LIBTOOLIZE=$prefixpath/bin/libtoolize
+        export ACLOCAL_PATH=$prefixpath/share/aclocal
+        libtoolbuild=false
+        unset prefixpath
+    fi
+    if [ $autoconfbuild == true ];then
+        buildgnutool autoconf 2.71
+        if [ $? -ne 0 ];then
+            return -2
+        fi
+        export AUTOCONF=$prefixpath/bin/autoconf
+        export AUTORECONF=$prefixpath/bin/autoreconf
+        autoconfbuild=false
+        unset prefixpath
+    fi
+
+    mkdir $builddir/$ARCH-build
+    if [ $genconfigure == true ];then
+        cd $builddir
+        $AUTORECONF -v -i >> $buildlog 2>&1
+        if [ $? -ne 0 ];then
+            return -3
+        fi
+        genconfigure=false
+        # 恢复环境变量
+        export LD_LIBRARY_PATH=$oldlibpath
+        unset LIBTOOL LIBTOOLIZE ACLOCAL_PATH AUTOCONF AUTORECONF
+        cd $OLDPWD
+    fi
+    if [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+        host=arm-linux
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        # armv7a汇编指令需要使用fp registers, 否则汇编代码报错，无法编译
+        export CFLAGS="$CFLAGS -mfloat-abi=softfp"
+    elif [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+        host=aarch64-linux
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+    else
+        echo "$ARCH not support"
+        return -1
+    fi
+    prefixlibffi=${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" \
+        --host=$host --enable-static=yes  --disable-multi-os-directory \
+        --enable-builddir=$ARCH-build > $buildlog 2>&1
+    $MAKE -C $ARCH-build  VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install VERBOSE=1 >> $buildlog 2>&1
+    cp $ARCH-build/fficonfig.h $prefixlibffi/include
+    cp include/ffi_common.h $prefixlibffi/include
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    rootdir=$(pwd)
+    cd $builddir/testsuite
+    testsuitedir=$(pwd)
+    for filedir in $(ls)
+    do
+        if [ -d $testsuitedir/$filedir ];then
+            cd $testsuitedir/$filedir
+            for file in $(ls $testsuitedir/$filedir)
+            do
+                filesuffixname=${file##*.}
+                filename=${file%.*}
+                if [ "$filesuffixname" == "c" ];then              
+                    if [[ "$filedir" == "libffi.closures" || "$filedir" == "libffi.complex" || "$filedir" == "libffi.go" ]];then
+                        if [ ! -d $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O0 ];then
+                            mkdir -p $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O0
+                        fi
+                        ${cc} -I/${prefixlibffi}/include -W -Wall -O0 -L/${prefixlibffi}/lib -Wl,-rpath,/${prefixlibffi}/lib \
+                            -o $filename $file -lffi >> $rootdir/$builddir/$ARCH-build/build.log 2>&1
+                        if [ $? -ne 0 ];then
+                            return -1
+                        fi
+                        mv $filename $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O0
+                        if [ ! -d $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O2 ];then
+                            mkdir -p $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O2
+                        fi
+                        ${cc} -I/${prefixlibffi}/include -W -Wall -O2 -L/${prefixlibffi}/lib -Wl,-rpath,/${prefixlibffi}/lib \
+                            -o $filename $file -lffi >> $rootdir/$builddir/$ARCH-build/build.log 2>&1
+                        if [ $? -ne 0 ];then
+                            return -2
+                        fi
+                        mv $filename $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O2                  
+                    fi                
+                    if [ "$filedir" == "libffi.call" ];then
+                        if [ ! -d $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O0 ];then
+                            mkdir -p $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O0
+                        fi
+                        ${cc} -I/${prefixlibffi}/include -W -Wall -O0 -L/${prefixlibffi}/lib -Wl,-rpath,/${prefixlibffi}/lib \
+                            -o $filename $file -lffi >> $rootdir/$builddir/$ARCH-build/build.log 2>&1
+                        if [ $? -ne 0 ];then
+                            return -3
+                        fi
+                        mv $filename $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O0
+                        if [ ! -d $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O2 ];then
+                            mkdir -p $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O2
+                        fi
+                        ${cc} -I/${prefixlibffi}/include -W -Wall -O2 -L/${prefixlibffi}/lib -Wl,-rpath,/${prefixlibffi}/lib \
+                            -o $filename $file -lffi >> $rootdir/$builddir/$ARCH-build/build.log 2>&1
+                        if [ $? -ne 0 ];then
+                            return -4
+                        fi
+                        mv $filename $rootdir/$builddir/$ARCH-build/testsuite/$filedir/O2             
+                    fi
+                    if [ "$filedir" == "libffi.bhaible" ];then
+                        if [ "$filename" == "test-call" ];then
+                            if [ ! -d $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-call-O0 ];then
+                                mkdir -p $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-call-O0
+                            fi
+                            for i in {1..81}
+                            do
+                                ${cc} -I/${prefixlibffi}/include -W -Wall -DDGTEST=${i} -Wno-unused-variable -Wno-unused-parameter \
+                                    -Wno-uninitialized -O0 -L/${prefixlibffi}/lib -Wl,-rpath,/${prefixlibffi}/lib -o $filename"-O0"${i} \
+                                    $file -lffi >> $rootdir/$builddir/$ARCH-build/build.log 2>&1
+                                if [ $? -ne 0 ];then
+                                    return -5
+                                fi
+                                mv $filename"-O0"${i} $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-call-O0
+                            done
+                            if [ ! -d $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-call-O2 ];then
+                                mkdir -p $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-call-O2
+                            fi                        
+                            for i in {1..81}
+                            do
+                                ${cc} -I/${prefixlibffi}/include -W -Wall -DDGTEST=${i} -Wno-unused-variable -Wno-unused-parameter \
+                                    -Wno-uninitialized -O2 -L/${prefixlibffi}/lib -Wl,-rpath,/${prefixlibffi}/lib -o $filename"-O2"${i} \
+                                    $file -lffi >> $rootdir/$builddir/$ARCH-build/build.log 2>&1
+                                if [ $? -ne 0 ];then
+                                    return -6
+                                fi
+                                mv $filename"-O2"${i} $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-call-O2
+                            done
+                        fi
+                        if [ "$filename" == "test-callback" ];then
+                            if [ ! -d $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-callback-O0 ];then
+                                mkdir -p $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-callback-O0
+                            fi
+                            for i in {1..80}
+                            do
+                                ${cc} -I/${prefixlibffi}/include -W -Wall -DDGTEST=${i} -Wno-unused-variable -Wno-unused-parameter \
+                                    -Wno-uninitialized -O0 -L/${prefixlibffi}/lib -Wl,-rpath,/${prefixlibffi}/lib -o $filename"-O0"${i} \
+                                    $file -lffi >> $rootdir/$builddir/$ARCH-build/build.log 2>&1
+                                if [ $? -ne 0 ];then
+                                    return -7
+                                fi
+                                mv $filename"-O0"${i} $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-callback-O0
+                            done
+                            if [ ! -d $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-callback-O2 ];then
+                                mkdir -p $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-callback-O2
+                            fi                        
+                            for i in {1..80}
+                            do
+                                ${cc} -I/${prefixlibffi}/include -W -Wall -DDGTEST=${i} -Wno-unused-variable -Wno-unused-parameter \
+                                    -Wno-uninitialized -O2 -L/${prefixlibffi}/lib -Wl,-rpath,/${prefixlibffi}/lib -o $filename"-O2"${i} \
+                                    $file -lffi >> $rootdir/$builddir/$ARCH-build/build.log 2>&1
+                            if [ $? -ne 0 ];then
+                                return -8
+                            fi
+                            mv $filename"-O2"${i} $rootdir/$builddir/$ARCH-build/testsuite/$filedir/test-callback-O2
+                            done
+                        fi                  
+                    fi   
+                fi
+            done
+        fi
+    done           	
+    cd $rootdir 
+    echo "The test must be on an OpenHarmony device!"
+    #执行可执行程序运行测试
+}
+
+recoverpkgbuildenv(){
+    unset host cc prefixlibffi
+    if [ $ARCH == "armeabi-v7a" ];then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ];then
+        unsetarm64ENV
+    else
+        echo "$ARCH not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

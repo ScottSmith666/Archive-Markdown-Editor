@@ -1,0 +1,35 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: luozhu <luozhu2@h-partners.com>
+# Maintainer: luozhu <luozhu2@h-partners.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    ## 以下4个用例因为系统GPU计算出现精度差导致测试失败(社区有同样问题的issue，需要更新GPU精度计算方法)，故需要将此4个用例排除在测试范围内
+    rm -f ${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}/bin/opencv_test_core
+    rm -f ${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}/bin/opencv_test_gapi
+    rm -f ${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}/bin/opencv_test_imgproc
+    rm -f ${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}/bin/opencv_perf_gapi
+
+    export OPENCV_TEMP_PATH=/data/local/tmp
+    cd $builddir/${ARCH}-build/unix-install
+    chmod +x opencv_run_all_tests.sh
+    ./opencv_run_all_tests.sh > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+    return $res
+}

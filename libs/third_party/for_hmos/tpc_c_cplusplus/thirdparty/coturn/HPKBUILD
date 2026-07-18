@@ -1,0 +1,72 @@
+# Contributor: Chen Xu <chenxu.unix@gmail.com>
+# Maintainer:  Chen Xu <chenxu.unix@gmail.com>
+pkgname=coturn
+pkgver="4.6.2"
+pkgrel=0
+pkgdesc="coturn is a free open source implementation of TURN and STUN Server. The TURN Server is a VoIP media traffic NAT traversal server and gateway."
+url="https://github.com/coturn/coturn"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=("openssl" "libevent" "sqlite")
+makedepends=()
+
+source="https://github.com/$pkgname/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+
+prepare() {
+    cp -rf $builddir  $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host > `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install VERBOSE=1 >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    unset host
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${LYCIUM_ROOT}/usr/libevent/arm64-v8a/lib/:${LYCIUM_ROOT}/usr/openssl/arm64-v8a/lib:${LYCIUM_ROOT}/usr/sqlite/arm64-v8a/lib
+    # make test VERBOSE=1 
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir  ${PWD}/$builddir-arm64-v8a-build ${PWD}/$builddir-armeabi-v7a-build #${PWD}/$packagename
+}

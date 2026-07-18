@@ -1,0 +1,271 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+declare_args() {
+   enable_rapidjson_test = false
+}
+
+config("rapidjson-config") {
+    cflags_cc = [
+        "-Wno-incompatible-pointer-types",
+        "-Werror",
+        "-Wno-strict-prototypes",
+        "-Wimplicit-function-declaration",
+        "-fexceptions"
+    ]
+
+    cflags = [
+         "-Wno-incompatible-pointer-types",
+        "-Werror",
+        "-Wno-strict-prototypes",
+        "-Wimplicit-function-declaration",
+        "-fexceptions"
+    ]
+}
+
+config("gtest_private_config") {
+  visibility = [ ":*" ]
+  include_dirs = [ "./thirdparty/gtest/googletest" ]
+}
+
+config("gtest_config") {
+  include_dirs = [ "./thirdparty/gtest/googletest/include" ]
+  if (is_mingw) {
+    cflags_cc = [
+      "-Wno-unused-const-variable",
+      "-Wno-unused-private-field",
+    ]
+  }
+}
+if(enable_rapidjson_test){
+static_library("rapidjson_gtest") {
+  public = [
+    "googletest/include/gtest/gtest-spi.h",
+    "googletest/include/gtest/gtest.h",
+  ]
+  sources = [
+    "./thirdparty/gtest/googletest/include/gtest/gtest-death-test.h",
+    "./thirdparty/gtest/googletest/include/gtest/gtest-message.h",
+    "./thirdparty/gtest/googletest/include/gtest/gtest-param-test.h",
+    "./thirdparty/gtest/googletest/include/gtest/gtest-printers.h",
+    "./thirdparty/gtest//include/gtest/gtest-test-part.h",
+    "./thirdparty/gtest/googletest/include/gtest/gtest-typed-test.h",
+    "./thirdparty/gtest/googletest/include/gtest/gtest_pred_impl.h",
+    "./thirdparty/gtest/googletest/include/gtest/gtest_prod.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/custom/gtest-port.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/custom/gtest-printers.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/custom/gtest.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/gtest-death-test-internal.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/gtest-filepath.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/gtest-internal.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/gtest-param-util.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/gtest-port-arch.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/gtest-port.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/gtest-string.h",
+    "./thirdparty/gtest/googletest/include/gtest/internal/gtest-type-util.h",
+    "./thirdparty/gtest/googletest/src/gtest-all.cc",
+    "./thirdparty/gtest/googletest/src/gtest-death-test.cc",
+    "./thirdparty/gtest/googletest/src/gtest-filepath.cc",
+    "./thirdparty/gtest/googletest/src/gtest-internal-inl.h",
+    "./thirdparty/gtest/googletest/src/gtest-port.cc",
+    "./thirdparty/gtest/googletest/src/gtest-printers.cc",
+    "./thirdparty/gtest/googletest/src/gtest-test-part.cc",
+    "./thirdparty/gtest/googletest/src/gtest-typed-test.cc",
+    "./thirdparty/gtest/googletest/src/gtest.cc",
+  ]
+  sources -= [ "./thirdparty/gtest/googletest/src/gtest-all.cc" ]
+  public_configs = [ ":gtest_config" ]
+  configs += [ ":gtest_private_config" ]
+  configs -= [ "//build/config/coverage:default_coverage" ]
+}
+}
+
+if(enable_rapidjson_test){
+static_library("rapidjson_gtest_main") {
+  sources = [ "./thirdparty/gtest/googletest/src/gtest_main.cc" ]
+  public_deps = [ ":rapidjson_gtest" ]
+  configs -= [ "//build/config/coverage:default_coverage" ]
+}
+}
+
+config("gmock_private_config") {
+  visibility = [ ":*" ]
+  include_dirs = [ "./thirdparty/gtest/googlemock" ]
+}
+
+config("gmock_config") {
+  include_dirs = [ "./thirdparty/gtest/googlemock/include" ]
+
+  cflags_cc = [
+    # The MOCK_METHODn() macros do not specify "override", which triggers this
+    # warning in users: "error: 'Method' overrides a member function but is not
+    # marked 'override' [-Werror,-Winconsistent-missing-override]". Suppress
+    # these warnings until https://github.com/google/googletest/issues/533 is
+    # fixed.
+    "-Wno-inconsistent-missing-override",
+  ]
+}
+
+if(enable_rapidjson_test){
+static_library("rapidjson_gmock") {
+  public = [ "./thirdparty/gtest/googlemock/include/gmock/gmock.h" ]
+  sources = [
+    "./thirdparty/gtest/googlemock/include/gmock/gmock-actions.h",
+    "./thirdparty/gtest/googlemock/include/gmock/gmock-cardinalities.h",
+    "./thirdparty/gtest/googlemock/include/gmock/gmock-function-mocker.h",
+    "./thirdparty/gtest/googlemock/include/gmock/gmock-more-actions.h",
+    "./thirdparty/gtest/googlemock/include/gmock/gmock-more-matchers.h",
+    "./thirdparty/gtest/googlemock/include/gmock/gmock-nice-strict.h",
+    "./thirdparty/gtest/googlemock/include/gmock/gmock-spec-builders.h",
+    "./thirdparty/gtest/googlemock/include/gmock/internal/custom/gmock-generated-actions.h",
+    "./thirdparty/gtest/googlemock/include/gmock/internal/custom/gmock-port.h",
+    "./thirdparty/gtest/googlemock/include/gmock/internal/gmock-internal-utils.h",
+    "./thirdparty/gtest/googlemock/include/gmock/internal/gmock-port.h",
+    "./thirdparty/gtest/googlemock/include/gmock/internal/gmock-pp.h",
+    "./thirdparty/gtest/googlemock/src/gmock-all.cc",
+    "./thirdparty/gtest/googlemock/src/gmock-cardinalities.cc",
+    "./thirdparty/gtest/googlemock/src/gmock-internal-utils.cc",
+    "./thirdparty/gtest/googlemock/src/gmock-spec-builders.cc",
+    "./thirdparty/gtest/googlemock/src/gmock.cc",
+  ]
+  sources -= [ "./thirdparty/gtest/googlemock/src/gmock-all.cc" ]
+  public_configs = [ ":gmock_config" ]
+  configs += [ ":gmock_private_config" ]
+  configs -= [ "//build/config/coverage:default_coverage" ]
+  deps = [ ":rapidjson_gtest" ]
+}
+}
+
+if(enable_rapidjson_test){
+static_library("rapidjson_gmock_main") {
+  sources = [ "./thirdparty/gtest/googlemock/src/gmock_main.cc" ]
+  public_deps = [
+    ":rapidjson_gmock",
+    ":rapidjson_gtest",
+  ]
+  configs -= [ "//build/config/coverage:default_coverage" ]
+}
+}
+
+if(enable_rapidjson_test){
+ohos_static_library("namespacetest"){
+    sources = ["./test/unittest/namespacetest.cpp"]
+    include_dirs = [
+    "./include",
+    ".",
+    "./test",
+    "./thirdparty/gtest/googletest/include"
+    ]
+    
+    deps = [
+    ":rapidjson_gtest",
+    ":rapidjson_gtest_main",
+    ]
+    
+    configs = [":rapidjson-config"]
+    part_name = "rapidjson"
+}
+}
+
+if(enable_rapidjson_test){
+ohos_static_library("archivertest"){
+    sources = ["./example/archiver/archiver.cpp",
+               "./example/archiver/archivertest.cpp"]
+    include_dirs = [
+    "./include",
+    "./include/rapidjson",
+    ]
+    
+    deps = [
+    ":rapidjson_gtest",
+    ":rapidjson_gtest_main",
+    ]
+    
+    configs = [":rapidjson-config"]
+    part_name = "rapidjson"
+}
+}
+
+
+if(enable_rapidjson_test){
+list = ["capitalize", "condense", "filterkey", "filterkeydom", "jsonx",
+        "lookaheadparser","messagereader","parsebyparts","pretty",
+        "prettyauto","schemavalidator","serialize","simpledom",
+        "simplereader","simplepullreader","simplewriter","sortkeys","tutorial"]
+  foreach(i, list){
+   ohos_executable(i){
+     sources = [
+     "./example/" + i + "/" + i + ".cpp"
+     ]
+
+      include_dirs = [
+      "./include"
+  ]
+  
+    configs = [":rapidjson-config"]
+    part_name = "rapidjson"
+}
+}
+}
+
+
+if(enable_rapidjson_test){
+ohos_executable("unittest"){
+     sources = [
+     "./test/unittest/allocatorstest.cpp",
+     "./test/unittest/bigintegertest.cpp",
+     "./test/unittest/clzlltest.cpp",
+     "./test/unittest/cursorstreamwrappertest.cpp",
+     "./test/unittest/dtoatest.cpp",
+     "./test/unittest/writertest.cpp",
+     "./test/unittest/encodingstest.cpp",
+     "./test/unittest/filestreamtest.cpp",
+     "./test/unittest/fwdtest.cpp",
+     "./test/unittest/istreamwrappertest.cpp",
+     "./test/unittest/namespacetest.cpp",
+     "./test/unittest/ostreamwrappertest.cpp",
+     "./test/unittest/platformtest.cpp",
+     "./test/unittest/pointertest.cpp",
+     "./test/unittest/prettywritertest.cpp",
+     "./test/unittest/readertest.cpp",
+     "./test/unittest/regextest.cpp",
+     "./test/unittest/schematest.cpp",
+     "./test/unittest/simdtest.cpp",
+     "./test/unittest/strfunctest.cpp",
+     "./test/unittest/stringbuffertest.cpp",
+     "./test/unittest/strtodtest.cpp",
+     "./test/unittest/unittest.cpp",
+     "./test/unittest/uritest.cpp",
+     "./test/unittest/valuetest.cpp",
+     "./test/unittest/documenttest.cpp",
+     "./test/unittest/encodedstreamtest.cpp"
+     ]
+
+      include_dirs = [
+      "./include",
+      ".",
+      "./test",
+      "./thirdparty/gtest/googletest/include"
+  ]
+  
+    deps = [
+    ":rapidjson_gtest",
+    ":rapidjson_gtest_main"
+    ]
+
+    configs = [":rapidjson-config"]
+    part_name = "rapidjson"
+}
+}

@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "luv",
+        "License": "Apache License 2.0",
+        "License File": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+        "Version Number": "1.45.0-0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/luvit/luv/archive/refs/tags/1.45.0-0.tar.gz",
+        "Description": "Bare libuv bindings for lua."
+    },
+    {
+        "Name": "LuaJIT",
+        "License": "MIT license",
+        "License File": "https://github.com/LuaJIT/LuaJIT/blob/v2.1/COPYRIGHT",
+        "Version Number": "2.1.0-beta3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://luajit.org/download/$pkgname-$pkgver.tar.gz",
+        "Description": "A module that maps between Lua and XML without much ado."
+    },
+    {
+        "Name": "libuv",
+        "License": "MIT license and CC-BY-4.0 license",
+        "License File": ["https://github.com/libuv/libuv/blob/v1.x/LICENSE","https://github.com/libuv/libuv/blob/v1.x/LICENSE-extra","https://github.com/libuv/libuv/blob/v1.x/LICENSE-docs"],
+        "Version Number": "v1.44.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libuv/libuv/archive/refs/tags/v1.44.2.tar.gz",
+        "Description": "Libuv is an event-driven, cross-platform I/O library for asynchronous programming."
+    }
+]

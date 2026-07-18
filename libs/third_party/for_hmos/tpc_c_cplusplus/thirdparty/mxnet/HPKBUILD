@@ -1,0 +1,178 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhaoxu <357489213@qq.com>
+# Maintainer: zhaoxu <357489213@qq.com>
+
+pkgname=mxnet
+pkgver=1.9.1
+pkgrel=0
+pkgdesc="Apache MXNet is a deep learning framework designed for both efficiency and flexibility."
+url="https://github.com/apache/mxnet"
+archs=("armeabi-v7a" "arm64-v8a")
+
+license=("Apache-2.0 license")
+depends=("OpenBLAS_0.3.23" "opencv" "clapack" "openmp")
+makedepends=()
+
+autounpack=false
+downloadpackage=false
+buildtools="cmake"
+
+builddir=$pkgname
+clonesrcflag=true
+patchflag=true
+
+# 源码下载链接
+source="https://gitee.com/mirrors/$pkgname.git"             # 源链接: https://github.com/apache/mxnet
+repos=(
+    "https://gitee.com/mirrors/dmlc-core.git"               # 源链接: https://github.com/dmlc/dmlc-core.git
+    "https://gitee.com/mirrors/ps-lite.git"                 # 源链接: https://github.com/dmlc/ps-lite
+    "https://gitee.com/mirrors/DLPack.git"                  # 源链接: https://github.com/dmlc/dlpack
+    "https://gitee.com/mirrors/openmp.git"                  # 源链接: https://github.com/llvm-mirror/openmp
+    "https://gitee.com/mirrors/googletest.git"              # 源链接: https://github.com/google/googletest.git
+    "https://gitee.com/lycium_pkg_mirror/oneDNN.git"        # 源链接: https://github.com/oneapi-src/oneDNN.git
+    "https://gitee.com/mirrors/incubator-tvm.git"           # 源链接：https://github.com/apache/incubator-tvm.git
+    "https://gitee.com/lycium_pkg_mirror/onnx-tensorrt.git" # 源链接：https://github.com/onnx/onnx-tensorrt.git
+    "https://gitee.com/mirrors/cub.git"                     # 源链接：https://github.com/NVlabs/cub.git
+    "https://gitee.com/lycium_pkg_mirror/intgemm.git"       # 源链接：https://github.com/kpu/intgemm
+)
+# 子仓对应的文件夹
+folders=(
+    "3rdparty/dmlc-core"
+    "3rdparty/ps-lite"
+    "3rdparty/dlpack"
+    "3rdparty/openmp"
+    "3rdparty/googletest"
+    "3rdparty/mkldnn"
+    "3rdparty/tvm"
+    "3rdparty/onnx-tensorrt"
+    "3rdparty/nvidia_cub"
+    "3rdparty/intgemm"
+)
+# 需切换到的commitID与上述folder文件按顺序一一对应
+commitIDs=(
+    "5df8305fe699d3b503d10c60a231ab0223142407"  # "3rdparty/dmlc-core"
+    "34fd45cae457d59850fdcb2066467778d0673f21"  # "3rdparty/ps-lite"
+    "3efc489b55385936531a06ff83425b719387ec63"  # "3rdparty/dlpack"
+    "b76842ed16984ae5edcbbc4b00a94fda20419431"  # "3rdparty/openmp"
+    "eb9225ce361affe561592e0912320b9db84985d0"  # "3rdparty/googletest"
+    "5818c40f07bdb6307f9bc64e929836fe036da644"  # "3rdparty/mkldnn"
+    "9bd2c7b44208ed992061f8c2688e1137357f1db1"  # "3rdparty/tvm"
+    "2eb74d933f89e1590fdbfc64971a36e5f72df720"  # "3rdparty/onnx-tensorrt"
+    "0158fa19f28619886232defd412433974af89611"  # "3rdparty/nvidia_cub"
+    "8f28282c3bd854922da638024d2659be52e892e9"  # "3rdparty/intgemm“
+)
+
+clonesrc() {
+    git clone -b v$pkgver $source $pkgname
+    if [ $? != 0 ]
+    then 
+        return -1
+    fi
+
+    # 切换至mxnet主仓,循环遍历链接列表并下载子仓代码
+    cd $builddir
+    for ((i=0; i<${#repos[@]}; i++)); do
+        repo=${repos[$i]}
+        folder=${folders[$i]}
+        commitID=${commitIDs[$i]}
+
+        # 克隆仓库到指定文件夹
+        git clone $repo $folder
+        if [ $? != 0 ]
+        then
+            echo "git clone $repo $folder faild."
+            return -2
+        fi 
+
+        # 切换至对应子仓,切换至对应commitid的提交
+        cd $folder
+        git reset --hard $commitID
+        cd $OLDPWD
+    done
+
+    cd $LYCIUM_ROOT/../thirdparty/$pkgname
+}
+
+prepare() {
+    # 源码下载
+    if $clonesrcflag
+    then
+        clonesrc
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        clonesrcflag=false
+    fi
+
+    # patch 原因如下:
+    # 1 将编译器的 C++ 标准设置为 C++17
+    # 2 鸿蒙环境不支持shm_open,shm_unlink 等共享内存相关功能，相应代码段屏蔽
+    # 3 不支持接口屏蔽(与安卓保持一致) 
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < ../mxnet_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+# USE_CUDA=OFF, 不启用CUDA编程模型和CUDA工具链
+# USE_SSE=OFF, 不启用x86指令集
+
+# DUSE_OPENMP=OFF, OPENMP功能暂不支持, 支持成功后，cmake增加如下编译选项
+# -DOpenMP_omp_LIBRARY="-L$LYCIUM_ROOT/usr/openmp/$ARCH/lib" \
+# -DOpenMP_C_FLAGS="-I$LYCIUM_ROOT/usr/openmp/$ARCH/include -fopenmp" \
+# -DOpenMP_C_LIB_NAMES="omp" \
+# -DOpenMP_CXX_LIB_NAMES="omp" \
+# -DOpenMP_CXX_FLAGS="-I$LYCIUM_ROOT/usr/openmp/$ARCH/include -fopenmp" \
+# -DOpenMP_CXX_FLAGS="-I$LYCIUM_ROOT/usr/openmp/$ARCH/include -fopenmp" \
+# -DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS} -L${LYCIUM_ROOT}/usr/openmp/${ARCH}/lib" \
+# -DCMAKE_EXE_LINKER_FLAGS="${LDFLAGS} -L${LYCIUM_ROOT}/usr/openmp/${ARCH}/lib" \
+
+build() {
+    cd $builddir
+
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DOpenBLAS_INCLUDE_DIR=$LYCIUM_ROOT/usr/OpenBLAS/$ARCH/include/openblas \
+        -DCMAKE_EXE_LINKER_FLAGS="${LDFLAGS} -L${LYCIUM_ROOT}/usr/clapack/${ARCH}/lib -s" \
+        -DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS} -L${LYCIUM_ROOT}/usr/clapack/${ARCH}/lib -s" \
+        -DCMAKE_CXX_FLAGS="-I${LYCIUM_ROOT}/usr/clapack/${ARCH}/include -I`pwd`/julia/deps" \
+        -DUSE_CUDA=OFF -DUSE_SSE=OFF -DUSE_OPENMP=OFF \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+
+    make -j4 -C $ARCH-build VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 执行 ctest 测试
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

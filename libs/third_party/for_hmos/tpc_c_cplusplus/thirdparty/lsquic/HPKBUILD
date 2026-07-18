@@ -1,0 +1,96 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhangdongyang  <zdywww@163.com>
+# Maintainer: zhangdongyang <zdywww@163.com>
+
+pkgname=lsquic
+pkgver=v4.4.1
+pkgrel=0
+pkgdesc="LiteSpeed QUIC (LSQUIC) Library is an open-source implementation of QUIC and HTTP/3 functionality for servers and clients."
+url="https://github.com/litespeedtech/lsquic"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+
+license=("MIT License")
+depends=("zlib" "boringssl-fips-20251031" "libevent")
+makedepends=()
+source="https://github.com/litespeedtech/lsquic.git"
+
+autounpack=false
+downloadpackage=false
+patchflag=true
+clonesrcflag=true
+buildtools="cmake"
+
+builddir=$pkgname-$pkgver
+packagename=$pkgname-$pkgver.zip
+
+prepare() {
+    if $clonesrcflag
+    then
+        echo "git clone source code..."
+        #下载压缩包失败，不能用，用git clone获取源码
+        git clone --recursive -b $pkgver $source $builddir > $buildlog 2>&1
+        ret = $?
+        if [ $ret != 0 ]
+        then
+            echo "git clone source code failed $source $pkgver $builddir $ret"
+            return $ret
+        fi
+        echo "git clone source code complete"
+        clonesrcflag=false
+    fi
+
+    if $patchflag
+    then
+        echo "patch ..."
+        cd $builddir
+        # 解决32位系统运行单元测试用例ctest rechist时内存越界问题
+        patch -p1 < `pwd`/../lsquic_oh_test.patch
+        # patch只需要打一次,关闭打patch
+        echo "patch complete"
+        patchflag=false
+        cd $OLDPWD
+    fi
+    echo "prepare complete"
+}
+
+build() {
+    # 设置依赖库路径
+    local BORINGSSL_PATH="${LYCIUM_ROOT}/usr/boringssl-fips-20251031/$ARCH"
+
+    cd $builddir
+    # 下面的cmake增加了-DCMAKE_BUILD_TYPE=Debug可以生成源码的测试用例的二进制文件
+    PKG_CONFIG_PATH="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DBORINGSSL_DIR=${BORINGSSL_PATH} -B$ARCH-build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-s" -DCMAKE_CXX_FLAGS="-s" -S./  >> $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf $builddir
+}

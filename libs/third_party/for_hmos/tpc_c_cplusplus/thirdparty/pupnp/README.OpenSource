@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "pupnp",
+        "License": "BSD-3-Clause license",
+        "License File": "LICENSES",
+        "Version Number": "release-1.14.16",
+        "Owner": "chenbaodi@huawei.com",
+        "Upstream URL": "https://github.com/pupnp/pupnp/archive/refs/tags/release-1.14.16.tar.gz",
+        "Description": "Build UPnP-compliant control points, devices, and bridges on several operating systems."
+    }
+]

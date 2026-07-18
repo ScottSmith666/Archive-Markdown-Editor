@@ -1,0 +1,151 @@
+--- bdwgc-8.0.0_old/os_dep.c	2018-09-05 06:10:55.000000000 +0800
++++ bdwgc-8.0.0/os_dep.c	2024-09-02 11:21:27.546371962 +0800
+@@ -18,7 +18,7 @@
+ 
+ #if !defined(OS2) && !defined(PCR) && !defined(AMIGA) && !defined(MACOS) \
+     && !defined(MSWINCE) && !defined(SN_TARGET_ORBIS) \
+-    && !defined(SN_TARGET_PSP2) && !defined(__CC_ARM)
++    && !defined(SN_TARGET_PSP2) && !defined(__CC_ARM) && !defined(__OHOS__)
+ # include <sys/types.h>
+ # if !defined(MSWIN32) && !defined(MSWIN_XBOX1)
+ #   include <unistd.h>
+@@ -504,14 +504,14 @@
+   ptr_t GC_data_start = NULL;
+ 
+   EXTERN_C_BEGIN
+-  extern char **environ;
++  // extern char **environ;
+   EXTERN_C_END
+ 
+   GC_INNER void GC_init_netbsd_elf(void)
+   {
+         /* This may need to be environ, without the underscore, for     */
+         /* some versions.                                               */
+-    GC_data_start = GC_find_limit((ptr_t)&environ, FALSE);
++    // GC_data_start = GC_find_limit((ptr_t)&environ, FALSE);
+   }
+ #endif /* NETBSD */
+ 
+@@ -1531,7 +1531,7 @@
+ /* with SunOS dynamic loading), or GC_mark_roots needs to check for     */
+ /* them (as we do with PCR).  Called with allocator lock held.          */
+ # ifdef OS2
+-
++#ifndef __OHOS__
+ void GC_register_data_segments(void)
+ {
+     PTIB ptib;
+@@ -1717,6 +1717,7 @@
+ # else
+ #   define GetWriteWatch_alloc_flag 0
+ # endif /* !GWW_VDB */
++#endif
+ 
+ # if defined(MSWIN32) || defined(MSWINCE) || defined(CYGWIN32)
+ 
+@@ -1916,7 +1917,7 @@
+       if (base != limit) GC_add_roots_inner(base, limit, FALSE);
+   }
+ #endif /* MSWIN32 */
+-
++#if !defined(__OHOS__)
+   void GC_register_data_segments(void)
+   {
+ #   ifdef MSWIN32
+@@ -1924,7 +1925,7 @@
+                             /* any other GC global variable would fit too. */
+ #   endif
+   }
+-
++#endif
+ # else /* !OS2 && !Windows */
+ 
+ # if (defined(SVR4) || defined(AIX) || defined(DGUX) \
+@@ -2007,7 +2008,7 @@
+ #  undef GC_AMIGA_DS
+ 
+ #elif defined(OPENBSD)
+-
++#if !defined(__OHOS__)
+ /* Depending on arch alignment, there can be multiple holes     */
+ /* between DATASTART and DATAEND.  Scan in DATASTART .. DATAEND */
+ /* and register each region.                                    */
+@@ -2027,7 +2028,7 @@
+     region_start = GC_skip_hole_openbsd(region_end, DATAEND);
+   }
+ }
+-
++#endif
+ # else /* !OS2 && !Windows && !AMIGA && !OPENBSD */
+ 
+ # if !defined(PCR) && !defined(MACOS) && defined(REDIRECT_MALLOC) \
+@@ -2036,7 +2037,7 @@
+     extern caddr_t sbrk(int);
+     EXTERN_C_END
+ # endif
+-
++#if !defined(__OHOS__)
+   void GC_register_data_segments(void)
+   {
+ #   if !defined(PCR) && !defined(MACOS)
+@@ -2105,7 +2106,7 @@
+     /* Dynamic libraries are added at every collection, since they may  */
+     /* change.                                                          */
+   }
+-
++#endif
+ # endif /* !AMIGA */
+ # endif /* !MSWIN32 && !MSWINCE */
+ # endif /* !OS2 */
+--- bdwgc-8.0.0_old/misc.c	2018-09-05 06:10:55.000000000 +0800
++++ bdwgc-8.0.0/misc.c	2024-09-02 11:40:15.563734838 +0800
+@@ -1277,7 +1277,10 @@
+ 
+     /* Add initial guess of root sets.  Do this first, since sbrk(0)    */
+     /* might be used.                                                   */
+-      if (GC_REGISTER_MAIN_STATIC_DATA()) GC_register_data_segments();
++      if (GC_REGISTER_MAIN_STATIC_DATA()) 
++      #ifndef __OHOS__
++      GC_register_data_segments();
++      #endif
+     GC_init_headers();
+     GC_bl_init();
+     GC_mark_init();
+
+--- bdwgc-8.0.0_old/CMakeLists.txt	2018-09-05 06:10:55.000000000 +0800
++++ bdwgc-8.0.0/CMakeLists.txt	2024-09-02 18:26:14.137861542 +0800
+@@ -248,14 +248,25 @@
+ 
+ ADD_LIBRARY(          gcmt-dll  SHARED     ${SRC})
+ 
+-IF(WIN32)
+-  ADD_EXECUTABLE(cord cord/cordbscs.c cord/cordxtra.c
+-                 cord/tests/de.c cord/tests/de_win.c)
+-  SET_TARGET_PROPERTIES(cord PROPERTIES WIN32_EXECUTABLE TRUE)
+-  SET_TARGET_PROPERTIES(cord    PROPERTIES
+-                      COMPILE_DEFINITIONS GC_NOT_DLL)
+-  TARGET_LINK_LIBRARIES(cord gc-lib)
+-  TARGET_LINK_LIBRARIES(cord gdi32)
+-ENDIF(WIN32)
++#IF(WIN32)
++#  ADD_EXECUTABLE(cord cord/cordbscs.c cord/cordxtra.c
++#                 cord/tests/de.c cord/tests/de_win.c)
++#  SET_TARGET_PROPERTIES(cord PROPERTIES WIN32_EXECUTABLE TRUE)
++#  SET_TARGET_PROPERTIES(cord    PROPERTIES
++#                      COMPILE_DEFINITIONS GC_NOT_DLL)
++#  TARGET_LINK_LIBRARIES(cord gc-lib)
++#  TARGET_LINK_LIBRARIES(cord gdi32)
++#ENDIF(WIN32)
++set(TARGET_NAME bdwgc-8.0.0)
++set(TARGET_INSTALL_INCLUDEDIR "include")
++set(TARGET_INSTALL_LIBDIR "lib")
++# 安装静态库
++install(TARGETS gcmt-lib
++        ARCHIVE DESTINATION ${TARGET_INSTALL_LIBDIR})
++
++# 安装共享库
++install(TARGETS gcmt-lib
++        LIBRARY DESTINATION ${TARGET_INSTALL_LIBDIR})
++
+ 
+ ADD_SUBDIRECTORY(tests)

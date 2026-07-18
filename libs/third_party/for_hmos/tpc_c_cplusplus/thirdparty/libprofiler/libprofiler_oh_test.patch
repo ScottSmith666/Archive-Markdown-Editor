@@ -1,0 +1,60 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4279c10..80cbd52 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -18,3 +18,4 @@ set(CORELIBS ${THREAD_LIBRARY} ${CURSES_LIBRARY})
+ add_library(profiler SHARED ${common_sources})
+ 
+ target_link_libraries( profiler ${CMAKE_THREAD_LIBS_INIT} ${CORELIBS} )
++add_subdirectory(test)
+\ No newline at end of file
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+new file mode 100644
+index 0000000..abba4d4
+--- /dev/null
++++ b/test/CMakeLists.txt
+@@ -0,0 +1,13 @@
++CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
++PROJECT(ProfilerTest C CXX)
++
++SET(CC_COVERAGE_COMPILE_FLAGS "-fPIC")
++SET(CC_COVERAGE_LINK_FLAGS    "")
++
++add_compile_options(-g)
++set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
++add_compile_options(-finstrument-functions)
++
++add_executable(profilerTest profilerTest.cpp)
++
++target_link_libraries(profilerTest PUBLIC libace_napi.z.so profiler)
+\ No newline at end of file
+diff --git a/test/profilerTest.cpp b/test/profilerTest.cpp
+new file mode 100644
+index 0000000..e06efce
+--- /dev/null
++++ b/test/profilerTest.cpp
+@@ -0,0 +1,24 @@
++#include <stdio.h>
++#include <unistd.h>
++#include <pthread.h>
++#include <iostream>
++
++void funcTest1() {
++    sleep(5);
++}
++
++void funcTest2() {
++    sleep(3);
++    funcTest1();
++}
++
++void funcTest3() {
++    sleep(3);
++}
++
++int main() {
++    funcTest1();
++    funcTest2();
++    funcTest3();
++    return 0;
++}

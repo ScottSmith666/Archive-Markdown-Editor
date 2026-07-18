@@ -1,0 +1,46 @@
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+pkgname=leveldb
+pkgver=1.23
+pkgrel=0
+pkgdesc="LevelDB is a fast key-value storage library written at Google that provides an ordered mapping from string keys to string values."
+url="https://github.com/google/leveldb"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=("snappy")
+makedepends=()
+source="https://github.com/google/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+downloadpackage=true
+autounpack=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -DLEVELDB_BUILD_BENCHMARKS=OFF -DLEVELDB_BUILD_TESTS=OFF -DCMAKE_CXX_FLAGS="-Wno-unused-command-line-argument" -S./ -L > $ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir # ${PWD}/$packagename
+}

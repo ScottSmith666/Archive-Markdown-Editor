@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "glib",
+        "License": "LGPL-2.1-or-later",
+        "License File": "https://gitlab.gnome.org/GNOME/glib/-/blob/main/LICENSES/LGPL-2.1-or-later.txt",
+        "Version Number": "2.77.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitlab.gnome.org/GNOME/glib/-/archive/2.77.1/glib-2.77.1.tar.gz",
+        "Description": "GLib is a general-purpose, portable utility library, which provides many useful data types, macros, type conversions, string utilities, file utilities, a mainloop abstraction, and so on."
+    },
+    {
+        "Name": "libffi",
+        "License": "MIT and GPL-2.0-only",
+        "License File": ["https://github.com/libffi/libffi/blob/master/LICENSE","https://github.com/libffi/libffi/blob/master/LICENSE-BUILDTOOLS"],
+        "Version Number": "3.4.4",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libffi/libffi/releases/download/v3.4.4/libffi-3.4.4.tar.gz",
+        "Description": "The libffi library provides a portable, high level programming interface to various calling conventions."
+    },
+    {
+        "Name": "pcre2",
+        "License": "PCRE2 LICENCE and BSD-3-Clause",
+        "License File": "https://github.com/PCRE2Project/pcre2/blob/master/LICENCE",
+        "Version Number": "pcre2-10.42",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.42/pcre2-10.42.tar.gz",
+        "Description": "PCRE2 is a library of functions to support regular expressions whose syntax and semantics are as close as possible to those of the Perl 5 language."
+    }
+]   

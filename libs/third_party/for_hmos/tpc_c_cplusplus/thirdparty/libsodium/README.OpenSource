@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libsodium",
+        "License": "ISC",
+        "License File": "https://github.com/jedisct1/libsodium/blob/1.0.20-RELEASE/LICENSE",
+        "Version Number": "v1.0.20",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/jedisct1/libsodium",
+        "Description": "Libsodium is a cross-platform, easy-to-use, and secure modern cryptographic library based on NaCl, offering out-of-the-box symmetric/asymmetric encryption, hashing, key derivation, and signing capabilities for embedded, desktop, and server environments."
+    }
+]

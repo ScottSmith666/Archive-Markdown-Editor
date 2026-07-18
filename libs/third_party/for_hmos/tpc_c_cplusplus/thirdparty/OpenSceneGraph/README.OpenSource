@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "OpenSceneGraph",
+        "License": "LGPL",
+        "License File": "LICENSE.txt",
+        "Version Number": "3.6.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/OpenSceneGraph/OpenSceneGraph/archive/refs/tags/OpenSceneGraph-3.6.5.tar.gz",
+        "Description": "OpenSceneGraph is an open source high performance 3D graphics toolkit."
+    }
+]

@@ -1,0 +1,87 @@
+# Contributor: TangShaoteng <tangshaoteng@163.com>
+# Maintainer: TangShaoteng <tangshaoteng@163.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+checkprepare() {
+    # 将minidlnad可执行程序添加到环境变量
+    export PATH=${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/sbin:$PATH
+}
+
+openharmonycheck() {
+    res=0
+    # 获取IP地址
+    ipv4_addr_str=`ifconfig | grep "inet addr" | grep Bcast | awk '{print $2}'`
+    ipv4_addr_result=$(echo $ipv4_addr_str | grep "addr")
+    if [ -z "$ipv4_addr_result" ]
+    then
+        echo "error: not found ipv4 addr" > ${logfile} 2>&1
+        return -1;
+    fi
+    ipv4_addr=${ipv4_addr_result:5}
+    # 创建配置文件
+    echo -e "media_dir=A,${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Music\nmedia_dir=P,${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Pictures\nmedia_dir=V,${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Videos\nfriendly_name=OHOSMedia\ndb_dir=${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/cache\nlog_dir=${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/log\ninotify=yes" > ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/minidlna.conf
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "create minidlna config file failed" > ${logfile} 2>&1
+        return res;
+    fi
+    # 拷贝音乐资源到minidlna共享目录
+    mkdir -p ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Music ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Pictures ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Videos
+    cp /system/etc/graphic/bootsound.wav ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Music/
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "copy music file failed" > ${logfile} 2>&1
+        return res;
+    fi
+    # 拷贝图片资源到minidlna共享目录
+    cp /system/etc/wallpaperdefault.jpeg ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Pictures/
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "copy picture file failed" > ${logfile} 2>&1
+        return res;
+    fi
+    # 拷贝视频资源到minidlna共享目录
+    cp /system/etc/graphic/bootvideo.mp4 ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Videos/
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "copy video file failed" > ${logfile} 2>&1
+        return res;
+    fi
+    # 启动minidlna服务器程序,并检查端口是否被占用
+    pid=$(netstat -tulnp | grep 8080 | awk '{print $7}' | cut -d'/' -f1)
+    if [ -n $pid ]
+    then
+        kill -9 $pid
+    fi
+    minidlnad -v -f ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/minidlna.conf -p 8080 -P ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/minidlna.pid > ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "error: the minidlna service failed to run" >> ${logfile} 2>&1
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/log/* ${LYCIUM_FAULT_PATH}/${pkgname}/
+        return res;
+    fi
+    # 查询minidlna服务器程序运行状态
+    minidlna_pid=`ps -ef | grep minidlnad | grep -v grep | awk '{print $2}'`
+    if [ -z "$minidlna_pid" ]
+    then
+        echo "error: the minidlna service exited" >> ${logfile} 2>&1
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/log/* ${LYCIUM_FAULT_PATH}/${pkgname}/
+        return res;
+    fi
+    # 5分钟后主动结束minidlna服务器程序，测试结束
+    sleep 300
+    kill -9 ${minidlna_pid}
+    res=$?
+    cat ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/log/minidlna.log >> ${logfile} 2>&1
+
+    return $res
+}

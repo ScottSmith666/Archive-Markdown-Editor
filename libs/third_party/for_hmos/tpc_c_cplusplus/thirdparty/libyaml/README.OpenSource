@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libyaml",
+        "License": "MIT License",
+        "License File": "https://github.com/yaml/libyaml/blob/master/License",
+        "Version Number": "0.2.5",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/yaml/libyaml/archive/refs/tags/0.2.5.tar.gz",
+        "Description": "LibYAML - A C library for parsing and emitting YAML."
+    }
+]

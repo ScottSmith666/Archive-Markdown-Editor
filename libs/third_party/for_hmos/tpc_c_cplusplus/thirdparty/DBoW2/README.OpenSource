@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "DBoW2",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/dorian3d/DBoW2/blob/master/LICENSE.txt",
+        "Version Number": "v1.1-free",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/dorian3d/DBoW2/archive/refs/tags/v1.1-free.tar.gz",
+        "Description": "Enhanced hierarchical bag-of-word library for C++"
+    },
+    {
+        "Name": "opencv",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/opencv/opencv/blob/3.4/LICENSE",
+        "Version Number": "3.4.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/opencv/opencv/archive/refs/tags/3.4.1.tar.gz",
+        "Description": "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.  OpenCV was built to provide a common infrastructure for computer vision applications and to accelerate the use of machine perception in the commercial products."
+    },
+    {
+        "Name": "boost",
+        "License": "BSL-1.0",
+        "License File": "https://www.boost.org/LICENSE_1_0.txt",
+        "Version Number": "1.81.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz",
+        "Description": "Boost provides free peer-reviewed portable C++ source libraries."
+    },
+    {
+        "Name": "DLib",
+        "License": "BSD-3-Clause and MIT",
+        "License File": "https://github.com/dorian3d/DLib/blob/master/LICENSE.txt",
+        "Version Number": "v1.1-free",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/dorian3d/DLib/archive/refs/tags/v1.1-free.tar.gz",
+        "Description": "C++ library with several utilities"
+    }
+]

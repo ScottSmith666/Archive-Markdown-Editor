@@ -1,0 +1,13 @@
+Overview
+There are two separate libraries in the project, bsdiff and bspatch. Each are self contained in bsdiff.c and bspatch.c The easiest way to integrate is to simply copy the c file to your source folder and build it.
+
+The overarching goal was to modify the original bsdiff/bspatch code from Colin and eliminate external dependencies and provide a simple interface to the core functionality.
+
+I've exposed relevant functions via the _stream classes. The only external dependency not exposed is memcmp in bsdiff.
+
+This library generates patches that are not compatible with the original bsdiff tool. The incompatibilities were motivated by the patching needs for the game AirMech https://www.carbongames.com and the following requirements:
+
+1. Eliminate/minimize any seek operations when applying patches
+2. Eliminate any required disk I/O and support embedded streams
+3. Ability to easily embed the routines as a library instead of an external binary
+4. Compile+run on all platforms we use to build the game (Windows, Linux, NaCl, OSX)

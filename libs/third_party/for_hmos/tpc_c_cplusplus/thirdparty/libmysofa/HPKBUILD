@@ -1,0 +1,76 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, wen fan <wenfan001@chinasoftinc.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=libmysofa
+pkgver=v1.3.2
+pkgrel=
+pkgdesc="This is a simple set of C functions to read AES SOFA files."
+url=https://github.com/hoene/libmysofa
+archs=(armeabi-v7a arm64-v8a)
+license=(BSD-3-Clause)
+depends=(CUnit zlib_1_3_1 bzip2_1_0_8)
+makedepends=()
+
+builddir=${pkgname}-${pkgver:1}
+packagename=${builddir}.tar.gz
+
+source=https://github.com/hoene/${pkgname}/archive/refs/tags/${pkgver}.tar.gz
+
+autounpack=true
+downloadpackage=true
+buildtools=cmake
+patchflag=true
+
+prepare() {
+    mkdir -p ${builddir}/${ARCH}-build
+    if ${patchflag}
+    then
+        cd ${builddir}
+
+        # 注释pthread_cancel函数，屏蔽16个测试改为手动测试，将/tmp 目录改为/data/local/tmp
+        patch -p1 < ../${pkgname}_oh_pkg.patch || return -1
+        echo "patching success"
+        patchflag=false
+        cd ${OLDPWD}
+    fi
+
+    return 0
+}
+
+build() {
+    cd ${builddir}
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -B${ARCH}-build -S./ > ${buildlog} 2>&1 || return -1
+    ${MAKE} -C${ARCH}-build >> ${buildlog} 2>&1 || return -1
+    cd ${OLDPWD}
+    return 0
+}
+
+package() {
+    cd ${builddir}/${ARCH}-build
+    ${MAKE} install >> ${buildlog} 2>&1 || return -1
+    cd ${OLDPWD}
+    return 0
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    return 0
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/${builddir}
+    return 0
+}

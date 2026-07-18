@@ -1,0 +1,53 @@
+diff -Naur old/gsoap/samples/databinding/address.cpp new/gsoap/samples/databinding/address.cpp
+--- old/gsoap/samples/databinding/address.cpp	2024-04-23 02:54:10.000000000 +0800
++++ new/gsoap/samples/databinding/address.cpp	2024-05-30 12:54:37.312274425 +0800
+@@ -165,8 +165,11 @@
+   } 
+   // change soap_s2dateTime to soap_xsd__dateTime when overriding the default xsd:dateTime to time_t mapping
+   if (*(s = user_input("DOB")))
++  {
++    a->dob = soap_new_dateTime(soap);
+     if (soap_s2dateTime(soap, s, a->dob) != SOAP_OK)
+       std::cerr << "Not a valid ISO 8601 date time (ignored)" << std::endl;
++  }
+   soap->error = SOAP_OK;
+ 
+   // Add contact to address book
+@@ -206,6 +209,7 @@
+   char *s;
+ 
+   printf("%-9s> ", prompt);
++  fflush(stdout);
+   fgets(buf, 80, stdin);
+ 
+   // Strip trailing space
+diff -Naur old/gsoap/stdsoap2.cpp new/gsoap/stdsoap2.cpp
+--- old/gsoap/stdsoap2.cpp	2024-05-18 14:14:59.398464333 +0800
++++ new/gsoap/stdsoap2.cpp	2024-05-31 17:42:08.869143577 +0800
+@@ -5457,7 +5457,7 @@
+ {
+ #if (defined(_AIX43) || defined(TRU64) || defined(HP_UX)) && defined(HAVE_GETHOSTBYNAME_R)
+   struct hostent_data ht_data;
+-#elif (!defined(_GNU_SOURCE) || (!(~_GNU_SOURCE+1) && !defined(_POSIX_C_SOURCE) && !defined(_XOPEN_SOURCE)) || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || defined(__ANDROID__) || defined(FREEBSD) || defined(__FreeBSD__)) && !defined(SUN_OS) && !defined(__QNX__) && !defined(QNX) && defined(HAVE_GETHOSTBYNAME_R)
++#elif (!defined(_GNU_SOURCE) || (!(~_GNU_SOURCE+1) && !defined(_POSIX_C_SOURCE) && !defined(_XOPEN_SOURCE)) || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || defined(__ANDROID__) || defined(__OHOS__) || defined(FREEBSD) || defined(__FreeBSD__)) && !defined(SUN_OS) && !defined(__QNX__) && !defined(QNX) && defined(HAVE_GETHOSTBYNAME_R)
+   int r;
+   char *tmpbuf = soap->tmpbuf;
+   size_t tmplen = sizeof(soap->tmpbuf);
+@@ -5490,7 +5490,7 @@
+     hostent = NULL;
+     soap->errnum = h_errno;
+   }
+-#elif (!defined(_GNU_SOURCE) || (!(~_GNU_SOURCE+1) && !defined(_POSIX_C_SOURCE) && !defined(_XOPEN_SOURCE)) || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || defined(__ANDROID__) || defined(FREEBSD) || defined(__FreeBSD__)) && !defined(SUN_OS) && !defined(__QNX__) && !defined(QNX) && defined(HAVE_GETHOSTBYNAME_R)
++#elif (!defined(_GNU_SOURCE) || (!(~_GNU_SOURCE+1) && !defined(_POSIX_C_SOURCE) && !defined(_XOPEN_SOURCE)) || _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || defined(__ANDROID__) || defined(__OHOS__) || defined(FREEBSD) || defined(__FreeBSD__)) && !defined(SUN_OS) && !defined(__QNX__) && !defined(QNX) && defined(HAVE_GETHOSTBYNAME_R)
+   while ((r = gethostbyname_r(addr, hostent, tmpbuf, tmplen, &hostent, &soap->errnum)) < 0)
+   {
+     if (tmpbuf != soap->tmpbuf)
+@@ -23192,7 +23192,7 @@
+   {
+ #ifndef WIN32
+ # ifdef HAVE_STRERROR_R
+-#  if !defined(_GNU_SOURCE) || (!(~_GNU_SOURCE+1) && ((!defined(_POSIX_C_SOURCE) && !defined(_XOPEN_SOURCE)) || (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600)))
++#  if !defined(_GNU_SOURCE) || (!(~_GNU_SOURCE+1) && ((!defined(_POSIX_C_SOURCE) && !defined(_XOPEN_SOURCE)) || (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600))) || defined(__OHOS__)
+     err = strerror_r(err, soap->msgbuf, sizeof(soap->msgbuf)); /* XSI-compliant */
+     if (err != 0)
+       soap_strcpy(soap->msgbuf, sizeof(soap->msgbuf), "unknown error");

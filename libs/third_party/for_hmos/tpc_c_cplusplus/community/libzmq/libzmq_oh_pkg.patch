@@ -1,0 +1,72 @@
+diff -urN libzmq-4.1.8_old/src/signaler.cpp libzmq-4.1.8/src/signaler.cpp
+--- libzmq-4.1.8_old/src/signaler.cpp	2020-09-02 21:49:51.000000000 +0800
++++ libzmq-4.1.8/src/signaler.cpp	2024-08-06 16:44:10.109644074 +0800
+@@ -321,7 +321,7 @@
+ #if defined ZMQ_HAVE_EVENTFD
+     fd_t fd = eventfd (0, 0);
+     if (fd == -1) {
+-        errno_assert (errno == ENFILE || errno == EMFILE);
++        errno_assert (errno == ENFILE || errno == EMFILE || errno == ENOMEM);
+         *w_ = *r_ = -1;
+         return -1;
+     }
+diff -urN libzmq-4.1.8_old/tests/test_pair_ipc.cpp libzmq-4.1.8/tests/test_pair_ipc.cpp
+--- libzmq-4.1.8_old/tests/test_pair_ipc.cpp	2020-09-02 21:49:51.000000000 +0800
++++ libzmq-4.1.8/tests/test_pair_ipc.cpp	2024-08-06 16:37:20.819150745 +0800
+@@ -37,12 +37,12 @@
+ 
+     void *sb = zmq_socket (ctx, ZMQ_PAIR);
+     assert (sb);
+-    int rc = zmq_bind (sb, "ipc:///tmp/tester");
++    int rc = zmq_bind (sb, "ipc:///data/local/tmp/tester");
+     assert (rc == 0);
+ 
+     void *sc = zmq_socket (ctx, ZMQ_PAIR);
+     assert (sc);
+-    rc = zmq_connect (sc, "ipc:///tmp/tester");
++    rc = zmq_connect (sc, "ipc:///data/local/tmp/tester");
+     assert (rc == 0);
+ 
+     bounce (sb, sc);
+diff -urN libzmq-4.1.8_old/tests/test_req_relaxed.cpp libzmq-4.1.8/tests/test_req_relaxed.cpp
+--- libzmq-4.1.8_old/tests/test_req_relaxed.cpp	2020-09-02 21:49:51.000000000 +0800
++++ libzmq-4.1.8/tests/test_req_relaxed.cpp	2024-08-06 16:21:50.245261053 +0800
+@@ -64,7 +64,7 @@
+     //  We have to give the connects time to finish otherwise the requests
+     //  will not properly round-robin. We could alternatively connect the
+     //  REQ sockets to the REP sockets.
+-    msleep (SETTLE_TIME);
++    msleep (SETTLE_TIME * 10);
+ 
+     //  Case 1: Second send() before a reply arrives in a pipe.
+ 
+diff -urN libzmq-4.1.8_old/tests/test_reqrep_ipc.cpp libzmq-4.1.8/tests/test_reqrep_ipc.cpp
+--- libzmq-4.1.8_old/tests/test_reqrep_ipc.cpp	2020-09-02 21:49:51.000000000 +0800
++++ libzmq-4.1.8/tests/test_reqrep_ipc.cpp	2024-08-06 16:37:36.814645549 +0800
+@@ -37,12 +37,12 @@
+ 
+     void *sb = zmq_socket (ctx, ZMQ_REP);
+     assert (sb);
+-    int rc = zmq_bind (sb, "ipc:///tmp/tester");
++    int rc = zmq_bind (sb, "ipc:///data/local/tmp/tester");
+     assert (rc == 0);
+ 
+     void *sc = zmq_socket (ctx, ZMQ_REQ);
+     assert (sc);
+-    rc = zmq_connect (sc, "ipc:///tmp/tester");
++    rc = zmq_connect (sc, "ipc:///data/local/tmp/tester");
+     assert (rc == 0);
+ 
+     bounce (sb, sc);
+diff -urN libzmq-4.1.8_old/tests/test_spec_req.cpp libzmq-4.1.8/tests/test_spec_req.cpp
+--- libzmq-4.1.8_old/tests/test_spec_req.cpp	2020-09-02 21:49:51.000000000 +0800
++++ libzmq-4.1.8/tests/test_spec_req.cpp	2024-08-06 16:21:30.584823410 +0800
+@@ -56,7 +56,7 @@
+     //  We have to give the connects time to finish otherwise the requests
+     //  will not properly round-robin. We could alternatively connect the
+     //  REQ sockets to the REP sockets.
+-    msleep (SETTLE_TIME);
++    msleep (SETTLE_TIME * 10);
+ 
+     // Send our peer-replies, and expect every REP it used once in order
+     for (size_t peer = 0; peer < services; peer++) {

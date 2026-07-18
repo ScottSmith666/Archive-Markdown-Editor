@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libosip2",
+        "License": "LGPL",
+        "License File": "http://www.gnu.org",
+        "Version Number": "5.3.1",
+        "Owner": "swkec@isoftstone.com",
+        "Upstream URL": "https://ftp.gnu.org/gnu/osip/libosip2-5.3.1.tar.gz",
+        "Description": "libosip2 is a C language library for parsing and processing the SIP protocol. It provides a powerful set of APIs used to implement SIP clients and servers."
+    }
+]

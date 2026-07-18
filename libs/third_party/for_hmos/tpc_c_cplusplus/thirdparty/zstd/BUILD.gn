@@ -1,0 +1,516 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+declare_args() {
+   enable_zstd_test = false
+}
+
+config("libzstd_config") {
+    include_dirs = [
+        ".",
+        "./zstd",
+        "./zstd/lib",
+        "./zstd/lib/common",
+        "./zstd/lib/compress",
+        "./zstd/lib/decompress",
+        "./zstd/lib/deprecated",
+        "./zstd/lib/dictBuilder",
+        "./zstd/lib/legacy",
+        "../lz4",
+        "../lz4/lib",
+        "../zlib",
+        "../xz/xz/",
+        "../xz/xz/src/",
+        "../xz/xz/dos/",
+        "../xz/xz/src/liblzma/api/",
+        "../xz/xz/src/liblzma/api/lzma/",
+        "../xz/xz/src/common/",
+        "../xz/xz/src/liblzma",
+        "../xz/xz/src/liblzma/common/",
+        "../xz/xz/src/liblzma/check",
+        "../xz/xz/src/lz",
+        "../xz/xz/src/lzma",
+    ]
+
+    cflags = [
+        "-fPIC",
+        "-Wall",
+        "-Wextra",
+        "-fexceptions",
+         "-Wno-error=unused-parameter",
+        "-Wno-error=int-conversion",
+        "-Wno-error=format",
+        "-DZSTD_BUILD_CONTRIB",
+        "-DZSTD_BUILD_STATIC",
+        "-DZSTD_BUILD_TESTS",
+        "-DZSTD_ZLIB_SUPPORT",
+        "-DZSTD_LZMA_SUPPORT",
+        "-Dzstd_COMPRESSION",
+        "-Dzstd_DECOMPRESSION",
+        "-Dzstd_DICTBUILDER",
+        "-DHAVE_LZ4",
+        "-DZSTD_LZ4COMPRESS",
+        "-DZSTD_LZ4DECOMPRESS",
+        "-DHAVE_PTHREAD",
+        "-DHAVE_THREAD",
+        "-DZSTD_MULTITHREAD",
+        "-DHAVE_ZLIB",
+        "-DZSTD_GZCOMPRESS",
+        "-DZSTD_GZDECOMPRESS",
+        "-DHAVE_LZMA",
+        "-DZSTD_LZMACOMPRESS",
+        "-DZSTD_LZMADECOMPRESS",
+    ]
+}
+ohos_shared_library("zstd_shared") {
+    sources = [
+        "./zstd/lib/common/debug.c",
+        "./zstd/lib/common/entropy_common.c",
+        "./zstd/lib/common/error_private.c",
+        "./zstd/lib/common/fse_decompress.c",
+        "./zstd/lib/common/pool.c",
+        "./zstd/lib/common/threading.c",
+        "./zstd/lib/common/xxhash.c",
+        "./zstd/lib/common/zstd_common.c",
+        "./zstd/lib/compress/fse_compress.c",
+        "./zstd/lib/compress/hist.c",
+        "./zstd/lib/compress/huf_compress.c",
+        "./zstd/lib/compress/zstd_compress.c",
+        "./zstd/lib/compress/zstd_compress_literals.c",
+        "./zstd/lib/compress/zstd_compress_sequences.c",
+        "./zstd/lib/compress/zstd_compress_superblock.c",
+        "./zstd/lib/compress/zstd_double_fast.c",
+        "./zstd/lib/compress/zstd_fast.c",
+        "./zstd/lib/compress/zstd_lazy.c",
+        "./zstd/lib/compress/zstd_ldm.c",
+        "./zstd/lib/compress/zstd_opt.c",
+        "./zstd/lib/compress/zstdmt_compress.c",
+        "./zstd/lib/decompress/huf_decompress.c",
+        "./zstd/lib/decompress/zstd_ddict.c",
+        "./zstd/lib/decompress/zstd_decompress.c",
+        "./zstd/lib/decompress/zstd_decompress_block.c",
+        "./zstd/lib/deprecated/zbuff_common.c",
+        "./zstd/lib/deprecated/zbuff_compress.c",
+        "./zstd/lib/deprecated/zbuff_decompress.c",
+        "./zstd/lib/dictBuilder/cover.c",
+        "./zstd/lib/dictBuilder/divsufsort.c",
+        "./zstd/lib/dictBuilder/fastcover.c",
+        "./zstd/lib/dictBuilder/zdict.c",
+        "./zstd/lib/legacy/zstd_v01.c",
+        "./zstd/lib/legacy/zstd_v02.c",
+        "./zstd/lib/legacy/zstd_v03.c",
+        "./zstd/lib/legacy/zstd_v04.c",
+        "./zstd/lib/legacy/zstd_v05.c",
+        "./zstd/lib/legacy/zstd_v06.c",
+        "./zstd/lib/legacy/zstd_v07.c",
+    ]
+
+    configs = [
+        ":libzstd_config"
+    ]
+
+    deps = [
+        "../lz4:liblz4_static",
+        "../zlib:libz",
+        "../xz:libxz",
+    ]
+
+    part_name = "zstd"
+}
+
+
+config ("regression_config") {
+    include_dirs = [
+        "./zstd",
+        "./zstd/lib/",
+        "./zstd/programs/",
+        "./zstd/lib/common/",
+        "../curl/",
+        "../curl/include/",
+        "../curl/include/curl/",
+    ]
+
+    cflags = [
+        "-fPIC",
+        "-Wall",
+        "-Wextra",
+        "-fexceptions",
+        "-Wno-error=unused-parameter",
+        "-Wno-error=unused-variable",
+        "-Wno-error=unused-function",
+        "-Wno-error=sign-compare",
+        "-Wno-error=undef",
+        "-Wno-error=macro-redefined",
+        "-Wno-error=int-conversion",
+        "-Wno-error=format",
+        "-Wno-error=logical-op-parentheses",
+        "-Wno-error=parentheses",
+        "-Wno-error=deprecated-declarations",
+        "-Wno-error=missing-field-initializers",
+    ]
+
+    ldflags = [
+        "-lpthread",
+    ]
+}
+
+ohos_executable("zst_test_regression") {
+    sources = [
+        "./zstd/tests/regression/config.c",
+        "./zstd/tests/regression/data.c",
+        "./zstd/tests/regression/method.c",
+        "./zstd/tests/regression/result.c",
+        "./zstd/tests/regression/test.c",
+        "./zstd/programs/util.c",
+        "./zstd/lib/common/xxhash.c",
+    ]
+
+    public_configs = [ ":regression_config" ]
+
+    deps = [
+        ":zstd_shared",
+        "../curl:curl_target"
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+
+config ("zstd_tests_config") {
+    include_dirs = [
+        "./zstd",
+        "./zstd/lib",
+        "./zstd/examples",
+    ]
+
+    cflags = [
+        "-fPIC",
+        "-Wall",
+        "-Wextra",
+        "-fexceptions",
+        "-Wno-error=unused-parameter",
+        "-Wno-error=unused-variable",
+        "-Wno-error=unused-function",
+        "-Wno-error=sign-compare",
+        "-Wno-error=undef",
+        "-Wno-error=macro-redefined",
+        "-Wno-error=int-conversion",
+        "-Wno-error=format",
+        "-Wno-error=logical-op-parentheses",
+        "-Wno-error=parentheses",
+    ]
+}
+
+ohos_executable("dictionary_compression") {
+    sources = [
+        "./zstd/examples/dictionary_compression.c",
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+ohos_executable("dictionary_decompression") {
+    sources = [
+        "./zstd/examples/dictionary_decompression.c",
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+ohos_executable("multiple_simple_compression") {
+    sources = [
+        "./zstd/examples/multiple_simple_compression.c",
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+ohos_executable("multiple_streaming_compression") {
+    sources = [
+        "./zstd/examples/multiple_streaming_compression.c",
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+ohos_executable("simple_compression") {
+    sources = [
+        "./zstd/examples/simple_compression.c",
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+ohos_executable("simple_decompression") {
+    sources = [
+        "./zstd/examples/simple_decompression.c",
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+ohos_executable("streaming_compression_thread_pool") {
+    sources = [
+        "./zstd/examples/streaming_compression_thread_pool.c",
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+ohos_executable("streaming_compression") {
+    sources = [
+        "./zstd/examples/streaming_compression.c",
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+ohos_executable("streaming_decompression") {
+    sources = [
+        "./zstd/examples/streaming_decompression.c",
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+ohos_executable("streaming_memory_usage") {
+    sources = [
+        "./zstd/examples/streaming_memory_usage.c"
+    ]
+
+    public_configs = [ ":zstd_tests_config" ]
+
+    deps = [
+        ":zstd_shared",
+    ]
+
+    defines = [
+    ]
+
+    part_name = "zstd"
+}
+
+
+config ("zstd_programs_config") {
+    include_dirs = [
+        "./zstd",
+        "./zstd/programs",
+        "./zstd/lib",
+        "./zstd/zlibWrapper",
+        "../lz4",
+        "../lz4/lib",
+        "../zlib",
+        "../xz/xz/",
+        "../xz/xz/src/",
+        "../xz/xz/dos/",
+        "../xz/xz/src/liblzma/api/",
+        "../xz/xz/src/liblzma/api/lzma/",
+        "../xz/xz/src/common/",
+        "../xz/xz/src/liblzma",
+        "../xz/xz/src/liblzma/common/",
+        "../xz/xz/src/liblzma/check",
+        "../xz/xz/src/lz",
+        "../xz/xz/src/lzma",
+    ]
+
+    cflags = [
+        "-fPIC",
+        "-Wall",
+        "-Wextra",
+        "-fexceptions",
+        "-Wno-error=unused-parameter",
+        "-Wno-error=unused-variable",
+        "-Wno-error=sign-compare",
+        "-Wno-error=undef",
+        "-Wno-error=macro-redefined",
+        "-Wno-error=int-conversion",
+        "-Wno-error=format",
+        "-Wno-error=logical-op-parentheses",
+        "-Wno-error=parentheses",
+        "-Wno-error=implicit-function-declaration",
+        "-DHAVE_LZ4",
+        "-DZSTD_LZ4COMPRESS",
+        "-DZSTD_LZ4DECOMPRESS",
+        "-DHAVE_PTHREAD",
+        "-DHAVE_THREAD",
+        "-DZSTD_MULTITHREAD",
+        "-DHAVE_ZLIB",
+        "-DZSTD_GZCOMPRESS",
+        "-DZSTD_GZDECOMPRESS",
+        "-DHAVE_LZMA",
+        "-DZSTD_LZMACOMPRESS",
+        "-DZSTD_LZMADECOMPRESS",
+    ]
+
+    ldflags = [
+        "-lpthread",
+    ]
+}
+
+ohos_executable("zstd") {
+    sources = [
+        "./zstd/programs/benchfn.c",
+        "./zstd/programs/benchzstd.c",
+        "./zstd/programs/datagen.c",
+        "./zstd/programs/dibio.c",
+        "./zstd/programs/fileio.c",
+        "./zstd/programs/timefn.c",
+        "./zstd/programs/util.c",
+        "./zstd/programs/zstdcli.c",
+        "./zstd/programs/zstdcli_trace.c",
+    ]
+
+    public_configs = [ ":zstd_programs_config" ]
+
+    deps = [
+        ":zstd_shared",
+        "../lz4:liblz4_static",
+        "../zlib:libz",
+        "../xz:libxz",
+    ]
+
+    defines = [
+        "PACKAGE_VERSION",
+    ]
+
+    part_name = "zstd"
+}
+
+group("examples") {
+    if (enable_zstd_test) {
+        deps = [
+            ":dictionary_compression",
+            ":dictionary_decompression",
+            ":multiple_simple_compression",
+            ":multiple_streaming_compression",
+            ":simple_compression",
+            ":simple_decompression",
+            ":streaming_compression_thread_pool",
+            ":streaming_compression",
+            ":streaming_decompression",
+            ":streaming_memory_usage",
+        ]
+    }
+}
+
+group("zstd_exe") {
+    if (enable_zstd_test) {
+        deps = [
+            ":zstd"
+        ]
+    }
+}
+
+group("zst_regression") {
+    if (enable_zstd_test) {
+        deps = [
+            ":zst_test_regression"
+        ]
+    }
+}
+

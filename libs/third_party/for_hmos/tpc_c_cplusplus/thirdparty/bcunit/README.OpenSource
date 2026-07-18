@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "bcunit",
+        "License": "LGPL-2.0 license",
+        "License File": "https://github.com/BelledonneCommunications/bcunit/blob/master/COPYING",
+        "Version Number": "5.2.62",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/BelledonneCommunications/bcunit/archive/refs/tags/5.2.62.tar.gz",
+        "Description": "BcUnit is a Unit testing framework"
+    }
+]

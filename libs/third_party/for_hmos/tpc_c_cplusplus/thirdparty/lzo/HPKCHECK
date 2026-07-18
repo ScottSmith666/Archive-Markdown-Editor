@@ -1,0 +1,98 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: baijn <1225837220@qq.com>
+# Maintainer: baijn <1225837220@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $pkgname-$ARCH-build/examples
+
+    # 用于测试
+    echo "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" > example.txt
+
+    echo "total test 6"  >> $logfile
+    # 测试项1
+    ./simple >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 1 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+        echo "1 pass" >> $logfile
+
+    # 测试项2
+    ./overlap example.txt >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 2 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "2 pass" >> $logfile
+
+    # 测试项3
+    ./lzopack example.txt example.lzo >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 3 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "3 pass" >> $logfile
+
+    # 测试项4
+    ./precomp example.txt >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 4 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "4 pass" >> $logfile
+
+    # 测试项5
+    ./precomp2 example.txt >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 5 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "5 pass" >> $logfile
+
+    # 测试项6
+    ./dict -1 -n example.txt >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 6 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "6 pass" >> $logfile
+
+    rm -f example.txt
+    cd $OLDPWD
+
+    return $res
+}

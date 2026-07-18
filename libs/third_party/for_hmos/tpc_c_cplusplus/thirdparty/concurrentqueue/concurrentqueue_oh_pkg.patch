@@ -1,0 +1,54 @@
+diff -Naur concurrentqueue-1.0.3/build/makefile concurrentqueue-1.0.3-patch/build/makefile
+--- concurrentqueue-1.0.3/build/makefile	2020-12-09 20:15:23.000000000 +0800
++++ concurrentqueue-1.0.3-patch/build/makefile	2023-06-27 17:07:10.362583499 +0800
+@@ -31,12 +31,12 @@
+ 
+ bin/unittests$(EXT): ../concurrentqueue.h ../blockingconcurrentqueue.h ../lightweightsemaphore.h ../tests/unittests/unittests.cpp ../tests/unittests/mallocmacro.cpp ../tests/common/simplethread.h ../tests/common/simplethread.cpp ../tests/common/systemtime.h ../tests/common/systemtime.cpp ../tests/corealgos.h ../tests/unittests/minitest.h ../c_api/blockingconcurrentqueue.cpp ../c_api/concurrentqueue.cpp makefile
+ 	test -d bin || mkdir bin
+-	g++ -c -std=c++11 -Wall -pedantic-errors -Wpedantic -Wconversion -DMOODYCAMEL_STATIC $(OPTS) -fno-elide-constructors -fno-exceptions ../c_api/blockingconcurrentqueue.cpp ../c_api/concurrentqueue.cpp
+-	g++ -std=c++11 -Wall -pedantic-errors -Wpedantic -Wconversion -DMOODYCAMEL_STATIC $(OPTS) -fno-elide-constructors ../tests/common/simplethread.cpp ../tests/common/systemtime.cpp ../tests/unittests/unittests.cpp blockingconcurrentqueue.o concurrentqueue.o -o bin/unittests$(EXT) $(LD_OPTS)
++	$(CXX) $(CXXFLAGS) -c -std=c++11 -Wall -pedantic-errors -Wpedantic -Wconversion -DMOODYCAMEL_STATIC $(OPTS) -fno-elide-constructors -fno-exceptions ../c_api/blockingconcurrentqueue.cpp ../c_api/concurrentqueue.cpp
++	$(CXX) $(CXXFLAGS) -std=c++11 -Wall -pedantic-errors -Wpedantic -Wconversion -DMOODYCAMEL_STATIC $(OPTS) -fno-elide-constructors ../tests/common/simplethread.cpp ../tests/common/systemtime.cpp ../tests/unittests/unittests.cpp blockingconcurrentqueue.o concurrentqueue.o -o bin/unittests$(EXT) $(LD_OPTS)
+ 
+ bin/fuzztests$(EXT): ../concurrentqueue.h ../tests/fuzztests/fuzztests.cpp ../tests/common/simplethread.h ../tests/common/simplethread.cpp ../tests/common/systemtime.h ../tests/common/systemtime.cpp ../tests/corealgos.h makefile
+ 	test -d bin || mkdir bin
+-	g++ -std=c++11 -Wall -pedantic-errors -Wpedantic $(BENCH_OPTS) ../tests/common/simplethread.cpp ../tests/common/systemtime.cpp ../tests/fuzztests/fuzztests.cpp -o bin/fuzztests$(EXT) $(LD_OPTS)
++	$(CXX) $(CXXFLAGS) -std=c++11 -Wall -pedantic-errors -Wpedantic $(BENCH_OPTS) ../tests/common/simplethread.cpp ../tests/common/systemtime.cpp ../tests/fuzztests/fuzztests.cpp -o bin/fuzztests$(EXT) $(LD_OPTS)
+ 
+ bin/benchmarks$(EXT): bin/libtbb.a ../concurrentqueue.h ../benchmarks/benchmarks.cpp ../benchmarks/cpuid.h ../benchmarks/cpuid.cpp ../benchmarks/lockbasedqueue.h ../benchmarks/simplelockfree.h ../tests/common/simplethread.h ../tests/common/simplethread.cpp ../tests/common/systemtime.h ../tests/common/systemtime.cpp makefile
+ 	test -d bin || mkdir bin
+diff -Naur concurrentqueue-1.0.3/c_api/concurrentqueue.h concurrentqueue-1.0.3-patch/c_api/concurrentqueue.h
+--- concurrentqueue-1.0.3/c_api/concurrentqueue.h	2020-12-09 20:15:23.000000000 +0800
++++ concurrentqueue-1.0.3-patch/c_api/concurrentqueue.h	2023-06-27 13:16:25.044836391 +0800
+@@ -4,19 +4,19 @@
+ extern "C" {
+ #endif
+ 
+-#ifndef MOODYCAMEL_EXPORT
+-#ifdef _WIN32
+-#if defined(MOODYCAMEL_STATIC) //preferred way
++//#ifndef MOODYCAMEL_EXPORT
++//#ifdef _WIN32
++//#if defined(MOODYCAMEL_STATIC) //preferred way
++//#define MOODYCAMEL_EXPORT
++//#elif defined(DLL_EXPORT)
++//#define MOODYCAMEL_EXPORT __declspec(dllexport)
++//#else
++//#define MOODYCAMEL_EXPORT __declspec(dllimport)
++//#endif
++//#endif
++//#else
+ #define MOODYCAMEL_EXPORT
+-#elif defined(DLL_EXPORT)
+-#define MOODYCAMEL_EXPORT __declspec(dllexport)
+-#else
+-#define MOODYCAMEL_EXPORT __declspec(dllimport)
+-#endif
+-#endif
+-#else
+-#define MOODYCAMEL_EXPORT
+-#endif
++//#endif
+ 
+ typedef void* MoodycamelCQHandle;
+ typedef void* MoodycamelBCQHandle;

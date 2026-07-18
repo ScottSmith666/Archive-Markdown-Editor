@@ -1,0 +1,126 @@
+diff --git a/build_ohos.sh b/build_ohos.sh
+new file mode 100755
+index 0000000..5d5a85c
+--- /dev/null
++++ b/build_ohos.sh
+@@ -0,0 +1,70 @@
++#!/bin/bash
++
++function build_ohos(){
++    local var=$1
++    if [ $var == "armeabi-v7a" ]
++    then
++        host_gcc="gcc -m32"
++        dynamic_cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
++        target_ld=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
++    elif [ $var == "arm64-v8a" ]
++    then
++        host_gcc="gcc"
++        dynamic_cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
++        target_ld=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
++    else
++        echo "${ARCH} not support"
++        return -1
++    fi
++    
++    static_cc=${dynamic_cc}
++    export target_ar="${OHOS_SDK}/native/llvm/bin/llvm-ar rcus 2>/dev/null"
++    target_strip=${OHOS_SDK}/native/llvm/bin/llvm-strip
++	
++    cd luajit-2.1
++    make clean
++    
++    make HOST_CC="$host_gcc" CFLAGS="-fPIC" DYNAMIC_CC=${dynamic_cc} TARGET_LD=${target_ld} STATIC_CC=${static_cc} TARGET_AR="${target_ar}" TARGET_STRIP=${target_strip} -j4 > `pwd`/build.log 2>&1
++    
++    mkdir -p ../ohos/
++    cp src/libluajit.a ../ohos/libluajit.a
++    make clean
++    cd $OLDPWD
++	
++    mkdir -p ./Plugins/ohos/libs/$var
++    ${dynamic_cc} -shared -DOHOS_NDK -fPIC -D__MUSL__=1 \
++        tolua.c \
++        int64.c \
++        uint64.c \
++        pb.c \
++        lpeg.c \
++        struct.c \
++        cjson/strbuf.c \
++        cjson/lua_cjson.c \
++        cjson/fpconv.c \
++        luasocket/auxiliar.c \
++        luasocket/buffer.c \
++        luasocket/except.c \
++        luasocket/inet.c \
++        luasocket/io.c \
++        luasocket/luasocket.c \
++        luasocket/mime.c \
++        luasocket/options.c \
++        luasocket/select.c \
++        luasocket/tcp.c \
++        luasocket/timeout.c \
++        luasocket/udp.c \
++        luasocket/usocket.c \
++        -fPIC\
++        -o Plugins/ohos/libs/$var/libtolua.so \
++        -I./ \
++        -Iluajit-2.1/src \
++        -Iluasocket \
++        -Wl,--whole-archive ohos/libluajit.a -Wl,--no-whole-archive
++     
++    if [ "$?" = "0" ]; then
++        echo -e "\n[MAINTAINCE] build libtolua.so success"
++    else
++        echo -e "\n[MAINTAINCE] build libtolua.so failed"
++    fi
++}
+\ No newline at end of file
+diff --git a/demo_ohos.cpp b/demo_ohos.cpp
+new file mode 100755
+index 0000000..7a34e71
+--- /dev/null
++++ b/demo_ohos.cpp
+@@ -0,0 +1,43 @@
++#include <stdio.h>
++#include <dlfcn.h>
++#include <stdlib.h>
++#include <iostream>
++#include <typeinfo>
++#include "./luajit-2.1/src/lua.h"
++using namespace std;
++
++int main()
++{
++    // 加载.so包
++    void *handle = nullptr;
++    if (sizeof(handle) == 4) { //32位
++        handle = dlopen("./Plugins/ohos/libs/armeabi-v7a/libtolua.so", RTLD_LAZY);
++    } else if(sizeof(handle) == 8) { //64位
++        handle = dlopen("./Plugins/ohos/libs/arm64-v8a/libtolua.so", RTLD_LAZY);
++    }
++    
++    if(!handle){
++        printf("open lib error\n");
++        cout<< dlerror() <<endl;
++        return -1;
++    }
++    
++    typedef int (*luaopen_lpeg_t)(lua_State *L);
++
++    // 获取.so包中的函数指针
++    luaopen_lpeg_t luaopen_lpeg = (luaopen_lpeg_t)dlsym(handle, "luaopen_lpeg");
++    
++    if(!luaopen_lpeg){
++        cout<< dlerror() <<endl;
++        dlclose(handle); 
++        return -1;
++    }
++    
++    if (typeid(luaopen_lpeg(nullptr)) == typeid(int)) {
++        printf("Init tolua_runtime success!!!\n");
++    }
++    
++    dlclose(handle);
++    handle=nullptr;
++    return 0;
++}

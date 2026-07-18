@@ -1,0 +1,38 @@
+diff -urN reactphysics3d-0.9.0_old/CMakeLists.txt reactphysics3d-0.9.0/CMakeLists.txt
+--- reactphysics3d-0.9.0_old/CMakeLists.txt	2022-01-04 06:37:55.000000000 +0800
++++ reactphysics3d-0.9.0/CMakeLists.txt	2024-09-30 19:25:35.715126376 +0800
+@@ -26,11 +26,16 @@
+ 
+ # Options
+ option(RP3D_COMPILE_TESTBED "Select this if you want to build the testbed application with demos" OFF)
+-option(RP3D_COMPILE_TESTS "Select this if you want to build the unit tests" OFF)
++option(RP3D_COMPILE_TESTS "Select this if you want to build the unit tests" ON)
+ option(RP3D_PROFILING_ENABLED "Select this if you want to compile for performanace profiling" OFF)
+ option(RP3D_CODE_COVERAGE_ENABLED "Select this if you need to build for code coverage calculation" OFF)
+ option(RP3D_DOUBLE_PRECISION_ENABLED "Select this if you want to compile using double precision floating values" OFF)
+ 
++set(TEST_SOURCES
++    "test/Test.cpp"  # 在这里列出测试源文件
++    "test/TestSuite.cpp"
++    "test/main.cpp"
++)
+ # Code Coverage
+ if(RP3D_CODE_COVERAGE_ENABLED)
+     INCLUDE(CodeCoverage)
+@@ -257,9 +262,14 @@
+ endif()
+ 
+ # If we need to compile the tests
+-if(RP3D_COMPILE_TESTS)
++
++   add_executable(reactphysics3d_tests ${TEST_SOURCES})
++   # 链接库文件（确保链接到 reactphysics3d 库）
++   target_link_libraries(reactphysics3d_tests PRIVATE reactphysics3d)
++   # 注册测试
++   add_test(NAME ReactPhysics3DTests COMMAND reactphysics3d_tests)
+    add_subdirectory(test/)
+-endif()
++
+ 
+ # Enable profiling if necessary
+ if(RP3D_PROFILING_ENABLED)

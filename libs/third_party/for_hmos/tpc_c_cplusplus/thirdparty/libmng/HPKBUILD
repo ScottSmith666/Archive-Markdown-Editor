@@ -1,0 +1,106 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=libmng
+pkgver=2.0.3
+pkgrel=0
+pkgdesc="libmng -THE reference library for reading, displaying, writing and examining Multiple-Image Network Graphics.
+MNG is the animation extension to the popular PNG image-format."
+url="https://sourceforge.net/projects/libmng/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("The libmng Source License")
+depends=("zlib_1_3_1" "jpeg" "lcms2")
+makedepends=()
+
+source="https://cfhcable.dl.sourceforge.net/project/$pkgname/$pkgname-devel/$pkgver/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    ret=0
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ "$ARCH" == "arm64-v8a" ]
+    then
+        mv "${LYCIUM_ROOT}/usr/libmng/$ARCH/lib64" "${LYCIUM_ROOT}/usr/libmng/$ARCH/lib"
+    fi
+}
+
+check() {
+    cd $builddir
+    
+    # 编译mngtree用于测试 
+    if [ "$ARCH" = "armeabi-v7a" ]
+    then
+        ${OHOS_SDK}/native/llvm/bin/clang \
+        --target=arm-linux-ohos \
+        --sysroot=${OHOS_SDK}/native/sysroot \
+        -march=armv7a \
+        -lm -lmng -lz -ljpeg -llcms2 \
+        -L $LYCIUM_ROOT/usr/libmng/$ARCH/lib \
+        -L $LYCIUM_ROOT/usr/jpeg/$ARCH/lib \
+        -L $LYCIUM_ROOT/usr/lcms2/$ARCH/lib \
+        -L $LYCIUM_ROOT/usr/zlib_1_3_1/$ARCH/lib \
+        -I $LYCIUM_ROOT/usr/libmng/$ARCH/include \
+        -I $LYCIUM_ROOT/usr/jpeg/$ARCH/include \
+        -I $LYCIUM_ROOT/usr/lcms2/$ARCH/include \
+        -I $LYCIUM_ROOT/usr/zlib_1_3_1/$ARCH/include \
+        contrib/gcc/mngtree/mngtree.c \
+        -o ./$ARCH-build/bin/mngtree >> $buildlog 2>&1
+    else
+        ${OHOS_SDK}/native/llvm/bin/clang \
+        --target=aarch64-linux-ohos \
+        --sysroot=${OHOS_SDK}/native/sysroot \
+        -lm -lmng -lz -ljpeg -llcms2 \
+        -L $LYCIUM_ROOT/usr/libmng/$ARCH/lib \
+        -L $LYCIUM_ROOT/usr/jpeg/$ARCH/lib \
+        -L $LYCIUM_ROOT/usr/lcms2/$ARCH/lib \
+        -L $LYCIUM_ROOT/usr/zlib_1_3_1/$ARCH/lib \
+        -I $LYCIUM_ROOT/usr/libmng/$ARCH/include \
+        -I $LYCIUM_ROOT/usr/jpeg/$ARCH/include \
+        -I $LYCIUM_ROOT/usr/lcms2/$ARCH/include \
+        -I $LYCIUM_ROOT/usr/zlib_1_3_1/$ARCH/include \
+        contrib/gcc/mngtree/mngtree.c \
+        -o ./$ARCH-build/bin/mngtree >> $buildlog 2>&1
+    fi
+    ret=$?
+    cd $OLDPWD
+    
+    echo "The test must be on an OpenHarmony device!"
+    return $ret
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

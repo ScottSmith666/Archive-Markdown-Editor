@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "lzma",
+        "License": "GNU LGPLv2+",
+        "License File": "COPYRIGHT",
+        "Version Number": "4.32.7",
+        "Owner": "caiqi14@huawei.com",
+        "Upstream URL": "https://tukaani.org/lzma/",
+        "Description": "LZMA utils is a traditional data compression software with high compression ratio. LZMA utils uses the LZMA format."
+    }
+]

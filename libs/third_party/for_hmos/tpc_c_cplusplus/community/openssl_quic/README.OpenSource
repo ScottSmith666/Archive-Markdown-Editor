@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "openssl_quic",
+        "License": "Apache License 2.0",
+        "License File": "LICENSE.txt",
+        "Version Number": "OpenSSL_1_1_1t-quic1",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://github.com/quictls/openssl/archive/refs/tags/OpenSSL_1_1_1t-quic1.tar.gz",
+        "Description": "This is a fork of OpenSSL to enable QUIC."
+    }
+]

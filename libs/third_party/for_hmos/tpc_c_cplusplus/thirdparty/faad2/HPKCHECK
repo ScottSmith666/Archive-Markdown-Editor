@@ -1,0 +1,21 @@
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+testfile=${LYCIUM_THIRDPARTY_ROOT}/$pkgname/test.aac
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $pkgname-$ARCH-build
+    ./frontend/.libs/faad -w $testfile > out.wav > ${logfile} 2>&1
+    res=$?
+    if [ $res -eq 0 ]
+    then
+        mkdir -p ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}
+        cp out.wav ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}/
+    fi
+    cd $OLDPWD
+
+    return $res
+}

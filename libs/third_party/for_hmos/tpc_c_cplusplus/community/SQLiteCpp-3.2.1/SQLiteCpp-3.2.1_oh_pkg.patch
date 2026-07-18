@@ -1,0 +1,33 @@
+diff -urN SQLiteCpp-3.2.1_old/CMakeLists.txt SQLiteCpp-3.2.1/CMakeLists.txt
+--- SQLiteCpp-3.2.1_old/CMakeLists.txt	2022-12-13 01:14:25.000000000 +0800
++++ SQLiteCpp-3.2.1/CMakeLists.txt	2024-10-10 15:45:40.029211912 +0800
+@@ -20,7 +20,7 @@
+ message (STATUS "CMake version: ${CMAKE_VERSION}")
+ message (STATUS "Project version: ${PROJECT_VERSION}")
+ 
+-option(SQLITECPP_BUILD_TESTS "Build and run tests." OFF)
++option(SQLITECPP_BUILD_TESTS "Build and run tests." ON)
+ 
+ # Define useful variables to handle OS differences:
+ if (WIN32)
+@@ -393,7 +393,7 @@
+     message(STATUS "SQLITECPP_RUN_DOXYGEN OFF")
+ endif (SQLITECPP_RUN_DOXYGEN)
+ 
+-option(SQLITECPP_BUILD_EXAMPLES "Build examples." OFF)
++option(SQLITECPP_BUILD_EXAMPLES "Build examples." ON)
+ if (SQLITECPP_BUILD_EXAMPLES)
+     # add the basic example executable
+     add_executable(SQLiteCpp_example1 ${SQLITECPP_EXAMPLES})
+diff -urN SQLiteCpp-3.2.1_old/sqlite3/sqlite3.c SQLiteCpp-3.2.1/sqlite3/sqlite3.c
+--- SQLiteCpp-3.2.1_old/sqlite3/sqlite3.c	2022-12-13 01:14:25.000000000 +0800
++++ SQLiteCpp-3.2.1/sqlite3/sqlite3.c	2024-10-10 15:47:11.761901957 +0800
+@@ -25406,7 +25406,7 @@
+ ** Use the zone allocator available on apple products unless the
+ ** SQLITE_WITHOUT_ZONEMALLOC symbol is defined.
+ */
+-#include <sys/sysctl.h>
++#include <linux/sysctl.h>
+ #include <malloc/malloc.h>
+ #ifdef SQLITE_MIGHT_BE_SINGLE_CORE
+ #include <libkern/OSAtomic.h>

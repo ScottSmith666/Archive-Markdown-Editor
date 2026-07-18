@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libsentences",
+        "License": "BSD license",
+        "License File": "https://github.com/fsaric/libsentences?tab=License-1-ov-file",
+        "Version Number": "3.2.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/fsaric/libsentences",
+        "Description": "libsentences is a C++ library that splits text into sentences"
+    }
+]

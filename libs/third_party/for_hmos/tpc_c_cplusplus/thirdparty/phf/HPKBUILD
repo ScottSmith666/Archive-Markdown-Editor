@@ -1,0 +1,68 @@
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=phf 
+pkgver=rel-20190215
+pkgrel=0 
+pkgdesc="About Tiny perfect hash library for C, C++, and Lua."
+url="https://github.com/wahern/phf"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT license")
+depends=()
+makedepends=()
+install= 
+source="https://github.com/wahern/$pkgname/archive/refs/tags/$pkgver.tar.gz" 
+
+autounpack=true 
+downloadpackage=true 
+buildtools="make"
+
+builddir=$pkgname-$pkgver 
+packagename=$builddir.tar.gz 
+
+cxx=
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang++
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang++
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE CXX=${cxx} VERBOSE=1 > $buildlog 2>&1
+    # 对最关键一步的退出码进行判断
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 安装打包
+package() {
+    cd $builddir-$ARCH-build
+    # 源库make install强依赖lua，无法在oh环境使用，这里手动copy到usr目录
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp phf.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp libphf.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cd $OLDPWD
+    unset cxx
+}
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # ./phf中间的数字可以随意传，此库是完美hash算法库，传入数据变化，最后生成的报告内容也会变化
+    # ./phf 10 20 10 3 -v -n
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

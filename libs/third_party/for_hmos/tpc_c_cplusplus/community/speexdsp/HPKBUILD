@@ -1,0 +1,81 @@
+# Contributor: xuzhao <xuzhaor@isoftstone.com>
+# Maintainer: xuzhao <xuzhaor@isoftstone.com>
+pkgname=speexdsp
+pkgver=1.2.1
+pkgrel=0
+pkgdesc="Speex is an Open Source/Free Software patent-free audio compression format designed for speech."
+url="https://www.speex.org"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Copyright 2002-2008 Xiph.org Foundation; Copyright 2002-2008 Jean-Marc Valin" \
+         "Copyright 2005-2007	Analog Devices Inc" \
+         "Copyright 2005-2008	Commonwealth Scientific and Industrial Research Organisation (CSIRO)" \
+         "Copyright 1993, 2002, 2006 David Rowe" \
+         "Copyright 2003 EpicGames" \
+         "Copyright 1992-1994	Jutta Degener, Carsten Bormann")
+depends=()
+makedepends=()
+
+source="https://downloads.xiph.org/releases/speex/$pkgname-${pkgver}.tar.gz"
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux        
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure "$@" \
+    --host=$host > $buildlog 2>&1
+    $MAKE V=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}
+

@@ -1,0 +1,111 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhanghanyong <zhang_hanyong@h-partners.com>
+# Maintainer: zhanghanyong <zhang_hanyong@h-partners.com>
+
+pkgname=variant2
+pkgver=1.81.0
+pkgrel=0
+pkgdesc="implements a type-safe discriminated/tagged union type"
+url="https://www.boost.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Boost Software License")
+depends=()
+makedepends=()
+
+source="https://archives.boost.io/release/$pkgver/source/boost_1_81_0.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools=jamfile
+
+builddir=variant2
+packagename=boost_1_81_0.tar.gz
+
+compileflags=
+prepare() {
+    cp -rf boost_1_81_0 $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        compileflags="\"-march=armv7a\""
+        ./bootstrap.sh --with-toolset=gcc --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH --without-libraries=log,python,locale > $buildlog 2>&1
+        if [ $LYCIUM_BUILD_OS == "Darwi" ] #Darwin
+        then
+            sed -i '' "s|using gcc ;|using gcc : arm : ${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang ;|g" project-config.jam
+            ret=$?
+        else
+            sed -i '/.*using gcc ;/c\    using gcc : arm : '"${OHOS_SDK}"'/native/llvm/bin/arm-linux-ohos-clang ; ' project-config.jam
+            ret=$?
+        fi
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        compileflags="\"\""
+        ./bootstrap.sh --with-toolset=gcc --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH --without-libraries=log,python,locale > $buildlog 2>&1
+        if [ $LYCIUM_BUILD_OS == "Darwi" ] #Darwin
+        then
+            sed -i '' "s|using gcc ;|using gcc : aarch64 : ${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang ;|g" project-config.jam
+            ret=$?
+        else
+            sed -i '/.*using gcc ;/c\    using gcc : aarch64 : '"${OHOS_SDK}"'/native/llvm/bin/aarch64-linux-ohos-clang ; ' project-config.jam
+            ret=$?
+        fi
+    fi
+    cd $OLDPWD
+    return $ret
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    sed -i 's/feature.set-default testing.execute : on/feature.set-default testing.execute : off/' ./tools/build/src/tools/testing.jam
+    ./b2 libs/variant2/test/ cxxflags=$compileflags cflags=$compileflags  linkflags=-lstdc++ variant=release >> $buildlog 2>&1
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    #为了方便测试 需要把各个目录下面得测试程序拷贝到一起
+    find bin.v2/libs/variant2/test -type f -executable -exec mv {} bin.v2/libs/variant2/test/ \;
+    rm -rf bin.v2/libs/variant2/test/*test
+    cp ../variant2_test.sh bin.v2/libs/variant2/test
+    cp -r bin.v2/libs/variant2/test ./
+    # 需要手动拷贝头文件
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cp boost/assert.hpp $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cp boost/config.hpp $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cp boost/cstdint.hpp $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cp boost/current_function.hpp $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cp boost/mp11.hpp $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cp boost/variant.hpp $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cp -r boost/assert $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cp -r boost/config $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cp -r boost/mp11 $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    rm -rf ./boost ./libs ./tools ./doc
+    cd $OLDPWD
+    unset compileflags
+    
+    
+}
+# 在OpenHarmony开发板中执行测试用例
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    #cd $builddir-$ARCH-build/test/
+    #sh variant2_test.sh
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir"-arm64-v8a-build" ${PWD}/$builddir"-armeabi-v7a-build" #${PWD}/$packagename
+}

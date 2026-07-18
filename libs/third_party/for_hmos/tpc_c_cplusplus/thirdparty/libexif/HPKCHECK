@@ -1,0 +1,157 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: luozhu <1393302983@qq.com>
+# Maintainer: luozhu <1393302983@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    flag=1
+    if [ ! -f "/usr/bin/sed" ]
+    then
+       cp /bin/sed /usr/bin
+       flag=$?
+    fi
+
+    cd $builddir-${ARCH}-build/test
+    # 测试项1
+    ./test-extract -o data.exif testdata/canon_makernote_variant_1.jpg > ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-extract test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-extract test PASS" >> ${logfile} 2>&1
+    fi
+
+    # 测试项2
+    ./test-fuzzer data.exif >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-fuzzer test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-fuzzer test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项3
+    ./test-gps >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-gps test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-gps test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项4
+    ./test-integers >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-integers test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-integers test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项5
+    ./test-mem >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-mem test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-mem test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项6
+    ./test-mnote data.exif >> ${logfile} 2>&1
+    if [ $? -eq 0 ]
+    then
+        echo "test-mnote test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-mnote test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项7
+    ./test-null >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-null test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-null test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项8
+    ./test-parse data.exif >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-parse test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-parse test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项9
+    ./test-parse-from-data --swap-byte-order data.exif >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-parse-from-data test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-parse-from-data test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项10
+    ./test-sorted >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-sorted test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-sorted test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项11
+    ./test-tagtable >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-tagtable test failed" >> ${logfile} 2>&1
+        res = -1
+    else
+        echo "test-tagtable test pass" >> ${logfile} 2>&1
+    fi
+
+    # 测试项12
+    ./test-value >> ${logfile} 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "test-value test failed" >> ${logfile} 2>&1
+        res = -1;
+    else
+        echo "test-value test pass" >> ${logfile} 2>&1
+    fi
+
+    if [ $flag -eq 0 ]
+    then
+       rm -rf /usr/bin/sed
+    fi
+
+    cd $OLDPWD
+    return $res
+}

@@ -1,0 +1,66 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=libdash
+pkgver=v2.2
+pkgrel=0
+pkgdesc="libdash is the official reference software of the ISO/IEC MPEG-DASH standard and is an open-source library that provides an object orient (OO) interface to the MPEG-DASH standard, developed by Bitmovin."
+url="https://github.com/bitmovin/libdash"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL-2.1-or-later")
+depends=("libxml2" "curl" "openssl")
+makedepends=()
+install=
+source="https://github.com/bitmovin/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 由于找不到CURL的头文件，因此打补丁
+        patch -p1 < `pwd`/../libdash_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cd $builddir
+    # 由于原库的libcurl头文件和lycium下的curl的版本不一致导致编译有错误，因此做了拷贝处理，先清掉原库的头文件再拷贝
+    rm -rf libdash/libcurl/*
+    cp -rf $LYCIUM_ROOT/usr/curl/$ARCH/include libdash/libcurl/include
+    cd $OLDPWD     
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir/$pkgname
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DCMAKE_CXX_FLAGS="-L$LYCIUM_ROOT/usr/curl/$ARCH/lib -lcurl" -DOHOS_ARCH=$ARCH -B`pwd`/../$ARCH-build -S./ -L > `pwd`/../$ARCH-build/build.log 2>&1
+    make -j4 -C `pwd`/../$ARCH-build >> `pwd`/../$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    # 由于脚本中没有install命令，需要手动拷贝到安装目录
+    cd $builddir
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp -rf $ARCH-build/bin/libdash.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp -rf libdash/libdash/include $LYCIUM_ROOT/usr/$pkgname/$ARCH
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例(注意需要联网)
+    # ./libdash_networkpart_test
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

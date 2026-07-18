@@ -1,0 +1,33 @@
+{
+    "name": "@ohos/minizip",
+    "description": "minizip-ng is a zip manipulation library written in C that is supported on Windows, macOS, and Linux.",
+    "version": "3.1",
+    "license": "zip",
+    "publishAs": "code-segment",
+    "segment": {
+        "destPath": "third_party/minizip-ng"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "minizip",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/minizip-ng:minizip_shared","//third_party/minizip-ng:samples"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

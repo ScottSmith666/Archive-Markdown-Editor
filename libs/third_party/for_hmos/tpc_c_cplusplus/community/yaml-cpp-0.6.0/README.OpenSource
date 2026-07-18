@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "yaml-cpp-0.6.0",
+        "License": "MIT License",
+        "License File": "https://github.com/jbeder/yaml-cpp/blob/master/LICENSE",
+        "Version Number": "yaml-cpp-0.6.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/jbeder/yaml-cpp",
+        "Description": "yaml-cpp is a YAML parser and emitter in C++ matching the YAML 1.2 spec."
+    }
+]

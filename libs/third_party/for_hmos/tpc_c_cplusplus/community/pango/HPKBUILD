@@ -1,0 +1,86 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, 城meto <myxuan475@126.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=pango
+pkgver=1.50.14
+pkgrel=0
+pkgdesc="Pango is a library for laying out and rendering of text, with an emphasis on internationalization. Pango can be used anywhere that text layout is needed, though most of the work on Pango so far has been done in the context of the GTK widget toolkit. Pango forms the core of text and font handling for GTK."
+url="https://pango.gnome.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2")
+depends=("glib" "harfbuzz" "fribidi" "freetype2" "fontconfig" "libpng" "zlib" "pixman" "libxml2" "pcre2" "libffi" "cairo")
+makedepends=("meson" "ninja")
+
+# 原仓地址: https://download.gnome.org/sources/$pkgname/1.90/$pkgname-$pkgver.tar.xz, 因网络原因使用镜像地址
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.zip"
+
+downloadpackage=true
+autounpack=true
+buildtools="meson"
+
+builddir=$pkgname-$pkgver
+packagename=$pkgname-$pkgver.zip
+
+pkgconfigpath=""
+
+prepare() {
+    echo "depends: ${#depends[@]}"
+    for depend in ${depends[@]}
+    do
+        dependpath=$LYCIUM_ROOT/usr/$depend/$ARCH/lib/pkgconfig
+        if [ ! -d ${dependpath} ]
+        then
+            continue
+        fi
+        pkgconfigpath=$pkgconfigpath"${dependpath}:"
+    done
+    pkgconfigpath=${pkgconfigpath%:*}
+
+    mkdir -p $builddir/$ARCH-build
+    cp $ARCH-cross-file.txt $builddir
+}
+
+build() {
+    cd $builddir
+    ohos_sdk_path=${OHOS_SDK//\//\\\/}
+    sed -i 's/ohos_sdk/'"$ohos_sdk_path"'/g' $ARCH-cross-file.txt
+
+    meson setup $ARCH-build --cross-file $ARCH-cross-file.txt \
+        --wrap-mode nofallback \
+        --pkg-config-path $pkgconfigpath \
+        --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH > $ARCH-build/build.log 2>&1
+    ninja -v -C $ARCH-build >> $ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    ninja -v -C $ARCH-build install >> $ARCH-build/build.log 2>&1
+    pkgconfigpath=""
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

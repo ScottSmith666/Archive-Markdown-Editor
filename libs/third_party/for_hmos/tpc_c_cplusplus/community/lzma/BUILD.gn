@@ -1,0 +1,208 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+declare_args() {
+   enable_lzma_test = false
+}
+
+config("liblzma_config") {
+    include_dirs = [
+        "./adapted",
+        "./lzma",
+        "./lzma/src",
+        "./lzma/src/liblzmadec",
+    ]
+
+    cflags = [
+        "-fPIC",
+        "-Wall",
+        "-Wextra",
+        "-fexceptions",
+        "-DHAVE_CONFIG_H",
+        "-DCOMPRESS_MF_BT",
+        "-DCOMPRESS_MF_BT4",
+        "-DCOMPRESS_MF_HC",
+        "-D_LZMA_IN_CB",
+        "-D_LZMA_OUT_READ",
+        "-D_LZMA_SYSTEM_SIZE_T",
+        "-D_LZMA_PROB32",
+        "-Wno-error=unused-parameter",
+        "-Wno-error=int-conversion",
+        "-Wno-error=format",
+    ]
+}
+
+ohos_shared_library("lzma_shared") {
+    sources = [
+        "./lzma/src/liblzmadec/main.c",
+        "./lzma/src/liblzmadec/buffer.c",
+        "./lzma/src/liblzmadec/io.c",
+    ]
+
+    configs = [
+        ":liblzma_config"
+    ]
+
+    deps = [
+    ]
+
+    part_name = "lzma"
+}
+
+config ("lzma_config") {
+    include_dirs = [
+        "./adapted",
+        "./lzma/",
+        "./lzma/src",
+        "./lzma/src/liblzmadec",
+        "./lzma/src/lzma",
+        "./lzma/src/lzmadec",
+        "./lzma/src/lzmainfo",
+        "./lzma/src/sdk",
+        "./lzma/src/sdk/7zip",
+        "./lzma/src/sdk/7zip/Common",
+        "./lzma/src/sdk/Common",
+        "./lzma/src/sdk/7zip/Compress/LZMA/",
+        "./lzma/src/sdk/7zip/Compress/LZ/",
+        "./lzma/src/sdk/7zip/Compress/RangeCoder/",
+    ]
+
+    cflags_cc = [
+        "-fPIC",
+        "-Wall",
+        "-Wextra",
+        "-fexceptions",
+        "-DHAVE_CONFIG_H",
+        "-DHAVE_ERRNO_H",
+        "-DCOMPRESS_MF_BT",
+        "-DCOMPRESS_MF_BT4",
+        "-DCOMPRESS_MF_HC",
+        "-D_LZMA_IN_CB",
+        "-D_LZMA_OUT_READ",
+        "-D_LZMA_SYSTEM_SIZE_T",
+        "-D_LZMA_PROB32",
+        "-Wno-error=unused-parameter",
+        "-Wno-error=unused-variable",
+        "-Wno-error=sign-compare",
+        "-Wno-error=undef",
+        "-Wno-error=macro-redefined",
+        "-Wno-error=int-conversion",
+        "-Wno-error=format",
+        "-Wno-error=logical-op-parentheses",
+        "-Wno-error=parentheses",
+    ]
+
+    cflags = [
+        "-fPIC",
+        "-Wall",
+        "-Wextra",
+        "-fexceptions",
+        "-DHAVE_CONFIG_H",
+        "-DHAVE_ERRNO_H",
+        "-DCOMPRESS_MF_BT",
+        "-DCOMPRESS_MF_BT4",
+        "-DCOMPRESS_MF_HC",
+        "-D_LZMA_IN_CB",
+        "-D_LZMA_OUT_READ",
+        "-D_LZMA_SYSTEM_SIZE_T",
+        "-D_LZMA_PROB32",
+        "-Wno-error=unused-parameter",
+        "-Wno-error=unused-variable",
+        "-Wno-error=sign-compare",
+        "-Wno-error=undef",
+        "-Wno-error=macro-redefined",
+        "-Wno-error=int-conversion",
+        "-Wno-error=format",
+    ]
+}
+
+ohos_executable("lzma") {
+    sources = [
+        "./lzma/src/lzma/lzmp.cpp",
+        "./lzma/src/sdk/Common/C_FileIO.cpp",
+        "./lzma/src/sdk/Common/CRC.cpp",
+        "./lzma/src/sdk/Common/Alloc.cpp",
+        "./lzma/src/sdk/7zip/Common/FileStreams.cpp",
+        "./lzma/src/sdk/7zip/Common/InBuffer.cpp",
+        "./lzma/src/sdk/7zip/Common/OutBuffer.cpp",
+        "./lzma/src/sdk/7zip/Compress/LZMA/LZMAEncoder.cpp",
+        "./lzma/src/sdk/7zip/Compress/LZMA/LZMADecoder.h",
+        "./lzma/src/sdk/7zip/Compress/LZMA/LZMADecoder.cpp",
+        "./lzma/src/sdk/7zip/Compress/LZ/LZInWindow.cpp",
+        "./lzma/src/sdk/7zip/Compress/RangeCoder/RangeCoderBit.cpp",
+        "./lzma/src/sdk/7zip/Common/StreamUtils.cpp",
+        "./lzma/src/sdk/7zip/Compress/LZ/LZOutWindow.cpp",
+    ]
+
+    public_configs = [ ":lzma_config" ]
+
+    deps = [
+        "//third_party/lzma:lzma_shared",
+    ]
+
+    defines = [
+        "PACKAGE_VERSION",
+    ]
+
+    part_name = "lzma"
+}
+
+ohos_executable("lzmadec") {
+    sources = [
+        "./lzma/src/lzmadec/lzmadec.c"
+    ]
+
+    public_configs = [ ":lzma_config" ]
+
+    deps = [
+        "//third_party/lzma:lzma_shared",
+    ]
+
+    defines = [
+        "PACKAGE_VERSION",
+    ]
+
+    part_name = "lzma"
+}
+
+ohos_executable("lzmainfo") {
+    sources = [
+        "./lzma/src/lzmainfo/lzmainfo.c"
+    ]
+
+    public_configs = [ ":lzma_config" ]
+
+    deps = [
+        "//third_party/lzma:lzma_shared",
+    ]
+
+    defines = [
+        "PACKAGE_VERSION",
+    ]
+
+    part_name = "lzma"
+}
+
+group("samples") {
+    if (enable_lzma_test) {
+        deps = [
+            ":lzma",
+            ":lzmadec",
+            ":lzmainfo",
+        ]
+    } else {
+        deps = []
+    }
+}

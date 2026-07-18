@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "exosip",
+        "License": "GPL-2.0-or-later",
+        "License File": "COPYING",
+        "Version Number": "5.3.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://git.savannah.nongnu.org/cgit/exosip.git/snapshot/exosip-5.3.0.tar.gz",
+        "Description": "eXosip is a library that hides the complexity of using the SIP protocol for mutlimedia session establishement."
+    }
+]

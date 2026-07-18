@@ -1,0 +1,104 @@
+diff -Naur iproute2-6.4.0-old/bridge/mdb.c iproute2-6.4.0/bridge/mdb.c
+--- iproute2-6.4.0-old/bridge/mdb.c	2023-06-27 00:12:23.000000000 +0800
++++ iproute2-6.4.0/bridge/mdb.c	2023-08-17 11:13:24.941888653 +0800
+@@ -21,6 +21,7 @@
+ #include "br_common.h"
+ #include "rt_names.h"
+ #include "json_print.h"
++#include "limits.h"
+ 
+ #ifndef MDBA_RTA
+ #define MDBA_RTA(r) \
+diff -Naur iproute2-6.4.0-old/configure iproute2-6.4.0/configure
+--- iproute2-6.4.0-old/configure	2023-06-27 00:12:23.000000000 +0800
++++ iproute2-6.4.0/configure	2023-08-17 11:13:24.941888653 +0800
+@@ -610,9 +610,6 @@
+ echo -n "libc has name_to_handle_at: "
+ check_name_to_handle_at
+ 
+-echo -n "SELinux support: "
+-check_selinux
+-
+ echo -n "libtirpc support: "
+ check_tirpc
+ 
+diff -Naur iproute2-6.4.0-old/include/uapi/linux/socket.h iproute2-6.4.0/include/uapi/linux/socket.h
+--- iproute2-6.4.0-old/include/uapi/linux/socket.h	2023-06-27 00:12:23.000000000 +0800
++++ iproute2-6.4.0/include/uapi/linux/socket.h	2023-08-17 14:33:17.878280379 +0800
+@@ -9,6 +9,24 @@
+ 
+ typedef unsigned short __kernel_sa_family_t;
+ 
++#ifdef __OHOS__
++/* At compile time, the socket.h file in the source code will be found first,
++* but the structure sockaddr_storage in the socket.h file in the ohos platform
++* system is not the same as the structure name in socket.h in the code, and the
++* OHOS platform header file will depend on the sockaddr_storage structure, 
++* so the sockaddr_storage structure in the ohos platform is copied here
++*/
++struct sockaddr_storage {
++  union {
++    struct {
++      __kernel_sa_family_t ss_family;
++      char __data[_K_SS_MAXSIZE - sizeof(unsigned short)];
++    };
++    void * __align;
++  };
++};
++#endif
++
+ /*
+  * The definition uses anonymous union and struct in order to control the
+  * default alignment.
+diff -Naur iproute2-6.4.0-old/ip/ipseg6.c iproute2-6.4.0/ip/ipseg6.c
+--- iproute2-6.4.0-old/ip/ipseg6.c	2023-06-27 00:12:23.000000000 +0800
++++ iproute2-6.4.0/ip/ipseg6.c	2023-08-17 14:14:25.310024953 +0800
+@@ -203,6 +203,20 @@
+ 	return 0;
+ }
+ 
++#ifdef __OHOS__
++/* The getpass function is not supported on the OHOS platform, so define it here */
++char *getpass(const char *prompt) {
++    static char password[128];
++    printf("%s", prompt);
++    fflush(stdout);  // Flush the output buffer to avoid password echo
++    if (fgets(password, sizeof(password), stdin) == NULL) {
++        return NULL;  // Return NULL on end-of-file or error
++    }
++    password[strcspn(password, "\n")] = '\0';  // Remove the newline character at the end
++    return password;
++}
++#endif
++
+ int do_seg6(int argc, char **argv)
+ {
+ 	if (argc < 1 || matches(*argv, "help") == 0)
+diff -Naur iproute2-6.4.0-old/rdma/dev.c iproute2-6.4.0/rdma/dev.c
+--- iproute2-6.4.0-old/rdma/dev.c	2023-06-27 00:12:23.000000000 +0800
++++ iproute2-6.4.0/rdma/dev.c	2023-08-17 11:13:24.945888635 +0800
+@@ -6,6 +6,7 @@
+ 
+ #include <fcntl.h>
+ #include "rdma.h"
++#include "namespace.h"
+ 
+ static int dev_help(struct rd *rd)
+ {
+diff -Naur iproute2-6.4.0-old/tc/f_flower.c iproute2-6.4.0/tc/f_flower.c
+--- iproute2-6.4.0-old/tc/f_flower.c	2023-06-27 00:12:23.000000000 +0800
++++ iproute2-6.4.0/tc/f_flower.c	2023-08-17 14:16:21.928995007 +0800
+@@ -1178,8 +1178,12 @@
+ 			/* Pad out mask when not provided */
+ 			if (mask_len + strlen(token) > XATTR_SIZE_MAX)
+ 				return -1;
+-
++#ifdef __OHOS__
++			/* The rindex function is not supported on the OHOS platform, so the strstr function is used here as a replacement */
++			data_len = strlen(strstr(token, ':'));
++#elif
+ 			data_len = strlen(rindex(token, ':'));
++#endif
+ 			sprintf(&mask[mask_len], "ffff:ff:");
+ 			mask_len += 8;
+ 			memset(&mask[mask_len], 'f', data_len - 1);

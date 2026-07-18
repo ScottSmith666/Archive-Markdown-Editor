@@ -1,0 +1,57 @@
+pkgname=assimp
+pkgver=v5.2.5
+pkgrel=0
+pkgdesc="The official Open-Asset-Importer-Library Repository. Loads 40+ 3D-file-formats into one unified and clean data structure."
+url="https://github.com/assimp/assimp"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=()
+makedepends=()
+
+source="https://github.com/assimp/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+patchflag=true
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < ../assimp-5.2.5_ohos_test.patch  # patch 动作
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" 
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH -DCMAKE_C_FLAGS=-Wno-unused-command-line-argument \
+    -DCMAKE_CXX_FLAGS=-Wno-unused-command-line-argument \
+    -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}
+

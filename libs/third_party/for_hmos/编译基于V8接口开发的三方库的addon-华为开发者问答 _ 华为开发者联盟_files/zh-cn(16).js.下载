@@ -1,0 +1,3 @@
+CKEDITOR.plugins.setLang('batchuploadimg', 'zh-cn', {
+  Title: '图片',
+});

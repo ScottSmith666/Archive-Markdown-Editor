@@ -1,0 +1,91 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: shilinke <shilinke001@chinasoftinc.com>
+# Maintainer: shilinke <shilinke001@chinasoftinc.com>
+
+pkgname=npth
+pkgver=1.6
+pkgrel=0
+pkgdesc="New GNU Portable Threads Library"
+url="https://www.gnupg.org/software/npth"
+
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("LGPL-2.1")
+depends=()
+makedepends=()
+
+source="https://gnupg.org/ftp/gcrypt/npth/npth-$pkgver.tar.bz2"
+
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+
+builddir=npth-$pkgver
+packagename=$builddir.tar.bz2
+
+source envset.sh
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure --host=$host --enable-static "$@" > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

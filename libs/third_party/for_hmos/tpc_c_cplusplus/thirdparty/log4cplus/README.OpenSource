@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "log4cplus",
+        "License": "BSD/Apache license",
+        "License File": "LICENSE",
+        "Version Number": "REL_2_1_0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/log4cplus/log4cplus",
+        "Description": "log4cplus is a simple to use C++ logging API providing thread-safe, flexible, and arbitrarily granular control over log management and configuration"
+    }
+]

@@ -1,0 +1,30 @@
+diff -Nura unzip60/unix/Makefile unzip60patch/unix/Makefile
+--- unzip60/unix/Makefile	2009-01-18 14:41:18.000000000 -0800
++++ unzip60patch/unix/Makefile	2023-11-22 03:22:37.882290600 -0800
+@@ -541,7 +541,7 @@
+ 
+ # Well, try MAKE and see.  By now everyone may be happy.  10/28/04 EG
+ generic:	flags	   # now try autoconfigure first
+-	eval $(MAKE) $(MAKEF) unzips ACONF_DEP=flags `cat flags`
++	eval $(MAKE) $(MAKEF) unzips ACONF_DEP=flags `cat flags` CFLAGS="-DNO_LCHMOD"
+ #	make $(MAKEF) unzips CF="${CF} `cat flags`"
+ 
+ generic_gcc:
+@@ -594,13 +594,13 @@
+ 	@echo\
+  'which is UnZip linked with the DLL).  This target is an example only.'
+ 	@echo ""
+-	$(MAKE) objsdll CC=gcc CFLAGS="-O3 -Wall -fPIC -DDLL"
+-	gcc -shared -Wl,-soname,libunzip.so.0 -o libunzip.so.0.4 $(OBJSDLL)
++	$(MAKE) objsdll CFLAGS="-O3 -Wall -fPIC -DDLL -DNO_LCHMOD"
++	$(CC) -shared -Wl,-soname,libunzip.so.0 -o libunzip.so.0.4 $(OBJSDLL)
+ 	$(RM) libunzip.so.0 libunzip.so
+ 	$(LN) -s libunzip.so.0.4 libunzip.so.0
+ 	$(LN) -s libunzip.so.0 libunzip.so
+-	gcc -c -O unzipstb.c
+-	gcc -o unzip_shlib unzipstb.o -L. -lunzip
++	$(CC) -c -O unzipstb.c
++	$(CC) -o unzip_shlib unzipstb.o -L. -lunzip
+ 
+ #----------------------------------------------------------------------------
+ #  "Autoconfig" group, aliases for the generic targets using configure:

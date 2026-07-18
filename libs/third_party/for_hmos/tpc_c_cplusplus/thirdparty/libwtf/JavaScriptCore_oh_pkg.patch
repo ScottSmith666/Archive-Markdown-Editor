@@ -1,0 +1,18 @@
+diff -rupN WebKit-webkitgtk-2.41.90/Source/WTF/wtf/PlatformJSCOnly.cmake WebKit-webkitgtk-2.41.90_patched/Source/WTF/wtf/PlatformJSCOnly.cmake
+--- WebKit-webkitgtk-2.41.90/Source/WTF/wtf/PlatformJSCOnly.cmake	2023-08-18 14:55:39.118994293 +0800
++++ WebKit-webkitgtk-2.41.90_patched/Source/WTF/wtf/PlatformJSCOnly.cmake	2023-08-18 15:07:32.164508099 +0800
+@@ -105,6 +105,14 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "Linux
+ 
+         unix/MemoryPressureHandlerUnix.cpp
+     )
++elseif (CMAKE_SYSTEM_NAME MATCHES "OHOS")
++    list(APPEND WTF_SOURCES
++        linux/CurrentProcessMemoryStatus.cpp
++        linux/MemoryFootprintLinux.cpp
++        linux/RealTimeThreads.cpp
++
++        unix/MemoryPressureHandlerUnix.cpp
++    )
+     list(APPEND WTF_PUBLIC_HEADERS
+         linux/ProcessMemoryFootprint.h
+         linux/CurrentProcessMemoryStatus.h

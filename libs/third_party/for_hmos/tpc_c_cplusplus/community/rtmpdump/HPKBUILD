@@ -1,0 +1,79 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=rtmpdump
+pkgver=2.3
+pkgrel=0
+pkgdesc="rtmpdump is a toolkit for RTMP streams. All forms of RTMP are supported, including rtmp://, rtmpt://, rtmpe://, rtmpte://, and rtmps://."
+url="http://rtmpdump.mplayerhq.hu/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("LGPL")
+depends=("openssl_1_0_2u")
+makedepends=()
+
+source="http://rtmpdump.mplayerhq.hu/download/$pkgname-$pkgver.tgz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tgz
+
+cc=
+ar=
+ld=
+# rtmpdump 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+prepare() {
+    echo $packagename
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+    elif [ $ARCH == "x86_64" ]
+    then 
+        cc=${OHOS_SDK}/native/llvm/bin/x86_64-linux-ohos-clang
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    ld=${OHOS_SDK}/native/llvm/bin/ld.lld
+    ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE SHARED=no CC=${cc} LD=${ld} XCFLAGS="-D__MUSL__=1 -I$LYCIUM_ROOT/usr/openssl_1_0_2u/$ARCH/include" \
+        XLDFLAGS="-L$LYCIUM_ROOT/usr/openssl_1_0_2u/$ARCH/lib" > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE SHARED=no CC=${cc} LD=${ld} \
+        LDFLAGS="-L$LYCIUM_ROOT/usr/openssl_1_0_2u/$ARCH/lib" install prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+recoverpkgbuildenv() {
+    unset cc ar ld
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}
+

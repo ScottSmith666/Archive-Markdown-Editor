@@ -1,0 +1,83 @@
+import("//build/ohos.gni")
+
+declare_args() {
+  enable_queue_test = false
+}
+
+config("config") {
+  cflags = [
+    "-fPIC",
+    "-Wall",
+    "-frtti",
+    "-fexceptions",
+    "-Wno-error=unused-variable",
+    "-Wno-error=self-move",
+  ]
+
+  cflags_cc = cflags
+}
+
+##生成可执行文件
+ohos_executable("unittests") {
+  sources = [
+    "//third_party/concurrentqueue/tests/common/simplethread.cpp",
+    "//third_party/concurrentqueue/tests/common/systemtime.cpp",
+    "//third_party/concurrentqueue/tests/unittests/unittests.cpp",
+  ]
+  include_dirs = [
+    "//third_party/concurrentqueue",
+    "//third_party/concurrentqueue/c_api",
+    "//third_party/concurrentqueue/tests/common",
+    "//third_party/concurrentqueue/tests/unittests",
+  ]
+
+  configs = [ ":config" ]
+
+  deps = [ "//third_party/concurrentqueue:concurrentqueue" ]
+  subsystem_name = "thirdparty"
+  part_name = "concurrentqueue"
+}
+
+##生成可执行文件
+ohos_executable("fuzztests") {
+  sources = [
+    "//third_party/concurrentqueue/tests/common/simplethread.cpp",
+    "//third_party/concurrentqueue/tests/common/systemtime.cpp",
+    "//third_party/concurrentqueue/tests/fuzztests/fuzztests.cpp",
+  ]
+  include_dirs = [
+    "//third_party/concurrentqueue",
+    "//third_party/concurrentqueue/c_api",
+    "//third_party/concurrentqueue/tests/common",
+    "//third_party/concurrentqueue/tests/fuzztests",
+  ]
+
+  configs = [ ":config" ]
+  deps = [ "//third_party/concurrentqueue:concurrentqueue" ]
+  subsystem_name = "thirdparty"
+  part_name = "concurrentqueue"
+}
+
+ohos_shared_library("concurrentqueue") {
+  sources = [
+    "//third_party/concurrentqueue/c_api/blockingconcurrentqueue.cpp",
+    "//third_party/concurrentqueue/c_api/concurrentqueue.cpp",
+  ]
+
+  include_dirs = [
+    "//third_party/concurrentqueue",
+    "//third_party/concurrentqueue/c_api",
+  ]
+  subsystem_name = "thirdparty"
+  part_name = "concurrentqueue"
+}
+
+group("concurrentqueues") {
+  deps = [ ":concurrentqueue" ]
+  if (enable_queue_test) {
+    deps += [
+      ":fuzztests",
+      ":unittests",
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, Sunjiamei<939650669@qq.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir-$ARCH-build
+    mkdir www/
+    cp index.html www/
+    ./thttpd -p 888 -d ./www -u root > ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "thttpd run failed" >> ${logfile} 2>&1
+        cd $OLDPWD
+        return $res
+    else
+        echo "thttpd is running" >> ${logfile} 2>&1
+        # 杀掉进程
+        PIDS=$(netstat -tulnp | grep :888 | awk '{print $7}' | cut -d'/' -f1 )
+        if [ -n thtpd ]; then
+            FILTERED_PIDS=""
+            for PID in $PIDS; do
+                if pgrep -x thttpd | grep -q "^$PID\$"; then
+                    FILTERED_PIDS="$FILTERED_PIDS $PID"
+                fi
+            done
+            PIDS=$FILTERED_PIDS
+            
+        fi
+        for PID in $PIDS; do
+            kill $PID
+            echo "Killed the thttpd process on port 888" >> ${logfile} 2>&1
+        done
+        cd $OLDPWD
+        return $res
+    fi
+}
+# 手动测试演示：
+# 1. 准备工作
+#     将tinyhttpd库在Linux上用鸿蒙sdk编译完成后，修改配置文件thttpd.conf
+#     cd /data/tpc_c_cplusplus/thirdparty/tinyhttpd/tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817-arm64-v8a-build/
+#     vi thttpd.conf
+#     修改参考如下：
+#         dir=/data/www   #指定Web服务器存放网页的根目录路径，会基于这个目录进行解析，可根据实际情况创建www目录
+#         user=root       #用户名
+#         port=888        #服务器监听的端口号，可根据需要修改
+#         host=127.0.0.1
+#         cgipat=**.cgi
+#         logfile=/data/www
+#     将整个tpc_c_cplusplus打包拷贝到鸿蒙设备/data目录并解压。
+# 2. 启动服务
+#     cd /data/tpc_c_cplusplus/thirdparty/tinyhttpd/tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817-arm64-v8a-build/
+#     创建www目录
+#     mkdir www
+#     cd www
+#     复制html文件到www目录：
+#     cp index.html ./
+
+#     ps -ef | grep thttpd                #查看当前开启的thttpd服务，检查888有无被占用
+#     ./thttpd -p 888 -d ./www -u root    #开启thttpd服务，当前监听的端口号为888，-d 指定网页路径为当前目录下的www目录
+#     ps -ef | grep thttpd                #查看端口为888的thttpd服务是否开启
+
+#     也可通过配置文件启动服务：
+#     ./thttpd -D -C ./thttpd.conf    #需要将网页存放到thttpd.conf中dir目录下，thttpd.conf中的地址必须有效
+# 3.本机进入服务
+#     浏览器打开：127.0.0.1：888/index.html(页面显示:thttpd is running)
+
+# 4.查看本机ip并使用另一台设备a进入服务（两台设备要求在同一局域网）：
+#     进入本机设备wifi处查看ip，使用设备a进入浏览器，进入地址:192.168.3.137:888/index.html(ip要使用查询到的ip)

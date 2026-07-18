@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "librime",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/rime/librime/blob/master/LICENSE",
+        "Version Number": "1.13.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/rime/librime/archive/refs/tags/1.13.0.tar.gz",
+        "Description": "Rime Input Method Engine, the core library"
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libzip",
+        "License": "BSD license",
+        "License File": "LICENSE",
+        "Version Number": "v1.9.2",
+        "Owner": "qinjianqi@huawei.com",
+        "Upstream URL": "https://github.com/nih-at/libzip.git",
+        "Description": "This is libzip, a C library for reading, creating, and modifying zip and zip64 archives."
+    }
+]

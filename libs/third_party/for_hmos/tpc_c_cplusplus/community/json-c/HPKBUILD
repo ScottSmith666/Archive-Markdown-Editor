@@ -1,0 +1,64 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=json-c
+pkgver=0.16-20220414
+pkgrel=0
+pkgdesc="JSON-C implements a reference counting object model that allows you to easily construct JSON objects in C."
+url="https://github.com/json-c/json-c"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("MIT")
+depends=()
+makedepends=()
+
+# 官方下载地址https://github.com/json-c/$pkgname/archive/refs/tags/$pkgname-$pkgver.tar.gz受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/$pkgname/repository/archive/$pkgname-$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-$pkgname-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    local LOCAL_CFLAGS="-O3 -fstack-protector-strong -fPIC"
+    local LOCAL_CXXFLAGS="-O3 -fstack-protector-strong -fPIC"
+    local LOCAL_LDFLAGS="-Wl,-z,relro,-z,now -s"
+
+    cd "$builddir"
+
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DDISABLE_WERROR=ON \
+        -DOHOS_ARCH="$ARCH" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_C_FLAGS="${LOCAL_CFLAGS}" \
+        -DCMAKE_CXX_FLAGS="${LOCAL_CXXFLAGS}" \
+        -DCMAKE_SHARED_LINKER_FLAGS="${LOCAL_LDFLAGS}" \
+        -DCMAKE_EXE_LINKER_FLAGS="${LOCAL_LDFLAGS}" \
+        -DCMAKE_SKIP_RPATH=TRUE \
+        -B"$ARCH-build" -S./ -L > "$buildlog" 2>&1
+
+    $MAKE VERBOSE=1 -C "$ARCH-build" >> "$buildlog" 2>&1
+    local ret=$?
+    cd "$OLDPWD"
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

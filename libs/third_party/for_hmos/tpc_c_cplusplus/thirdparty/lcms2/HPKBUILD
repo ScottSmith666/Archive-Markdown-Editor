@@ -1,0 +1,80 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=lcms2
+pkgver=2.15
+pkgrel=0
+pkgdesc="Little cms is a color management library. Implements fast transforms between ICC profiles. It is focused on speed, and is portable across several platforms."
+url="https://sourceforge.net/projects/lcms/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT license")
+depends=()
+makedepends=()
+
+source="https://sourceforge.net/projects/lcms/files/lcms/$pkgver/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+buildtools="configure"
+
+source envset.sh
+
+host=
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host="--host=arm-linux"
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host="--host=aarch64-linux"
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure "$@" $host > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    res=$?
+    cd $OLDPWD
+    return $res
+}
+
+package() {
+
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    # 原库的check将构建测试和执行测试合并在一起了，这里将构建测试和执行测试进行分离，构建测试不变，执行测试修改成check-TESTS
+    sed -i 's/check:$/check-TESTS:/g' testbed/Makefile
+    $MAKE VERBOSE=1 check >> $buildlog 2>&1
+    res=$?
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # 上板测试，进入到构建目录下执行
+    # make check-TESTS -C testbed
+    return $res
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

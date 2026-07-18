@@ -1,0 +1,107 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, Sunjiamei<939650669@qq.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=tinyhttpd
+pkgver=master
+pkgrel=0
+pkgdesc="thttpd is a simple, small, portable, fast, and secure HTTP server."
+url="https://github.com/larryhe/tinyhttpd"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-2-Clause")
+depends=()
+makedepends=()
+
+commitid=b35e7daf10426f9be1e22ddc0ba8c6d23225c817
+source="https://github.com/larryhe/$pkgname/archive/$commitid.zip"
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+
+builddir=$pkgname-${commitid}
+packagename=$builddir.zip
+
+patchflag=true
+source envset.sh
+host=
+
+prepare() {
+    if [ $patchflag == true ]
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../tinyhttpd_oh_pkg.patch > $publicbuildlog 2>&1 # 编译时找不到man1文件夹和getpass()函数，仿照源库man8创建man1文件夹，在getpass函数的入口处添加宏__OHOS__适配鸿蒙
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+    GID=$(getent group www | awk -F: '{print $3}')
+    if [ -n "$GID" ]; then
+        echo "Group www exists with GID: $GID"
+    else  
+        echo "Group www does not exist, creating it..."
+        sudo groupadd www
+        if [ $? -eq 0 ]; then
+            GID=$(getent group www | awk -F: '{print $3}')
+            if [ -n "$GID" ]; then
+                echo "Group www created successfully with GID: $GID"
+            else
+                echo "Failed to retrieve GID for group www after creation"
+                return -1
+            fi
+        else
+           echo "Failed to create group www"
+           return -1
+        fi
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    ./configure "$@" --host=$host > $buildlog 2>&1	
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build
+}

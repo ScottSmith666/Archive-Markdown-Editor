@@ -1,0 +1,85 @@
+# Contributor: xuzhao <xuzhaor@isoftstone.com>
+# Maintainer: xuzhao <xuzhaor@isoftstone.com>
+pkgname=libatomic_ops
+pkgver=7.8.0
+pkgrel=0
+pkgdesc="The atomic_ops project (Atomic memory update operations portable implementation)"
+url="https://github.com/ivmai/libatomic_ops"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0") 
+depends=()
+makedepends=()
+
+# 官方下载地址https://github.com/ivmai/libatomic_ops/releases/download/v$pkgver/$pkgname-${pkgver}.tar.gz受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/v$pkgver.zip"
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-v${pkgver}
+packagename=$builddir.zip
+autogenflag=true
+
+source envset.sh
+host=
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux        
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+    # gitee镜像源下载的tags源码包需要手动生成configure文件
+    if $autogenflag
+    then
+        cd $builddir
+        ./autogen.sh
+	autogenflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure "$@" --host=$host > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 install > $buildlog 2>&1
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}
+

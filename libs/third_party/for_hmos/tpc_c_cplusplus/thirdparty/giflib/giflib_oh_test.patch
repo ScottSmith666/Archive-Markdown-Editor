@@ -1,0 +1,16 @@
+diff -Naur giflib-5.2.1/tests/makefile giflib-5.2.1_patch/tests/makefile
+--- giflib-5.2.1/tests/makefile	2023-06-27 15:35:51.760833048 +0800
++++ giflib-5.2.1_patch/tests/makefile	2023-06-27 15:37:02.353759342 +0800
+@@ -104,10 +104,10 @@
+ 
+ giffix-rebuild:
+ 	@echo "Rebuilding giffix test."
+-	@head --bytes=-20 <$(PICS)/treescap.gif | $(UTILS)/giffix 2>/dev/null | $(UTILS)/gifbuild -d >giffixed.ico
++	@busybox head -c -20 <$(PICS)/treescap.gif | $(UTILS)/giffix 2>/dev/null | $(UTILS)/gifbuild -d >giffixed.ico
+ giffix-regress:
+ 	@echo "giffix: Testing giffix behavior"
+-	@head --bytes=-20 <$(PICS)/treescap.gif | $(UTILS)/giffix 2>/dev/null | $(UTILS)/gifbuild -d | diff -u giffixed.ico -
++	@busybox head -c -20 <$(PICS)/treescap.gif | $(UTILS)/giffix 2>/dev/null | $(UTILS)/gifbuild -d | diff -u giffixed.ico -
+ 
+ gifinto-regress:
+ 	@echo "gifinto: Checking behavior on short files."

@@ -1,0 +1,74 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=libxml2
+pkgver=v2.11.3
+pkgrel=0
+pkgdesc="libxml2 is an XML toolkit implemented in C, originally developed for the GNOME Project."
+url="https://github.com/GNOME/libxml2"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("MIT")
+depends=("xz" "zlib_1_3_1")
+makedepends=()
+
+# 官方下载地址source="https://github.com/GNOME/$pkgname/archive/refs/tags/$pkgver.tar.gz"受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    local LOCAL_CFLAGS="-O3 -fstack-protector-strong -fPIC -D_FORTIFY_SOURCE=2"
+    local LOCAL_CXXFLAGS="-O3 -fstack-protector-strong -fPIC -D_FORTIFY_SOURCE=2"
+    local LOCAL_LDFLAGS="-Wl,-z,relro,-z,now -s"
+
+    cd "$builddir"
+
+    # cmake 需要高版本(同zstd),cmake版本不一致导致lzma无法被自动find 关闭python
+    # 合并原有 CFLAGS（-munaligned-access）与安全选项
+    cmake "$@" \
+        -DOHOS_ARCH="$ARCH" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -B"$ARCH-build" -S./ -L \
+        -DCMAKE_C_FLAGS="${LOCAL_CFLAGS} -munaligned-access" \
+        -DCMAKE_CXX_FLAGS="${LOCAL_CXXFLAGS}" \
+        -DCMAKE_C_FLAGS_RELEASE="-O3 -DNDEBUG" \
+        -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" \
+        -DCMAKE_SHARED_LINKER_FLAGS="${LOCAL_LDFLAGS}" \
+        -DCMAKE_EXE_LINKER_FLAGS="${LOCAL_LDFLAGS}" \
+        -DCMAKE_SKIP_RPATH=TRUE \
+        -DLIBLZMA_LIBRARY="${LYCIUM_ROOT}/usr/xz/$ARCH/lib/liblzma.so" \
+        -DLIBLZMA_INCLUDE_DIR="${LYCIUM_ROOT}/usr/xz/$ARCH/include" \
+        -DZLIB_INCLUDE_DIR="${LYCIUM_ROOT}/usr/zlib_1_3_1/$ARCH/include" \
+        -DLIBXML2_WITH_ICONV=OFF \
+        -DLIBXML2_WITH_PYTHON=OFF \
+        > "$PWD/$ARCH-build/build.log" 2>&1
+
+    make VERBOSE=1 -j4 -C "$ARCH-build" >> "$PWD/$ARCH-build/build.log" 2>&1
+    local ret=$?
+    cd "$OLDPWD"
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 默认编译未开启 ICU; 依赖liblzma 需要将xz库 安装到测试机
+    # icu 相关测试用例均失败
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

@@ -1,0 +1,80 @@
+# Contributor: xuzhao <xuzhaor@isoftstone.com>, TangShaoteng<tangshaoteng@163.com>
+# Maintainer: xuzhao <xuzhaor@isoftstone.com>
+pkgname=pulseaudio
+pkgver=v16.1
+pkgrel=0
+pkgdesc="PulseAudio is a sound server system for POSIX OSes, meaning that it is a proxy for your sound applications. "
+url="https://www.freedesktop.org/wiki/Software/PulseAudio/"
+archs=("armeabi-v7a" "arm64-v8a")
+
+license=("LGPLv2.1") 
+depends=("libsndfile" "libatomic_ops" "speexdsp" "json-c" "gettext" "check" "fftw3" "gdbm")
+makedepends=("meson" "ninja")
+
+# 官网提供的两个地址，其中一个不行可以更换为另一个
+# source="git://anongit.freedesktop.org/$pkgname/$pkgname"
+source="http://anongit.freedesktop.org/git/$pkgname/$pkgname.git"
+
+downloadpackage=false
+autounpack=false
+buildtools="meson"
+builddir=$pkgname-${pkgver}
+packagename=
+clonesrcflag=true
+patchflag=true
+
+prepare() {
+    # 源码下载
+    if $clonesrcflag
+    then
+        git clone -b $pkgver $source $builddir
+        if [ $? != 0 ]
+        then 
+            return -1
+        fi
+        clonesrcflag=false
+    fi
+    if $patchflag
+    then
+        cd $builddir
+	# 1.配置文件路径保持与OHOS系统一致，方便用户直接使用; 2.函数gethostid找不到，使用libc.a静态链接
+        patch -p1 < `pwd`/../pulseaudio_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+    cp $ARCH-cross-file.txt $builddir
+}
+
+build() {
+    cd $builddir
+
+    # 替换$ARCH-cross-file中的路径为实际路径
+    ohos_sdk_path=${OHOS_SDK//\//\\\/}
+    sed -i 's/ohos_sdk/'"$ohos_sdk_path"'/g' $ARCH-cross-file.txt
+    sed -i "s|lycium_root|$LYCIUM_ROOT|g" $ARCH-cross-file.txt
+
+    meson $ARCH-build --cross-file $ARCH-cross-file.txt --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH -Ddaemon=false -Dtests=true -Dglib=disabled -Ddatabase=gdbm > $ARCH-build/build.log 2>&1 
+    ninja -v -C $ARCH-build >> $ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    ninja -v -C $ARCH-build install >> $ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}
+

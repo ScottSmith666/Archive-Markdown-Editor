@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "rapidjson",
+        "License": "MIT license and JSON License",
+        "License File": "https://github.com/Tencent/rapidjson/blob/master/license.txt",
+        "Version Number": "v1.1.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/Tencent/rapidjson.git",
+        "Description": "A fast JSON parser/generator for C++ with both SAX/DOM style API"
+    },
+    {
+        "Name": "googletest",
+        "License": "BSD-3-Clause license",
+        "License File": "https://github.com/google/googletest/blob/main/LICENSE",
+        "Version Number": "v1.11.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/googletest/archive/refs/tags/release-1.11.0.tar.gz",
+        "Description": "Google Testing and Mocking Framework"
+    }
+]

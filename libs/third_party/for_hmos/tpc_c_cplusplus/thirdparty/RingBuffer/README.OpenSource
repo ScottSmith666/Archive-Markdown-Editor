@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "RingBuffer",
+        "License": "GPL-2.0 license",
+        "License File": "https://github.com/Locoduino/RingBuffer/blob/master/LICENSE",
+        "Version Number": "1.0.4",
+        "Owner": "llh_01129@163.com",
+        "Upstream URL": "https://github.com/Locoduino/RingBuffer/tree/1.0.4",
+        "Description": "A simple and easy to use ring buffer library."
+    }
+]

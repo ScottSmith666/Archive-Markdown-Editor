@@ -1,0 +1,64 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: changxiaofeng <changxiaofeng3@h-partners.com>
+# Maintainer: changxiaofeng <changxiaofeng3@h-partners.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd ${builddir}
+    
+    # osgunittests 测试模块
+    test_modules=("matrix" "sizeof" "quat" "performance" "read-threads 4" "filenames" "thread" "polytope" "qt" "quat_scaled 1.0 1.0 1.0")
+
+    # 检查架构构建目录是否存在
+    if [ ! -d "${ARCH}-build" ]; then
+        echo "ERROR: ${ARCH}-build directory not found!"
+        res=1
+        cd $OLDPWD
+        return $res
+    fi
+
+    # 检查 bin 目录是否存在
+    if [ ! -d "${ARCH}-build/bin" ]; then
+        echo "ERROR: ${ARCH}-build/bin directory not found!"
+        res=1
+        cd $OLDPWD
+        return $res
+    fi
+    
+    local overall_result=0
+    # osgunittests 测试
+    for test_module in "${test_modules[@]}"; do
+        ./${ARCH}-build/bin/osgunittests "$test_module" >> $logfile 2>&1
+        local test_result=$?
+        
+        if [ $test_result -ne 0 ]; then
+            overall_result=$test_result
+            break
+        fi
+    done
+    
+    if [ $overall_result -ne 0 ]; then
+        res=1
+        mkdir -p ${LYCIUM_FAULT_PATH}/${pkgname}
+        echo "Test execution failed with exit code: $overall_result" > ${LYCIUM_FAULT_PATH}/${pkgname}/test_error.log
+        cp $logfile ${LYCIUM_FAULT_PATH}/${pkgname}/
+    fi
+
+    cd $OLDPWD
+    return $res
+}

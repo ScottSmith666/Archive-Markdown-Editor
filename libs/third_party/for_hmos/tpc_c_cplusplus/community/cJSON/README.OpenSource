@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "cJSON",
+        "License": " MIT license",
+        "License File": "LICENSE.txt",
+        "Version Number": "v1.7.15",
+        "Owner": "llh_01129@163.com",
+        "Upstream URL": "https://github.com/DaveGamble/cJSON/archive/refs/tags/v1.7.15.tar.gz",
+        "Description": "Ultralightweight JSON parser in ANSI C."
+    }
+]

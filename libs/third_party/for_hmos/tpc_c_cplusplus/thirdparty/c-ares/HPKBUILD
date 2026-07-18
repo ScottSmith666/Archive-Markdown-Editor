@@ -1,0 +1,61 @@
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=c-ares 
+pkgver=cares-1_19_0
+pkgrel=0 
+pkgdesc="A C library for asynchronous DNS requests"
+url="https://github.com/c-ares/c-ares" 
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT License")
+depends=() 
+makedepends=() 
+source="https://github.com/$pkgname/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true 
+downloadpackage=true 
+builddir=$pkgname-$pkgver 
+packagename=$builddir.tar.gz 
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    sed -i 's/\/tmp/\/data\/local\/tmp/g' c-ares-cares-1_19_0/test/ares-test-init.cc 
+    sed -i '8214s/\/tmp/\/data\/local\/tmp/' c-ares-cares-1_19_0/test/gmock-1.11.0/gmock-gtest-all.cc
+    sed -i '11464s/\/tmp/\/data\/local\/tmp/' c-ares-cares-1_19_0/test/gmock-1.11.0/gmock-gtest-all.cc
+    sed -i '824s/nullptr/"\/data\/local\/tmp"/' c-ares-cares-1_19_0/test/ares-test.cc
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -DCARES_BUILD_TESTS=ON -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 安装打包
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test 需要连接网络
+    # ctest
+    # ctest在ohos设备上运行第一个测试用例会失败，进入Testing/Temporary/LastTest.log观察发现有四个用例不过
+    # 根据源库的iusse:https://github.com/c-ares/c-ares/issues/476, 作者回答是当前环境原因，ohos设备中没有/etc/services,所以这四个用例无法通过
+    # [  FAILED  ] 4 tests, listed below:
+    # [  FAILED  ] AddressFamiliesAI/MockChannelTestAI.FamilyV4ServiceName/0, where GetParam() = (2, false)
+    # [  FAILED  ] AddressFamiliesAI/MockChannelTestAI.FamilyV4ServiceName/1, where GetParam() = (2, true)
+    # [  FAILED  ] AddressFamiliesAI/MockChannelTestAI.FamilyV4ServiceName/2, where GetParam() = (10, false)
+    # [  FAILED  ] AddressFamiliesAI/MockChannelTestAI.FamilyV4ServiceName/3, where GetParam() = (10, true)
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

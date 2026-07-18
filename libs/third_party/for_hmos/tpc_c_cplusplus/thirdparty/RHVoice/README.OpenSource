@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "RHVoice",
+        "License": "GPL-3.0",
+        "License File": "https://github.com/opendesigndev/liboctopus/blob/master/LICENSE",
+        "Version Number": "v1.8.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/RHVoice/RHVoice",
+        "Description": "A free and open source speech synthesizer."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "liboctopus",
+        "License": "Apache License 2.0",
+        "License File": "https://github.com/opendesigndev/liboctopus/blob/master/LICENSE",
+        "Version Number": "v3.0.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/opendesigndev/liboctopus",
+        "Description": "A C++ library for representing the Octopus format as data structures, as well as parsing and serializing the Octopus JSON format."
+    }
+]

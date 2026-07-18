@@ -1,0 +1,110 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: albert luo <yongluox@isoftstone.com>
+# Maintainer : albert luo <yongluox@isoftstone.com>
+
+pkgname=cpp-httplib
+pkgver=v0.13.1
+pkgrel=0
+pkgdesc="A C++11 single-file header-only cross platform HTTP/HTTPS library."
+url="https://github.com/yhirose/$pkgname"
+archs=("arm64-v8a" "armeabi-v7a")
+license=("MIT License")
+depends=("googletest" "openssl" "brotli" "zlib")
+makedepends=()
+
+source="https://github.com/yhirose/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+echo "download path is:$source"
+
+autounpack=true
+downloadpackage=true
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+patchflag=true
+
+source envset.sh
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if $patchflag
+    then
+        cd $builddir
+        # 1.修改test目录下的 makefile 该修改可以解决测试用例在arm环境编译失败的问题
+        # 2.修改test目录下的 test.cc 该修改可以解决部分测试用例因为安全证书原因导致失败的问题
+        patch -p1 < $PKGBUILD_ROOT/cpp-httplib_oh_pkg.patch
+        patch -p1 < $PKGBUILD_ROOT/cpp-httplib_oh_test.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_PATH="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH \
+        -DHTTPLIB_COMPILE=ON -DHTTPLIB_REQUIRE_OPENSSL=ON -DHTTPLIB_USE_OPENSSL_IF_AVAILABLE=ON -DHTTPLIB_REQUIRE_ZLIB=ON -DHTTPLIB_REQUIRE_BROTLI=ON \
+        -B$ARCH-build -S./ -L  > $buildlog 2>&1
+
+    $MAKE VERBOSE=1  -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "begin build gtest!"
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        mkdir -p $builddir/test/$ARCH
+        cp -r ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir/test/$ARCH/libc++_shared.so
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        mkdir -p $builddir/test/$ARCH
+        cp -r ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir/test/$ARCH/libc++_shared.so
+    else
+        return -1
+    fi
+
+    # 编译test
+    export BUILD_PATH=$LYCIUM_ROOT/usr
+    export BUILD_ARC=$ARCH    
+    cd $builddir/test
+    make test -B >> $ARCH-test-build.log 2>&1
+    if [ -f test ]
+    then
+        mv test test-$ARCH
+    fi  
+
+    # 清除环境设置
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        return -2
+    fi
+    cd $OLDPWD    
+}
+
+cleanbuild() {
+   rm -rf ${PWD}/$builddir
+}

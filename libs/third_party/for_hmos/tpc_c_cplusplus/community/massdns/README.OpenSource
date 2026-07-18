@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "massdns",
+        "License": "GNU General Public License v3.0",
+        "License File": "https://github.com/blechschmidt/massdns?tab=GPL-3.0-1-ov-file#",
+        "Version Number": "1.1.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/blechschmidt/massdns",
+        "Description": "massdns is a high-performance DNS stub resolver for bulk lookups and reconnaissance (subdomain enumeration)"
+    }
+]

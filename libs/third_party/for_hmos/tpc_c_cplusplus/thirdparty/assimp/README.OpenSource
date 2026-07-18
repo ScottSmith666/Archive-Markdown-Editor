@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "assimp",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/assimp/assimp/blob/master/LICENSE",
+        "Version Number": "5.2.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/assimp/assimp/archive/refs/tags/v5.2.5.tar.gz",
+        "Description": "The official Open-Asset-Importer-Library Repository. Loads 40+ 3D-file-formats into one unified and clean data structure."
+    }
+]

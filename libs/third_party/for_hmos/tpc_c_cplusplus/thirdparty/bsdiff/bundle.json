@@ -1,0 +1,30 @@
+{
+    "name": "@ohos/bsdiff",
+    "description": "bsdiff and bspatch are libraries for building and applying patches to binary files.",
+    "version": "v4.3",
+    "license": "BSD 2-clause license",
+    "publishAs": "code-segment",
+    "segment": {
+        "destPath": "third_party/bsdiff"
+    },
+    "dirs": {},
+    "scripts": {},
+    "component": {
+        "name": "bsdiff",
+        "subsystem": "",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/bsdiff:bsdiff"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

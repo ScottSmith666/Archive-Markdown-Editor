@@ -1,0 +1,29 @@
+(function () {
+  CKEDITOR.plugins.add('myiframe', {
+    requires: 'widget,dialog',
+    icons: 'myiframe', // %REMOVE_LINE_CORE%
+    init: function (editor) {
+      // editor.addCommand('iframeup', new CKEDITOR.dialogCommand('iframeup'));
+      // editor.ui.addButton('myiframe', {
+      //   label: '插入视频',
+      //   icon: 'myiframe',
+      //   command: 'iframeup',
+      // });
+      CKEDITOR.dialog.add('iframeup', this.path + 'dialogs/myiframe.js');
+      editor.widgets.add('Myiframe', {
+        button: '加密视频',
+        template: '<p class="video_encrypted" style="color:#FFAB40;margin:16px 0;"></p>',
+        dialog: 'iframeup',
+        allowedContent: 'p',
+        // requiredContent: 'video_encrypted',
+        init: function () {},
+        upcast: function (element) {
+          //return element.name === 'video_encrypted';
+          return element.name === 'p' && element.hasClass('video_encrypted');
+        },
+        downcast: function (elememt) {},
+      });
+    },
+    afterInit: function (editor) {},
+  });
+})();

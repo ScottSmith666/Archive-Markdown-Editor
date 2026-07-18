@@ -1,0 +1,225 @@
+--- normalize_xml.pl	2024-08-08 13:31:55.000000000 +0800
++++ normalize_xml.pl	2024-08-08 15:25:13.988904338 +0800
+@@ -2,9 +2,7 @@
+ 
+ # Copyright (C) 2009 Michael Bell <michael.bell@opensync.org>
+ 
+-use strict;
+-use warnings FATAL => qw( all );
+-use English;
++
+ 
+ # check params
+ # 1. original file
+@@ -54,44 +52,44 @@ do {
+     ## determine state
+ 
+     ## XML detection
+-    if ($state eq "IGNORE" and $line =~ q{^\s*<[a-zA-Z]}) {
++    if ($state eq "IGNORE" and $line =~ q/^\s*<[a-zA-Z]/) {
+ 	$state = "XML_TREE";
+     }
+ 
+     ## version and encoding detection
+-    if ($state eq "IGNORE" and $line =~ q{^\s*<\?}) {
++    if ($state eq "IGNORE" and $line =~ q/^\s*<\?/) {
+         $state = "ENC_OPEN";
+     }
+-    if ($state eq "ENC_OPEN" and $line =~ q{^\s*<\?.*\?>\s*$} and $line !~ q{\sencoding="[^"]*"}) {
++    if ($state eq "ENC_OPEN" and $line =~ q/^\s*<\?.*\?>\s*$/ and $line !~ q/\sencoding="[^"]*"/) {
+ 	# add default encoding
+-	$line =~ s{\s*\?>\s*$}{ encoding="UTF-8"?>\n};
++	$line =~ s/\s*\?>\s*$/ encoding="UTF-8"?>\n/;
+     }
+-    if ($state eq "ENC_OPEN" and $line =~ q{\?>\s*$}) {
++    if ($state eq "ENC_OPEN" and $line =~ q/\?>\s*$/) {
+ 	## uppercase encoding
+ 	my $encoding = $line;
+-	$encoding =~ s{.*\sencoding="([^"]*)".*}{$1};
++	$encoding =~ s/.*\sencoding="([^"]*)".*/$1/;
+ 	$encoding = uc($encoding);
+-	$line =~ s{\sencoding="[^"]*"}{ encoding="${encoding}"};
++	$line =~ s/\sencoding="[^"]*"/ encoding="${encoding}"/;
+         $state = "WRITE";
+     }
+ 
+     ## DTD detection
+-    if ($state eq "IGNORE" and $line =~ q{^\s*<!DOCTYPE}) {
++    if ($state eq "IGNORE" and $line =~ q/^\s*<!DOCTYPE/) {
+         $state = "DTD_OPEN";
+     }
+-    if ($state eq "DTD_OPEN" and $line =~ q{\s\[<\?.*\?>\]}) {
++    if ($state eq "DTD_OPEN" and $line =~ q/\s\[<\?.*\?>\]/) {
+ 	## such special XML stuff is lost in WBXML
+-	$line =~ s{\s\[<\?.*\?>\]}{};
++	$line =~ s/\s\[<\?.*\?>\]//;
+     }
+-    if ($state eq "DTD_OPEN" and $line =~ q{>\s*$}) {
++    if ($state eq "DTD_OPEN" and $line =~ q/>\s*$/) {
+         $state = "WRITE";
+     }
+ 
+     ## comment detection
+-    if ($state eq "IGNORE" and $line =~ q{^\s*<!--}) {
++    if ($state eq "IGNORE" and $line =~ q/^\s*<!--/) {
+ 	$state = "COMMENT_OPEN";
+     }
+-    if ($state eq "COMMENT_OPEN" and $line =~ q{-->\s*$}) {
++    if ($state eq "COMMENT_OPEN" and $line =~ q/-->\s*$/) {
+ 	$state = "IGNORE";
+     }
+ 
+@@ -100,14 +98,14 @@ do {
+ 	$line = <$ORG_FD>;
+     }
+     if ($state eq "WRITE") {
+-	$line =~ s{[\s\r\n]*$}{\n}s;
++	$line =~ s/[\s\r\n]*$/\n/s;
+ 	print $NEW_FD $line;
+ 	$line = <$ORG_FD>;
+ 	$state = "IGNORE";
+     }
+-    if ($state =~ q{_OPEN$}) {
++    if ($state =~ q/_OPEN$/) {
+ 	$line .= <$ORG_FD>;
+-	$line =~ s{\s*[\n\r]+\s*}{ }sg;
++	$line =~ s/\s*[\n\r]+\s*/ /sg;
+ 	$line .= "\n";
+     }
+ } while ($state ne "XML_TREE");
+@@ -144,12 +142,12 @@ while (1) {
+     # check state
+ 
+     # reset text state
+-    if ($state eq "TEXT_NEWLINE" and $char !~ q{[\s\n\r]}) {
++    if ($state eq "TEXT_NEWLINE" and $char !~ q/[\s\n\r]/) {
+ 	$state = "NEUTRAL";
+     }
+ 
+     # ignore leading blanks (normalization)
+-    if ($state eq "NEUTRAL" and $char =~ q{\s}) {
++    if ($state eq "NEUTRAL" and $char =~ q/\s/) {
+ 	next;
+     }
+ 
+@@ -160,7 +158,7 @@ while (1) {
+             $text = $expected;
+             $expected = "";
+         }
+-	$text =~ s{\s*$}{};
++	$text =~ s/\s*$//;
+ 	print $NEW_FD "${text}\n";
+ 	$state = "NEUTRAL";
+     }
+@@ -173,25 +171,25 @@ while (1) {
+ 	$char = substr($line, 0, 1);
+ 	$line = substr($line, 1);
+ 	if ($char eq "!") {
+-	    if ($line =~ q{^--}) {
++	    if ($line =~ q/^--/) {
+ 		## this should be a comment
+ 		$char = substr($line, 0, 2);
+ 		$line = substr($line, 2);
+ 		$state = "COMMENT";
+                 $text = "";
+-	    } elsif ($line =~ q{^\[CDATA\[}) {
++	    } elsif ($line =~ q/^\[CDATA\[/) {
+ 		## CDATA section detected
+ 		for (my $i = 0; $i < $indent; $i++) {
+ 		    print $NEW_FD "  ";
+ 		}
+ 		print $NEW_FD "<![CDATA[";
+-		$line =~ s{^\[CDATA\[}{};
++		$line =~ s/^\[CDATA\[//;
+ 		$state = "CDATA";
+ 	    } else {
+ 		die "Only comments and CDATA sections are supported and not with '<!${line}'."
+ 		    if ($char ne "--");
+ 	    }
+-	} elsif ($char =~ q{[a-zA-Z]}) {
++	} elsif ($char =~ q/[a-zA-Z]/) {
+ 	    ## this is an element
+ 	    for (my $i = 0; $i < $indent; $i++) {
+ 		print $NEW_FD "  ";
+@@ -222,10 +220,10 @@ while (1) {
+ 	    $line = substr($line, 2);
+ 	    $state = "NEUTRAL";
+             # check if this is a special action configuration
+-            if ($text =~ m{^\sEXPECTED\s::=\s.*\s$}) {
++            if ($text =~ m/^\sEXPECTED\s::=\s.*\s$/) {
+                 # This is the value for the next text data.
+                 $expected = $text;
+-		$expected =~ s{^\sEXPECTED\s::=\s(.*)\s$}{$1};
++		$expected =~ s/^\sEXPECTED\s::=\s(.*)\s$/$1/;
+                 $text = "";
+             }
+ 	} else {
+@@ -248,7 +246,7 @@ while (1) {
+ 	next;
+     }
+     if ($state eq "TEXT" and $char eq "\n") {
+-	$text =~ s{\s*$}{};
++	$text =~ s/\s*$//;
+ 	print $NEW_FD "${text}\n";
+ 	$state = "TEXT_NEWLINE";
+ 	next;
+@@ -274,42 +272,42 @@ while (1) {
+ 	$text .= $char;
+ 	next;
+     }
+-    if ($state eq "TEXT_NEWLINE" and $char =~ q{\s\r\n}) {
++    if ($state eq "TEXT_NEWLINE" and $char =~ q/\s\r\n/) {
+ 	next;
+     }
+ 
+     # read element name
+-    if ($state eq "ELEMENT" and $char =~ q{[a-zA-Z0-9_]}) {
++    if ($state eq "ELEMENT" and $char =~ q/[a-zA-Z0-9_]/) {
+ 	print $NEW_FD $char;
+ 	$element .= $char;
+ 	next;
+     }
+ 
+     # detect space for potential attribute
+-    if ($state eq "ELEMENT" and $char =~ q{[\s\r\n]}) {
++    if ($state eq "ELEMENT" and $char =~ q/[\s\r\n]/) {
+ 	$state = "POTENTIAL_ATTRIBUTE";
+         next;
+     }
+ 
+     # detect and read attribute
+-    if ($state eq "POTENTIAL_ATTRIBUTE" and $char =~ q{[a-zA-Z0-9_]}) {
++    if ($state eq "POTENTIAL_ATTRIBUTE" and $char =~ q/[a-zA-Z0-9_]/) {
+ 	if ($ignore_attribute and
+ 	    substr($ignore_attribute, 0, 1) eq $char and
+ 	    substr($ignore_attribute, 1) eq substr($line, 0, length(substr($ignore_attribute, 1))))
+ 	{
+ 	    # let's ingore the attribute
+-	    $line =~ s{^[a-zA-Z_1-9]*=}{};
++	    $line =~ s/^[a-zA-Z_1-9]*=//;
+ 	    if (substr($line, 0, 1) eq "'") {
+-		$line =~ s{^'[^']*'}{};
++		$line =~ s/^'[^']*'//;
+ 	    } else {
+-		$line =~ s{^"[^"]*"}{};
++		$line =~ s/^"[^"]*"//;
+ 	    }
+ 	    next;
+ 	}
+ 	$state = "ATTRIBUTE_NAME";
+ 	print $NEW_FD " ";
+     }
+-    if ($state eq "ATTRIBUTE_NAME" and $char =~ q{[a-zA-Z0-9_]}) {
++    if ($state eq "ATTRIBUTE_NAME" and $char =~ q/[a-zA-Z0-9_]/) {
+ 	print $NEW_FD $char;
+ 	next;
+     }
+@@ -353,7 +351,7 @@ while (1) {
+     {
+ 	# consume the closing ">" and add the complete closing tag
+ 	$char = ">";
+-	$line =~ s{^\s*>}{};
++	$line =~ s/^\s*>//;
+ 	$indent--;
+ 	print $NEW_FD ">\n";
+ 	for (my $i = 0; $i < $indent; $i++) {

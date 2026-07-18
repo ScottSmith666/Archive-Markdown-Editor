@@ -1,0 +1,38 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: wangle <wangle80@chinasoftinc.com>
+# Maintainer: wangle <wangle80@chinasoftinc.com>
+
+source HPKBUILD > /dev/null 2>&1
+
+logfile="${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log"
+
+openharmonycheck() {
+    echo "Running test..."
+
+    cd $builddir/build/OHOS/${ARCH}/Release
+
+    ## onnxruntime在编译时启用了BF16扩展
+    ## 实际运行时, onnxruntime根据cpuinfo判断是否启用BF16优化
+    ## 但cpuinfo当前在不支持BF扩展的cpu上存在判断异常
+    ## https://github.com/microsoft/onnxruntime/issues/27017
+    ## 先执行一次失败测试可以规避掉这个问题
+    ./onnxruntime_test_all --gtest_filter='MathOpTest.MatMulFloatType_FastMath' > /dev/null
+
+    ./onnxruntime_test_all >> "${logfile}" 2>&1
+    ret=$?
+
+    cd "$OLDPWD"
+    return $ret
+}

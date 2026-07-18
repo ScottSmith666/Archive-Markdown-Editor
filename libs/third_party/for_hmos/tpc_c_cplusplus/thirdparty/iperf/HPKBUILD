@@ -1,0 +1,101 @@
+# Contributor: xucaiming <719260170@qq.com>
+# Maintainer: xucaiming <719260170@qq.com>
+
+pkgname=iperf
+pkgver=3.14
+pkgrel=0
+pkgdesc="iperf3: A TCP, UDP, and SCTP network bandwidth measurement tool"
+url="https://github.com/esnet/iperf"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=("openssl")
+makedepends=()
+ 
+source="https://github.com/esnet/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+buildtools="configure"
+
+autounpack=true
+downloadpackage=true
+
+source envset.sh
+host=
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1;
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure "$@" --host=$host > `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    make install VERBOSE=1 >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    unset host
+}
+
+check() {
+    cd $builddir/$ARCH-build/src
+    sed -i 's/libiperf.la: $(libiperf_la_OBJECTS) $(libiperf_la_DEPENDENCIES)/#libiperf.la: $(libiperf_la_OBJECTS) $(libiperf_la_DEPENDENCIES) /' ./Makefile
+    sed -i 's/$(AM_V_CCLD)$(LINK) -rpath $(libdir) $(libiperf_la_OBJECTS)/#$(AM_V_CCLD)$(LINK) -rpath $(libdir) $(libiperf_la_OBJECTS) /' ./Makefile
+    sed -i 's/t_api$(EXEEXT): $(t_api_OBJECTS) $(t_api_DEPENDENCIES)/#t_api$(EXEEXT): $(t_api_OBJECTS) $(t_api_DEPENDENCIES) /' ./Makefile
+    sed -i 's/@rm -f t_api$(EXEEXT)/#@rm -f t_api$(EXEEXT) /' ./Makefile
+    sed -i 's/$(AM_V_CCLD)$(t_api_LINK) $(t_api_OBJECTS)/#$(AM_V_CCLD)$(t_api_LINK) $(t_api_OBJECTS) /' ./Makefile
+    sed -i 's/t_auth$(EXEEXT): $(t_auth_OBJECTS) $(t_auth_DEPENDENCIES)/#t_auth$(EXEEXT): $(t_auth_OBJECTS) $(t_auth_DEPENDENCIES) /' ./Makefile
+    sed -i 's/@rm -f t_auth$(EXEEXT)/#@rm -f t_auth$(EXEEXT) /' ./Makefile
+    sed -i 's/$(AM_V_CCLD)$(t_auth_LINK) $(t_auth_OBJECTS)/#$(AM_V_CCLD)$(t_auth_LINK) $(t_auth_OBJECTS) /' ./Makefile
+    sed -i 's/t_timer$(EXEEXT): $(t_timer_OBJECTS) $(t_timer_DEPENDENCIES)/#t_timer$(EXEEXT): $(t_timer_OBJECTS) $(t_timer_DEPENDENCIES) /' ./Makefile
+    sed -i 's/@rm -f t_timer$(EXEEXT)/#@rm -f t_timer$(EXEEXT) /' ./Makefile
+    sed -i 's/$(AM_V_CCLD)$(t_timer_LINK) $(t_timer_OBJECTS)/#$(AM_V_CCLD)$(t_timer_LINK) $(t_timer_OBJECTS) /' ./Makefile
+    sed -i 's/t_units$(EXEEXT): $(t_units_OBJECTS) $(t_units_DEPENDENCIES)/#t_units$(EXEEXT): $(t_units_OBJECTS) $(t_units_DEPENDENCIES) /' ./Makefile
+    sed -i 's/@rm -f t_units$(EXEEXT)/#@rm -f t_units$(EXEEXT) /' ./Makefile
+    sed -i 's/$(AM_V_CCLD)$(t_units_LINK) $(t_units_OBJECTS)/#$(AM_V_CCLD)$(t_units_LINK) $(t_units_OBJECTS) /' ./Makefile
+    sed -i 's/t_uuid$(EXEEXT): $(t_uuid_OBJECTS) $(t_uuid_DEPENDENCIES)/#t_uuid$(EXEEXT): $(t_uuid_OBJECTS) $(t_uuid_DEPENDENCIES) /' ./Makefile
+    sed -i 's/@rm -f t_uuid$(EXEEXT)/#@rm -f t_uuid$(EXEEXT) /' ./Makefile
+    sed -i 's/$(AM_V_CCLD)$(t_uuid_LINK) $(t_uuid_OBJECTS)/#$(AM_V_CCLD)$(t_uuid_LINK) $(t_uuid_OBJECTS) /' ./Makefile
+    sed -i 's/$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(iperf3_CFLAGS) $(CFLAGS) -MT iperf3-main.o -MD -MP -MF/#$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(iperf3_CFLAGS) $(CFLAGS) -MT iperf3-main.o -MD -MP -MF /' ./Makefile
+    sed -i 's/$(AM_V_at)$(am__mv) $(DEPDIR)\/iperf3-main.Tpo $(DEPDIR)\/iperf3-main.Po/#$(AM_V_at)$(am__mv) $(DEPDIR)\/iperf3-main.Tpo $(DEPDIR)\/iperf3-main.Po /' ./Makefile
+    sed -i 's/.c.lo:/#.c.lo: /' ./Makefile
+
+    cp ../../src/private.pem ./
+    cp ../../src/public.pem ./
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1;
+    fi
+
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # cd $builddir/$ARCH-build/src
+    # make check >> `pwd`/build.log 2>&1
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

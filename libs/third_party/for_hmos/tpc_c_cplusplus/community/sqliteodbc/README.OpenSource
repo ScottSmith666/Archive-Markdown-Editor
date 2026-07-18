@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "sqliteodbc",
+        "License": "BSD",
+        "License File": "http://www.ch-werner.de/sqliteodbc/license.terms",
+        "Version Number": "0.9998",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "http://www.ch-werner.de/sqliteodbc/sqliteodbc-0.9998.tar.gz",
+        "Description": "SQLite Database Engine provides a lightweight C library to access database files."
+    },
+    {
+        "Name": "sqlite",
+        "License": "Public Domain",
+        "License File": "https://www.sqlite.org/copyright.html",
+        "Version Number": "version-3.42.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/sqlite/sqlite/archive/refs/tags/.tar.gz",
+        "Description": "This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+    },
+    {
+        "Name": "unixODBC",
+        "License": "LGPL-2.1",
+        "License File": "https://github.com/lurcher/unixODBC/blob/master/LICENSE",
+        "Version Number": "2.3.11",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/lurcher/unixODBC/releases/download/2.3.11/unixODBC-2.3.11.tar.gz",
+        "Description": "The unixODBC Project goals are to develop and promote unixODBC to be the definitive standard for ODBC on non MS Windows platforms."
+    },
+    {
+        "Name": "libxml2",
+        "License": " MIT",
+        "License File": "https://github.com/GNOME/libxml2/blob/master/Copyright",
+        "Version Number": "v2.11.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/GNOME/libxml2/archive/refs/tags/v2.11.3.tar.gz",
+        "Description": "libxml2 is an XML toolkit implemented in C, originally developed for the GNOME Project."
+    }
+]

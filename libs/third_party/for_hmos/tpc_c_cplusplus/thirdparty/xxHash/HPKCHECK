@@ -1,0 +1,16 @@
+#Contributor: liucheng <1596268623@qq.com>
+#Maintainer:  liucheng <1596268623@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+
+openharmonycheck() {
+    res=0
+    cd xxHash-${ARCH}-build/${builddir}/
+    /bin/bash tests/unicode_lint.sh > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+
+    return $res
+}

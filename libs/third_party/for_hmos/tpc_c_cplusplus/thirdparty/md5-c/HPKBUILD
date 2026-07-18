@@ -1,0 +1,102 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>, dingqian <1052888395@qq.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname="md5-c"
+pkgver="f3529b666b7ae8b80b0a9fa88ac2a91b389909c7"
+pkgrel=0
+pkgdesc="A simple, commented reference implementation of the MD5 hash algorithm"
+url="https://github.com/Zunawe/md5-c"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("The Unlicense")
+depends=()
+makedepends=()
+
+source="https://github.com/Zunawe/$pkgname.git"
+
+autounpack=false
+downloadpackage=false
+patchflag=true
+buildtools="make"
+builddir=$pkgname-${pkgver}
+cloneflag=true
+cc=
+ar=
+
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone -b main $source $builddir
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $pkgver
+        if [ $? -ne 0 ]
+        then
+            return -2
+        fi
+        cd $OLDPWD
+        cloneflag=false
+    fi
+    if $patchflag
+    then
+        cd $builddir
+        # 由于脚本中没有生成静态库或者动态库和没有install命令因此打patch
+        patch -p1 < `pwd`/../md5-c_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+    fi
+    ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE CC=${cc} AR=${ar} md5 build VERBOSE=1 > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install DESTDIR=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    unset cc ar
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # ./md5 "Hello, World!"
+    # 输出65a8e27d8879283831b664bd8b7f0ad4
+    # ./md5 "Multiple" Strings
+    # 输出a0bf169f2539e893e00d7b1296bc4d8e 89be9433646f5939040a78971a5d103a
+    # ./md5 ""
+    # 输出d41d8cd98f00b204e9800998ecf8427e
+    # ./md5 "Can use \" escapes"
+    # 输出7bf94222f6dbcd25d6fa21d5985f5634
+    # echo -n "Hello, World!" | ./md5
+    # 输出65a8e27d8879283831b664bd8b7f0ad4
+    # echo "Hello, World!" | ./md5
+    # 输出bea8252ff4e80f41719ea13cdf007273
+    # echo "File Input" > testFile | ./md5
+    # 输出d41d8cd98f00b204e9800998ecf8427e
+    # cat testFile | ./md5
+    # 输出7dacda86e382b27c25a92f8f2f6a5cd8
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

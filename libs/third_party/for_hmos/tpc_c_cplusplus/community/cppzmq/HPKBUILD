@@ -1,0 +1,64 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong2 <huangminzhong2@huawei.com> ,zhuangkun <zhuangkun05@chinasoftinc.com>
+# Maintainer: huangminzhong2 <huangminzhong2@huawei.com>
+
+pkgname=cppzmq 
+pkgver=v4.8.1
+pkgrel=0 
+pkgdesc="cppzmq is an open source C++ library based on ZeroMQ for building distributed and concurrent applications." 
+url="https://github.com/zeromq/cppzmq" 
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT Licensed")
+depends=("libzmq" "Catch2") 
+makedepends=()
+install= 
+source="https://github.com/zeromq/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+# https://github.com/zeromq/cppzmq/archive/refs/tags/v4.8.1.tar.gz
+downloadpackage=true
+autounpack=true
+patchflag=true
+buildtools="cmake"
+builddir=${pkgname}-${pkgver:1}
+packagename=$builddir.tar.gz 
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L >  $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 打包安装
+package() {
+    cd $builddir
+    make -C $ARCH-build install >>  $buildlog 2>&1
+    cd $OLDPWD
+}
+
+# 进行测试的准备和说明
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

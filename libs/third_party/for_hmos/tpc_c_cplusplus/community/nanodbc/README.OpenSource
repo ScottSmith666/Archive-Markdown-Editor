@@ -1,0 +1,31 @@
+[
+    {
+        "Name": "nanodbc",
+        "License": "MIT",
+        "License File": "https://github.com/nanodbc/nanodbc/blob/main/LICENSE",
+        "Version Number": "v2.13.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/nanodbc/nanodbc/",
+        "Description": "nanodbc is a lightweight, headline-driven ODBC library wrapper for C++ that provides a simple and modern interface to access ODBC databases"
+    }
+	
+	{
+        "Name": "sqlite",
+        "License": "Public Domain",
+        "License File": "https://www.sqlite.org/copyright.html",
+        "Version Number": "version-3.42.0",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://github.com/sqlite/sqlite/archive/refs/tags/.tar.gz",
+        "Description": "This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+    }
+	
+	{
+        "Name": "unixODBC",
+        "License": "GNU Lesser General Public License v2.1",
+        "License File": "https://github.com/lurcher/unixODBC/blob/master/LICENSE",
+        "Version Number": "2.3.11",
+        "Owner": "sttangc@isoftstone.com",
+        "Upstream URL": "https://github.com/lurcher/unixODBC/releases/download/2.3.11/unixODBC-2.3.11.tar.gz",
+        "Description": "The unixODBC Project goals are to develop and promote unixODBC to be the definitive standard for ODBC on non MS Windows platforms."
+    }
+]

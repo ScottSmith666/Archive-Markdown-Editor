@@ -1,0 +1,60 @@
+# Contributor: dingqian <1052888395@qq.com>
+# Maintainer : dingqian <1052888395@qq.com>
+
+pkgname=taglib
+pkgver=v1.13.1
+pkgrel=0
+pkgdesc="TagLib Audio Meta-Data Library"
+url="https://github.com/taglib/taglib"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL-2.1" "MPL-1.1")
+depends=("zlib" "cppunit")
+makedepends=()
+source="https://codeload.github.com/taglib/$pkgname/zip/refs/tags/$pkgver"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.zip
+
+patchflag=true
+
+prepare() {
+    if [ "$patchflag" == true ]
+    then
+        cd $builddir
+        # patch文件修改了由路径导致的在ohos上测试失败的问题
+        patch -p1 < ../taglib_oh_test.patch >> $publicbuildlog 2>&1
+        patchflag=false
+        cd ../
+    fi
+
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 设置LD_LIBRARY_PATH环境变量
+    # cd $builddir/$ARCH-build/tests
+    # ctest
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

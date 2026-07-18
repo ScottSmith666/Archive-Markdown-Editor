@@ -1,0 +1,62 @@
+diff -Naur Tremolo008_old/CMakeLists.txt Tremolo008/CMakeLists.txt
+--- Tremolo008_old/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
++++ Tremolo008/CMakeLists.txt	2023-08-14 17:21:05.904533557 +0800
+@@ -0,0 +1,44 @@
++cmake_minimum_required(VERSION 3.6)
++
++project(tremolo)
++
++# 添加头文件搜索路径
++include_directories(tremolo/)
++
++set(SOURCES
++    bitwise.c
++    codebook.c
++    dsp.c
++    floor0.c
++    floor1.c
++    floor_lookup.c
++    framing.c
++    mapping0.c
++    mdct.c
++    misc.c
++    res012.c
++    info.c
++    vorbisfile.c
++)
++
++add_library(tremolo STATIC ${SOURCES})
++
++target_compile_definitions(tremolo PRIVATE ONLY_C)
++
++target_include_directories(tremolo PUBLIC .)
++set_target_properties(tremolo PROPERTIES
++    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
++    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
++    FOLDER "External"
++    LINKER_LANGUAGE C
++)
++
++add_executable(test_example ivorbisfile_example.c)
++target_link_libraries(test_example tremolo)
++
++# 获取当前目录下的所有 .h 文件
++file(GLOB HEADER_FILES "${CMAKE_SOURCE_DIR}/*.h")
++
++# 安装库文件
++install(DIRECTORY  ${CMAKE_BINARY_DIR}/lib DESTINATION ${CMAKE_INSTALL_PREFIX}/)
++install(FILES ${HEADER_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+\ 文件尾没有换行符
+diff -Naur Tremolo008_old/codebook.c Tremolo008/codebook.c
+--- Tremolo008_old/codebook.c	2010-02-01 21:45:48.000000000 +0800
++++ Tremolo008/codebook.c	2023-08-14 17:14:26.455923561 +0800
+@@ -679,7 +679,9 @@
+     }
+     case 4:
+     {
++#ifdef _WIN32
+       Output("32/32");
++#endif
+       for(i=0;i<read;i++){
+ 	chase=((ogg_uint32_t *)(book->dec_table))[chase*2+((lok>>i)&1)];
+ 	if(chase&0x80000000UL)break;

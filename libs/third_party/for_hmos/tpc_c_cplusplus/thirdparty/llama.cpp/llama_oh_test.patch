@@ -1,0 +1,240 @@
+--- llama.cpp-b7941.orig/common/common.cpp
++++ llama.cpp-b7941/common/common.cpp
+@@ -7,6 +7,10 @@
+ #include <vector>
+ #include <cassert>
+ 
++#ifdef __OHOS__
++#include <sched.h>
++#endif
++
+ #if defined(__APPLE__) && defined(__MACH__)
+ #include <sys/types.h>
+ #include <sys/sysctl.h>
+@@ -148,7 +152,11 @@
+ static int pin_cpu(int cpu) {
+     cpu_set_t mask;
+     CPU_ZERO(&mask);
+     CPU_SET(cpu, &mask);
++#ifdef __OHOS__
++    return sched_setaffinity(0, sizeof(mask), &mask);
++#else
+     return pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask);
++#endif
+ }
+ 
+ static bool is_hybrid_cpu(void) {
+@@ -175,7 +183,11 @@
+ static int cpu_count_math_cpus(int n_cpu) {
+     int result = 0;
+     for (int cpu = 0; cpu < n_cpu; ++cpu) {
++#ifdef __OHOS__
++        if (sched_setaffinity(0, sizeof(cpu_set_t), &mask)) {
++#else
+         if (pin_cpu(cpu)) {
++#endif
+             return -1;
+         }
+         if (is_running_on_efficiency_core()) {
+--- llama.cpp-b7941.orig/common/common.cpp
++++ llama.cpp-b7941/common/common.cpp
+@@ -198,12 +198,20 @@
+     if (n_cpu < 1) {
+         return cpu_get_num_physical_cores();
+     }
+     if (is_hybrid_cpu()) {
+         cpu_set_t affinity;
++#ifdef __OHOS__
++        if (sched_getaffinity(0, sizeof(affinity), &affinity) == 0) {
++#else
+         if (!pthread_getaffinity_np(pthread_self(), sizeof(affinity), &affinity)) {
++#endif
+             int result = cpu_count_math_cpus(n_cpu);
++#ifdef __OHOS__
++            sched_setaffinity(0, sizeof(affinity), &affinity);
++#else
+             pthread_setaffinity_np(pthread_self(), sizeof(affinity), &affinity);
++#endif
+             if (result > 0) {
+                 return result;
+             }
+         }
+     }
+ #endif
+     return cpu_get_num_physical_cores();
+ }
+--- llama.cpp-b7941.orig/tests/test-tokenizers-repo.sh
++++ llama.cpp-b7941/tests/test-tokenizers-repo.sh
+@@ -1 +1 @@
+-#!/usr/bin/env bash
++#!/bin/sh
+--- llama.cpp-b7941.orig/cmake/download-models.cmake
++++ llama.cpp-b7941/cmake/download-models.cmake
+@@ -6,7 +6,7 @@
+ endif()
+ 
+ file(DOWNLOAD
+-    "https://huggingface.co/ggml-org/models/resolve/main/${NAME}?download=true"
++    "https://hf-mirror.com/ggml-org/models/resolve/main/${NAME}?download=true"
+     "${DEST}"
+     TLS_VERIFY ON
+     EXPECTED_HASH ${HASH}
+     STATUS status
+ )
+ 
+ list(GET status 0 code)
+ 
+ if(NOT code EQUAL 0)
+     list(GET status 1 msg)
+     message(FATAL_ERROR "Failed to download ${NAME}: ${msg}")
+ endif()
+
+--- test-jinja-original.cpp	2026-03-12 09:22:59.751436824 +0800
++++ llama.cpp-b7941/tests/test-jinja.cpp	2026-03-12 09:24:03.246981316 +0800
+@@ -16,6 +16,7 @@
+ using json = nlohmann::ordered_json;
+ 
+ static void test_template(testing & t, const std::string & name, const std::string & tmpl, const json & vars, const std::string & expect);
++static void test_template_cpp(testing & t, const std::string & name, const std::string & tmpl, const json & vars, const std::string & expect);
+ 
+ static void test_whitespace_control(testing & t);
+ static void test_conditionals(testing & t);
+@@ -34,24 +35,14 @@
+ static void test_hasher(testing & t);
+ static void test_fuzzing(testing & t);
+ 
+-static bool g_python_mode = false;
+-
+ int main(int argc, char *argv[]) {
+     testing t(std::cout);
+     t.verbose = true;
+ 
+-    // usage: test-jinja [-py] [filter_regex]
+-    //  -py : enable python mode (use python jinja2 for rendering expected output)
+-    //        only use this for cross-checking, not for correctness
+-    //        note: the implementation of this flag is basic, only intented to be used by maintainers
+-
++    // usage: test-jinja [filter_regex]
+     for (int i = 1; i < argc; i++) {
+         std::string arg = argv[i];
+-        if (arg == "-py") {
+-            g_python_mode = true;
+-        } else {
+-            t.set_filter(arg);
+-        }
++        t.set_filter(arg);
+     }
+ 
+     t.test("whitespace control", test_whitespace_control);
+@@ -68,10 +59,8 @@
+     t.test("string methods", test_string_methods);
+     t.test("array methods", test_array_methods);
+     t.test("object methods", test_object_methods);
+-    if (!g_python_mode) {
+-        t.test("hasher", test_hasher);
+-        t.test("fuzzing", test_fuzzing);
+-    }
++    t.test("hasher", test_hasher);
++    t.test("fuzzing", test_fuzzing);
+ 
+     return t.summary();
+ }
+@@ -1786,97 +1775,8 @@
+     });
+ }
+ 
+-// keep this in-sync with https://github.com/huggingface/transformers/blob/main/src/transformers/utils/chat_template_utils.py
+-// note: we use SandboxedEnvironment instead of ImmutableSandboxedEnvironment to allow usage of in-place array methods like append() and pop()
+-static std::string py_script = R"(
+-import jinja2
+-import jinja2.ext as jinja2_ext
+-import json
+-import sys
+-from datetime import datetime
+-from jinja2.sandbox import SandboxedEnvironment
+-
+-tmpl = json.loads(sys.argv[1])
+-vars_json = json.loads(sys.argv[2])
+-
+-env = SandboxedEnvironment(
+-    trim_blocks=True,
+-    lstrip_blocks=True,
+-    extensions=[jinja2_ext.loopcontrols],
+-)
+-
+-def raise_exception(message):
+-    raise jinja2.exceptions.TemplateError(message)
+-
+-env.filters["tojson"] = lambda x, ensure_ascii=False, indent=None, separators=None, sort_keys=False: json.dumps(x, ensure_ascii=ensure_ascii, indent=indent, separators=separators, sort_keys=sort_keys)
+-env.globals["strftime_now"] = lambda format: datetime.now().strftime(format)
+-env.globals["raise_exception"] = raise_exception
+-
+-template = env.from_string(tmpl)
+-result = template.render(**vars_json)
+-print(result, end='')
+-)";
+-
+-static void test_template_py(testing & t, const std::string & name, const std::string & tmpl, const json & vars, const std::string & expect) {
+-    t.test(name, [&tmpl, &vars, &expect](testing & t) {
+-        // Prepare arguments
+-        std::string tmpl_json = json(tmpl).dump();
+-        std::string vars_json = vars.dump();
+-
+-#ifdef _WIN32
+-        const char * python_executable = "python.exe";
+-#else
+-        const char * python_executable = "python3";
+-#endif
+-
+-        const char * command_line[] = {python_executable, "-c", py_script.c_str(), tmpl_json.c_str(), vars_json.c_str(), NULL};
+-
+-        struct subprocess_s subprocess;
+-        int options = subprocess_option_combined_stdout_stderr
+-                    | subprocess_option_no_window
+-                    | subprocess_option_inherit_environment
+-                    | subprocess_option_search_user_path;
+-        int result = subprocess_create(command_line, options, &subprocess);
+-
+-        if (result != 0) {
+-            t.log("Failed to create subprocess, error code: " + std::to_string(result));
+-            t.assert_true("subprocess creation", false);
+-            return;
+-        }
+-
+-        // Read output
+-        std::string output;
+-        char buffer[1024];
+-        FILE * p_stdout = subprocess_stdout(&subprocess);
+-        while (fgets(buffer, sizeof(buffer), p_stdout)) {
+-            output += buffer;
+-        }
+-
+-        int process_return;
+-        subprocess_join(&subprocess, &process_return);
+-        subprocess_destroy(&subprocess);
+-
+-        if (process_return != 0) {
+-            t.log("Python script failed with exit code: " + std::to_string(process_return));
+-            t.log("Output: " + output);
+-            t.assert_true("python execution", false);
+-            return;
+-        }
+-
+-        if (!t.assert_true("Template render mismatch", expect == output)) {
+-            t.log("Template: " + json(tmpl).dump());
+-            t.log("Expected: " + json(expect).dump());
+-            t.log("Python  : " + json(output).dump());
+-        }
+-    });
+-}
+-
+ static void test_template(testing & t, const std::string & name, const std::string & tmpl, const json & vars, const std::string & expect) {
+-    if (g_python_mode) {
+-        test_template_py(t, name, tmpl, vars, expect);
+-    } else {
+-        test_template_cpp(t, name, tmpl, vars, expect);
+-    }
++    test_template_cpp(t, name, tmpl, vars, expect);
+ }
+ 
+ //

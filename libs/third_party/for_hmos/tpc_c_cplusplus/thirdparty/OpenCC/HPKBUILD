@@ -1,0 +1,122 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: dingchenjie1 <dingchenjie1@h-partners.com>
+# Maintainer: dingchenjie1 <dingchenjie1@h-partners.com>
+
+pkgname=OpenCC
+pkgver=ver.1.1.9
+pkgrel=0
+pkgdesc="OpenCC is an opensource project for conversions between Traditional Chinese, Simplified Chinese and Japanese Kanji (Shinjitai)."
+url="https://github.com/BYVoid/OpenCC"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0")
+depends=()
+makedepends=("doxygen")
+
+source="https://github.com/BYVoid/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+buildsrchostflag=true
+# OpenCC 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+prepare() {
+    # 预编译源平台二进制以生成字体文件
+    if $buildsrchostflag
+    then
+        cp -arf $builddir $builddir-src_host-build
+        cd $builddir-src_host-build
+        $MAKE PREFIX=$builddir-src_host-build/usr VERBOSE=1 >> $publicbuildlog 2>&1
+        ret=$?
+        # buildsrchostflag只需要编一次,关闭build
+        buildsrchostflag=false
+        cd $OLDPWD
+    fi
+
+    cp -arf $builddir $builddir-$ARCH-build
+    # 将编译依赖的字体文件拷贝到指定目录
+    mkdir -p $builddir-$ARCH-build/build/rel
+    mkdir -p $builddir-$ARCH-build/build/dbg
+    cp -arf $builddir-src_host-build/build/rel/data $builddir-$ARCH-build/build/rel
+    cp -arf $builddir-src_host-build/build/rel/data $builddir-$ARCH-build/build/dbg
+    ## 修改编译条件，使编译时不生成额外的依赖文件
+    cd $builddir-$ARCH-build
+    patch -p1 < `pwd`/../opencc_oh_pkg.patch >> $publicbuildlog 2>&1
+    cd $OLDPWD
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    return $ret
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH VERBOSE=1 > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    ## 将OpenCC依赖的配置文件拷贝到指定目录
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/share/opencc
+    cp -arf $builddir-src_host-build/build/rel/data/* $LYCIUM_ROOT/usr/$pkgname/$ARCH/share/opencc
+    return $ret
+}
+
+check() {
+    cd $builddir-$ARCH-build
+    ## 修改编译条件，使编译时不进行测试操作
+    sed -i '/^\s*(cd build\/dbg; ctest --verbose)/s/^/#/' Makefile
+    sed -i '/^\s*make -C build\/dbg install VERBOSE=${VERBOSE}/s/^/#/' Makefile
+    ## 编译出测试应用
+    $MAKE test >> $builddir-$ARCH-test-build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+
+    if [ $ARCH == "armeabi-v7a" ]; then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]; then
+        unsetarm64ENV
+    fi
+    unset host
+
+    echo "The test must be on an OpenHarmony device!"
+    ## ctest
+    return $ret
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build $builddir-arm64-v8a-build #${PWD}/$packagename
+}

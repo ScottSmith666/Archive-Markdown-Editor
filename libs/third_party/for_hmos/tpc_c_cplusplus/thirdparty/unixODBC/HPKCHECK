@@ -1,0 +1,15 @@
+# Contributor: tangshaoteng <sttangc@isoftstone.com>
+# Maintainer: tangshaoteng <sttangc@isoftstone.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir/$ARCH-build
+    make check > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+
+    return $res
+}

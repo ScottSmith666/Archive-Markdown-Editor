@@ -1,0 +1,71 @@
+# tquic集成到应用hap
+本库是在RK3568开发板上基于OpenHarmony3.2 Release版本的镜像验证的，如果是从未使用过RK3568，可以先查看[润和RK3568开发板标准系统快速上手](https://gitee.com/openharmony-sig/knowledge_demo_temp/tree/master/docs/rk3568_helloworld)。
+## 开发环境
+
+- [开发环境准备](../../../docs/hap_integrate_environment.md)
+
+## 编译三方库
+- 下载本仓库
+```
+git clone https://github.com/tencent/tquic.git --depth=1
+```
+
+- 三方库目录结构
+```
+    tpc_c_cplusplus/thirdparty/tquic	     #三方库tquic的目录结构如下
+    ├── tquic                              #三方库tquic的目录
+    │   ├── build_tquic_ohos.sh			     #构建脚本
+    │   ├── README.OpenSource				 #说明三方库源码的下载地址，版本，license等信息
+    │   ├── README_zh.md					 #tquic三方库说明
+    │   └── docs                             #三方库相关文档的文件夹
+    │       ├── pic
+    │       │   ├── tquic_test1.png
+    │       │   └── tquic_test2.png
+    │       └── hap_integrate.md
+```
+
+- 编译三方库
+编译环境的搭建参考[准备三方库构建环境](https://ohos.rs/docs/basic/quick-start)
+
+```
+cd tquic
+./build_tquic_ohos.sh
+```
+
+- 三方库头文件及生成的库
+生成的头文件为tquic_ohos.h，已编译完成的32位和64位三方库在tquic_ohos/target/（$ARCH）aarch64-unknown-linux-ohos/debug/下
+
+- 三方库生成的测试用例
+tpc_c_cplusplus/thirdparty/tquic/tquic_ohos/arm64-v8a
+tpc_c_cplusplus/thirdparty/tquic/tquic_ohos/armeabi-v7a
+tpc_c_cplusplus/thirdparty/tquic/tquic_ohos/x86_64
+
+- [测试三方库](#测试三方库)
+
+## 应用中使用三方库
+
+- 在IDE的cpp目录下新增thirdparty目录，将编译生成的库以及依赖库拷贝到该目录下
+
+- 在最外层（cpp目录下）CMakeLists.txt中添加如下语句
+```
+#将三方库加入工程中
+target_link_libraries(entry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/tquic/${OHOS_ARCH}/lib/libtquic.so)
+
+#将三方库的头文件加入工程中
+target_include_directories(entry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/tquic/${OHOS_ARCH}/include)
+```
+
+## 测试三方库
+三方库的测试使用原库自带的测试用例来做测试
+
+- 将编译生成的可执行文件及生成的动态库准备好
+
+- 将准备好的文件推送到开发板，赋予执行权限即可执行测试用例
+
+&nbsp;![libblur_test2](pic/tquic_test2.png)
+
+## 参考资料
+- [润和RK3568开发板标准系统快速上手](https://gitee.com/openharmony-sig/knowledge_demo_temp/tree/master/docs/rk3568_helloworld)
+- [OpenHarmony三方库地址](https://gitee.com/openharmony-tpc)
+- [OpenHarmony知识体系](https://gitee.com/openharmony-sig/knowledge)
+- [通过DevEco Studio开发一个NAPI工程](https://gitee.com/openharmony-sig/knowledge_demo_temp/blob/master/docs/napi_study/docs/hello_napi.md)

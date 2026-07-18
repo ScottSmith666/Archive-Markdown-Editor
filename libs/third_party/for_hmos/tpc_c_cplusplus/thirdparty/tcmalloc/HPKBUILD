@@ -1,0 +1,93 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: handong056@chinasoftinc.com
+# Maintainer: handong056@chinasoftinc.com
+
+pkgname=tcmalloc
+pkgver=2.17.2
+pkgrel=1
+pkgdesc="Google性能优化内存分配器"
+url="https://github.com/gperftools/gperftools"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("BSD-3-Clause")
+depends=()
+makedepends=("autoconf")
+
+buildtools="configure"
+downloadpackage=true
+autounpack=true
+packagename=gperftools-${pkgver}.tar.gz
+builddir=gperftools-${pkgver}
+patchflag=true
+source="https://github.com/gperftools/gperftools/releases/download/gperftools-${pkgver}/gperftools-${pkgver}.tar.gz"
+source envset.sh
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    cd $builddir
+    if [ $patchflag == true ];then
+        patch -p1 < ../tcmalloc_test.patch >> $buildlog 2>&1
+        #patch只需要打一次
+        patchflag=false
+    fi
+    case "$ARCH" in
+      armeabi-v7a)
+        setarm32ENV
+        host=arm-linux-ohos
+        ;;
+      arm64-v8a)
+        setarm64ENV
+        host=aarch64-linux-ohos
+        ;;
+      x86_64) 
+        setx86_64ENV
+        host=x86_64-linux-ohos
+        ;;
+    esac
+    autoconf >> $buildlog 2>&1 
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    # 禁用disable-cpu-profiler等提升运行效率、降低资源消耗(需要的时候可开启)
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure "$@"\
+      --host=$host  --build=$build  --enable-static --disable-cpu-profiler  --disable-heap-profiler --disable-debugalloc --enable-minimal \
+      LDFLAGS="-Wl,--whole-archive -l:libclang_rt.builtins.a -Wl,--no-whole-archive" > $buildlog 2>&1
+    $MAKE V=1 >> $buildlog 2>&1
+    ret=$?
+    
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install V=1 >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cd $builddir/$ARCH-build
+    ret=$?
+    sed -i 's/\(\.log:\).*$/\1/' Makefile
+    cd $OLDPWD
+    return $ret
+}
+
+cleanbuild() {
+    rm -rf "${PWD}/${builddir}"
+    echo "The test must be on an OpenHarmony device!"
+}

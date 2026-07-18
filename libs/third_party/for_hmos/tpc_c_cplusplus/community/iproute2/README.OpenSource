@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "iproute2",
+        "License": "GPL-2.0 license",
+        "License File": "https://github.com/shemminger/iproute2/blob/main/COPYING",
+        "Version Number": "6.4.0",
+        "Owner": "swkec@isoftstone.com",
+        "Upstream URL": "https://mirrors.edge.kernel.org/pub/linux/utils/net/iproute2/iproute2-6.4.0.tar.gz",
+        "Description": "iproute2 is a Linux utility package that can be used to configure, monitor and manage networking stack components. It provides a set of command line tools and an API to process data package routing, network equipment, network address, and protocol. The iproute2 library is part of iproute2, and it provides a set of functions and data structures for creating and managing network devices."
+    }
+]

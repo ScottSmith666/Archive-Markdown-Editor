@@ -1,0 +1,212 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: 城meto<myxuan475@126.com>
+# Maintainer: 城meto<myxuan475@126.com>
+
+pkgname=tesseract
+pkgver=5.3.2
+pkgrel=0
+pkgdesc="Tesseract contains an OCR engine - libtesseract and a command line program"
+url="https://github.com/tesseract-ocr/tesseract"
+archs=("arm64-v8a")
+license=("Apache-2.0 license")
+depends=("glib" "curl" "tiff" "leptonica" "libarchive" "icu" "pango" "cairo" "fontconfig" "harfbuzz" "libpng" "freetype2" "fribidi" "libwebp" "openjpeg" "libjpeg-turbo")
+makedepends=("libtool" "automake" "cabextract")
+# 原仓地址: https://github.com/tesseract-ocr/$pkgname/archive/refs/tags/$pkgver.tar.gz, 因网络原因使用镜像
+source="https://gitee.com/mirrors_tesseract-ocr/$pkgname/repository/archive/$pkgver.zip"
+buildtools="configure"
+
+autounpack=true
+downloadpackage=true
+genconfigure=true
+
+builddir=$pkgname-$pkgver
+packagename=$pkgname-$pkgver.zip
+
+source envset.sh
+host=
+downloadsubmodules=true
+downloadtest=true
+
+# 准备三方代码
+repos=(
+    "https://gitee.com/mirrors_tesseract-ocr/test.git"         # 源链接: https://github.com/tesseract-ocr/test.git
+    "https://gitee.com/mirrors/googletest.git"                 # 源链接: https://github.com/google/googletest.git
+)
+# 对应文件夹
+folders=(
+    "test"
+    "unittest/third_party/googletest"
+)
+# branches
+branches=(
+    "main"              # test
+    "v1.13.0"           # googletest
+)
+clonesrc() {
+    for (( i=0; i<${#repos[@]}; i++ ));do
+        repo=${repos[$i]}
+        folder=${folders[$i]}
+        branch=${branches[$i]}
+
+        git clone -b $branch $repo $folder
+        if [ $? -ne 0 ];then
+            return -1
+        fi
+    done
+}
+
+prepare() {
+    # 下载子模块
+    if [ $downloadsubmodules == true ];then
+        cd $builddir
+        clonesrc
+        if [ $? -ne 0 ];then
+            return -1
+        fi
+        sed -i "s#\"/tmp#\"/data/local/tmp#g" unittest/third_party/googletest/googletest/src/gtest-port.cc
+        downloadsubmodules=false
+        cd $OLDPWD
+    fi
+
+    # 生成configure
+    if [ $genconfigure == true ];then
+        cd $builddir
+        # 编译环境建空目录，跳过编译检测，真实测试环境需要存放测试资源
+        mkdir -pv ../tessdata
+        mkdir -pv ../tessdata_fast
+        mkdir -pv ../tessdata_best
+        mkdir -pv ../langdata_lstm
+        ./autogen.sh
+        autoreconf -fiv
+        genconfigure=false
+        cd $OLDPWD
+    fi
+    # 设置编译环境
+    if [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+        host=arm-linux
+    else
+        echo "not support ${ARCH} yet!"
+        return -1
+    fi
+    mkdir -p $builddir/$ARCH-build
+    # 设置环境变量,curl的头文件无法自动找到
+    # TESSDATA_PREFIX 设置用于单元测试
+    export libcurl_CFLAGS="-I$LYCIUM_ROOT/usr/curl/$ARCH/include"
+    export CPPFLAGS="${libcurl_CFLAGS} -D__ARM_NEON -mfloat-abi=softfp $CPPFLAGS"
+    export TESSDATA_PREFIX=`pwd`/$builddir/$ARCH-build/
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_PATH="${pkgconfigpath}" ../configure "$@" \
+        --srcdir=`pwd`/../ \
+        --host=$host \
+        --with-curl \
+        --with-archive \
+        --disable-doc \
+        --disable-openmp \
+        --enable-static=yes \
+        --enable-shared=no > `pwd`/build.log 2>&1
+    make -j8  VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    make training VERBOSE=1 >> `pwd`/build.log 2>&1
+    make install VERBOSE=1 >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ];then
+        cp $OHOS_SDK/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir/$ARCH-build/
+    elif [ $ARCH == "arm64-v8a" ];then
+        cp $OHOS_SDK/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir/$ARCH-build/
+    else
+        echo "$ARCH not support!"
+    fi
+
+    cd $builddir/$ARCH-build
+    make check VERBOSE=1 >> `pwd`/build.log 2>&1
+    # 注释掉一些依赖，让测试在板端跳过编译
+    cp Makefile Makefile2
+    sed -i '/\($(srcdir)\/Makefile.in:\)/,/\($(am__aclocal_m4_deps):\)/{s/^/#/}' Makefile
+    sed -i 's/\([a-zA-Z_]\.log:\)/\1 #/' Makefile
+    sed -i 's/\(check-TESTS:\)/\1 #/' Makefile
+    sed -i 's/\/usr\/bin\/bash/\/data\/CIusr\/bin\/bash/g' Makefile
+    sed -i 's/\/usr\/bin\/sed/\/data\/CIusr\/bin\/sed/g' Makefile
+    cd $OLDPWD
+
+    # 下载测试资源
+    if [ $downloadtest == true ];then
+        wget -O tessdata-4.1.0.tar.gz -q -c https://codeload.github.com/tesseract-ocr/tessdata/tar.gz/refs/tags/4.1.0
+        if [ $? -ne 0 ];then
+            return -1
+        fi
+        tar -xvf tessdata-4.1.0.tar.gz
+        rm -rf tessdata 
+        mv tessdata-4.1.0 tessdata
+        rm tessdata-4.1.0.tar.gz
+
+        # 原仓地址: https://codeload.github.com/tesseract-ocr/tessdata_best/tar.gz/refs/tags/4.1.0, 因网络原因使用镜像
+        wget -O tessdata_best-4.1.0.zip -q -c https://gitee.com/mirrors_tesseract-ocr/tessdata_best/repository/archive/4.1.0.zip
+        if [ $? -ne 0 ];then
+            return -1
+        fi
+        unzip tessdata_best-4.1.0.zip
+        rm -rf tessdata_best 
+        mv tessdata_best-4.1.0 tessdata_best
+        rm tessdata_best-4.1.0.z
+        # 原仓地址: https://codeload.github.com/tesseract-ocr/tessdata_fast/tar.gz/refs/tags/4.1.0, 因网络原因使用镜像
+        wget -O tessdata_fast-4.1.0.zip -q -c https://gitee.com/mirrors_tesseract-ocr/tessdata_fast/repository/archive/4.1.0.zip
+        if [ $? -ne 0 ];then
+            return -1
+        fi
+        unzip tessdata_fast-4.1.0.zip
+        rm -rf tessdata_fast 
+        mv tessdata_fast-4.1.0 tessdata_fast
+        rm tessdata_fast-4.1.0.zip
+
+        wget -O langdata_lstm-main.zip -q -c https://codeload.github.com/tesseract-ocr/langdata_lstm/zip/refs/heads/main
+        if [ $? -ne 0 ];then
+            return -1
+        fi
+        unzip langdata_lstm-main.zip
+        rm -rf langdata_lstm
+        mv langdata_lstm-main langdata_lstm
+        rm langdata_lstm-main.zip
+
+        downloadtest=false
+    fi
+    echo "The test must be on an OpenHarmony device!"
+
+    # 解压测试资源,包括目录下应包含tessdata, tessdata_best, tessdata_fast, langdata_lstm
+    # export TESSDATA_PREFIX=`pwd`/$builddir/$ARCH-build/
+    # mount -o rw,remount /
+    # chmod a+rw -R /tmp/ 
+    # make check-TESTS
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

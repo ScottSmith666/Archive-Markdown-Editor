@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "capstone",
+        "License": "LLVM Release License",
+        "License File": "https://github.com/capstone-engine/capstone/tree/4.0?tab=License-2-ov-file",
+        "Version Number": "4.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/capstone-engine/capstone",
+        "Description": "Capstone is a disassembly framework with the target of becoming the ultimate disasm engine for binary analysis and reversing in the security community."
+    }
+]

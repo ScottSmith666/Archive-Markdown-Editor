@@ -1,0 +1,218 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=FFmpeg
+pkgver=n6.0
+pkgrel=0
+pkgdesc="FFmpeg is a collection of libraries and tools to process multimedia content such as audio, video, subtitles and related metadata."
+url="https://github.com/FFmpeg/FFmpeg/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("GPL2" "GPL3" "LGPL3" "MIT" "X11" "BSD-styl")
+depends=("rtmpdump_2.6" "openssl_3.4.3")
+makedepends=()
+source="https://github.com/FFmpeg/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=false
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+source envset.sh
+buildhost=true
+arch=
+ldflags=
+
+prepare() {
+    if [ "$LYCIUM_BUILD_OS" == "Linux" ]
+    then
+        hostosname=linux
+    elif [ "$LYCIUM_BUILD_OS" == "Darwi" ]
+    then
+        hostosname=darwin
+    else
+        echo "System cannot recognize, exiting"
+        return -1
+    fi
+    if [ $buildhost == true ]
+    then
+        tar -zxf $packagename
+        cd $builddir
+        ./configure --enable-static --enable-shared --disable-doc --disable-htmlpages \
+            --target-os=$hostosname --disable-optimizations --prefix=`pwd`/hostbuild > $publicbuildlog 2>&1
+        $MAKE >> $publicbuildlog 2>&1
+        $MAKE install >> $publicbuildlog 2>&1
+        export LD_LIBRARY_PATH=`pwd`/hostbuild/lib:$LD_LIBRARY_PATH
+        sed -i.bak 's/include $(SRC_PATH)\/tests\/fate\/source.mak/#include $(SRC_PATH)\/tests\/fate\/source.mak/g' tests/Makefile
+        $MAKE check >> $publicbuildlog 2>&1
+        ret=$?
+        buildhost=false
+        cd $OLDPWD
+    fi
+
+    mkdir $pkgname-$ARCH-build
+    tar -zxf $packagename -C $pkgname-$ARCH-build
+    cd  $pkgname-$ARCH-build/$builddir
+    patch -p1 < ../../FFmpeg_oh_test.patch
+    cd $OLDPWD
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        arch=arm
+        ldflags="-L${OHOS_SDK}/native/sysroot/usr/lib/arm-linux-ohos"
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        arch=aarch64
+        ldflags="-L${OHOS_SDK}/native/sysroot/usr/lib/aarch64-linux-ohos"
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        arch=x86_64
+        ldflags="-L${OHOS_SDK}/native/sysroot/usr/lib/x86_64-linux-ohos"
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    return $ret
+}
+
+build() {
+    cd $pkgname-$ARCH-build/$builddir
+
+    if [ "${ARCH}" == "x86_64" ]; then
+        pkgconfigpath="$LYCIUM_ROOT/usr/openssl_3.4.3/x86_64/lib64/pkgconfig:${pkgconfigpath}"
+    fi
+
+    CFLAGS="${CFLAGS} -O3 -fstack-protector-strong -fPIC" \
+    CXXFLAGS="${CXXFLAGS} -O3 -fstack-protector-strong -fPIC" \
+    LDFLAGS="${LDFLAGS} -Wl,-z,relro,-z,now -Wl,--disable-new-dtags -s" \
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --optflags="-O3" --enable-neon --enable-asm --enable-network \
+    --disable-vulkan --enable-cross-compile --enable-librtmp --disable-x86asm --enable-openssl --enable-protocols \
+    --enable-static --enable-shared --disable-doc --disable-htmlpages --target-os=linux --arch=$arch \
+    --cc=${CC} --ld=${CC} --strip=${STRIP} --host-cc="${CC}" --host-ld="${CC}" --host-os=linux \
+    --host-ldflags=${ldflags} --sysroot=${OHOS_SDK}/native/sysroot > $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build/$builddir
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+checktestfiles() {
+    cd $pkgname-$ARCH-build/$builddir/tests/ref
+
+    tmpdir=("fate" "acodec" "lavf" "lavf-fate" "pixfmt" "seek" "vsynth")
+    for dir in ${tmpdir[*]}
+    do
+        for file in `ls $dir`
+        do
+            if [ ! -f $dir/$file ]; then
+                continue
+            fi
+            str=`cat $dir/$file | grep "\*tests"`
+            if [ ! -z "$str" ]
+            then
+                sed -i.bak 's/\*tests/tests/g' $dir/$file
+            fi
+        done
+    done
+
+    cd $OLDPWD
+}
+
+copyhostbin() {
+    file=$1
+    if [[ -f tests/$file ]] && [[ ! -f tests/$file.${ARCH} ]]
+    then
+        mv tests/$file tests/$file.${ARCH}
+        cp ../../$builddir/tests/$file tests/$file
+    fi
+}
+
+check() {
+    cd $pkgname-$ARCH-build/$builddir
+    # disable running cmd
+    sed -i.bak 's/	$(Q)$(SRC_PATH)\/tests\/fate-run.sh/#	$(Q)$(SRC_PATH)\/tests\/fate-run.sh/g' tests/Makefile
+    # disable check git sources
+    sed -i.bak 's/include $(SRC_PATH)\/tests\/fate\/source.mak/#include $(SRC_PATH)\/tests\/fate\/source.mak/g' tests/Makefile
+    # disable check ffprobe,this use xmllint command, which ohos is not support
+    sed -i.bak 's/include $(SRC_PATH)\/tests\/fate\/ffprobe.mak/#include $(SRC_PATH)\/tests\/fate\/ffprobe.mak/g' tests/Makefile
+
+    # change x86 cmd for generate test target
+    mv ffmpeg ffmpeg.${ARCH}
+    cp ../../$builddir/ffmpeg ./
+    retrytimes=0
+    ret=0
+    while true
+    do
+        $MAKE check >> $buildlog 2>&1
+        if [ $? -eq 0 ]
+        then
+            break;
+        fi
+
+        copyhostbin base64
+        copyhostbin audiomatch
+        copyhostbin audiogen
+        copyhostbin videogen
+        copyhostbin tiny_psnr
+        copyhostbin tiny_ssim
+        copyhostbin rotozoom
+
+        let retrytimes=$retrytimes+1
+        if [ $retrytimes -gt 4 ]
+        then
+            ret=1
+            break
+        fi
+    done
+
+    mv ffmpeg.${ARCH} ffmpeg
+    for file in `ls tests/*.${ARCH}`
+    do
+        tmpfile=${file%.*}
+        mv $file $tmpfile
+    done
+
+    # reduction running cmd for real test
+    sed -i.bak 's/#	$(Q)$(SRC_PATH)\/tests\/fate-run.sh/	$(Q)$(SRC_PATH)\/tests\/fate-run.sh/g' tests/Makefile
+    cd $OLDPWD
+    checktestfiles
+
+    echo "The test must be on an OpenHarmony device!"
+    # skip running test on host
+    # real test CMD
+    # make check
+
+    return $ret
+}
+
+recoverpkgbuildenv() {
+    unset arch
+    unset ldflags
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/${builddir} ${PWD}/$pkgname-arm64-v8a-build ${PWD}/$pkgname-armeabi-v7a-build ${PWD}/$pkgname-x86_64-build #${PWD}/$packagename
+}

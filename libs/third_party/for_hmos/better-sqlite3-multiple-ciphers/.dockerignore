@@ -1,0 +1,11 @@
+# IDEs
+.idea
+
+# Node
+node_modules
+
+# Project
+.github
+benchmark
+build
+docs

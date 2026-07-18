@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "leveldb",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/google/leveldb/blob/main/LICENSE",
+        "Version Number": "1.23",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/leveldb",
+        "Description": "LevelDB is a fast key-value storage library written at Google that provides an ordered mapping from string keys to string values."
+    }
+]

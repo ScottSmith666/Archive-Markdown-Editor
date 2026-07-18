@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libbacktrace",
+        "License": "Libbacktrace License",
+        "License File": "https://github.com/ianlancetaylor/libbacktrace/blob/master/LICENSE",
+        "Version Number": "1.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/ianlancetaylor/libbacktrace/archive/refs/heads/master.zip",
+        "Description": "The libbacktrace library may be linked into a program or library and used to produce symbolic backtraces."
+    }
+]

@@ -1,0 +1,1 @@
+CKEDITOR.plugins.setLang("wordcount","zh-cn",{WordCountRemaining:"词数剩余：",WordCount:"词数:",CharCount:"字符:",CharCountWithHTML:"字符 (含HTML)：",CharCountRemaining:"您还可以输入的字符数：",Paragraphs:"段落:",ParagraphsRemaining:"段落剩余：",CharCountWithHTMLRemaining:"字符 (含HTML) 剩余：",Selected:"已选择: ",pasteWarning:"由于上限允许,内容不能粘贴",title:"统计"});

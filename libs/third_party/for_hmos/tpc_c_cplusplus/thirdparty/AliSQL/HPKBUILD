@@ -1,0 +1,133 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: changzhenjie4 <changzhenjie4@h-partners.com>
+# Maintainer: changzhenjie4 <changzhenjie4@h-partners.com>
+
+pkgname=AliSQL
+pkgver=v5.6.32-9
+pkgrel=0
+pkgdesc="AliSQL is a MySQL branch originated from Alibaba Group. It is based on the MySQL official release and has many feature and performance enhancements. "
+url="https://github.com/alibaba/AliSQL"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("GPLv2")
+depends=("ncurses" "openssl")
+makedepends=()
+
+source="https://github.com/alibaba/AliSQL/archive/refs/tags/AliSQL-5.6.32-9.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+patchflag=true
+
+builddir=$pkgname-AliSQL-${pkgver:1}
+packagename=$builddir.tar.gz
+
+buildhost=true
+
+prepare() {
+    # 需要先构建宿主机编译环境的辅助可执行程序
+    if $buildhost
+    then
+        cp -arf $builddir $builddir-host-build
+        sed -i 's/if(combo->plugin\.str == NULL || combo->plugin\.str == \x27\\0\x27)/if(combo->plugin.str == NULL || \
+        combo->plugin.str[0] == \x27\\0\x27)/g' $builddir-host-build/sql/sql_acl.cc
+        sed -i '1i\set(EXISTING_CXX_FLAGS "${CMAKE_CXX_FLAGS}")\n\
+        set(CMAKE_CXX_FLAGS "${EXISTING_CXX_FLAGS} -Wno-error")' $builddir-host-build/sql/CMakeLists.txt
+        mkdir -p $builddir-host-build/x86_build
+        mkdir -p $builddir-host-build/x86_install
+        cd $builddir-host-build/x86_build
+        x86_path=`pwd`
+        cmake .. -DCMAKE_CXX_STANDARD=11 -DHAVE_LLVM_LIBCPP=OFF -DSTACK_DIRECTION=1 -DWITH_DEBUG=1 \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DWITH_MYSQLTEST=1 \
+        -DCMAKE_INSTALL_PREFIX="$x86_path/../x86_install" \
+        -DCMAKE_C_FLAGS="-Wno-error=implicit-fallthrough -Wno-error=deprecated-declarations \
+        -Wno-error=cast-function-type -Wno-error=deprecated-copy -Wno-error=class-memaccess \
+        -Wno-error=nonnull-compare -Wno-error=int-in-bool-context -Wno-error=format-overflow \
+        -Wno-error=format-truncation -Wno-error=free-nonheap-object -Wno-error=unused-variable \
+        -Wno-error=dangling-pointer -Wno-error=maybe-uninitialized -Wno-error=address -Wno-error=unused-label \
+        -Wno-error=misleading-indentation" \
+        -DCMAKE_CXX_FLAGS="-Wno-error=implicit-fallthrough -Wno-error=deprecated-declarations \
+        -Wno-error=cast-function-type -Wno-error=deprecated-copy -Wno-error=class-memaccess \
+        -Wno-error=nonnull-compare -Wno-error=int-in-bool-context -Wno-error=format-overflow \
+        -Wno-error=format-truncation -Wno-error=free-nonheap-object -Wno-error=unused-variable \
+        -Wno-error=dangling-pointer -Wno-error=maybe-uninitialized -Wno-error=address \
+        -Wno-error=unused-label -Wno-error=misleading-indentation -Wno-deprecated-copy -fpermissive -faligned-new"
+        make VERBOSE=1
+        make install
+        buildhost=false
+        cd $OLDPWD
+    fi
+    if $patchflag
+    then
+        echo "$builddir"
+        cd $builddir
+        # 使用patch的原因：
+        # 1. 交叉编译需要使用到宿主机环境可以运行的可执行程序, 如 comp_err comp_sql gen_lex_hash gen_lex_token 等
+        # 2. 此库依赖的openssl版本1.0.6，框架中已适配支持的是1.1.X ，语法错误修改
+        # 3. 此库本身已有的语法错误需要修改
+        # 4. 此库使用的库函数，OpenHarmony 的 MUSL libc 环境中，未支持的函数调用需要修改
+        # 5. 测试资源加载过程中的过时语法需要修改
+        # 6. 嵌入式系统资源限制，启动时间延长修改
+        patch -p1 < `pwd`/../alisql_test.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp $LYCIUM_ROOT/usr/ncurses/$ARCH/include/ncurses/* $LYCIUM_ROOT/usr/ncurses/$ARCH/include/
+    cp -arf $builddir $builddir-$ARCH-build
+    cp $builddir-host-build/x86_build/extra/comp_err $builddir-$ARCH-build/comp_err
+    cp $builddir-host-build/x86_build/scripts/comp_sql $builddir-$ARCH-build/comp_sql
+    cp $builddir-host-build/x86_build/sql/gen_lex_hash $builddir-$ARCH-build/gen_lex_hash
+    cp $builddir-host-build/x86_build/sql/gen_lex_token $builddir-$ARCH-build/gen_lex_token
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -DSTACK_DIRECTION=1 \
+    -DHAVE_LLVM_LIBCPP=OFF -DCMAKE_CXX_STANDARD=11 -DWITH_DEBUG=1 -DCMAKE_BUILD_TYPE=Debug -DWITH_MYSQLTEST=1 -S./ -L \
+    -DCMAKE_C_FLAGS="-I$LYCIUM_ROOT/usr/ncurses/$ARCH/include -I$LYCIUM_ROOT/usr/openssl/$ARCH/include \
+    -D_WCHAR_T_IS_UTF32=1 -D__STDC_ISO_10646__=1 -Wno-error=int-conversion -Wno-error=pointer-compare -DNO_MYISAM_MMAP=1 -fPIC" \
+    -DCMAKE_CXX_FLAGS="-I$LYCIUM_ROOT/usr/ncurses/$ARCH/include -I$LYCIUM_ROOT/usr/openssl/$ARCH/include \
+    -D_WCHAR_T_IS_UTF32=1 -D__STDC_ISO_10646__=1 -Wno-error=int-conversion -Wno-error=pointer-compare -DNO_MYISAM_MMAP=1 -fPIC" \
+    -DCURSES_INCLUDE_PATH=$LYCIUM_ROOT/usr/ncurses/$ARCH/include \
+    -DCURSES_LIBRARY=$LYCIUM_ROOT/usr/ncurses/$ARCH/lib/libncurses.a \
+    -DOPENSSL_INCLUDE_DIR=$LYCIUM_ROOT/usr/openssl/$ARCH/include \
+    -DOPENSSL_CRYPTO_LIBRARY=$LYCIUM_ROOT/usr/openssl/$ARCH/lib/libcrypto.a  \
+    -DOPENSSL_SSL_LIBRARY=$LYCIUM_ROOT/usr/openssl/$ARCH/lib/libssl.a  \
+    > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 打包安装
+package() {
+    cd $builddir-$ARCH-build
+    make -C $ARCH-build install >>  $buildlog 2>&1
+    echo "============================== install ================================="
+    cd $OLDPWD
+}
+
+# 进行测试的准备和说明
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

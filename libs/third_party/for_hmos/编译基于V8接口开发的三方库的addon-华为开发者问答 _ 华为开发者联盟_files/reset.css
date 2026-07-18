@@ -1,0 +1,10 @@
+@media screen and (min-width: 841px) and (max-width: 1323px) {
+    .secMenu .secMenu-container .flex .group-content {
+        justify-content: unset !important;
+        column-gap: 8px;
+    }
+}
+.small-card .card-item{
+  display: flex;
+  align-items: center;
+}

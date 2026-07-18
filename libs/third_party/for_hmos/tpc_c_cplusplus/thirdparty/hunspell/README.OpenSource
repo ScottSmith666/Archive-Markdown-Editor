@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "hunspell",
+        "License": "LGPL-2.1/GPL-2.0 License",
+        "License File": "COPYING.LESSER",
+        "Version Number": "v1.7.2",
+        "Owner": "zhongluping1@huawei.com",
+        "Upstream URL": "https://github.com/hunspell/hunspell/tree/v1.7.2",
+        "Description": "Hunspell is a free spell checker and morphological analyzer library and command-line tool"
+    }
+]

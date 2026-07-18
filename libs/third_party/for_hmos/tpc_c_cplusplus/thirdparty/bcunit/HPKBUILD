@@ -1,0 +1,80 @@
+# Contributor: xucaiming <719260170@qq.com>
+# Maintainer: xucaiming <719260170@qq.com>
+
+pkgname=bcunit
+pkgver=5.2.62
+pkgrel=0
+pkgdesc="BcUnit is a Unit testing framework"
+url="https://github.com/BelledonneCommunications/bcunit"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL-2.0")
+depends=()
+makedepends=()
+source="https://github.com/BelledonneCommunications/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+buildtools="cmake"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+
+builddir=${pkgname}-${pkgver}
+packagename=${pkgname}-${pkgver}.tar.gz
+
+source envset.sh
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 编译Test时, 链接和头文件包含缺失
+        patch -p1 < `pwd`/../bcunit_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+    elif [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DENABLE_TEST=ON \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install VERBOSE=1 >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    if [ $ARCH == "arm64-v8a" ];then
+        unsetarm64ENV
+    elif [ $ARCH == "armeabi-v7a" ];then
+        unsetarm32ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    echo "The test must be on an OpenHarmony device!"
+    # cd $builddir/$ARCH-build/BCUnit/Sources/Test
+    # ./test_bcunit
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir
+}

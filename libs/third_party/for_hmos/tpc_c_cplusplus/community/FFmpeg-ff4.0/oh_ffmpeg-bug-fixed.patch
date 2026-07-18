@@ -1,0 +1,438 @@
+From d076b8f13f32a3cb79cb8bacaf4b57ff93ab3637 Mon Sep 17 00:00:00 2001
+From: duanjf <605126199@qq.com>
+Date: Sat, 25 May 2024 09:43:56 +0800
+Subject: [PATCH] ffmpeg bug fixed
+
+Signed-off-by: duanjf <605126199@qq.com>
+---
+ libavcodec/idctdsp.c       |  2 +-
+ libavcodec/idctdsp.h       |  1 +
+ libavcodec/libx264.c       |  1 +
+ libavcodec/mpeg4videodec.c | 15 ++++++++++++++-
+ libavcodec/mpeg4videoenc.c |  2 +-
+ libavcodec/mpegvideo.c     |  3 +++
+ libavcodec/utils.c         | 24 +++++++++++++-----------
+ libavcodec/vqavideo.c      |  2 +-
+ libavformat/asfdec_o.c     |  2 +-
+ libavformat/flvenc.c       |  5 +++++
+ libavformat/movenc.c       |  7 ++++++-
+ libavformat/mpegts.c       | 15 ++++++++-------
+ libavformat/mxfdec.c       |  2 +-
+ libavformat/nutdec.c       | 18 +++++++++++++-----
+ libavformat/pva.c          |  4 ++++
+ libavformat/rmdec.c        |  2 +-
+ libavformat/tty.c          | 20 +++++++++++++++++++-
+ 17 files changed, 93 insertions(+), 32 deletions(-)
+
+diff --git a/libavcodec/idctdsp.c b/libavcodec/idctdsp.c
+index 662033bd78..954066a5e3 100644
+--- a/libavcodec/idctdsp.c
++++ b/libavcodec/idctdsp.c
+@@ -258,7 +258,7 @@ av_cold void ff_idctdsp_init(IDCTDSPContext *c, AVCodecContext *avctx)
+         if (avctx->bits_per_raw_sample == 10 || avctx->bits_per_raw_sample == 9) {
+             /* 10-bit MPEG-4 Simple Studio Profile requires a higher precision IDCT
+                However, it only uses idct_put */
+-            if (avctx->codec_id == AV_CODEC_ID_MPEG4 && avctx->profile == FF_PROFILE_MPEG4_SIMPLE_STUDIO)
++            if (c->mpeg4_studio_profile)
+                 c->idct_put              = ff_simple_idct_put_int32_10bit;
+             else {
+                 c->idct_put              = ff_simple_idct_put_int16_10bit;
+diff --git a/libavcodec/idctdsp.h b/libavcodec/idctdsp.h
+index 26221f6a9d..71c0d1c260 100644
+--- a/libavcodec/idctdsp.h
++++ b/libavcodec/idctdsp.h
+@@ -95,6 +95,7 @@ typedef struct IDCTDSPContext {
+      */
+     uint8_t idct_permutation[64];
+     enum idct_permutation_type perm_type;
++    int mpeg4_studio_profile;
+ } IDCTDSPContext;
+ 
+ void ff_put_pixels_clamped_c(const int16_t *block, uint8_t *av_restrict pixels,
+diff --git a/libavcodec/libx264.c b/libavcodec/libx264.c
+index 12379ff763..053dcd7877 100644
+--- a/libavcodec/libx264.c
++++ b/libavcodec/libx264.c
+@@ -1080,6 +1080,7 @@ AVCodec ff_libx264rgb_encoder = {
+     .priv_class     = &rgbclass,
+     .defaults       = x264_defaults,
+     .pix_fmts       = pix_fmts_8bit_rgb,
++    .caps_internal  = FF_CODEC_CAP_INIT_CLEANUP,
+     .wrapper_name   = "libx264",
+ };
+ #endif
+diff --git a/libavcodec/mpeg4videodec.c b/libavcodec/mpeg4videodec.c
+index 32eb3d1ca8..25a38edd7b 100644
+--- a/libavcodec/mpeg4videodec.c
++++ b/libavcodec/mpeg4videodec.c
+@@ -2848,11 +2848,13 @@ static int decode_vop_header(Mpeg4DecContext *ctx, GetBitContext *gb)
+     return 0;
+ }
+ 
+-static void read_quant_matrix_ext(MpegEncContext *s, GetBitContext *gb)
++static int read_quant_matrix_ext(MpegEncContext *s, GetBitContext *gb)
+ {
+     int i, j, v;
+ 
+     if (get_bits1(gb)) {
++        if (get_bits_left(gb) < 64*8)
++            return AVERROR_INVALIDDATA;
+         /* intra_quantiser_matrix */
+         for (i = 0; i < 64; i++) {
+             v = get_bits(gb, 8);
+@@ -2863,6 +2865,8 @@ static void read_quant_matrix_ext(MpegEncContext *s, GetBitContext *gb)
+     }
+ 
+     if (get_bits1(gb)) {
++        if (get_bits_left(gb) < 64*8)
++            return AVERROR_INVALIDDATA;
+         /* non_intra_quantiser_matrix */
+         for (i = 0; i < 64; i++) {
+             get_bits(gb, 8);
+@@ -2870,6 +2874,8 @@ static void read_quant_matrix_ext(MpegEncContext *s, GetBitContext *gb)
+     }
+ 
+     if (get_bits1(gb)) {
++        if (get_bits_left(gb) < 64*8)
++            return AVERROR_INVALIDDATA;
+         /* chroma_intra_quantiser_matrix */
+         for (i = 0; i < 64; i++) {
+             v = get_bits(gb, 8);
+@@ -2879,6 +2885,8 @@ static void read_quant_matrix_ext(MpegEncContext *s, GetBitContext *gb)
+     }
+ 
+     if (get_bits1(gb)) {
++        if (get_bits_left(gb) < 64*8)
++            return AVERROR_INVALIDDATA;
+         /* chroma_non_intra_quantiser_matrix */
+         for (i = 0; i < 64; i++) {
+             get_bits(gb, 8);
+@@ -2886,6 +2894,7 @@ static void read_quant_matrix_ext(MpegEncContext *s, GetBitContext *gb)
+     }
+ 
+     next_start_code_studio(gb);
++    return 0;
+ }
+ 
+ static void extension_and_user_data(MpegEncContext *s, GetBitContext *gb, int id)
+@@ -3090,6 +3099,10 @@ int ff_mpeg4_decode_picture_header(Mpeg4DecContext *ctx, GetBitContext *gb)
+     /* search next start code */
+     align_get_bits(gb);
+ 
++    if (!s->studio_profile && s->avctx->bits_per_raw_sample != 8) {
++        s->avctx->bits_per_raw_sample = 0;
++    }
++
+     if (s->codec_tag == AV_RL32("WV1F") && show_bits(gb, 24) == 0x575630) {
+         skip_bits(gb, 24);
+         if (get_bits(gb, 8) == 0xF0)
+diff --git a/libavcodec/mpeg4videoenc.c b/libavcodec/mpeg4videoenc.c
+index 494452c938..f6a5992df7 100644
+--- a/libavcodec/mpeg4videoenc.c
++++ b/libavcodec/mpeg4videoenc.c
+@@ -882,7 +882,7 @@ void ff_set_mpeg4_time(MpegEncContext *s)
+ 
+ static void mpeg4_encode_gop_header(MpegEncContext *s)
+ {
+-    int hours, minutes, seconds;
++    int64_t hours, minutes, seconds;
+     int64_t time;
+ 
+     put_bits(&s->pb, 16, 0);
+diff --git a/libavcodec/mpegvideo.c b/libavcodec/mpegvideo.c
+index 45ea0f09e9..ee1d7bb5f4 100644
+--- a/libavcodec/mpegvideo.c
++++ b/libavcodec/mpegvideo.c
+@@ -329,6 +329,9 @@ static av_cold int dct_init(MpegEncContext *s)
+ 
+ av_cold void ff_mpv_idct_init(MpegEncContext *s)
+ {
++    if (s->codec_id == AV_CODEC_ID_MPEG4) {
++        s->idsp.mpeg4_studio_profile = s->studio_profile;
++    }
+     ff_idctdsp_init(&s->idsp, s->avctx);
+ 
+     /* load & permutate scantables
+diff --git a/libavcodec/utils.c b/libavcodec/utils.c
+index 59d41ccbb6..42ed9e1504 100644
+--- a/libavcodec/utils.c
++++ b/libavcodec/utils.c
+@@ -1007,7 +1007,7 @@ end:
+ 
+     return ret;
+ free_and_end:
+-    if (avctx->codec &&
++    if (avctx->codec && avctx->codec->close &&
+         (avctx->codec->caps_internal & FF_CODEC_CAP_INIT_CLEANUP))
+         avctx->codec->close(avctx);
+ 
+@@ -1699,20 +1699,22 @@ static int get_audio_frame_duration(enum AVCodecID id, int sr, int ch, int ba,
+ 
+ int av_get_audio_frame_duration(AVCodecContext *avctx, int frame_bytes)
+ {
+-    return get_audio_frame_duration(avctx->codec_id, avctx->sample_rate,
+-                                    avctx->channels, avctx->block_align,
+-                                    avctx->codec_tag, avctx->bits_per_coded_sample,
+-                                    avctx->bit_rate, avctx->extradata, avctx->frame_size,
+-                                    frame_bytes);
++    int duration = get_audio_frame_duration(avctx->codec_id, avctx->sample_rate,
++                                            avctx->channels, avctx->block_align,
++                                            avctx->codec_tag, avctx->bits_per_coded_sample,
++                                            avctx->bit_rate, avctx->extradata, avctx->frame_size,
++                                            frame_bytes);
++    return FFMAX(0, duration);
+ }
+ 
+ int av_get_audio_frame_duration2(AVCodecParameters *par, int frame_bytes)
+ {
+-    return get_audio_frame_duration(par->codec_id, par->sample_rate,
+-                                    par->channels, par->block_align,
+-                                    par->codec_tag, par->bits_per_coded_sample,
+-                                    par->bit_rate, par->extradata, par->frame_size,
+-                                    frame_bytes);
++    int duration = get_audio_frame_duration(par->codec_id, par->sample_rate,
++                                            par->channels, par->block_align,
++                                            par->codec_tag, par->bits_per_coded_sample,
++                                            par->bit_rate, par->extradata, par->frame_size,
++                                            frame_bytes);
++    return FFMAX(0, duration);
+ }
+ 
+ #if !HAVE_THREADS
+diff --git a/libavcodec/vqavideo.c b/libavcodec/vqavideo.c
+index 0e70be1000..b9743abda9 100644
+--- a/libavcodec/vqavideo.c
++++ b/libavcodec/vqavideo.c
+@@ -147,7 +147,7 @@ static av_cold int vqa_decode_init(AVCodecContext *avctx)
+     }
+     s->width = AV_RL16(&s->avctx->extradata[6]);
+     s->height = AV_RL16(&s->avctx->extradata[8]);
+-    if ((ret = av_image_check_size(s->width, s->height, 0, avctx)) < 0) {
++    if ((ret = ff_set_dimensions(avctx, s->width, s->height)) < 0) {
+         s->width= s->height= 0;
+         return ret;
+     }
+diff --git a/libavformat/asfdec_o.c b/libavformat/asfdec_o.c
+index 5122e33c78..33dbbacebc 100644
+--- a/libavformat/asfdec_o.c
++++ b/libavformat/asfdec_o.c
+@@ -706,7 +706,7 @@ static int parse_video_info(AVIOContext *pb, AVStream *st)
+     st->codecpar->codec_id  = ff_codec_get_id(ff_codec_bmp_tags, tag);
+     size_bmp = FFMAX(size_asf, size_bmp);
+ 
+-    if (size_bmp > BMP_HEADER_SIZE) {
++    if (size_bmp > BMP_HEADER_SIZE && size_bmp < INT_MAX - AV_INPUT_BUFFER_PADDING_SIZE) {
+         int ret;
+         st->codecpar->extradata_size  = size_bmp - BMP_HEADER_SIZE;
+         if (!(st->codecpar->extradata = av_malloc(st->codecpar->extradata_size +
+diff --git a/libavformat/flvenc.c b/libavformat/flvenc.c
+index e8af48cb64..1f503679e2 100644
+--- a/libavformat/flvenc.c
++++ b/libavformat/flvenc.c
+@@ -879,6 +879,11 @@ static int flv_write_packet(AVFormatContext *s, AVPacket *pkt)
+     int flags = -1, flags_size, ret;
+     int64_t cur_offset = avio_tell(pb);
+ 
++    if (par->codec_type == AVMEDIA_TYPE_AUDIO && !pkt->size) {
++        av_log(s, AV_LOG_WARNING, "Empty audio Packet\n");
++        return AVERROR(EINVAL);
++    }
++
+     if (par->codec_id == AV_CODEC_ID_VP6F || par->codec_id == AV_CODEC_ID_VP6A ||
+         par->codec_id == AV_CODEC_ID_VP6  || par->codec_id == AV_CODEC_ID_AAC)
+         flags_size = 2;
+diff --git a/libavformat/movenc.c b/libavformat/movenc.c
+index 0b44fd66ea..27284df4c0 100644
+--- a/libavformat/movenc.c
++++ b/libavformat/movenc.c
+@@ -1005,7 +1005,7 @@ static int mov_write_audio_tag(AVFormatContext *s, AVIOContext *pb, MOVMuxContex
+     uint32_t tag = track->tag;
+ 
+     if (track->mode == MODE_MOV) {
+-        if (track->timescale > UINT16_MAX) {
++        if (track->timescale > UINT16_MAX || !track->par->channels) {
+             if (mov_get_lpcm_flags(track->par->codec_id))
+                 tag = AV_RL32("lpcm");
+             version = 2;
+@@ -5213,6 +5213,11 @@ int ff_mov_write_packet(AVFormatContext *s, AVPacket *pkt)
+     else
+         samples_in_chunk = 1;
+ 
++    if (samples_in_chunk < 1) {
++        av_log(s, AV_LOG_ERROR, "fatal error, input packet contains no samples\n");
++        return AVERROR_PATCHWELCOME;
++    }
++
+     /* copy extradata if it exists */
+     if (trk->vos_len == 0 && par->extradata_size > 0 &&
+         !TAG_IS_AVCI(trk->tag) &&
+diff --git a/libavformat/mpegts.c b/libavformat/mpegts.c
+index 37a6aa8bff..261c74861f 100644
+--- a/libavformat/mpegts.c
++++ b/libavformat/mpegts.c
+@@ -472,20 +472,21 @@ static MpegTSFilter *mpegts_open_section_filter(MpegTSContext *ts,
+ {
+     MpegTSFilter *filter;
+     MpegTSSectionFilter *sec;
++    uint8_t *section_buf = av_mallocz(MAX_SECTION_SIZE);
+ 
+-    if (!(filter = mpegts_open_filter(ts, pid, MPEGTS_SECTION)))
++    if (!section_buf)
+         return NULL;
++    if (!(filter = mpegts_open_filter(ts, pid, MPEGTS_SECTION))) {
++        av_free(section_buf);
++        return NULL;
++    }
+     sec = &filter->u.section_filter;
+     sec->section_cb  = section_cb;
+     sec->opaque      = opaque;
+-    sec->section_buf = av_malloc(MAX_SECTION_SIZE);
++    sec->section_buf = section_buf;
+     sec->check_crc   = check_crc;
+     sec->last_ver    = -1;
+-
+-    if (!sec->section_buf) {
+-        av_free(filter);
+-        return NULL;
+-    }
++    
+     return filter;
+ }
+ 
+diff --git a/libavformat/mxfdec.c b/libavformat/mxfdec.c
+index 7a42555562..c78e272a7e 100644
+--- a/libavformat/mxfdec.c
++++ b/libavformat/mxfdec.c
+@@ -2085,7 +2085,7 @@ static int mxf_parse_structural_metadata(MXFContext *mxf)
+                 MXFEssenceContainerData *essence_data;
+ 
+                 if (!(essence_data = mxf_resolve_strong_ref(mxf, &mxf->essence_container_data_refs[k], EssenceContainerData))) {
+-                    av_log(mxf, AV_LOG_TRACE, "could not resolve essence container data strong ref\n");
++                    av_log(mxf->fc, AV_LOG_TRACE, "could not resolve essence container data strong ref\n");
+                     continue;
+                 }
+                 if (!memcmp(component->source_package_ul, essence_data->package_ul, sizeof(UID)) && !memcmp(component->source_package_uid, essence_data->package_uid, sizeof(UID))) {
+diff --git a/libavformat/nutdec.c b/libavformat/nutdec.c
+index 27440c88d4..b9c81cccc9 100644
+--- a/libavformat/nutdec.c
++++ b/libavformat/nutdec.c
+@@ -346,9 +346,13 @@ static int decode_main_header(NUTContext *nut)
+         ret = AVERROR(ENOMEM);
+         goto fail;
+     }
+-    for (i = 0; i < stream_count; i++)
+-        avformat_new_stream(s, NULL);
+-
++    for (i = 0; i < stream_count; i++) {
++        if (!avformat_new_stream(s, NULL)) {
++            ret = AVERROR(ENOMEM);
++            goto fail;
++        }
++    }
++        
+     return 0;
+ fail:
+     av_freep(&nut->time_base);
+@@ -793,19 +797,23 @@ static int nut_read_header(AVFormatContext *s)
+     NUTContext *nut = s->priv_data;
+     AVIOContext *bc = s->pb;
+     int64_t pos;
+-    int initialized_stream_count;
++    int initialized_stream_count, ret;
+ 
+     nut->avf = s;
+ 
+     /* main header */
+     pos = 0;
++    ret = 0;
+     do {
++        if (ret == AVERROR(ENOMEM))
++            return ret;
++
+         pos = find_startcode(bc, MAIN_STARTCODE, pos) + 1;
+         if (pos < 0 + 1) {
+             av_log(s, AV_LOG_ERROR, "No main startcode found.\n");
+             goto fail;
+         }
+-    } while (decode_main_header(nut) < 0);
++    } while ((ret = decode_main_header(nut)) < 0);
+ 
+     /* stream headers */
+     pos = 0;
+diff --git a/libavformat/pva.c b/libavformat/pva.c
+index 16381db905..04ae8e2800 100644
+--- a/libavformat/pva.c
++++ b/libavformat/pva.c
+@@ -134,6 +134,10 @@ recover:
+             pes_flags              = avio_rb16(pb);
+             pes_header_data_length = avio_r8(pb);
+ 
++            if (avio_feof(pb)) {
++                return AVERROR_EOF;
++            }
++
+             if (pes_signal != 1 || pes_header_data_length == 0) {
+                 pva_log(s, AV_LOG_WARNING, "expected non empty signaled PES packet, "
+                                           "trying to recover\n");
+diff --git a/libavformat/rmdec.c b/libavformat/rmdec.c
+index ac61723c66..0216003e88 100644
+--- a/libavformat/rmdec.c
++++ b/libavformat/rmdec.c
+@@ -522,7 +522,7 @@ static int rm_read_multi(AVFormatContext *s, AVIOContext *pb,
+ 
+         size2 = avio_rb32(pb);
+         ret = ff_rm_read_mdpr_codecdata(s, s->pb, st2, st2->priv_data,
+-                                        size2, mime);
++                                        size2, NULL);
+         if (ret < 0)
+             return ret;
+     }
+diff --git a/libavformat/tty.c b/libavformat/tty.c
+index 8d48f2c45c..e85e819149 100644
+--- a/libavformat/tty.c
++++ b/libavformat/tty.c
+@@ -34,6 +34,13 @@
+ #include "internal.h"
+ #include "sauce.h"
+ 
++static int isansicode(int x)
++{
++    return x == 0x1B || x== 0x0A || x == 0x0D || (x >= 0x20 && x < 0x7f);
++}
++
++static const char tty_extensions[31] = "ans,art,asc,diz,ice,nfo,txt,vt";
++
+ typedef struct TtyDemuxContext {
+     AVClass *class;
+     int chars_per_frame;
+@@ -42,6 +49,16 @@ typedef struct TtyDemuxContext {
+     AVRational framerate; /**< Set by a private option. */
+ } TtyDemuxContext;
+ 
++static int read_probe(const AVProbeData *p)
++{
++    int cnt = 0;
++    for (int i = 0; i < p->buf_size; i++)
++        cnt += !!isansicode(p->buf[i]);
++    
++    return (cnt * 100LL / p->buf_size) * (cnt > 400) * 
++        !!av_match_ext(p->filename, tty_extensions);
++}
++
+ /**
+  * Parse EFI header
+  */
+@@ -153,8 +170,9 @@ AVInputFormat ff_tty_demuxer = {
+     .name           = "tty",
+     .long_name      = NULL_IF_CONFIG_SMALL("Tele-typewriter"),
+     .priv_data_size = sizeof(TtyDemuxContext),
++    .read_probe     = read_probe,
+     .read_header    = read_header,
+     .read_packet    = read_packet,
+-    .extensions     = "ans,art,asc,diz,ice,nfo,txt,vt",
++    .extensions     = tty_extensions,
+     .priv_class     = &tty_demuxer_class,
+ };
+-- 
+2.43.0.windows.1
+

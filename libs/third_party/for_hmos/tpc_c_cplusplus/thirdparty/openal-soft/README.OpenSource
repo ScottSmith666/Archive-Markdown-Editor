@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "openal-soft",
+        "License": "LGPL-2.0",
+        "License File": "https://github.com/kcat/openal-soft/blob/master/COPYING",
+        "Version Number": "1.24.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/kcat/openal-soft/archive/refs/tags/1.24.3.tar.gz",
+        "Description": "OpenAL Soft is a software implementation of the OpenAL 3D audio API."
+    },
+    {
+        "Name": "pulseaudio",
+        "License": "LGPL-2.1-or-later",
+        "License File": "https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/blob/stable-16.x/LICENSE",
+        "Version Number": "v16.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git",
+        "Description": "PulseAudio is a sound server system for POSIX OSes, meaning that it is a proxy for your sound applications."
+    },
+    {
+        "Name": "libsndfile",
+        "License": "LGPL-2.1-only",
+        "License File": "https://github.com/libsndfile/libsndfile/blob/master/COPYING",
+        "Version Number": "1.2.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libsndfile/libsndfile/archive/refs/tags/1.2.0.tar.gz",
+        "Description": "libsndfile is a C library for reading and writing files containing sampled audio data."
+    }
+]

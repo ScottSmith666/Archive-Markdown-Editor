@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "xz",
+        "License": "Public Domain and LGPL-2.1 and GPL-2.0 and GPL-3.0",
+        "License File": ["https://github.com/tukaani-project/xz/blob/v5.4/COPYING","https://github.com/tukaani-project/xz/blob/v5.4/COPYING.GPLv2",
+                        "https://github.com/tukaani-project/xz/blob/v5.4/COPYING.GPLv3","https://github.com/tukaani-project/xz/blob/v5.4/COPYING.LGPLv2.1"],
+        "Version Number": "5.4.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/tukaani-project/xz/releases/download/v5.4.1/xz-5.4.1.tar.gz",
+        "Description": "XZ Utils is free general-purpose data compression software with a high compression ratio. "
+    }
+]

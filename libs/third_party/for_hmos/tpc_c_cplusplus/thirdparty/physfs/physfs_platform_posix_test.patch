@@ -1,0 +1,53 @@
+diff --git a/src/physfs_platform_posix.c b/src/physfs_platform_posix.c
+index 7ba5e10..20f0214 100644
+--- a/src/physfs_platform_posix.c
++++ b/src/physfs_platform_posix.c
+@@ -21,6 +21,11 @@
+ #include <fcntl.h>
+ #include <pthread.h>
+ 
++#ifdef __OHOS__
++#include <libgen.h>
++#include <stdlib.h>
++#include <string.h>
++#endif
+ #include "physfs_internal.h"
+ 
+ 
+@@ -83,10 +88,36 @@ static char *getUserDirByUID(void)
+ } /* getUserDirByUID */
+ 
+ 
++#ifdef __OHOS__
++void createDirectoryIfMissing(const char* path) {
++    char* pathCopy =  strdup(path);
++    if (!pathCopy) return;
++    char* parentDir = dirname(pathCopy); // 获取父目录路径
++
++    // 检查父目录是否存在
++    if (access(parentDir, F_OK) != 0) {
++        createDirectoryIfMissing(parentDir); // 递归创建父目录
++    }
++
++    if (access(path, F_OK) != 0) {
++        mkdir(path, 0755);
++    }
++    
++    allocator.Free(pathCopy);
++}
++#endif
++
+ char *__PHYSFS_platformCalcUserDir(void)
+ {
+     char *retval = NULL;
++#ifdef __OHOS__   /*If the device type is OHOS,  set the environment variable path directly*/
++    const char *envr = "/data/storage/el2/base/haps/entry/files/physfs";
++        if (access(envr, F_OK) != 0) {
++                createDirectoryIfMissing(envr);
++        }
++#else
+     char *envr = getenv("HOME");
++#endif
+ 
+     /* if the environment variable was set, make sure it's really a dir. */
+     if (envr != NULL)

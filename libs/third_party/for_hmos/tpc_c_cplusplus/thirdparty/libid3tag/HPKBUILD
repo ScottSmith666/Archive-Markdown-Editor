@@ -1,0 +1,105 @@
+# Contributor: luozhu <1393302983@qq.com>
+# Maintainer: luozhu <1393302983@qq.com>
+pkgname=libid3tag
+pkgver=0.15.1b
+pkgrel=0
+pkgdesc="libid3tag is a library for reading and writing ID3 tags."
+url="https://github.com/audacity/libid3tag"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0-only")
+depends=()
+makedepends=("wget")
+
+source="https://launchpadlibrarian.net/414577184/"$pkgname"_"$pkgver".orig.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+downloadconfigflag=true
+patchflag=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+
+prepare() {
+    if [ $patchflag == true ];then
+        cd $builddir
+        # 该库由于没有测试用例，所以打patch新增测试用例
+        patch -p1 < $PKGBUILD_ROOT/libid3tag_oh_pkg.patch > $publicbuildlog  2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+   
+    if [ $downloadconfigflag == true ];then
+        # 获取最新的config.sub和config.guess以支持aarch64架构编译
+        wget -O $builddir/config.sub "git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" >> $publicbuildlog  2>&1
+        ret=$?
+        if [ $ret -ne 0 ];then
+            return -1
+        fi
+        wget -O $builddir/config.guess "git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" >> $publicbuildlog  2>&1
+        ret=$?
+        if [ $ret -ne 0 ];then
+            return -2
+        fi
+        downloadconfigflag=false
+    fi
+
+    cp -rfp $builddir $pkgname-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "$ARCH not support!"
+        return -3
+    fi
+}
+
+build() {
+    cd $pkgname-$ARCH-build
+    ./configure "$@" --host=$host --enable-static > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build
+    $MAKE install VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    # 由于没有测试用例，所以自己写了个简单的测试用例libid3tag_oh_test.c，编译如下
+    cd $pkgname-$ARCH-build
+    $CC -L ./.libs/ -lid3tag -o id3tag_oh_test libid3tag_oh_test.c
+    cd $OLDPWD
+
+    unset host
+    if [ $ARCH == "armeabi-v7a" ];then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ];then
+        unsetarm64ENV
+    else
+        echo "$ARCH not support!"
+        return -4
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # # ./id3tag_oh_test
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $pkgname-armeabi-v7a-build  $pkgname-arm64-v8a-build #${PWD}/$packagename
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <oatconfig>
+        <filefilterlist>
+            <filefilter name="copyrightPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="SHA512SUM" desc="SHA512SUM文件，不添加版权头"/>
+                <filteritem type="filename" name="replace_sed.sh" desc="replace_sed.sh修改测试用例内部sed命令路径脚本，不添加版权头"/>
+            </filefilter>
+            <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="SHA512SUM" desc="SHA512SUM文件，不添加版权头"/>
+                <filteritem type="filename" name="replace_sed.sh" desc="replace_sed.sh修改测试用例内部sed命令路径脚本，不添加版权头"/>
+            </filefilter>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="*.png" desc="指导文档需要的png图片"/>
+            </filefilter>
+        </filefilterlist>
+    </oatconfig>
+</configuration>

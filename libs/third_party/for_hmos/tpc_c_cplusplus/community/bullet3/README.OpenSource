@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "bullet3",
+        "License": "Zlib License",
+        "License File": "https://github.com/bulletphysics/bullet3/blob/master/LICENSE.txt",
+        "Version Number": "3.22",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/bulletphysics/bullet3",
+        "Description": "It is a real-time collision detection and multi-physics simulation for VR, games, visual effects, robotics, machine learning etc."
+    }
+]

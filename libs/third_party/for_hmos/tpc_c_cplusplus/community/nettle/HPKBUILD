@@ -1,0 +1,89 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhongluping <278527840@qq.com>
+# Maintainer: zhongluping <278527840@qq.com>
+pkgname=nettle
+pkgver=3.4.1
+pkgrel=0
+pkgdesc="Nettle is a cryptographic library that is designed to fit easily in more or less any context: In crypto toolkits for object-oriented languages(C++, Python, Pike, ...), in applications like LSH or GNUPG, or even in kernel space"
+url="https://ftp.gnu.org/gnu/nettle"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("lgpl-2.0")
+depends=("gmp")
+makedepends=()
+
+source="https://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        return -1
+    fi
+
+    return 0
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    ../configure "$@" --host=$host --enable-mini-gmp --enable-public-key --enable-shared > $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+    unset host
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        return -1
+    fi
+
+    echo "The test must be on an OpenHarmony device!"
+    return 0
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

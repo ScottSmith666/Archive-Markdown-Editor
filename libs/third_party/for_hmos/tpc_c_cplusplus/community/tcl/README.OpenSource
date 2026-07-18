@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "tcl",
+        "License": "TCL/TK License",
+        "License File": "https://www.tcl.tk/software/tcltk/license.html",
+        "Version Number": "8.6.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/tcl/files/Tcl/8.6.13/tcl8.6.13-src.tar.gz",
+        "Description": "Tool Command Language (Tcl) is an interpreted language and very portable interpreter for that language. Tcl is embeddable and extensible, and has been widely used since its creation in 1988 by John Ousterhout."
+    },
+    {
+        "Name": "bzip2_1_0_8",
+        "License": "bzip2-1.0.6",
+        "License File": "https://sourceforge.net/p/bzip2/bzip2/ci/bzip2-1_0_6/tree/LICENSE",
+        "Version Number": "1.0.8",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://sourceware.org/git/bzip2",
+        "Description": "bzip2 is a freely available, patent free (see below), high-quality data compressor. It typically compresses files to within 10% to 15% of the best available techniques (the PPM family of statistical compressors), whilst being around twice as fast at compression and six times faster at decompression."
+    }
+]

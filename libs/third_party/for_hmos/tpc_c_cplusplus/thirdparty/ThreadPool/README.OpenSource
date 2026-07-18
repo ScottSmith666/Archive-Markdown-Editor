@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "ThreadPool",
+        "License": "zlib License",
+        "License File": "COPYING",
+        "Version Number": "ThreadPool-9a42ec1329f259a5f4881a291db1dcb8f2ad9040",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/progschj/threadpool",
+        "Description": "ThreadPool is A simple C++11 Thread Pool implementation."
+    }
+]

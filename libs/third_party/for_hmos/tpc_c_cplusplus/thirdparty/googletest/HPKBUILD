@@ -1,0 +1,61 @@
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=googletest
+pkgver=v1.13.0
+pkgrel=0
+pkgdesc="googletest是由谷歌的测试技术团队开发的测试框架，使用c++实现，具有跨平台等特性。"
+url="https://github.com/google/googletest" #
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("BSD-3-Clause license")
+source="https://gitee.com/mirrors/$pkgname/repository/archive/$pkgver.zip" # "https://github.com/google/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+patchflag=true
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+
+prepare() {
+    if $patchflag
+    then
+       cd $builddir
+       # 该patch 修改不能访问的/tmp 目录为 /data/local/tmp
+       patch -p1 < ../googletest_ohos_test.patch
+       cd $OLDPWD
+       patchflag=false
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -DBUILD_GMOCK=ON -Dgtest_build_tests=ON -Dgmock_build_tests=ON -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    # 对最关键一步的退出码进行判断
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 安装打包
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # ctest
+    # 在oh环境中运行当前库的测试套，涉及到python的测试用例无法运行，
+    # 原因是没有python环境，就算有python环境，能够运行，也会因为缺失python依赖的资源导致报错。
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

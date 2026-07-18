@@ -1,0 +1,88 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: maoshanshan5@h-partners.com
+# Maintainer: huangminzhong2@huawei.com
+pkgname=rapidjson 
+pkgver=master # Releases版本过久，使用master版本
+pkgrel=0 
+pkgdesc="A fast JSON parser/generator for C++ with both SAX/DOM style API" 
+url="https://rapidjson.org/" 
+archs=("armeabi-v7a" "arm64-v8a" "x86_64") 
+license=("MIT license" "JSON License")
+depends=("googletest_1.11.0") 
+makedepends=() 
+source="https://github.com/Tencent/$pkgname.git"
+commitid=6089180ecb704cb2b136777798fa1be303618975
+autounpack=false
+downloadpackage=false
+builddir=$pkgname-${commitid}
+buildtools="cmake"
+packagename=
+cloneflag=true
+
+patchflag=true
+
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone -b $pkgver $source $builddir
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid
+        if [ $? -ne 0 ]
+        then
+            return -2
+        fi
+        cd $OLDPWD
+        cloneflag=false
+    fi
+    mkdir -p $builddir/$ARCH-build
+
+    if [ "$patchflag" == true ]
+    then
+        cd $builddir
+        # 该patch将/tmp路径修改为/data/local/tmp路径，将L_tmpnam宏替换为固定的128,将test/unittest中的CMakeFile.txt的add_test(NAME valgrind_unittest ...)注释
+        patch -p1 < ../rapidjson_oh_test.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    cd $builddir 
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DGTEST_SOURCE_DIR="$LYCIUM_ROOT/../community/googletest_1.11.0/googletest-release-1.11.0" -DCMAKE_CXX_FLAGS="-Wno-unused-command-line-argument -Wno-deprecated-declarations -Wno-unknown-warning-option" -B${ARCH}-build -S./ > $buildlog 2>&1   
+    $MAKE -C $ARCH-build
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

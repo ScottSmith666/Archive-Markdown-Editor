@@ -1,0 +1,1 @@
+CKEDITOR.plugins.setLang("purify","zh-cn",{pasteKeepTagOnly:"只保留标签",pasteKeepTextOnly:"只保留文本"});

@@ -1,0 +1,145 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, wen fan <wenfan001@chinasoftinc.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+# 开始测试
+test() {
+    mobitool="./tools/mobitool"
+    mobidrm="./tools/mobidrm"
+    tmp="./tmp"
+    ret=0
+    samplepath="../tests/samples/${1}"
+    ltk="-p LTKULBB*5V"
+
+    # 1
+    if [[ "${1: -18}" == "LTKULBB^5V-v2.mobi" ]]
+    then
+        echo "[ Running ${mobitool} -o ${tmp} -s ${ltk} ${samplepath} ]"
+        ${mobitool} -o ${tmp} -s ${ltk} ${samplepath} || return -1
+    else
+        echo "[ Running ${mobitool} -o ${tmp} -s ${samplepath} ]"
+        ${mobitool} -o ${tmp} -s ${samplepath} || return -1
+    fi
+
+    # 2
+    if [[ "${1: -18}" == "LTKULBB^5V-v2.mobi" ]]
+    then
+        echo "[ Running ${mobitool} -o ${tmp} -d ${ltk} ${samplepath} ]"
+        ${mobitool} -o ${tmp} -d ${ltk} ${samplepath} || return -1
+    else
+        echo "[ Running ${mobitool} -o ${tmp} -d ${samplepath} ]"
+        ${mobitool} -o ${tmp} -d ${samplepath} || return -1
+    fi
+
+    # 3
+    if [ "${1: -18}" == "LTKULBB^5V-v2.mobi" ]
+    then
+        echo "[ Running ${mobidrm} -o ${tmp} -d ${ltk} ${samplepath} ]"
+        ${mobidrm} -o ${tmp} -d ${ltk} ${samplepath} || return -1
+    elif [ "${1: -11}" == "drm-v1.mobi" ]
+    then
+        echo "[ Running ${mobidrm} -o ${tmp} -d ${samplepath} ]"
+        ${mobidrm} -o ${tmp} -d ${samplepath} || return -1
+    else
+        echo "[ Running ${mobidrm} -o ${tmp} -e -s B001XXXXXXXXXXXX ${samplepath} ]"
+        ${mobidrm} -o ${tmp} -e -s B001XXXXXXXXXXXX ${samplepath} || return -1
+    fi
+
+    # 4
+    if [ "${1: -11}" == "drm-v1.mobi" ]
+    then
+        echo "[ Running ${mobitool} -o ${tmp} -s \"tmp/sample-drm-v1-decrypted.mobi\" ]"
+        ${mobitool} -o ${tmp} -s "tmp/sample-drm-v1-decrypted.mobi" || return -1
+    else
+        echo "[ Running ${mobitool} -o ${tmp} -s -P B001XXXXXXXXXXXX ${samplepath} ]"
+        ${mobitool} -o ${tmp} -s -P B001XXXXXXXXXXXX ${samplepath} || return -1
+    fi
+    # 5
+    if [[ "${1:0:14}" == "sample-unicode" ]]
+    then
+        unitmp="${1%?????}-encrypted.azw3"
+        echo "[ Running ${mobitool} -o ${tmp} -s -P B001XXXXXXXXXXXX \"tmp/${unitmp}\" ]"
+        ${mobitool} -o ${tmp} -s -P B001XXXXXXXXXXXX "tmp/${unitmp}" || return -1
+    fi
+
+    return 0
+}
+
+# 循环测试每个文件
+start() {
+    GREEN="\033[0;32m"
+    RED="\033[0;31m"
+    NC="\033[0m"
+
+    declare -i all=0
+    declare -i fail=0
+    declare -i pass=0
+    declare -i xfail=0
+
+    samplePath="../tests/samples/"
+    echo "" > ${logfile} 2>&1
+    mkdir tmp
+    for sample in `ls ${samplePath}`
+    do
+        test ${sample} >> ${logfile} 2>&1
+        if [ $? -eq 0 ]
+        then
+            echo -e ${GREEN}PASS ${NC}${sample} >> ${logfile} 2>&1
+            pass=${pass}+1
+        else
+            if [[ "${sample: -5}" == ".fail" ]]
+            then
+                echo -e ${GREEN}XFAIL ${NC}${sample} >> ${logfile} 2>&1
+                xfail=${xfail}+1
+            else
+                echo -e ${RED}FAIL ${NC}${sample} >> ${logfile} 2>&1
+                fail=${fail}+1
+            fi
+        fi
+        all=${all}+1
+    done
+
+    rm -rf tmp
+
+    echo "TOATLLY: "${all} >> ${logfile} 2>&1
+    echo -e ${GREEN}"PASS: "${NC}${pass} >> ${logfile} 2>&1
+    echo -e ${GREEN}"XFAIL: "${NC}${xfail} >> ${logfile} 2>&1
+    echo -e ${RED}"FAIL: "${NC}${fail} >> ${logfile} 2>&1
+
+    declare -i full=${pass}+${xfail}
+
+    if [ ${all} == ${full} ]
+    then
+        return 0
+    else
+        return 1
+    fi
+}
+
+checkprepare() {
+    return 0
+}
+
+openharmonycheck() {
+    cd $builddir/$ARCH-build
+    # palmdoc和Mobipocket格式的电子书文件都能通过测试
+    start
+    ret=$?
+    cd ${OLDPWD}
+    return $ret
+}

@@ -1,0 +1,12 @@
+diff -urN yyjson-0.6.0_old/CMakeLists.txt yyjson-0.6.0/CMakeLists.txt
+--- yyjson-0.6.0_old/CMakeLists.txt	2022-12-12 19:15:37.000000000 +0800
++++ yyjson-0.6.0/CMakeLists.txt	2024-10-16 18:53:21.472406536 +0800
+@@ -21,7 +21,7 @@
+ 
+ # ------------------------------------------------------------------------------
+ # Build Options for tests and docs
+-option(YYJSON_BUILD_TESTS "Build all tests" OFF)
++option(YYJSON_BUILD_TESTS "Build all tests" ON)
+ option(YYJSON_BUILD_FUZZER "Build fuzzer" OFF)
+ option(YYJSON_BUILD_MISC "Build misc" OFF)
+ option(YYJSON_BUILD_DOC "Build documentation with doxygen" OFF)

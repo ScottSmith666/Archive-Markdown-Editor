@@ -1,0 +1,105 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=libpng
+pkgver=1.6.56
+pkgrel=0
+pkgdesc=""
+url=""
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("PNG Reference Library License version 2")
+depends=()
+makedepends=()
+install=
+
+# 官方下载地址source="https://sourceforge.net/projects/$pkgname/files/libpng16/$pkgver/$pkgname-$pkgver.tar.xz"受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://download.sourceforge.net/libpng/libpng-${pkgver}.tar.xz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=libpng-${pkgver}.tar.xz
+
+source envset.sh
+host=
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" CFLAGS="-fstack-protector-strong" LDFLAGS="-Wl,-s" ../configure "$@" \
+    --host=$host --enable-shared --enable-static > $buildlog 2>&1
+    # 修改导致测试失败的字符串
+    find . -name Makefile -exec sed -i 's#mawk#awk#' {} +
+    find . -name Makefile -exec sed -i 's#/bin/bash#bash#' {} +
+    find . -name Makefile -exec sed -i 's#/usr/bin/sed#/bin/sed#' {} +
+    find . -name Makefile -exec sed -i 's#/usr/bin/mkdir#mkdir#' {} +
+    ret=-1
+    if [ $LYCIUM_BUILD_OS == "CYGWI" ]
+    then
+        $MAKE libpng16.la >> $buildlog 2>&1
+        ret=$?
+    else
+        $MAKE >> $buildlog 2>&1
+        ret=$?
+    fi
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    ret=-1
+    if [ $LYCIUM_BUILD_OS == "CYGWI" ]
+    then   
+        $MAKE install-libLTLIBRARIES >> $buildlog 2>&1
+        $MAKE install-library-links >> $buildlog 2>&1
+        $MAKE install-pkgincludeHEADERS >> $buildlog 2>&1
+        $MAKE install-header-links >> $buildlog 2>&1
+        $MAKE install-pkgconfigDATA >> $buildlog 2>&1
+        ret=$?
+    else
+        $MAKE install >> $buildlog 2>&1
+        ret=$?
+    fi
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    $MAKE pngtest pngunknown pngstest pngvalid pngimage pngcp timepng >> $buildlog 2>&1
+    sed -i 's#/bin/bash#/bin/env bash#' pngtest pngunknown pngstest pngvalid pngimage pngcp timepng
+    sed -i '/.*check-TESTS: $(check_PROGRAMS)/c\check-TESTS: #$(check_PROGRAMS)' Makefile
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+    echo "The test must be on an OpenHarmony device!"
+    # test CMD
+    # make check-TESTS
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

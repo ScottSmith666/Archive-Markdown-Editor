@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "gzip",
+        "License": "GPL 3.0",
+        "License File": "https://www.gnu.org/licenses/gpl-3.0.html",
+        "Version Number": "1.13",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://ftp.gnu.org/gnu/gzip/gzip-1.13.tar.gz",
+        "Description": "gzip (GNU zip) is a compression utility designed to be a replacement for compress."
+    }
+]

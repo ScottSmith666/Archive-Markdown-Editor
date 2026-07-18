@@ -1,0 +1,13 @@
+#原来的宏P_tmpdir在标准库里为/tmp，直接将其替换为/data/local/tmp
+diff -Nura taglib-1.13.1/tests/utils.h taglib_patch/tests/utils.h
+--- taglib-1.13.1/tests/utils.h	2023-07-01 13:43:27.000000000 +0800
++++ taglib_patch/tests/utils.h	2024-08-17 16:07:52.210885054 +0800
+@@ -59,7 +59,7 @@
+   GetTempPathA(sizeof(tempDir), tempDir);
+   wsprintfA(testFileName, "%s\\taglib-test%s", tempDir, ext.c_str());
+ #else
+-  snprintf(testFileName, sizeof(testFileName), "/%s/taglib-test%s", P_tmpdir, ext.c_str());
++  snprintf(testFileName, sizeof(testFileName), "/%s/taglib-test%s", "data/local/tmp", ext.c_str());
+ #endif
+ 
+   string sourceFileName = testFilePath(filename) + ext;

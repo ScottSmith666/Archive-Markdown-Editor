@@ -1,0 +1,21 @@
+diff -rupN x265_4.1/source/CMakeLists.txt x265_4.1_patched/source/CMakeLists.txt
+--- x265_4.1/source/CMakeLists.txt	2024-11-22 20:07:34.000000000 +0800
++++ x265_4.1_patched/source/CMakeLists.txt	2025-02-22 10:05:18.435052973 +0800
+@@ -88,7 +88,7 @@ elseif(ARM64MATCH GREATER "-1")
+     option(AARCH64_WARNINGS_AS_ERRORS "Build with -Werror for AArch64 Intrinsics files" OFF)
+ 
+     option(AARCH64_RUNTIME_CPU_DETECT "Enable AArch64 run-time CPU feature detection" ON)
+-    if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|Darwin|Windows")
++    if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|Darwin|Windows|OHOS")
+         set(AARCH64_RUNTIME_CPU_DETECT OFF CACHE BOOL "" FORCE)
+         message(STATUS "Run-time CPU feature detection unsupported on this platform")
+     endif()
+@@ -296,7 +296,7 @@ if(GCC)
+             set(CPU_HAS_SVE 1)
+             set(CPU_HAS_SVE2 1)
+         else()
+-            if(CMAKE_SYSTEM_NAME MATCHES "Linux|Darwin")
++		   if(CMAKE_SYSTEM_NAME MATCHES "Linux|Darwin|OHOS")
+                 find_package(NEON_DOTPROD)
+                 find_package(NEON_I8MM)
+                 find_package(SVE)

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libunibreak",
+        "License": "zlib License",
+        "License File": "https://github.com/adah1972/libunibreak/blob/master/LICENCE",
+        "Version Number": "libunibreak_5_1",
+        "Owner": "614222069@qq.com",
+        "Upstream URL": "https://github.com/adah1972/libunibreak/archive/refs/tags/libunibreak_5_1.tar.gz",
+        "Description": "Libunibreak is an implementation of the line break and word segmentation algorithms described in Unicode Standard Annex 14 and Unicode Standard Annex 29. It is designed for use with a universal text renderer."
+    }
+]

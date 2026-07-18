@@ -1,0 +1,1578 @@
+diff --git a/.gitignore b/.gitignore
+index 1932169f96..ed0649e97c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,4 +1,5 @@
+ /client-py/
++ohos_sdk
+ *.bak
+ *.code-workspace
+ *.mk
+diff --git a/BUILD.gn b/BUILD.gn
+index 710257cbb8..b6f626ecb1 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -82,6 +82,13 @@ if (is_official_build) {
+ group("gn_all") {
+   testonly = true
+ 
++  if (is_ohos) {
++    deps = [ "//components/cronet:cronet",
++             "//components/cronet:cronet_sample",
++             "//components/cronet:cronet_sample_test",
++
++           ]
++  } else {
+   deps = [
+     ":gn_visibility",
+     "//base:base_perftests",
+@@ -881,6 +888,7 @@ group("gn_all") {
+   if (enable_rust) {
+     deps += [ "//testing/rust_gtest_interop:rust_gtest_interop_unittests" ]
+   }
++  }
+ }
+ 
+ # This group and the following exist to give targets for the waterfall to refer to.
+diff --git a/ash/webui/camera_app_ui/resources/cca b/ash/webui/camera_app_ui/resources/cca
+deleted file mode 120000
+index 45cf2b3b34..0000000000
+--- a/ash/webui/camera_app_ui/resources/cca
++++ /dev/null
+@@ -1 +0,0 @@
+-utils/cca.py
+\ No newline at end of file
+diff --git a/base/BUILD.gn b/base/BUILD.gn
+index 60fdc3b8e4..56ba9201ad 100644
+--- a/base/BUILD.gn
++++ b/base/BUILD.gn
+@@ -162,7 +162,7 @@ buildflag_header("ios_cronet_buildflags") {
+   flags = [ "CRONET_BUILD=$is_cronet_build" ]
+ }
+ 
+-enable_message_pump_epoll = is_linux || is_chromeos || is_android
++enable_message_pump_epoll = is_linux || is_chromeos || is_android || is_ohos
+ buildflag_header("message_pump_buildflags") {
+   header = "message_pump_buildflags.h"
+   header_dir = "base/message_loop"
+@@ -1034,6 +1034,13 @@ mixed_component("base") {
+       "threading/thread_local_storage_posix.cc",
+       "timer/hi_res_timer_manager_posix.cc",
+     ]
++    cflags_cc = [
++      "-Wno-shorten-64-to-32",
++      "-Wno-sign-compare",
++      "-Wno-sign-conversion",
++      "-Wno-c++11-narrowing",
++      "-g",
++    ]
+ 
+     if (!is_nacl && !is_apple) {
+       sources += [
+@@ -1395,6 +1402,12 @@ mixed_component("base") {
+     ]
+   }
+ 
++  if (is_ohos) {
++    sources += [
++      "threading/platform_thread_ohos.cc",
++    ]
++  }
++
+   if (is_linux || is_chromeos) {
+     sources += [
+       "debug/proc_maps_linux.cc",
+@@ -1413,7 +1426,7 @@ mixed_component("base") {
+     ]
+   }
+ 
+-  if (is_linux || is_chromeos || is_android || is_fuchsia) {
++  if (is_linux || is_chromeos || is_android || is_fuchsia || is_ohos) {
+     sources += [
+       "files/file_path_watcher_inotify.cc",
+       "files/file_path_watcher_inotify.h",
+@@ -1453,7 +1466,7 @@ mixed_component("base") {
+       sources += [ "base_paths_posix.h" ]
+     }
+ 
+-    if (is_linux || is_chromeos) {
++    if (is_linux || is_chromeos || is_ohos) {
+       sources += [
+         "base_paths_posix.cc",
+         "debug/elf_reader.cc",
+@@ -2179,6 +2192,12 @@ mixed_component("base") {
+     ]
+   }
+ 
++  if (is_ohos) {
++    sources += [
++      "system/sys_info_linux.cc",
++    ]
++  }
++
+   # Linux.
+   if (is_linux || is_chromeos) {
+     # TODO(brettw) this will need to be parameterized at some point.
+@@ -3780,12 +3799,13 @@ test("base_unittests") {
+       "allocator/partition_allocator/thread_cache_unittest.cc",
+     ]
+ 
+-    if ((is_android || is_linux) && target_cpu == "arm64") {
++    if ((is_android || is_linux || is_ohos) && target_cpu == "arm64") {
+       cflags = [
+         "-Xclang",
+         "-target-feature",
+         "-Xclang",
+         "+mte",
++        "-g",
+       ]
+     }
+ 
+diff --git a/base/allocator/partition_allocator/partition_alloc_base/threading/platform_thread_posix.cc b/base/allocator/partition_allocator/partition_alloc_base/threading/platform_thread_posix.cc
+index 2c00380f99..5e97ca8380 100644
+--- a/base/allocator/partition_allocator/partition_alloc_base/threading/platform_thread_posix.cc
++++ b/base/allocator/partition_allocator/partition_alloc_base/threading/platform_thread_posix.cc
+@@ -105,7 +105,7 @@ PlatformThreadId PlatformThread::CurrentId() {
+ #endif
+   }
+   return g_thread_id;
+-#elif BUILDFLAG(IS_ANDROID)
++#elif BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+   // Note: do not cache the return value inside a thread_local variable on
+   // Android (as above). The reasons are:
+   // - thread_local is slow on Android (goes through emutls)
+diff --git a/base/base_paths_posix.cc b/base/base_paths_posix.cc
+index 046b05bf25..092fb0e3eb 100644
+--- a/base/base_paths_posix.cc
++++ b/base/base_paths_posix.cc
+@@ -38,7 +38,7 @@ bool PathProviderPosix(int key, FilePath* result) {
+   switch (key) {
+     case FILE_EXE:
+     case FILE_MODULE: {  // TODO(evanm): is this correct?
+-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
++#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_OHOS)
+       FilePath bin_dir;
+       if (!ReadSymbolicLink(FilePath(kProcSelfExe), &bin_dir)) {
+         NOTREACHED() << "Unable to resolve " << kProcSelfExe << ".";
+diff --git a/base/cpu.h b/base/cpu.h
+index 2cb4c67fd6..dc3f9d929f 100644
+--- a/base/cpu.h
++++ b/base/cpu.h
+@@ -107,7 +107,7 @@ class BASE_EXPORT CPU final {
+ #endif
+   const std::string& cpu_brand() const { return cpu_brand_; }
+ 
+-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || \
++#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_OHOS) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || \
+     BUILDFLAG(IS_AIX)
+   enum class CoreType {
+     kUnknown = 0,
+diff --git a/base/files/file.h b/base/files/file.h
+index c252375ecd..fed0ecc56b 100644
+--- a/base/files/file.h
++++ b/base/files/file.h
+@@ -8,6 +8,8 @@
+ #include <stdint.h>
+ 
+ #include <string>
++#include <sys/stat.h>
++#include <sys/types.h>
+ 
+ #include "base/base_export.h"
+ #include "base/containers/span.h"
+diff --git a/base/files/important_file_writer_cleaner.cc b/base/files/important_file_writer_cleaner.cc
+index 2a2b4ccea5..2d4f250baf 100644
+--- a/base/files/important_file_writer_cleaner.cc
++++ b/base/files/important_file_writer_cleaner.cc
+@@ -25,7 +25,7 @@ namespace base {
+ namespace {
+ 
+ base::Time GetUpperBoundTime() {
+-#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS) || BUILDFLAG(IS_FUCHSIA)
++#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS) || BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(IS_OHOS)
+   // If process creation time is not available then use instance creation
+   // time as the upper-bound for old files. Modification times may be
+   // rounded-down to coarse-grained increments, e.g. FAT has 2s granularity,
+diff --git a/base/message_loop/message_pump_for_ui.h b/base/message_loop/message_pump_for_ui.h
+index e0abe310cf..30d4d08f53 100644
+--- a/base/message_loop/message_pump_for_ui.h
++++ b/base/message_loop/message_pump_for_ui.h
+@@ -20,7 +20,7 @@
+ // No MessagePumpForUI, see below.
+ #elif defined(USE_GLIB)
+ #include "base/message_loop/message_pump_glib.h"
+-#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_BSD)
++#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_BSD) || BUILDFLAG(IS_OHOS)
+ #include "base/message_loop/message_pump_libevent.h"
+ #elif BUILDFLAG(IS_FUCHSIA)
+ #include "base/message_loop/message_pump_fuchsia.h"
+@@ -44,7 +44,7 @@ using MessagePumpForUI = MessagePump;
+ // TODO(abarth): Figure out if we need this.
+ #elif defined(USE_GLIB)
+ using MessagePumpForUI = MessagePumpGlib;
+-#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_BSD)
++#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_BSD) || BUILDFLAG(IS_OHOS)
+ using MessagePumpForUI = MessagePumpLibevent;
+ #elif BUILDFLAG(IS_FUCHSIA)
+ using MessagePumpForUI = MessagePumpFuchsia;
+diff --git a/base/process/launch_posix.cc b/base/process/launch_posix.cc
+index beaf1529b0..635748a498 100644
+--- a/base/process/launch_posix.cc
++++ b/base/process/launch_posix.cc
+@@ -207,7 +207,7 @@ static const char kFDDir[] = "/dev/fd";
+ static const char kFDDir[] = "/dev/fd";
+ #elif BUILDFLAG(IS_OPENBSD)
+ static const char kFDDir[] = "/dev/fd";
+-#elif BUILDFLAG(IS_ANDROID)
++#elif BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+ static const char kFDDir[] = "/proc/self/fd";
+ #endif
+ 
+diff --git a/base/process/process_metrics.cc b/base/process/process_metrics.cc
+index b6de7e1451..f18c158009 100644
+--- a/base/process/process_metrics.cc
++++ b/base/process/process_metrics.cc
+@@ -54,7 +54,7 @@ SystemMetrics SystemMetrics::Sample() {
+   SystemMetrics system_metrics;
+ 
+   system_metrics.committed_memory_ = GetSystemCommitCharge();
+-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
++#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+   GetSystemMemoryInfo(&system_metrics.memory_info_);
+   GetVmStatInfo(&system_metrics.vmstat_info_);
+   GetSystemDiskInfo(&system_metrics.disk_info_);
+@@ -73,7 +73,7 @@ Value SystemMetrics::ToValue() const {
+   Value res(Value::Type::DICTIONARY);
+ 
+   res.SetIntKey("committed_memory", static_cast<int>(committed_memory_));
+-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
++#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+   Value meminfo = memory_info_.ToValue();
+   Value vmstat = vmstat_info_.ToValue();
+   meminfo.MergeDictionary(&vmstat);
+diff --git a/base/process/process_metrics.h b/base/process/process_metrics.h
+index 8a8ebe336e..a5bd2f5ecb 100644
+--- a/base/process/process_metrics.h
++++ b/base/process/process_metrics.h
+@@ -347,7 +347,7 @@ BASE_EXPORT void IncreaseFdLimitTo(unsigned int max_descriptors);
+ 
+ #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_LINUX) ||      \
+     BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_AIX) || \
+-    BUILDFLAG(IS_FUCHSIA)
++    BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(IS_OHOS)
+ // Data about system-wide memory consumption. Values are in KB. Available on
+ // Windows, Mac, Linux, Android and Chrome OS.
+ //
+@@ -382,7 +382,7 @@ struct BASE_EXPORT SystemMemoryInfoKB {
+ #endif
+ 
+ #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || \
+-    BUILDFLAG(IS_AIX)
++    BUILDFLAG(IS_AIX) || BUILDFLAG(IS_OHOS)
+   // This provides an estimate of available memory as described here:
+   // https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773
+   // NOTE: this is ONLY valid in kernels 3.14 and up.  Its value will always
+@@ -397,7 +397,7 @@ struct BASE_EXPORT SystemMemoryInfoKB {
+ #endif
+ 
+ #if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || \
+-    BUILDFLAG(IS_AIX) || BUILDFLAG(IS_FUCHSIA)
++    BUILDFLAG(IS_AIX) || BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(IS_OHOS)
+   int buffers = 0;
+   int cached = 0;
+   int active_anon = 0;
+@@ -434,7 +434,7 @@ BASE_EXPORT bool GetSystemMemoryInfo(SystemMemoryInfoKB* meminfo);
+         // BUILDFLAG(IS_FUCHSIA)
+ 
+ #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || \
+-    BUILDFLAG(IS_AIX)
++    BUILDFLAG(IS_AIX) || BUILDFLAG(IS_OHOS)
+ // Parse the data found in /proc/<pid>/stat and return the sum of the
+ // CPU-related ticks.  Returns -1 on parse error.
+ // Exposed for testing.
+@@ -621,7 +621,7 @@ class BASE_EXPORT SystemMetrics {
+   FRIEND_TEST_ALL_PREFIXES(SystemMetricsTest, SystemMetrics);
+ 
+   size_t committed_memory_;
+-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
++#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+   SystemMemoryInfoKB memory_info_;
+   VmStatInfo vmstat_info_;
+   SystemDiskInfo disk_info_;
+diff --git a/base/process/process_metrics_posix.cc b/base/process/process_metrics_posix.cc
+index 873a328aa2..17ab1f3c96 100644
+--- a/base/process/process_metrics_posix.cc
++++ b/base/process/process_metrics_posix.cc
+@@ -43,7 +43,7 @@ ProcessMetrics::~ProcessMetrics() = default;
+ 
+ #if !BUILDFLAG(IS_FUCHSIA)
+ 
+-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
++#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_OHOS)
+ static const rlim_t kSystemDefaultMaxFds = 8192;
+ #elif BUILDFLAG(IS_APPLE)
+ static const rlim_t kSystemDefaultMaxFds = 256;
+@@ -107,7 +107,7 @@ void IncreaseFdLimitTo(unsigned int max_descriptors) {
+ 
+ #endif  // !BUILDFLAG(IS_FUCHSIA)
+ 
+-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
++#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+ namespace {
+ 
+ size_t GetMallocUsageMallinfo() {
+@@ -133,7 +133,7 @@ size_t ProcessMetrics::GetMallocUsage() {
+   malloc_statistics_t stats = {0};
+   malloc_zone_statistics(nullptr, &stats);
+   return stats.size_in_use;
+-#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
++#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+   return GetMallocUsageMallinfo();
+ #elif BUILDFLAG(IS_FUCHSIA)
+   // TODO(fuchsia): Not currently exposed. https://crbug.com/735087.
+diff --git a/base/profiler/register_context.h b/base/profiler/register_context.h
+index 34a2ed48c2..b295c294fb 100644
+--- a/base/profiler/register_context.h
++++ b/base/profiler/register_context.h
+@@ -17,7 +17,7 @@
+ #include <windows.h>
+ #elif BUILDFLAG(IS_APPLE)
+ #include <mach/machine/thread_status.h>
+-#elif BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
++#elif BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_OHOS)
+ #include <sys/ucontext.h>
+ #endif
+ 
+@@ -129,7 +129,7 @@ inline uintptr_t& RegisterContextInstructionPointer(RegisterContext* context) {
+ 
+ #endif
+ 
+-#elif BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
++#elif BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_OHOS)
+ 
+ using RegisterContext = mcontext_t;
+ 
+diff --git a/base/profiler/sampling_profiler_thread_token.h b/base/profiler/sampling_profiler_thread_token.h
+index 02bc37a5c0..a232d8c017 100644
+--- a/base/profiler/sampling_profiler_thread_token.h
++++ b/base/profiler/sampling_profiler_thread_token.h
+@@ -9,7 +9,7 @@
+ #include "base/threading/platform_thread.h"
+ #include "build/build_config.h"
+ 
+-#if BUILDFLAG(IS_ANDROID)
++#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+ #include <pthread.h>
+ #elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
+ #include <stdint.h>
+@@ -23,7 +23,7 @@ namespace base {
+ // functions used to obtain the stack base address.
+ struct SamplingProfilerThreadToken {
+   PlatformThreadId id;
+-#if BUILDFLAG(IS_ANDROID)
++#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+   pthread_t pthread_id;
+ #elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
+   // Due to the sandbox, we can only retrieve the stack base address for the
+diff --git a/base/system/sys_info.h b/base/system/sys_info.h
+index a966ad69b9..7d93f3a0ac 100644
+--- a/base/system/sys_info.h
++++ b/base/system/sys_info.h
+@@ -221,7 +221,7 @@ class BASE_EXPORT SysInfo {
+   static HardwareInfo GetHardwareInfoSync();
+ 
+ #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || \
+-    BUILDFLAG(IS_AIX)
++    BUILDFLAG(IS_AIX) || BUILDFLAG(IS_OHOS)
+   static uint64_t AmountOfAvailablePhysicalMemory(
+       const SystemMemoryInfoKB& meminfo);
+ #endif
+diff --git a/base/threading/platform_thread_ohos.cc b/base/threading/platform_thread_ohos.cc
+new file mode 100644
+index 0000000000..dfe38c7bc9
+--- /dev/null
++++ b/base/threading/platform_thread_ohos.cc
+@@ -0,0 +1,86 @@
++// Copyright 2012 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "base/threading/platform_thread.h"
++
++#include <errno.h>
++#include <stddef.h>
++#include <sys/prctl.h>
++#include <sys/types.h>
++#include <unistd.h>
++
++//#include "base/android/jni_android.h"
++//#include "base/base_jni_headers/ThreadUtils_jni.h"
++#include "base/lazy_instance.h"
++#include "base/logging.h"
++#include "base/threading/platform_thread_internal_posix.h"
++#include "base/threading/thread_id_name_manager.h"
++#include "third_party/abseil-cpp/absl/types/optional.h"
++
++namespace base {
++
++namespace internal {
++
++// - kRealtimeAudio corresponds to Android's PRIORITY_AUDIO = -16 value.
++// - kDisplay corresponds to Android's PRIORITY_DISPLAY = -4 value.
++// - kBackground corresponds to Android's PRIORITY_BACKGROUND = 10 value and can
++// result in heavy throttling and force the thread onto a little core on
++// big.LITTLE devices.
++const ThreadPriorityToNiceValuePairForTest
++    kThreadPriorityToNiceValueMapForTest[4] = {
++        {ThreadPriorityForTest::kRealtimeAudio, -16},
++        {ThreadPriorityForTest::kDisplay, -4},
++        {ThreadPriorityForTest::kNormal, 0},
++        {ThreadPriorityForTest::kBackground, 10},
++};
++
++// - kBackground corresponds to Android's PRIORITY_BACKGROUND = 10 value and can
++// result in heavy throttling and force the thread onto a little core on
++// big.LITTLE devices.
++// - kCompositing and kDisplayCritical corresponds to Android's PRIORITY_DISPLAY
++// = -4 value.
++// - kRealtimeAudio corresponds to Android's PRIORITY_AUDIO = -16 value.
++const ThreadTypeToNiceValuePair kThreadTypeToNiceValueMap[6] = {
++    {ThreadType::kBackground, 10},      {ThreadType::kResourceEfficient, 0},
++    {ThreadType::kDefault, 0},          {ThreadType::kCompositing, -4},
++    {ThreadType::kDisplayCritical, -4}, {ThreadType::kRealtimeAudio, -16},
++};
++
++bool CanSetThreadTypeToRealtimeAudio() {
++  return true;
++}
++
++bool SetCurrentThreadTypeForPlatform(ThreadType thread_type,
++                                     MessagePumpType pump_type_hint) {
++  return false;
++}
++
++absl::optional<ThreadPriorityForTest>
++GetCurrentThreadPriorityForPlatformForTest() {
++  return absl::nullopt;
++}
++
++}  // namespace internal
++
++void PlatformThread::SetName(const std::string& name) {
++}
++
++
++void InitThreading() {
++}
++
++void TerminateOnThread() {
++}
++
++size_t GetDefaultThreadStackSize(const pthread_attr_t& attributes) {
++#if !defined(ADDRESS_SANITIZER)
++  return 0;
++#else
++  // AddressSanitizer bloats the stack approximately 2x. Default stack size of
++  // 1Mb is not enough for some tests (see http://crbug.com/263749 for example).
++  return 2 * (1 << 20);  // 2Mb
++#endif
++}
++
++}  // namespace base
+diff --git a/base/threading/platform_thread_posix.cc b/base/threading/platform_thread_posix.cc
+index a909b74d1f..8ce5552ba1 100644
+--- a/base/threading/platform_thread_posix.cc
++++ b/base/threading/platform_thread_posix.cc
+@@ -242,7 +242,7 @@ PlatformThreadId PlatformThread::CurrentId() {
+ #endif
+   }
+   return g_thread_id;
+-#elif BUILDFLAG(IS_ANDROID)
++#elif BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS)
+   // Note: do not cache the return value inside a thread_local variable on
+   // Android (as above). The reasons are:
+   // - thread_local is slow on Android (goes through emutls)
+diff --git a/build.sh b/build.sh
+new file mode 100644
+index 0000000000..088a4f2566
+--- /dev/null
++++ b/build.sh
+@@ -0,0 +1,116 @@
++#!/bin/bash
++# Copyright (c) 2021 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# use ./build.sh -nosym to build content_shell without symbol.
++set -e
++basedir=$(dirname "$0")
++CUR_DIR=$PWD
++ROOT_DIR=${CUR_DIR}
++TEXT_BOLD="\033[1m"
++TEXT_NORMAL="\033[0m"
++
++#Add build args begin
++buildargs="
++  target_os=\"ohos\"
++  is_debug=false
++  is_official_build=true
++  is_component_build=false
++  is_chrome_branded=false
++  use_official_google_api_keys=false
++  use_ozone=true
++  use_aura=true
++  ozone_auto_platforms=false
++  ozone_platform=\"headless\"
++  ozone_platform_headless=true
++  enable_extensions=true
++  ffmpeg_branding=\"Chrome\"
++  use_kerberos=false
++  use_bundled_fontconfig=true
++  enable_resource_allowlist_generation=false
++  clang_use_chrome_plugins=false
++  enable_message_center=true
++  safe_browsing_mode=0
++  use_custom_libcxx=false
++  use_sysroot=false
++  gpu_switch=\"on\"
++  proprietary_codecs=true
++  media_use_ffmpeg=true"
++#Add build args end
++
++buildgn=1
++buildcount=0
++buildsymbol=0
++buildarg_cpu="target_cpu=\"arm64\""
++buildarg_musl="use_musl=true"
++build_dir="out/cronet/"
++
++usage() {
++  echo -ne "USAGE: $0 [OPTIONS] [PRODUCT]
++
++${TEXT_BOLD}OPTIONS${TEXT_NORMAL}:
++  -j N              force number of build jobs
++  -ccache           Enable CCache.
++  -t <target>       Build target, supports:
++                      n Build native files.
++                      b Build BrowserShell.
++                      w Build NWeb WebView.
++                      m Build NWebEx napi module.
++                      M Build NWebEx napi npm package.
++  -o <output_dir>   Output directory, for example: Default.
++  -A, -artifact     Artifact mode, using pre-built NDK rather than building
++                    them locally.
++  -asan             Enable AddressSanitizer (ASan).
++
++${TEXT_BOLD}PRODUCT${TEXT_NORMAL}:
++  rk3568 rk3568_64 musl_64 x86_64
++  Default is: rk3568
++"
++}
++
++SYMBOL_LEVEL=1
++if [ $buildsymbol = 1 ]; then
++  SYMBOL_LEVEL=2
++fi
++
++if [ $buildcount = 0 ]; then
++  #buildcount=$(grep processor /proc/cpuinfo | wc -l)
++  buildcount=40
++fi
++
++time_start_for_build=$(date +%s)
++time_start_for_gn=$time_start_for_build
++
++if [ $buildgn = 1 ]; then
++  echo "generating args list: $buildargs $GN_ARGS"
++  third_party/depot_tools/gn gen $build_dir --export-compile-commands --args="$buildargs $buildarg_cpu $buildarg_musl $GN_ARGS symbol_level=$SYMBOL_LEVEL"
++fi
++time_end_for_gn=$(date +%s)
++
++third_party/depot_tools/ninja -v -C $build_dir "gn_all"
++time_end_for_build=$(date +%s)
++
++time_format() {
++  hours=$((($1 - $2) / 3600))
++  minutes=$((($1 - $2) % 3600 / 60))
++  seconds=$((($1 - $2) % 60))
++}
++
++time_format $time_end_for_gn $time_start_for_gn
++printf "\n\e[32mTime for gn  : %dH:%dM:%dS \e[0m\n" $hours $minutes $seconds
++time_format $time_end_for_build $time_end_for_gn
++printf "\e[32mTime for build : %dH:%dM:%dS \e[0m\n" $hours $minutes $seconds
++time_format $time_end_for_build $time_start_for_build
++printf "\e[32mTime for Total : %dH:%dM:%dS \e[0m\n\n" $hours $minutes $seconds
++
++echo "build done"
+diff --git a/build/build_config.h b/build/build_config.h
+index 8f90f474ef..29d4056863 100644
+--- a/build/build_config.h
++++ b/build/build_config.h
+@@ -57,6 +57,8 @@
+ #define OS_NACL 1
+ #elif defined(ANDROID)
+ #define OS_ANDROID 1
++#elif defined(OHOS)
++#define OS_OHOS 1
+ #elif defined(__APPLE__)
+ // Only include TargetConditionals after testing ANDROID as some Android builds
+ // on the Mac have this header available and it's not needed unless the target
+@@ -122,7 +124,7 @@
+ 
+ // For access to standard POSIXish features, use OS_POSIX instead of a
+ // more specific macro.
+-#if defined(OS_AIX) || defined(OS_ANDROID) || defined(OS_ASMJS) ||  \
++#if defined(OS_AIX) || defined(OS_OHOS) || defined(OS_ANDROID) || defined(OS_ASMJS) ||  \
+     defined(OS_FREEBSD) || defined(OS_IOS) || defined(OS_LINUX) ||  \
+     defined(OS_CHROMEOS) || defined(OS_MAC) || defined(OS_NACL) ||  \
+     defined(OS_NETBSD) || defined(OS_OPENBSD) || defined(OS_QNX) || \
+@@ -143,6 +145,12 @@
+ #define BUILDFLAG_INTERNAL_IS_ANDROID() (0)
+ #endif
+ 
++#if defined(OS_OHOS)
++#define BUILDFLAG_INTERNAL_IS_OHOS() (1)
++#else
++#define BUILDFLAG_INTERNAL_IS_OHOS() (0)
++#endif
++
+ #if defined(OS_APPLE)
+ #define BUILDFLAG_INTERNAL_IS_APPLE() (1)
+ #else
+diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
+index 21b4055dc1..0027cecdd1 100644
+--- a/build/config/BUILDCONFIG.gn
++++ b/build/config/BUILDCONFIG.gn
+@@ -231,6 +231,8 @@ if (target_os == "android") {
+   assert(host_os == "linux" || host_os == "mac",
+          "Android builds are only supported on Linux and Mac hosts.")
+   _default_toolchain = "//build/toolchain/android:android_clang_$target_cpu"
++} else if (target_os == "ohos") {
++  _default_toolchain = "//build/toolchain/ohos:ohos_clang_$target_cpu"
+ } else if (target_os == "chromeos" || target_os == "linux") {
+   # See comments in build/toolchain/cros/BUILD.gn about board compiles.
+   if (is_clang) {
+@@ -295,6 +297,7 @@ if (custom_toolchain != "") {
+ # current_os value directly.
+ 
+ is_android = current_os == "android"
++is_ohos = current_os == "ohos"
+ is_chromeos = current_os == "chromeos"
+ is_fuchsia = current_os == "fuchsia"
+ is_ios = current_os == "ios"
+diff --git a/build/config/c++/c++.gni b/build/config/c++/c++.gni
+index bf5e08ade5..bc8d0b8f4f 100644
+--- a/build/config/c++/c++.gni
++++ b/build/config/c++/c++.gni
+@@ -12,7 +12,7 @@ declare_args() {
+   # Don't check in changes that set this to false for more platforms; doing so
+   # is not supported.
+   use_custom_libcxx =
+-      is_fuchsia || is_android || is_apple || is_linux || is_chromeos_lacros ||
++      is_ohos || is_fuchsia || is_android || is_apple || is_linux || is_chromeos_lacros ||
+       (is_win && is_clang) ||
+       (is_chromeos && default_toolchain != "//build/toolchain/cros:target")
+ 
+diff --git a/build/config/clang/clang.gni b/build/config/clang/clang.gni
+index 7196fcf6c1..6dc04f7377 100644
+--- a/build/config/clang/clang.gni
++++ b/build/config/clang/clang.gni
+@@ -14,5 +14,9 @@ declare_args() {
+       is_clang && !is_nacl && current_os != "zos" &&
+       default_toolchain != "//build/toolchain/cros:target"
+ 
+-  clang_base_path = default_clang_base_path
++  if (is_ohos) {
++    clang_base_path = "//third_party/ohos_sdk/native/llvm"
++  } else {
++    clang_base_path = default_clang_base_path
++  }
+ }
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index e54bbc8107..6d4dc701d0 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -185,7 +185,7 @@ declare_args() {
+                                                        current_cpu == "x64"))))
+ }
+ 
+-if (is_android || (is_chromeos_ash && is_chromeos_device)) {
++if (is_android || is_ohos || (is_chromeos_ash && is_chromeos_device)) {
+   # Set the path to use orderfile for linking Chrome
+   # Note that this is for using only one orderfile for linking
+   # the Chrome binary/library.
+@@ -256,6 +256,8 @@ config("compiler") {
+     configs += [ "//build/config/win:compiler" ]
+   } else if (is_android) {
+     configs += [ "//build/config/android:compiler" ]
++  } else if (is_ohos) {
++    configs += [ "//build/config/ohos:compiler" ]
+   } else if (is_linux || is_chromeos) {
+     configs += [ "//build/config/linux:compiler" ]
+   } else if (is_nacl) {
+@@ -388,7 +390,7 @@ config("compiler") {
+       ldflags += [ "-Wl,--build-id" ]
+     }
+ 
+-    if (!is_android) {
++    if (!is_android && !is_ohos) {
+       defines += [
+         # _FILE_OFFSET_BITS=64 should not be set on Android in order to maintain
+         # the behavior of the Android NDK from earlier versions.
+@@ -431,7 +433,7 @@ config("compiler") {
+ 
+   # Linux/Android/Fuchsia common flags setup.
+   # ---------------------------------
+-  if (is_linux || is_chromeos || is_android || is_fuchsia) {
++  if (is_linux || is_chromeos || is_android || is_ohos || is_fuchsia) {
+     asmflags += [ "-fPIC" ]
+     cflags += [ "-fPIC" ]
+     ldflags += [ "-fPIC" ]
+@@ -532,10 +534,10 @@ config("compiler") {
+ 
+     # TODO(hans): Remove this once Clang generates better optimized debug info
+     # by default. https://crbug.com/765793
+-    cflags += [
+-      "-mllvm",
+-      "-instcombine-lower-dbg-declare=0",
+-    ]
++#    cflags += [
++#      "-mllvm",
++#      "-instcombine-lower-dbg-declare=0",
++#    ]
+     if (!is_debug && use_thin_lto && is_a_target_toolchain) {
+       if (is_win) {
+         ldflags += [ "-mllvm:-instcombine-lower-dbg-declare=0" ]
+@@ -559,7 +561,7 @@ config("compiler") {
+ 
+   # C11/C++11 compiler flags setup.
+   # ---------------------------
+-  if (is_linux || is_chromeos || is_android || (is_nacl && is_clang) ||
++  if (is_ohos || is_linux || is_chromeos || is_android || (is_nacl && is_clang) ||
+       current_os == "aix") {
+     if (is_clang) {
+       standard_prefix = "c"
+@@ -696,7 +698,7 @@ config("compiler") {
+ 
+     # TODO(https://crbug.com/1211155): investigate why this isn't effective on
+     # arm32.
+-    if (!is_android || current_cpu == "arm64") {
++    if ((!is_android && !is_ohos) || current_cpu == "arm64") {
+       cflags += [ "-fwhole-program-vtables" ]
+       if (!is_win) {
+         ldflags += [ "-fwhole-program-vtables" ]
+@@ -727,7 +729,7 @@ config("compiler") {
+ 
+   # Pass flag to LLD so Android builds can allow debuggerd to properly symbolize
+   # stack crashes (http://crbug.com/919499).
+-  if (use_lld && is_android) {
++  if (use_lld && (is_android || is_ohos)) {
+     ldflags += [ "-Wl,--no-rosegment" ]
+   }
+ 
+@@ -913,7 +915,7 @@ config("compiler_cpu_abi") {
+         ]
+       }
+     } else if (current_cpu == "arm") {
+-      if (is_clang && !is_android && !is_nacl &&
++      if (is_clang && !is_android && !is_ohos  && !is_nacl &&
+           !(is_chromeos_lacros && is_chromeos_device)) {
+         cflags += [ "--target=arm-linux-gnueabihf" ]
+         ldflags += [ "--target=arm-linux-gnueabihf" ]
+@@ -928,7 +930,7 @@ config("compiler_cpu_abi") {
+         cflags += [ "-mtune=$arm_tune" ]
+       }
+     } else if (current_cpu == "arm64") {
+-      if (is_clang && !is_android && !is_nacl && !is_fuchsia &&
++      if (is_clang && !is_android && !is_ohos  && !is_nacl && !is_fuchsia &&
+           !(is_chromeos_lacros && is_chromeos_device)) {
+         cflags += [ "--target=aarch64-linux-gnu" ]
+         ldflags += [ "--target=aarch64-linux-gnu" ]
+@@ -2567,7 +2569,7 @@ if (is_chromeos_ash && is_chromeos_device) {
+   }
+ }
+ 
+-if (is_android || (is_chromeos_ash && is_chromeos_device)) {
++if (is_android || is_ohos || (is_chromeos_ash && is_chromeos_device)) {
+   # Use orderfile for linking Chrome on Android and Chrome OS.
+   # This config enables using an orderfile for linking in LLD.
+   # TODO: Consider using call graph sort instead, at least on Android.
+diff --git a/build/config/ohos/BUILD.gn b/build/config/ohos/BUILD.gn
+new file mode 100644
+index 0000000000..044714eedc
+--- /dev/null
++++ b/build/config/ohos/BUILD.gn
+@@ -0,0 +1,102 @@
++# Copyright 2014 The Chromium Authors. All rights reserved.
++# Use of this source code is governed by a BSD-style license that can be
++# found in the LICENSE file.
++
++import("//build/config/compiler/compiler.gni")
++import("//build/config/ohos/config.gni")
++import("//build/config/c++/c++.gni")
++import("//build/config/sysroot.gni")
++import("//build/toolchain/toolchain.gni")
++
++assert(is_ohos)
++
++# This is included by reference in the //build/config/compiler config that
++# is applied to all targets. It is here to separate out the logic that is
++# ohos-only.
++config("compiler") {
++  cflags = [
++    "-ffunction-sections",
++    "-fno-short-enums",
++  ]
++  defines = [
++    # The NDK has these things, but doesn't define the constants to say that it
++    # does. Define them here instead.
++    "HAVE_SYS_UIO_H",
++  ]
++
++  defines += [
++    "OHOS",
++    "__MUSL__",
++    "_LIBCPP_HAS_MUSL_LIBC",
++    "__BUILD_LINUX_WITH_CLANG",
++  ]
++
++  ldflags = [
++    "-Wl,--no-undefined",
++    "-Wl,--exclude-libs=libunwind_llvm.a",
++    "-Wl,--exclude-libs=libc++_static.a",
++
++    # Don't allow visible symbols from libraries that contain
++    # assembly code with symbols that aren't hidden properly.
++    # http://crbug.com/448386
++    "-Wl,--exclude-libs=libvpx_assembly_arm.a",
++  ]
++  
++  cflags += [ "--target=$abi_target" ]
++  include_dirs = [
++    "${sysroot}/usr/include/${abi_target}",
++    "${clang_base_path}/lib/clang/${clang_version}/include",
++  ]
++
++  ldflags += [ "--target=$abi_target" ]
++
++  # Assign any flags set for the C compiler to asmflags so that they are sent
++  # to the assembler.
++  asmflags = cflags
++}
++
++# This is included by reference in the //build/config/compiler:runtime_library
++# config that is applied to all targets. It is here to separate out the logic
++# that is ohos-only. Please see that target for advice on what should go in
++# :runtime_library vs. :compiler.
++config("runtime_library") {
++  cflags_cc = []
++
++  defines = [
++    "__GNU_SOURCE=1",  # Necessary for clone().
++    "CHROMIUM_CXX_TWEAK_INLINES",  # Saves binary size.
++  ]
++
++  defines += [
++    "__MUSL__",
++    "_LIBCPP_HAS_MUSL_LIBC",
++    "__BUILD_LINUX_WITH_CLANG",
++  ]
++  ldflags = [ "-nostdlib" ]
++
++  libs = []
++
++  # arm builds of libc++ starting in NDK r12 depend on unwind.
++  if (current_cpu == "arm" || current_cpu == "arm64") {
++    libs += [ "unwind" ]
++  }
++
++  ldflags += [
++    "-L" + rebase_path("${sysroot}/usr/lib/${abi_target}", root_build_dir),
++    "-L" + rebase_path(
++            "${clang_base_path}/lib/clang/${clang_version}/lib/${abi_target}",
++            root_build_dir),
++  ]
++
++  libs += [
++    rebase_path(libclang_rt_file),
++    "c",
++    rebase_path(libcxxabi_file),
++  ]
++
++  if (current_cpu == "arm" && arm_version == 6) {
++    libs += [ "atomic" ]
++  }
++
++  ldflags += [ "-Wl,--warn-shared-textrel" ]
++}
+diff --git a/build/config/ohos/config.gni b/build/config/ohos/config.gni
+new file mode 100644
+index 0000000000..a1460eea81
+--- /dev/null
++++ b/build/config/ohos/config.gni
+@@ -0,0 +1,45 @@
++# Copyright 2014 The Chromium Authors. All rights reserved.
++# Use of this source code is governed by a BSD-style license that can be
++# found in the LICENSE file.
++
++if (is_ohos) {
++  import("//build_overrides/build.gni")
++  import("//build/config/clang/clang.gni")
++
++  default_base_libs_root = ""
++
++  declare_args() {
++    base_libs_root = default_base_libs_root
++  }
++
++  # Defines the name the ohos build gives to the current host CPU
++  # architecture, which is different than the names GN uses.
++  if (host_os == "linux") {
++    ohos_host_os = "linux"
++  } else if (host_os == "mac") {
++    ohos_host_os = "darwin"
++  } else {
++    assert(false, "Need toolchain support for your build OS.")
++  }
++
++  if (current_cpu == "arm") {
++    abi_target = "arm-linux-ohos"
++  } else if (current_cpu == "x86") {
++    abi_target = ""
++  } else if (current_cpu == "arm64") {
++    abi_target = "aarch64-linux-ohos"
++  } else if (current_cpu == "x86_64") {
++    abi_target = "x86_64-linux-ohos"
++  } else if (current_cpu == "riscv64") {
++    abi_target = "riscv64-linux-ohos"
++  } else if (current_cpu == "mipsel") {
++    abi_target = "mipsel-linux-ohos"
++  } else {
++    assert(false, "Architecture not supported")
++  }
++
++  libclang_rt_file = "${clang_base_path}/lib/clang/${clang_version}/lib/${abi_target}/libclang_rt.builtins.a"
++  libcxxabi_file = "${clang_base_path}/lib/${abi_target}/libc++abi.a"
++  libcxx_ndk_shared_file =
++      "${clang_base_path}/../libcxx-ndk/lib/${abi_target}/libc++_shared.so"
++}
+diff --git a/build/config/sysroot.gni b/build/config/sysroot.gni
+index dea380727e..c22a1c5059 100644
+--- a/build/config/sysroot.gni
++++ b/build/config/sysroot.gni
+@@ -33,6 +33,8 @@ if (sysroot == "") {
+ 
+     # Android uses unified headers, and thus a single compile time sysroot
+     sysroot = "$android_toolchain_root/sysroot"
++  } else if (is_ohos) {
++    sysroot = "//third_party/ohos_sdk/native/sysroot"
+   } else if ((is_linux || is_chromeos) && use_sysroot) {
+     # By default build against a sysroot image downloaded from Cloud Storage
+     # during gclient runhooks.
+diff --git a/build/config/ui.gni b/build/config/ui.gni
+index b560f372c6..532fd9a2f3 100644
+--- a/build/config/ui.gni
++++ b/build/config/ui.gni
+@@ -30,7 +30,7 @@ declare_args() {
+ 
+ declare_args() {
+   # True means the UI is built using the "views" framework.
+-  toolkit_views = is_mac || is_win || is_linux || is_chromeos || is_fuchsia
++  toolkit_views = is_mac || is_win || is_linux || is_chromeos || is_fuchsia || is_ohos
+ 
+   use_glib =
+       is_linux && !is_castos &&
+diff --git a/build/toolchain/ohos/BUILD.gn b/build/toolchain/ohos/BUILD.gn
+new file mode 100644
+index 0000000000..4c9d809aff
+--- /dev/null
++++ b/build/toolchain/ohos/BUILD.gn
+@@ -0,0 +1,88 @@
++# Copyright 2013 The Chromium Authors. All rights reserved.
++# Use of this source code is governed by a BSD-style license that can be
++# found in the LICENSE file.
++
++import("//build/config/clang/clang.gni")
++import("//build/config/sysroot.gni")
++import("//build/toolchain/gcc_toolchain.gni")
++
++declare_args() {
++  # Whether unstripped binaries, i.e. compiled with debug symbols, should be
++  # considered runtime_deps rather than stripped ones.
++  ohos_unstripped_runtime_outputs = true
++}
++
++template("ohos_clang_toolchain") {
++  gcc_toolchain(target_name) {
++    assert(defined(invoker.toolchain_args),
++           "toolchain_args must be defined for ohos_clang_toolchain()")
++    toolchain_args = invoker.toolchain_args
++    toolchain_args.current_os = "ohos"
++
++    # Output linker map files for binary size analysis.
++    enable_linker_map = true
++
++    ohos_libc_dir =
++        rebase_path(invoker.sysroot + "/" + invoker.lib_dir, root_build_dir)
++    libs_section_prefix = "${ohos_libc_dir}/Scrt1.o"
++    libs_section_prefix += " ${ohos_libc_dir}/crti.o"
++#    libs_section_postfix = "${ohos_libc_dir}/crtn.o"
++
++    if (invoker.target_name == "ohos_clang_arm") {
++      abi_target = "arm-linux-ohos"
++    } else if (invoker.target_name == "ohos_clang_arm64") {
++      abi_target = "aarch64-linux-ohos"
++    } else if (invoker.target_name == "ohos_clang_x86_64") {
++      abi_target = "x86_64-linux-ohos"
++    }
++
++    clang_rt_dir =
++        rebase_path("//third_party/ohos_sdk/native/llvm/lib/clang/${clang_version}/lib/${abi_target}", root_build_dir)
++
++    solink_libs_section_prefix = "${ohos_libc_dir}/crti.o"
++    solink_libs_section_prefix += " ${clang_rt_dir}/clang_rt.crtbegin.o"
++    solink_libs_section_postfix = "${ohos_libc_dir}/crtn.o"
++    solink_libs_section_postfix += " ${clang_rt_dir}/clang_rt.crtend.o"
++
++    _prefix = rebase_path("${clang_base_path}/bin", root_build_dir)
++    cc = "${_prefix}/clang"
++    cxx = "${_prefix}/clang++"
++    ar = "${_prefix}/llvm-ar"
++    ld = cxx
++    readelf = "${_prefix}/llvm-readobj"
++    nm = "${_prefix}/llvm-nm"
++    strip = rebase_path("${clang_base_path}/bin/llvm-strip", root_build_dir)
++    use_unstripped_as_runtime_outputs = ohos_unstripped_runtime_outputs
++
++    # Don't use .cr.so for loadable_modules since they are always loaded via
++    # absolute path.
++    loadable_module_extension = ".so"
++  }
++}
++
++ohos_clang_toolchain("ohos_clang_arm") {
++  sysroot = sysroot
++  lib_dir = "usr/lib/arm-linux-ohos"
++  toolchain_args = {
++    current_cpu = "arm"
++    current_os = "ohos"
++  }
++}
++
++ohos_clang_toolchain("ohos_clang_arm64") {
++  sysroot = sysroot
++  lib_dir = "usr/lib/aarch64-linux-ohos"
++  toolchain_args = {
++    current_cpu = "arm64"
++    current_os = "ohos"
++  }
++}
++
++ohos_clang_toolchain("ohos_clang_x86_64") {
++  sysroot = sysroot
++  lib_dir = "usr/lib/x86_64-linux-ohos"
++  toolchain_args = {
++    current_cpu = "x86_64"
++    current_os = "ohos"
++  }
++}
+diff --git a/build/toolchain/toolchain.gni b/build/toolchain/toolchain.gni
+index 6a49c399e3..b7f78e2212 100644
+--- a/build/toolchain/toolchain.gni
++++ b/build/toolchain/toolchain.gni
+@@ -33,7 +33,11 @@ if (generate_linker_map) {
+ }
+ 
+ declare_args() {
+-  clang_version = "16.0.0"
++  if (is_ohos) {
++    clang_version = "15.0.4"
++  } else {
++    clang_version = "16.0.0"
++  }
+ }
+ 
+ # Extension for shared library files (including leading dot).
+diff --git a/chrome/browser/image_editor/BUILD.gn b/chrome/browser/image_editor/BUILD.gn
+index 3acbdae3dd..3a48237932 100644
+--- a/chrome/browser/image_editor/BUILD.gn
++++ b/chrome/browser/image_editor/BUILD.gn
+@@ -3,7 +3,7 @@
+ # found in the LICENSE file.
+ import("//build/config/ui.gni")
+ 
+-assert(is_chromeos || is_linux || is_mac || is_win || is_fuchsia,
++assert(is_chromeos || is_linux || is_mac || is_win || is_fuchsia || is_ohos,
+        "Image Editor is for desktop plaforms only")
+ 
+ static_library("image_editor_component_util") {
+diff --git a/chrome/browser/resources/new_tab_page_instant/BUILD.gn b/chrome/browser/resources/new_tab_page_instant/BUILD.gn
+index d62a0226a8..89baacbcda 100644
+--- a/chrome/browser/resources/new_tab_page_instant/BUILD.gn
++++ b/chrome/browser/resources/new_tab_page_instant/BUILD.gn
+@@ -7,7 +7,7 @@ import("//tools/grit/grit_rule.gni")
+ import("//tools/typescript/ts_library.gni")
+ import("//ui/webui/resources/tools/generate_grd.gni")
+ 
+-assert(is_linux || is_chromeos || is_win || is_mac || is_fuchsia)
++assert(is_linux || is_chromeos || is_win || is_mac || is_fuchsia || is_ohos)
+ 
+ grit("resources") {
+   defines = chrome_grit_defines + [ "is_official_build=$is_official_build" ]
+diff --git a/chrome/browser/resources/tab_search/BUILD.gn b/chrome/browser/resources/tab_search/BUILD.gn
+index 43326f9d23..18fe7a38dd 100644
+--- a/chrome/browser/resources/tab_search/BUILD.gn
++++ b/chrome/browser/resources/tab_search/BUILD.gn
+@@ -7,7 +7,7 @@ import("//chrome/common/features.gni")
+ import("//ui/webui/resources/tools/generate_grd.gni")
+ import("//ui/webui/webui_features.gni")
+ 
+-assert(is_linux || is_chromeos || is_win || is_mac || is_fuchsia)
++assert(is_linux || is_chromeos || is_win || is_mac || is_fuchsia || is_ohos)
+ 
+ import("//chrome/browser/resources/tools/build_webui.gni")
+ 
+diff --git a/chrome/browser/ui/webui/tab_search/BUILD.gn b/chrome/browser/ui/webui/tab_search/BUILD.gn
+index 48046ed8a9..006bd09bbe 100644
+--- a/chrome/browser/ui/webui/tab_search/BUILD.gn
++++ b/chrome/browser/ui/webui/tab_search/BUILD.gn
+@@ -4,7 +4,7 @@
+ 
+ import("//mojo/public/tools/bindings/mojom.gni")
+ 
+-assert(is_linux || is_chromeos || is_win || is_mac || is_fuchsia)
++assert(is_linux || is_chromeos || is_win || is_mac || is_fuchsia || is_ohos)
+ 
+ mojom("mojo_bindings") {
+   sources = [ "tab_search.mojom" ]
+diff --git a/chrome/test/BUILD.gn b/chrome/test/BUILD.gn
+index 2fd76fd1c2..e47135a4fa 100644
+--- a/chrome/test/BUILD.gn
++++ b/chrome/test/BUILD.gn
+@@ -5030,7 +5030,7 @@ template("performance_test_suite_template_base") {
+       data_deps += [ "//third_party/angle/src/tests:angle_perftests" ]
+     }
+ 
+-    if (!is_android && !is_chromeos_lacros) {
++    if (!is_android && !is_chromeos_lacros && !is_ohos) {
+       data_deps += [
+         "//chrome/test:load_library_perf_tests",
+         "//ui/views:views_perftests",
+diff --git a/chrome/test/data/ash/clipboard_history/icon128.png b/chrome/test/data/ash/clipboard_history/icon128.png
+deleted file mode 120000
+index b48bcc3be9..0000000000
+--- a/chrome/test/data/ash/clipboard_history/icon128.png
++++ /dev/null
+@@ -1 +0,0 @@
+-../images/icon128.png
+\ No newline at end of file
+diff --git a/chrome/test/data/ash/clipboard_history/icon16.png b/chrome/test/data/ash/clipboard_history/icon16.png
+deleted file mode 120000
+index 3d2b3c0884..0000000000
+--- a/chrome/test/data/ash/clipboard_history/icon16.png
++++ /dev/null
+@@ -1 +0,0 @@
+-../images/icon16.png
+\ No newline at end of file
+diff --git a/chrome/test/data/ash/clipboard_history/icon2050.png b/chrome/test/data/ash/clipboard_history/icon2050.png
+deleted file mode 120000
+index e3ec10f535..0000000000
+--- a/chrome/test/data/ash/clipboard_history/icon2050.png
++++ /dev/null
+@@ -1 +0,0 @@
+-../images/icon2050.png
+\ No newline at end of file
+diff --git a/content/test/data/file_chooser/dir_with_symlink/symlink b/content/test/data/file_chooser/dir_with_symlink/symlink
+deleted file mode 120000
+index 7857c689f7..0000000000
+--- a/content/test/data/file_chooser/dir_with_symlink/symlink
++++ /dev/null
+@@ -1 +0,0 @@
+-../linked_text_file.txt
+\ No newline at end of file
+diff --git a/media/cdm/library_cdm/cdm_paths.gni b/media/cdm/library_cdm/cdm_paths.gni
+index 1dd10660f8..04656e89a6 100644
+--- a/media/cdm/library_cdm/cdm_paths.gni
++++ b/media/cdm/library_cdm/cdm_paths.gni
+@@ -17,6 +17,8 @@ if (is_chromeos) {
+   component_os = "cros"
+ } else if (is_linux) {
+   component_os = "linux"
++} else if (is_ohos) {
++  component_os = "ohos"
+ } else if (is_win) {
+   component_os = "win"
+ } else if (is_mac) {
+diff --git a/net/BUILD.gn b/net/BUILD.gn
+index 265a1af135..a7c5644c44 100644
+--- a/net/BUILD.gn
++++ b/net/BUILD.gn
+@@ -1188,7 +1188,7 @@ component("net") {
+     ]
+   }
+ 
+-  if (is_linux || is_chromeos || is_android) {
++  if (is_linux || is_chromeos || is_android || is_ohos) {
+     sources += [
+       "base/address_tracker_linux.cc",
+       "base/address_tracker_linux.h",
+@@ -1367,7 +1367,7 @@ component("net") {
+   }
+ 
+   # Use getifaddrs() on POSIX platforms, except Linux.
+-  if (is_posix && !is_linux && !is_chromeos) {
++  if (is_posix && !is_linux && !is_chromeos && !is_ohos) {
+     sources += [
+       "base/network_interfaces_getifaddrs.cc",
+       "base/network_interfaces_getifaddrs.h",
+diff --git a/net/cert/cert_verify_proc.cc b/net/cert/cert_verify_proc.cc
+index 4ef8c12076..4f7cca1a51 100644
+--- a/net/cert/cert_verify_proc.cc
++++ b/net/cert/cert_verify_proc.cc
+@@ -52,7 +52,7 @@
+ #include "third_party/boringssl/src/include/openssl/pool.h"
+ #include "url/url_canon.h"
+ 
+-#if BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(USE_NSS_CERTS) || BUILDFLAG(IS_MAC)
++#if BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(USE_NSS_CERTS) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_OHOS)
+ #include "net/cert/cert_verify_proc_builtin.h"
+ #endif
+ 
+@@ -523,6 +523,11 @@ scoped_refptr<CertVerifyProc> CertVerifyProc::CreateSystemVerifyProc(
+   return base::MakeRefCounted<CertVerifyProcMac>();
+ #elif BUILDFLAG(IS_WIN)
+   return base::MakeRefCounted<CertVerifyProcWin>();
++#elif BUILDFLAG(IS_OHOS)
++  LOG(ERROR) << "OHOS CreateSystemVerifyProc use CreateCertVerifyProcBuiltin";
++  return CreateCertVerifyProcBuiltin(
++      std::move(cert_net_fetcher),
++      CreateSslSystemTrustStore());
+ #else
+ #error Unsupported platform
+ #endif
+diff --git a/net/cert/cert_verify_proc.h b/net/cert/cert_verify_proc.h
+index c0895333e1..925ffc0986 100644
+--- a/net/cert/cert_verify_proc.h
++++ b/net/cert/cert_verify_proc.h
+@@ -87,7 +87,7 @@ class NET_EXPORT CertVerifyProc
+       scoped_refptr<CertNetFetcher> cert_net_fetcher);
+ #endif
+ 
+-#if BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(USE_NSS_CERTS) || BUILDFLAG(IS_MAC)
++#if BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(USE_NSS_CERTS) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_OHOS)
+   // Creates and returns a CertVerifyProcBuiltin using the SSL SystemTrustStore.
+   static scoped_refptr<CertVerifyProc> CreateBuiltinVerifyProc(
+       scoped_refptr<CertNetFetcher> cert_net_fetcher);
+diff --git a/net/cert/cert_verify_proc_builtin.cc b/net/cert/cert_verify_proc_builtin.cc
+index ed08375ab6..b0431e008a 100644
+--- a/net/cert/cert_verify_proc_builtin.cc
++++ b/net/cert/cert_verify_proc_builtin.cc
+@@ -907,7 +907,6 @@ std::unique_ptr<base::SupportsUserData::Data>
+ CertVerifyProcBuiltinResultDebugData::Clone() {
+   return std::make_unique<CertVerifyProcBuiltinResultDebugData>(*this);
+ }
+-
+ scoped_refptr<CertVerifyProc> CreateCertVerifyProcBuiltin(
+     scoped_refptr<CertNetFetcher> net_fetcher,
+     std::unique_ptr<SystemTrustStore> system_trust_store) {
+diff --git a/net/cert/internal/system_trust_store.cc b/net/cert/internal/system_trust_store.cc
+index 95f1f9a6f1..2d859d2553 100644
+--- a/net/cert/internal/system_trust_store.cc
++++ b/net/cert/internal/system_trust_store.cc
+@@ -47,6 +47,9 @@
+ #elif BUILDFLAG(IS_FUCHSIA)
+ #include "base/lazy_instance.h"
+ #include "third_party/boringssl/src/include/openssl/pool.h"
++#elif BUILDFLAG(IS_OHOS)
++#include "base/lazy_instance.h"
++#include "third_party/boringssl/src/include/openssl/pool.h"
+ #elif BUILDFLAG(IS_WIN)
+ #include "net/cert/internal/trust_store_win.h"
+ #endif
+@@ -422,6 +425,72 @@ std::unique_ptr<SystemTrustStore> CreateSslSystemTrustStore() {
+   return std::make_unique<SystemTrustStoreFuchsia>();
+ }
+ 
++#elif BUILDFLAG(IS_OHOS)
++namespace {
++ 
++constexpr char kRootCertsFileOhos[] = "/etc/ssl/certs/cacert.pem";
++ 
++class OhosSystemCerts {
++ public:
++  OhosSystemCerts() {
++    base::FilePath filename(kRootCertsFileOhos);
++    std::string certs_file;
++    if (!base::ReadFileToString(filename, &certs_file)) {
++      LOG(ERROR) << "Can't load root certificates from " << filename;
++      return;
++    }
++
++    CertificateList certs = X509Certificate::CreateCertificateListFromBytes(
++        base::as_bytes(base::make_span(certs_file)), X509Certificate::FORMAT_AUTO);
++ 
++    for (const auto& cert : certs) {
++      CertErrors errors;
++      auto parsed = ParsedCertificate::Create(
++          bssl::UpRef(cert->cert_buffer()),
++          x509_util::DefaultParseCertificateOptions(), &errors);
++      CHECK(parsed) << errors.ToDebugString();
++      system_trust_store_.AddTrustAnchor(parsed);
++    }
++  }
++ 
++  TrustStoreInMemory* system_trust_store() { return &system_trust_store_; }
++ 
++ private:
++  TrustStoreInMemory system_trust_store_;
++};
++ 
++base::LazyInstance<OhosSystemCerts>::Leaky g_root_certs_fuchsia =
++    LAZY_INSTANCE_INITIALIZER;
++ 
++}  // namespace
++
++class SystemTrustStoreOhos : public DummySystemTrustStore {
++public:
++//   SystemTrustStoreOhos() {
++//       LOG(ERROR) << "taoliuchang init SystemTrustStoreOhos";
++//     trust_store_.AddTrustStore(g_root_certs_fuchsia.Get().system_trust_store());
++// //    if (TestRootCerts::HasInstance()) {
++// //      trust_store_.AddTrustStore(
++// //          TestRootCerts::GetInstance()->test_trust_store());
++// //    }
++//   }
++  SystemTrustStoreOhos() = default;
++  TrustStore* GetTrustStore() override {
++    return g_root_certs_fuchsia.Get().system_trust_store();
++  }
++ 
++  bool UsesSystemTrustStore() const override { return true; }
++ 
++  bool IsKnownRoot(const ParsedCertificate* trust_anchor) const override {
++    return g_root_certs_fuchsia.Get().system_trust_store()->Contains(
++        trust_anchor);
++  }
++};
++
++std::unique_ptr<SystemTrustStore> CreateSslSystemTrustStore() {
++  return std::make_unique<SystemTrustStoreOhos>();
++}
++
+ #elif BUILDFLAG(IS_WIN)
+ 
+ // Using the Builtin Verifier w/o the Chrome Root Store is unsupported on
+diff --git a/net/cert/test_root_certs.h b/net/cert/test_root_certs.h
+index 00139642fe..212e99fcac 100644
+--- a/net/cert/test_root_certs.h
++++ b/net/cert/test_root_certs.h
+@@ -80,7 +80,7 @@ class NET_EXPORT TestRootCerts {
+   bool Add(X509Certificate* certificate);
+ 
+   // Performs platform-dependent operations.
+-  void Init();
++  void Init(){}
+   bool AddImpl(X509Certificate* certificate);
+   void ClearImpl();
+ 
+diff --git a/net/dns/dns_reloader.cc b/net/dns/dns_reloader.cc
+index bfd2de11f9..8a5b500456 100644
+--- a/net/dns/dns_reloader.cc
++++ b/net/dns/dns_reloader.cc
+@@ -7,7 +7,7 @@
+ #include "build/build_config.h"
+ 
+ #if BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_APPLE) && !BUILDFLAG(IS_OPENBSD) && \
+-    !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_FUCHSIA)
++    !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_FUCHSIA) && !BUILDFLAG(IS_OHOS)
+ 
+ #include <resolv.h>
+ 
+diff --git a/net/dns/host_resolver_manager.cc b/net/dns/host_resolver_manager.cc
+index 066fd3fa99..1ff7c5319d 100644
+--- a/net/dns/host_resolver_manager.cc
++++ b/net/dns/host_resolver_manager.cc
+@@ -3133,7 +3133,7 @@ HostResolverManager::HostResolverManager(
+   if (system_dns_config_notifier_)
+     system_dns_config_notifier_->AddObserver(this);
+ #if BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_APPLE) && !BUILDFLAG(IS_OPENBSD) && \
+-    !BUILDFLAG(IS_ANDROID)
++    !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_OHOS)
+   EnsureDnsReloaderInit();
+ #endif
+ 
+diff --git a/net/dns/host_resolver_proc.cc b/net/dns/host_resolver_proc.cc
+index e82863cf7a..1bce680f57 100644
+--- a/net/dns/host_resolver_proc.cc
++++ b/net/dns/host_resolver_proc.cc
+@@ -193,7 +193,7 @@ int SystemHostResolverCall(const std::string& host,
+                                                 base::BlockingType::WILL_BLOCK);
+ 
+ #if BUILDFLAG(IS_POSIX) && \
+-    !(BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_OPENBSD) || BUILDFLAG(IS_ANDROID))
++    !(BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_OPENBSD) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_OHOS))
+   DnsReloaderMaybeReload();
+ #endif
+   auto [ai, err, os_error] = AddressInfo::Get(host, hints, nullptr, network);
+diff --git a/net/dns/public/BUILD.gn b/net/dns/public/BUILD.gn
+index dbcecd02f6..2bff1f0e1f 100644
+--- a/net/dns/public/BUILD.gn
++++ b/net/dns/public/BUILD.gn
+@@ -41,7 +41,7 @@ source_set("public") {
+     "util.h",
+   ]
+ 
+-  if (is_posix && !is_android) {
++  if (is_posix && !is_android && !is_ohos) {
+     sources += [
+       "resolv_reader.cc",
+       "resolv_reader.h",
+diff --git a/net/socket/unix_domain_server_socket_posix.cc b/net/socket/unix_domain_server_socket_posix.cc
+index 60f58942f2..79225bb1a1 100644
+--- a/net/socket/unix_domain_server_socket_posix.cc
++++ b/net/socket/unix_domain_server_socket_posix.cc
+@@ -35,7 +35,7 @@ UnixDomainServerSocket::~UnixDomainServerSocket() = default;
+ bool UnixDomainServerSocket::GetPeerCredentials(SocketDescriptor socket,
+                                                 Credentials* credentials) {
+ #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || \
+-    BUILDFLAG(IS_FUCHSIA)
++    BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(IS_OHOS)
+   struct ucred user_cred;
+   socklen_t len = sizeof(user_cred);
+   if (getsockopt(socket, SOL_SOCKET, SO_PEERCRED, &user_cred, &len) < 0)
+diff --git a/net/socket/unix_domain_server_socket_posix.h b/net/socket/unix_domain_server_socket_posix.h
+index e03f4479c4..2f4af54f54 100644
+--- a/net/socket/unix_domain_server_socket_posix.h
++++ b/net/socket/unix_domain_server_socket_posix.h
+@@ -29,7 +29,7 @@ class NET_EXPORT UnixDomainServerSocket : public ServerSocket {
+   // Credentials of a peer process connected to the socket.
+   struct NET_EXPORT Credentials {
+ #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || \
+-    BUILDFLAG(IS_FUCHSIA)
++    BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(IS_OHOS)
+     // Linux and Fuchsia provide more information about the connected peer
+     // than Windows/OS X. It's useful for permission-based authorization on
+     // Android.
+diff --git a/third_party/afl/src/QuickStartGuide.txt b/third_party/afl/src/QuickStartGuide.txt
+deleted file mode 120000
+index e1687eb5be..0000000000
+--- a/third_party/afl/src/QuickStartGuide.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-docs/QuickStartGuide.txt
+\ No newline at end of file
+diff --git a/third_party/afl/src/README b/third_party/afl/src/README
+deleted file mode 120000
+index a90f4af959..0000000000
+--- a/third_party/afl/src/README
++++ /dev/null
+@@ -1 +0,0 @@
+-docs/README
+\ No newline at end of file
+diff --git a/third_party/breakpad/BUILD.gn b/third_party/breakpad/BUILD.gn
+index bf0f4f29b0..0e641fa772 100644
+--- a/third_party/breakpad/BUILD.gn
++++ b/third_party/breakpad/BUILD.gn
+@@ -477,7 +477,7 @@ if (is_mac) {
+   }
+ }
+ 
+-if (is_linux || is_chromeos || is_android) {
++if (is_linux || is_chromeos || is_android || is_ohos) {
+   if (current_toolchain == host_toolchain) {
+     executable("symupload") {
+       sources = [
+diff --git a/third_party/libevent/BUILD.gn b/third_party/libevent/BUILD.gn
+index 755a6a6e27..ec214098d1 100644
+--- a/third_party/libevent/BUILD.gn
++++ b/third_party/libevent/BUILD.gn
+@@ -43,7 +43,7 @@ static_library("libevent") {
+       "mac/event-config.h",
+     ]
+     include_dirs = [ "mac" ]
+-  } else if (is_linux || is_chromeos) {
++  } else if (is_linux || is_chromeos || is_ohos) {
+     sources += [
+       "epoll.c",
+       "linux/config.h",
+diff --git a/third_party/libxml/BUILD.gn b/third_party/libxml/BUILD.gn
+index 03d14f9844..204f17faf1 100644
+--- a/third_party/libxml/BUILD.gn
++++ b/third_party/libxml/BUILD.gn
+@@ -4,7 +4,7 @@
+ 
+ # Define an "os_include" variable that points at the OS-specific generated
+ # headers.  These were generated by running the configure script offline.
+-if (is_linux || is_chromeos || is_android || is_nacl || is_fuchsia) {
++if (is_linux || is_chromeos || is_android || is_nacl || is_fuchsia || is_ohos) {
+   os_include = "linux"
+ } else if (is_apple) {
+   os_include = "mac"
+diff --git a/third_party/libxslt/linux/COPYING b/third_party/libxslt/linux/COPYING
+deleted file mode 120000
+index 0e91a5bd16..0000000000
+--- a/third_party/libxslt/linux/COPYING
++++ /dev/null
+@@ -1 +0,0 @@
+-../src/Copyright
+\ No newline at end of file
+diff --git a/third_party/puffin/puffin/src b/third_party/puffin/puffin/src
+deleted file mode 120000
+index 5cd551cf26..0000000000
+--- a/third_party/puffin/puffin/src
++++ /dev/null
+@@ -1 +0,0 @@
+-../src
+\ No newline at end of file
+diff --git a/third_party/xcbproto/LICENSE b/third_party/xcbproto/LICENSE
+deleted file mode 120000
+index a6d16ce5ca..0000000000
+--- a/third_party/xcbproto/LICENSE
++++ /dev/null
+@@ -1 +0,0 @@
+-src/COPYING
+\ No newline at end of file
+diff --git a/third_party/zlib/BUILD.gn b/third_party/zlib/BUILD.gn
+index ee7483e9ef..25b1ba417a 100644
+--- a/third_party/zlib/BUILD.gn
++++ b/third_party/zlib/BUILD.gn
+@@ -121,7 +121,7 @@ if (use_arm_neon_optimizations) {
+       defines = [ "CRC32_ARMV8_CRC32" ]
+       if (is_android) {
+         defines += [ "ARMV8_OS_ANDROID" ]
+-      } else if (is_linux || is_chromeos) {
++      } else if (is_linux || is_chromeos || is_ohos) {
+         defines += [ "ARMV8_OS_LINUX" ]
+       } else if (is_mac) {
+         defines += [ "ARMV8_OS_MACOS" ]
+diff --git a/third_party/zxcvbn-cpp/LICENSE b/third_party/zxcvbn-cpp/LICENSE
+deleted file mode 120000
+index 85de3d4545..0000000000
+--- a/third_party/zxcvbn-cpp/LICENSE
++++ /dev/null
+@@ -1 +0,0 @@
+-LICENSE.txt
+\ No newline at end of file
+diff --git a/tools/grit/grit_args.gni b/tools/grit/grit_args.gni
+index a60843bab9..abc2eadf62 100644
+--- a/tools/grit/grit_args.gni
++++ b/tools/grit/grit_args.gni
+@@ -15,7 +15,7 @@ devtools_grd_path_no_ext = get_path_info(devtools_grd_path, "dir") + "/" +
+ # Prefer using this (and excluding specific platforms) when a resource applies
+ # to (most) desktop platforms.
+ assert(toolkit_views ==
+-       (is_chromeos || is_fuchsia || is_linux || is_mac || is_win))
++       (is_chromeos || is_fuchsia || is_linux || is_mac || is_win || is_ohos))
+ 
+ # Variables that are passed to grit with the -D flag.
+ 

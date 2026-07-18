@@ -1,0 +1,40 @@
+diff --git a/src/tests/BUILD.gn b/src/tests/BUILD.gn
+index b4b32bccc..5e60c499f 100644
+--- a/src/tests/BUILD.gn
++++ b/src/tests/BUILD.gn
+@@ -11,7 +11,7 @@ declare_args() {
+   build_angle_gles1_conform_tests = false
+   build_angle_trace_perf_tests = false
+   build_angle_perftests =
+-      is_win || is_linux || is_chromeos || is_android || is_apple || is_fuchsia
++      is_win || is_linux || is_chromeos || is_android || is_apple || is_fuchsia || is_ohos
+ }
+ 
+ if (is_android) {
+@@ -224,7 +224,7 @@ if (is_ios) {
+   }
+ }
+ 
+-if (is_win || is_linux || is_chromeos || is_android || is_fuchsia || is_apple) {
++if (is_win || is_linux || is_chromeos || is_android || is_fuchsia || is_apple || is_ohos) {
+   import("angle_end2end_tests.gni")
+ 
+   angle_test("angle_end2end_tests") {
+@@ -321,7 +321,7 @@ if (is_win || is_linux || is_chromeos || is_android || is_fuchsia || is_apple) {
+   }
+ }
+ 
+-if (is_win || is_linux || is_chromeos || is_android || is_fuchsia || is_apple) {
++if (is_win || is_linux || is_chromeos || is_android || is_fuchsia || is_apple || is_ohos) {
+   import("angle_white_box_tests.gni")
+ 
+   angle_test("angle_white_box_tests") {
+@@ -406,7 +406,7 @@ angle_perftests_common("angle_perftests_static") {
+   test_utils = ":angle_common_test_utils_static"
+ }
+ 
+-if (is_win || is_linux || is_chromeos || is_android || is_apple) {
++if (is_win || is_linux || is_chromeos || is_android || is_apple || is_ohos) {
+   import("angle_perftests.gni")
+ 
+   # This test suite is for perf tests that use ANGLE's internals in some direct way.

@@ -1,0 +1,41 @@
+# Contributor: chengkan <kanchengc@isoftstone.com>
+# Maintainer: chengkan <kanchengc@isoftstone.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+#echo ${LYCIUM_THIRDPARTY_ROOT}/../lycium/usr/muparser/${ARCH}/lib
+export LD_LIBRARY_PATH=/data/:${LYCIUM_THIRDPARTY_ROOT}/../lycium/usr/muparser/${ARCH}/lib
+openharmonycheck() {
+    res=0
+    cd ${builddir}/${ARCH}-build
+	echo "total test 3"  >> $logfile
+	./t_ParserTest >> $logfile
+	res=$?
+    
+    if [ $res -ne 0 ]
+    then
+		echo "test 1 error" >> $logfile
+		cd $OLDPWD
+		return $res
+    fi 
+	echo "1 pass" >> $logfile
+	echo -e "list var\nquit" | ./example1 >> $logfile
+	res=$?
+	if [ $res -ne 0 ]
+    then
+		echo "test 2 error" >> $logfile
+		cd $OLDPWD
+		return $res
+    fi 
+    echo "2 pass" >> $logfile
+	echo -e "list var\nquit" | ./example2 >> $logfile
+	res=$?
+	if [ $res -ne 0 ]
+    then
+		echo "test 3 error" >> $logfile
+		return $res
+    fi 
+	echo "3 pass" >> $logfile
+	cd $OLDPWD
+	return $res
+}

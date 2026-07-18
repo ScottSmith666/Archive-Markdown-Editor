@@ -1,0 +1,93 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=tcl
+pkgver=8.6.13
+pkgrel=0
+pkgdesc="Tool Command Language (Tcl) is an interpreted language and very portable interpreter for that language. Tcl is embeddable and extensible, and has been widely used since its creation in 1988 by John Ousterhout."
+url="https://sourceforge.net/projects/tcl/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("TCL/TK License")
+depends=(zlib_1_3_1)
+makedepends=()
+source="https://sourceforge.net/projects/$pkgname/files/Tcl/$pkgver/$pkgname$pkgver-src.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+builddir=$pkgname$pkgver
+packagename=$builddir.src.tar.gz
+source envset.sh
+host=
+
+cv_sys_osname=
+sed_flag=true
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    fi
+}
+
+build() {
+    if [ "$LYCIUM_BUILD_OS" == "Darwi" ] && [ "$sed_flag" == "true" ]
+    then
+        cd $builddir
+        #因编译链之间差异，禁止configure主动添加Darwin环境的编译选项
+        for file in $(find . -name "configure");do
+            sed -i.bak 's|Darwin|ShieldDarwin|g' $file
+        done
+        cd $OLDPWD
+        sed_flag=false
+        cv_sys_osname=Linux
+    fi    
+    cd $builddir/$ARCH-build
+    ../unix/configure "$@" --host=$host tcl_cv_sys_version=$cv_sys_osname > $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    fi
+    unset host
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # make test
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packageName
+}

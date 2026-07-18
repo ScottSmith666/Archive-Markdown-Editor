@@ -1,0 +1,94 @@
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=stb
+pkgver=master
+pkgrel=0
+pkgdesc="stb single-file public domain libraries for C/C++"
+url="https://github.com/nothings/stb"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT license")
+source="https://github.com/nothings/$pkgname.git"
+commitid=5736b15f7ea0ffb08dd38af21067c314d6a3aae9
+
+autounpack=false
+downloadpackage=false
+buildtools="make"
+
+builddir=$pkgname-${commitid}
+packagename=
+source envset.sh
+host=
+cloneflag=true
+
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone -b $pkgver $source $builddir
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd ..
+        cloneflag=false
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+}
+
+build() {
+    # 头文件库不需要编译
+    return 0
+}
+
+# 安装打包
+package() {
+    cd $builddir-$ARCH-build
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp *.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cd $OLDPWD
+}
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    cd $builddir-$ARCH-build
+    # 用sed的原因是Makefile中想要生成一个可执行文件,但是那个源文件是没有main函数的,编译会报错,所以注释掉这一行
+    sed 's/$(CC) $(INCLUDES) $(CPPFLAGS)/#$(CC) $(INCLUDES) $(CPPFLAGS)/1' tests/Makefile > tests/tmp_Makefile
+    mv tests/tmp_Makefile tests/Makefile
+    make -C tests > `pwd`/build.log
+    mkdir -p output
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD,会在output目录生成图片文件
+    # ./tests/image_write_test
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build #${PWD}/$packagename
+}

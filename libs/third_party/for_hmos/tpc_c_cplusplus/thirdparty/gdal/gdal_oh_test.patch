@@ -1,0 +1,26 @@
+--- gdal-3.9.1/autotest/cpp/test_cpl.cpp	2024-06-23 06:00:29.000000000 +0800
++++ gdal-3.9.1/autotest/cpp/test_cpl2.cpp	2024-08-06 10:13:34.214707800 +0800
+@@ -4444,9 +4444,9 @@
+         ASSERT_TRUE(VSISupportsSequentialWrite("c:\\", false));
+     }
+ #else
+-    if (VSIStatL("/tmp", &sStat) == 0)
++    if (VSIStatL("/data/local/tmp", &sStat) == 0)
+     {
+-        ASSERT_TRUE(VSISupportsSequentialWrite("/tmp/i_do_not_exist", false));
++        ASSERT_TRUE(VSISupportsSequentialWrite("/data/local/tmp/i_do_not_exist", false));
+     }
+ #endif
+ }
+@@ -4475,9 +4475,9 @@
+         ASSERT_TRUE(VSISupportsRandomWrite("c:\\", false));
+     }
+ #else
+-    if (VSIStatL("/tmp", &sStat) == 0)
++    if (VSIStatL("/data/local/tmp", &sStat) == 0)
+     {
+-        ASSERT_TRUE(VSISupportsRandomWrite("/tmp", false));
++        ASSERT_TRUE(VSISupportsRandomWrite("/data/local/tmp", false));
+     }
+ #endif
+ }

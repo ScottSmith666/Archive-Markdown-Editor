@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "linux-pam",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/linux-pam/linux-pam/blob/master/COPYING",
+        "Version Number": "8562cb1b951e7bd807af6b43d85c71cedd7b10d7",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/linux-pam/linux-pam",
+        "Description": "Linux-PAM is a set of shared libraries that allow local system administrators to choose the program authentication method at will."
+    }
+]

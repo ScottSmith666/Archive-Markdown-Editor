@@ -1,0 +1,29 @@
+diff -urN meshoptimizer-0.19_old/CMakeLists.txt meshoptimizer-0.19/CMakeLists.txt
+--- meshoptimizer-0.19_old/CMakeLists.txt	2023-04-30 02:06:54.000000000 +0800
++++ meshoptimizer-0.19/CMakeLists.txt	2024-10-02 15:19:47.590097999 +0800
+@@ -13,7 +13,7 @@
+ 
+ project(meshoptimizer VERSION 0.19 LANGUAGES CXX)
+ 
+-option(MESHOPT_BUILD_DEMO "Build demo" OFF)
++option(MESHOPT_BUILD_DEMO "Build demo" ON)
+ option(MESHOPT_BUILD_GLTFPACK "Build gltfpack" OFF)
+ option(MESHOPT_BUILD_SHARED_LIBS "Build shared libraries" OFF)
+ option(MESHOPT_WERROR "Treat warnings as errors" OFF)
+@@ -91,10 +91,14 @@
+ 
+ set(TARGETS meshoptimizer)
+ 
+-if(MESHOPT_BUILD_DEMO)
++
++    # 启用 CTest 测试
++    enable_testing()
++    # 添加测试可执行文件
+     add_executable(demo demo/main.cpp demo/tests.cpp tools/meshloader.cpp)
+     target_link_libraries(demo meshoptimizer)
+-endif()
++    # 添加测试
++    add_test(NAME MeshOptimizerTestsDemo COMMAND demo)
+ 
+ if(MESHOPT_BUILD_GLTFPACK)
+     add_executable(gltfpack ${GLTF_SOURCES} tools/meshloader.cpp)

@@ -1,0 +1,57 @@
+{
+    "name": "@ohos/rapidjson",
+    "description": "A fast JSON parser/generator for C++ with both SAX/DOM style API",
+    "version": "v1.1.0",
+    "license": "MIT license",
+    "publishAs": "",
+    "segment": {
+        "destPath": "third_party/rapidjson"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "rapidjson",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": ["standard"],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/rapidjson:rapidjson_gtest",
+                              "//third_party/rapidjson:rapidjson_gtest_main",
+                              "//third_party/rapidjson:rapidjson_gmock",
+                              "//third_party/rapidjson:rapidjson_gmock_main",
+                              "//third_party/rapidjson:namespacetest",
+                              "//third_party/rapidjson:archivertest",
+                              "//third_party/rapidjson:capitalize",
+                              "//third_party/rapidjson:condense",
+                              "//third_party/rapidjson:filterkey",
+                              "//third_party/rapidjson:filterkeydom",
+                              "//third_party/rapidjson:jsonx",
+                              "//third_party/rapidjson:lookaheadparser",
+                              "//third_party/rapidjson:messagereader",
+                              "//third_party/rapidjson:parsebyparts",
+                              "//third_party/rapidjson:pretty",
+                              "//third_party/rapidjson:prettyauto",
+                              "//third_party/rapidjson:schemavalidator",
+                              "//third_party/rapidjson:serialize",
+                              "//third_party/rapidjson:simpledom",
+                              "//third_party/rapidjson:simplereader",
+                              "//third_party/rapidjson:simplepullreader",
+                              "//third_party/rapidjson:simplewriter",
+                              "//third_party/rapidjson:sortkeys",
+                              "//third_party/rapidjson:tutorial",
+                              "//third_party/rapidjson:unittest"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

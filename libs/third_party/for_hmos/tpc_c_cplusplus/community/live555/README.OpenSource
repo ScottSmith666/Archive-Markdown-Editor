@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "live555",
+        "License": "LGPL-3.0, GPL-3.0 licenses found",
+        "License File": "LICENSES",
+        "Version Number": "",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/rgaufman/live555",
+        "Description": "Internet Streaming Media, Wireless, and Multicast technology, services, standards"
+    }
+]

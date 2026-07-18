@@ -1,0 +1,12 @@
+diff -Naur sqlite-release/Makefile.in sqlite-release-patch/Makefile.in
+--- sqlite-release/Makefile.in	2023-03-22 19:56:21.000000000 +0800
++++ sqlite-release-patch/Makefile.in	2023-04-06 10:29:32.362598708 +0800
+@@ -646,7 +646,7 @@
+ 
+ libtclsqlite3.la:	tclsqlite.lo libsqlite3.la
+ 	$(LTLINK) -no-undefined -o $@ tclsqlite.lo \
+-		libsqlite3.la @TCL_STUB_LIB_SPEC@ $(TLIBS) \
++		libsqlite3.la -L"$(TCLLIBDIR)"  $(TLIBS) \
+ 		-rpath "$(TCLLIBDIR)" \
+ 		-version-info "8:6:8" \
+ 		-avoid-version

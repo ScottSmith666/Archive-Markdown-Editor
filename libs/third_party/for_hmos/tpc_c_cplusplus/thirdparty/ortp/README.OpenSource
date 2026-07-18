@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "ortp",
+        "License": "AGPL-3.0 license",
+        "License File": "https://github.com/BelledonneCommunications/ortp/blob/master/LICENSE.txt",
+        "Version Number": "5.2.89",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/BelledonneCommunications/ortp/archive/refs/tags/5.2.89.tar.gz",
+        "Description": "oRTP is a C library implementing the RTP protocol (rfc3550)."
+    },
+    {
+        "Name": "bctoolbox",
+        "License": "GPL-3.0 license",
+        "License File": "https://github.com/BelledonneCommunications/bctoolbox/blob/master/LICENSE.txt",
+        "Version Number": "5.2.91",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://codeload.github.com/BelledonneCommunications/bctoolbox/zip/refs/tags/5.2.91",
+        "Description": "Utilities library used by Belledonne Communications softwares like belle-sip, mediastreamer2 and liblinphone."
+    }
+]

@@ -1,0 +1,51 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=fdk-aac
+pkgver=v2.0.2
+pkgrel=0
+pkgdesc="A standalone library of the Fraunhofer FDK AAC code from Android"
+url="https://github.com/mstorsjo/fdk-aac"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LicenseRef-scancode-fraunhofer-fdk-aac-codec")
+depends=()
+makedepends=()
+
+#source="https://github.com/mstorsjo/$pkgname/archive/refs/tags/$pkgver.tar.gz"github链接挂了
+source="https://gitee.com/lycium_pkg_mirror/fdk-aac/repository/archive/$pkgver.tar.gz"
+autounpack=true
+downloadpackage=true
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DBUILD_SHARED_LIBS=OFF -DBUILD_PROGRAMS=ON \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # ./aac-enc test.wav out.aac
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

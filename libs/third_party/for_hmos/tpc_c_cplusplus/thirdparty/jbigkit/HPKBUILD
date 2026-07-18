@@ -1,0 +1,77 @@
+# Contributor: liulihong <llh_01129@163.com>
+# Maintainer: liulihong <llh_01129@163.com>
+pkgname=jbigkit
+pkgver=2.1
+pkgrel=0
+pkgdesc="JBIG-KIT is a software implementation of the JBIG1 data compression standard (ITU-T T.82), which was designed for bi-level image data, such as scanned documents."
+url="https://www.cl.cam.ac.uk/~mgk25/jbigkit/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0-only")
+depends=()
+makedepends=()
+install=
+source="https://www.cl.cam.ac.uk/~mgk25/$pkgname/download/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+cc=
+# jbigkit 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份，分别patch。各自编译互不干扰
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+    fi
+    cd $OLDPWD
+}
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 CC=${cc} > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp libjbig/lib*.a  $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp libjbig/j*.h  $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin/
+    cp pbmtools/jbgtopbm  $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin/
+    cp pbmtools/jbgtopbm85  $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin/
+    cp pbmtools/pbmtojbg  $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin/
+    cp pbmtools/pbmtojbg85  $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin/
+
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/man/man1/
+    cp pbmtools/jbgtopbm.1  $LYCIUM_ROOT/usr/$pkgname/$ARCH/man/man1/
+    cp pbmtools/pbmtojbg.1  $LYCIUM_ROOT/usr/$pkgname/$ARCH/man/man1/
+
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/man/man5/
+    cp pbmtools/pbm.5  $LYCIUM_ROOT/usr/$pkgname/$ARCH/man/man5/
+    cp pbmtools/pgm.5  $LYCIUM_ROOT/usr/$pkgname/$ARCH/man/man5/
+    cd $OLDPWD
+    unset cc
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

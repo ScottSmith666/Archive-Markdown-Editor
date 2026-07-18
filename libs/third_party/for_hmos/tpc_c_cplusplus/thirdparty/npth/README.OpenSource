@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "npth",
+        "License": "GNU LESSER GENERAL PUBLIC LICENSE Version 2.1",
+        "License File": "https://github.com/gpg/npth/blob/npth-1.6/COPYING.LIB",
+        "Version Number": "v1.6",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.gnupg.org/software/npth",
+        "Description": "npth is a lightweight, portable user-level thread library tailored for cross-platform multi-threaded development—especially in resource-constrained scenarios like embedded systems—featuring low memory footprint and cooperative scheduling."
+    }
+]

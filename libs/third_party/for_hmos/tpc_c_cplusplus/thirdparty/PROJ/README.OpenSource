@@ -1,0 +1,47 @@
+[
+    {
+        "Name": "PROJ",
+        "License": "MIT License",
+        "License File": "https://github.com/OSGeo/PROJ/blob/master/COPYING",
+        "Version Number": "9.4.1",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://github.com/OSGeo/PROJ",
+        "Description": "PROJ is the most famous map projection library of open source GIS, which provides the function of coordinate conversion between multiple coordinate systems. "
+    },
+    {
+        "Name": "sqlite",
+        "License": "blessing",
+        "License File": "https://github.com/sqlite/sqlite/blob/master/LICENSE.md",
+        "Version Number": "version-3.46.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/sqlite/sqlite",
+        "Description": "This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+    },
+    {
+        "Name": "libtiff",
+        "License": "libtiff",
+        "License File": "https://gitlab.com/libtiff/libtiff/-/blob/master/LICENSE.md",
+        "Version Number": "51558511bdbbcffdce534db21dbaf5d54b31638a",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://gitlab.com/libtiff/libtiff",
+        "Description": "a small collection of tools for doingsimple manipulations of TIFF images, and documentation on the library and tools."
+    },
+    {
+        "Name": "curl",
+        "License": "BSD/ISC/curl",
+        "License File": "https://github.com/curl/curl/tree/curl-8_9_0/LICENSES",
+        "Version Number": "curl-8_9_0",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://github.com/curl/curl/archive/refs/tags/curl-8_9_1.tar.gz",
+        "Description": "Curl is a command-line tool for transferring data specified with URL syntax. Find out how to use curl by reading the curl.1 man page or the MANUAL document. Find out how to install Curl by reading the INSTALL document."
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1w",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1w.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    }
+]

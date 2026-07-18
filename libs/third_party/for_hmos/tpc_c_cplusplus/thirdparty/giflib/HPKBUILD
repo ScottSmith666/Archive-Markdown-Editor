@@ -1,0 +1,92 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: liulihong <llh_01129@163.com>, 城meto <myxuan475@126.com>
+# Maintainer: liulihong <llh_01129@163.com>
+
+pkgname=giflib
+pkgver=5.2.1
+pkgrel=0
+pkgdesc="giflib is a library for reading and writing gif images. "
+url="https://sourceforge.net/projects/giflib/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT license")
+depends=()
+makedepends=("xmlto") # 从sourceforge仓库获取的代码需要生成html格式文件,需要xmlto工具
+
+# 原仓地址: https://sourceforge.net/projects/$pkgname/files/$pkgname-$pkgver.tar.gz, 因网络原因使用镜像地址
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+patchflag=true
+
+cc=
+ar=
+# giflib 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+prepare() {
+    # patch说明：
+    # 原库测试使用head命令，在linux上head支持--bytes参数，但是oh上的head不支持该参数，这里使用等效的参数 -c 来替代
+    # oh上面的head -c 命令不支持 例如-20（除了尾部20字节），这里使用busybox中的head命令来替代oh自带的head命令
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../giflib_oh_test.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+    cd $OLDPWD # 1> /dev/null
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 CC=${cc} AR=${ar} > $build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    cd $OLDPWD
+    unset cc ar
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # TODO
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libbson",
+        "License": "Apache License",
+        "License File": "LICENSE.txt",
+        "Version Number": "2.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/mongodb/mongo-c-driver/tree/master/src/libbson",
+        "Description": "libbson 是一个提供与构建、解析和迭代 BSON 文档相关有用例程的库"
+    }
+]

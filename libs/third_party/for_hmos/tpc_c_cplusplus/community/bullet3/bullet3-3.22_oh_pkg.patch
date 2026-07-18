@@ -1,0 +1,66 @@
+--- bullet3-3.22_old/examples/ThirdPartyLibs/Eigen/src/Core/util/Macros.h	2022-03-26 10:29:36.000000000 +0800
++++ bullet3-3.22/Macros.h	2024-09-04 11:25:14.315308781 +0800
+@@ -1145,7 +1145,9 @@
+       #if EIGEN_COMP_GNUC_STRICT && EIGEN_GNUC_AT_MOST(5, 0)
+         #define EIGEN_OPTIMIZATION_BARRIER(X)  __asm__  ("" : "+r,w" (X));
+       #else
++        #if !defined(__OHOS__)
+         #define EIGEN_OPTIMIZATION_BARRIER(X)  __asm__  ("" : "+g,w" (X));
++        #endif
+       #endif
+     #elif EIGEN_ARCH_i386_OR_x86_64
+       // General, SSE.
+--- bullet3-3.22_old/examples/SharedMemory/PhysicsClientUDP.cpp	2022-03-26 10:29:36.000000000 +0800
++++ bullet3-3.22/PhysicsClientUDP.cpp	2024-09-04 11:32:00.342763723 +0800
+@@ -164,7 +164,7 @@
+ 					if (gVerboseNetworkMessagesClient)
+ 					{
+ 						printf(
+-							"A packet of length %lu containing '%s' was "
++							"A packet of length %zu containing '%s' was "
+ 							"received from %s on channel %u.\n",
+ 							m_event.packet->dataLength,
+ 							(char*)m_event.packet->data,
+@@ -220,7 +220,7 @@
+ 					if (gVerboseNetworkMessagesClient)
+ 					{
+ 						printf(
+-							"A packet of length %lu containing '%s' was "
++							"A packet of length %zu containing '%s' was "
+ 							"received from %s on channel %u.\n",
+ 							m_event.packet->dataLength,
+ 							(char*)m_event.packet->data,
+--- bullet3-3.22_old/examples/ThirdPartyLibs/Eigen/src/Core/arch/Default/GenericPacketMathFunctions.h	2022-03-26 10:29:36.000000000 +0800
++++ bullet3-3.22/GenericPacketMathFunctions.h	2024-09-04 11:45:59.441659426 +0800
+@@ -638,7 +638,7 @@
+ 
+   // Rounding trick:
+   Packet y_round = padd(y, cst_rounding_magic);
+-  EIGEN_OPTIMIZATION_BARRIER(y_round)
++  //EIGEN_OPTIMIZATION_BARRIER(y_round);
+   PacketI y_int = preinterpret<PacketI>(y_round); // last 23 digits represent integer (if abs(x)<2^24)
+   y = psub(y_round, cst_rounding_magic); // nearest integer to x*4/pi
+ 
+@@ -660,9 +660,9 @@
+   // and 2 ULP up to:
+   const float huge_th = ComputeSine ? 25966.f : 18838.f;
+   x = pmadd(y, pset1<Packet>(-1.5703125), x); // = 0xbfc90000
+-  EIGEN_OPTIMIZATION_BARRIER(x)
++  //EIGEN_OPTIMIZATION_BARRIER(x);
+   x = pmadd(y, pset1<Packet>(-0.000483989715576171875), x); // = 0xb9fdc000
+-  EIGEN_OPTIMIZATION_BARRIER(x)
++  //EIGEN_OPTIMIZATION_BARRIER(x);
+   x = pmadd(y, pset1<Packet>(1.62865035235881805419921875e-07), x); // = 0x342ee000
+   x = pmadd(y, pset1<Packet>(5.5644315544167710640977020375430583953857421875e-11), x); // = 0x2e74b9ee
+ 
+--- bullet3-3.22_old/examples/OpenGLWindow/X11OpenGLWindow.cpp	2022-03-26 10:29:36.000000000 +0800
++++ bullet3-3.22/X11OpenGLWindow.cpp	2024-09-04 11:57:34.600751392 +0800
+@@ -566,7 +566,7 @@
+ 	//Access pthreads as a workaround for a bug in Linux/Ubuntu
+ 	//See https://bugs.launchpad.net/ubuntu/+source/nvidia-graphics-drivers-319/+bug/1248642
+ 
+-#if !defined(__NetBSD__) && !defined(__ANDROID__)
++#if !defined(__NetBSD__) && !defined(__ANDROID__) && !defined(__OHOS__)
+ 	int i = pthread_getconcurrency();
+ 	printf("pthread_getconcurrency()=%d\n", i);
+ #endif

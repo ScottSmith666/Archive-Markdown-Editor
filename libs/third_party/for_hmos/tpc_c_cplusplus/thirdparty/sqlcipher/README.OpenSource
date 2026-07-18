@@ -1,0 +1,30 @@
+[
+    {
+        "Name": "sqlcipher",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/sqlcipher/sqlcipher/blob/master/LICENSE.md",
+        "Version Number": "4.5.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/sqlcipher/sqlcipher/archive/refs/tags/v4.5.5.tar.gz",
+        "Description": "SQLCipher is a standalone fork of SQLite that adds 256 bit AES encryption of database files and other security features"
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1u.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    },
+    {
+        "Name": "tcl",
+        "License": "TCL/TK License",
+        "License File": "https://www.tcl.tk/software/tcltk/license.html",
+        "Version Number": "8.6.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/tcl/files/Tcl/8.6.13/tcl8.6.13-src.tar.gz",
+        "Description": "Tool Command Language (Tcl) is an interpreted language and very portable interpreter for that language. Tcl is embeddable and extensible, and has been widely used since its creation in 1988 by John Ousterhout."
+    }
+]
+

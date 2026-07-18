@@ -1,0 +1,113 @@
+.cke_editable {
+  margin: 16px 28px;
+  overflow-y: auto !important;
+}
+.cke_editable.maxsize {
+  overflow-y: auto !important;
+}
+
+.cke_editable[data-cke-editorplaceholder]::before {
+  color: rgba(0, 0, 0, 0.2);
+  opacity: 1;
+  font-weight: 400;
+  white-space: pre;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.cke_editable code,
+.cke_editable kbd,
+.cke_editable pre,
+.cke_editable samp {
+  font-family: 'JetBrains Mono', Consolas, ui-monospace, Menlo, monospace, 'HarmonyOSHans-Regular', PingFangSC-Regular,
+    'Microsoft YaHei' !important;
+}
+.cke_widget_easyimage {
+  margin: 6px 0;
+}
+.cke_editable .easyimage img {
+  border-radius: 12px;
+  /* margin: 16px 0; */
+}
+
+.cke_editable .ckeditor-video video,
+.cke_article .ckeditor-video video,
+.cke-article .ckeditor-video video {
+  border-radius: 12px;
+}
+.cke_widget_wrapper:hover > .cke_widget_element {
+  border-radius: 12px;
+}
+.cke_panel_container .cke_panel_grouptitle {
+  background-color: #fff;
+  cursor: default;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 0;
+  padding: 8px 12px;
+  color: rgba(0, 0, 0, 0.9);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  line-height: 16px;
+}
+
+.cke_panel_container .cke_colorblock {
+  padding: 0;
+}
+
+.cke_panel_container .cke_panel_listItem a {
+  padding: 8px 12px;
+  color: rgba(0, 0, 0, 0.9) !important;
+  margin-top: 8px;
+}
+
+.cke_panel_container .cke_panel_listItem.cke_selected a,
+.cke_panel_container .cke_panel_listItem a:hover,
+.cke_panel_container .cke_panel_listItem a:focus,
+.cke_panel_container .cke_panel_listItem a:active {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 12px !important;
+}
+.cke_editable pre {
+  padding: 8px 12px !important;
+  overflow-x: auto;
+  position: relative;
+  z-index: 1;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+    background-color: #f0f2f5;
+  }
+
+  &::-webkit-scrollbar:hover {
+    opacity: 1;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background-color: #ccc;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: #b5babf;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-radius: 8px;
+    background-color: #f1f4fa;
+  }
+}
+.cke_editable ul li {
+  list-style-type: disc !important;
+}
+.cke_editable ol li {
+  list-style-type: decimal !important;
+}
+.cke_editable .cke_widget_codeSnippet,
+.cke_editable .cke_widget_videoUpload {
+  margin: 16px 4px 0 4px !important;
+}
+.cke_editable .cke_widget_easyimage {
+  margin: 6px 4px !important;
+}

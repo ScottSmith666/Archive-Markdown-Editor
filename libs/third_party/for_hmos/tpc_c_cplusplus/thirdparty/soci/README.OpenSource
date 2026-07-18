@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "soci",
+        "License": "BSL-1.0 license",
+        "License File": "https://github.com/SOCI/soci/blob/master/LICENSE_1_0.txt",
+        "Version Number": "884808c294e4809064650f3e5aed9102d8a68d56",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/soci/soci",
+        "Description": "SOCI is a database access library for C++ that provides a unified interface to access various database systems such as MySQL, PostgreSQL, SQLite, etc."
+    },
+    {
+        "Name": "sqlite_3_46_0",
+        "License": "blessing",
+        "License File": "https://github.com/sqlite/sqlite/blob/master/LICENSE.md",
+        "Version Number": "version-3.46.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/sqlite/sqlite",
+        "Description": "This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+    }
+]

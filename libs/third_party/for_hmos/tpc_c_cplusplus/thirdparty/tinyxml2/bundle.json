@@ -1,0 +1,33 @@
+{
+    "name": "@ohos/tinyxml2",
+    "description": "A fast JSON parser/generator for C++ with both SAX/DOM style API",
+    "version": "v9.0.0",
+    "license": "GNU LGPLv2+",
+    "publishAs": "",
+    "segment": {
+        "destPath": "third_party/tinyxml2"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "tinyxml2",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/tinyxml2:tinyxml2"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "sqlite3pp",
+        "License": "MIT License",
+        "License File": "https://github.com/iwongu/sqlite3pp/blob/master/LICENSE",
+        "Version Number": "v1.0.9",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/iwongu/sqlite3pp/archive/refs/tags/v1.0.9.tar.gz",
+        "Description": "sqlite3pp is a C++ wrapper library for SQLite3 that provides a modern, type-safe interface to manipulate SQLite databases."
+    },
+    {
+        "Name": "sqlite_3_46_0",
+        "License": "blessing",
+        "License File": "https://github.com/sqlite/sqlite/blob/master/LICENSE.md",
+        "Version Number": "version-3.46.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/sqlite/sqlite",
+        "Description": "This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+    }
+]

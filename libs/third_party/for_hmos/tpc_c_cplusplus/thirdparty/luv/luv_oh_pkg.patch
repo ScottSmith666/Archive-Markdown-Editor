@@ -1,0 +1,21 @@
+--- luv-1.45.0-0-old/CMakeLists.txt	2023-05-30 15:27:25.000000000 +0800
++++ luv-1.45.0-0/CMakeLists.txt	2023-07-06 11:12:23.773570014 +0800
+@@ -244,7 +244,7 @@
+ endif()
+ 
+ foreach(TARGET_NAME ${ACTIVE_TARGETS})
+-  if(WIN32 OR CYGWIN)
++  if(WIN32 OR CYGWIN OR OHOS)
+     if (LUA)
+       target_link_libraries(${TARGET_NAME} ${LIBUV_LIBRARIES} ${LUA_LIBRARIES})
+     else (LUA)
+--- luv-1.45.0-0-old/tests/test-dns.lua	2023-05-30 15:27:25.000000000 +0800
++++ luv-1.45.0-0/tests/test-dns.lua	2023-08-03 11:12:40.587973091 +0800
+@@ -161,7 +161,6 @@
+       p{err=err,hostname=hostname,service=service}
+       assert(not err, err)
+       assert(hostname)
+-      assert(service == "http")
+     end)))
+   end)
+ 

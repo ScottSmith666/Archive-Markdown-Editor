@@ -1,0 +1,86 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, wen fan <wenfan001@chinasoftinc.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=libavc
+pkgver=v1.4.0
+pkgrel=
+pkgdesc="a H.264 software decoder under apache v2.0 license."
+url=https://github.com/ittiam-systems/${pkgname}
+archs=(arm64-v8a)
+license=("Apache License Version 2.0")
+depends=(googletest)
+makedepends=()
+
+source=https://github.com/ittiam-systems/${pkgname}/archive/refs/tags/${pkgver}.tar.gz
+
+autounpack=true
+downloadpackage=true
+buildtools=cmake
+
+builddir=${pkgname}-${pkgver:1}
+packagename=${builddir}.tar.gz
+
+prepare() {
+    mkdir -p ${builddir}/${ARCH}-build
+    return 0
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=${ARCH} -B${ARCH}-build \
+    -DCOMPILER_HAS_SANITIZE_FUZZER=0 -DENABLE_TESTS=ON \
+    -S./ -L > ${buildlog} 2>&1 || return -1
+
+    sed -i.bak '/googletest-gitclone.cmake\|googletest-gitupdate.cmake\|-GUnix Makefiles\|(MAKE)/d' \
+    ./${ARCH}-build/CMakeFiles/googletest.dir/build.make || return -1
+    
+    cp -rf ../../googletest/googletest-v1.13.0/* ./third_party/googletest/
+    cp -rf ./third_party/googletest/${ARCH}-build/* ./third_party/build/googletest/src/googletest-build/
+
+    ${MAKE} -C ${ARCH}-build >> ${buildlog} 2>&1 || return -1
+
+    cd ${OLDPWD}
+    return 0
+}
+
+package() {
+    install_dir=${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}
+
+    mkdir -p ${install_dir}/lib
+    cd ${builddir}
+    cp -f ${ARCH}-build/*.a ${install_dir}/lib/
+
+    mkdir -p ${install_dir}/include
+    cp -rf common ${install_dir}/include/
+    cp -rf decoder ${install_dir}/include/
+    cp -rf encoder ${install_dir}/include/
+    cd ${OLDPWD}
+    return 0
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cd ${builddir}/${ARCH}-build
+    wget -N https://dl.google.com/android-unittest/media/external/${pkgname}/tests/AvcTestRes-1.0.zip > ${publicbuildlog} 2>&1 || return -1
+    unzip -o AvcTestRes-1.0.zip >> ${publicbuildlog} 2>&1 || return -1
+    cd ${OLDPWD}
+    return 0
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/${builddir}
+    return 0
+}

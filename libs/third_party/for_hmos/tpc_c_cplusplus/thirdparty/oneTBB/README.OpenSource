@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "oneTBB",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/uxlfoundation/oneTBB/blob/master/LICENSE.txt",
+        "Version Number": "v2022.3.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/uxlfoundation/oneTBB/archive/refs/tags/oneTBB-2022.3.0.tar.gz",
+        "Description": "oneTBB is a flexible C++ library that simplifies the addition of parallel processing to complex applications."
+    }
+
+]

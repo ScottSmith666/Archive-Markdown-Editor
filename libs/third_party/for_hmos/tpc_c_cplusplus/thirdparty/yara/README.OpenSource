@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "yara",
+        "License": "BSD-3-Clause license",
+        "License File": "LICENSE",
+        "Version Number": "4.5.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/VirusTotal/yara/archive/refs/tags/v4.5.0.tar.gz",
+        "Description": "The pattern matching swiss knife"
+    }
+]

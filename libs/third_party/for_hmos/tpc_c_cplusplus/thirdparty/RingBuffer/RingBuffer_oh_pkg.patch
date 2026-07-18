@@ -1,0 +1,146 @@
+diff -Naur RingBuffer-1.0.4/cmake/PackageConfig.cmake.in RingBuffer-1.0.4_new/cmake/PackageConfig.cmake.in
+--- RingBuffer-1.0.4/cmake/PackageConfig.cmake.in	1970-01-01 08:00:00.000000000 +0800
++++ RingBuffer-1.0.4_new/cmake/PackageConfig.cmake.in	2023-10-30 17:23:45.064555714 +0800
+@@ -0,0 +1,11 @@
++@PACKAGE_INIT@
++
++set(@PROJECT_NAME@_INCLUDE_DIRS ${PACKAGE_PREFIX_DIR}/include ${PACKAGE_PREFIX_DIR}/include/@TARGET_NAME@)
++
++set(@PROJECT_NAME@_SHARED_LIBRARIES ${PACKAGE_PREFIX_DIR}/lib/lib@TARGET_NAME@.so)
++set(@PROJECT_NAME@_STATIC_LIBRARIES ${PACKAGE_PREFIX_DIR}/lib/lib@TARGET_NAME@_static.a)
++
++include(CMakeFindDependencyMacro)
++
++include(${CMAKE_CURRENT_LIST_DIR}/@TARGET_NAME@Targets.cmake)
++check_required_components(@TARGET_NAME@)
+diff -Naur RingBuffer-1.0.4/CMakeLists.txt RingBuffer-1.0.4_new/CMakeLists.txt
+--- RingBuffer-1.0.4/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
++++ RingBuffer-1.0.4_new/CMakeLists.txt	2023-10-30 17:23:52.240805016 +0800
+@@ -0,0 +1,19 @@
++cmake_minimum_required (VERSION 3.12)
++project(RINGBUFFER)
++enable_language(C CXX)
++
++set(TARGET_NAME RingBuffer)
++set(TARGET_INSTALL_INCLUDEDIR "./src")
++
++
++add_executable(RingBuffer_test RingBuffer_test.cpp)
++target_include_directories(RingBuffer_test PRIVATE src)
++
++
++enable_testing()
++add_test(NAME test_RingBuffer COMMAND RingBuffer_test)
++
++
++install(FILES ${TARGET_INSTALL_INCLUDEDIR}/RingBuf.h   #FILES 安装文件，可以是头文件，配置文件等
++        DESTINATION ${TARGET_INSTALL_INCLUDEDIR}/${TARGET_NAME}) #  DESTINATION 需要安装到的路径
++
+diff -Naur RingBuffer-1.0.4/RingBuffer_test.cpp RingBuffer-1.0.4_new/RingBuffer_test.cpp
+--- RingBuffer-1.0.4/RingBuffer_test.cpp	1970-01-01 08:00:00.000000000 +0800
++++ RingBuffer-1.0.4_new/RingBuffer_test.cpp	2023-11-02 10:48:42.634776682 +0800
+@@ -0,0 +1,24 @@
++#include <RingBuf.h>
++#include <stdio.h>
++
++#define MAX_NUM 5
++
++RingBuf<uint8_t, MAX_NUM> myBuffer;
++
++int main()
++{
++    printf("start test\n");	
++    for (uint8_t j = 0; j < MAX_NUM * 2; j++) {
++        myBuffer.pushOverwrite(j);
++    }
++
++    if(myBuffer.size() != MAX_NUM) {
++        printf("test faild myBuffer.size()=%d\n",myBuffer.size());
++	return -1;
++    }
++    for (uint8_t j = 0; j < myBuffer.size(); j++) {
++        printf("%d\n",myBuffer[j]);
++    }
++    printf("test success\n");	
++    return 0;
++}
+diff -Naur RingBuffer-1.0.4/src/RingBuf.h RingBuffer-1.0.4_new/src/RingBuf.h
+--- RingBuffer-1.0.4/src/RingBuf.h	2023-05-08 17:24:18.000000000 +0800
++++ RingBuffer-1.0.4_new/src/RingBuf.h	2023-10-30 17:49:07.928338385 +0800
+@@ -45,7 +45,9 @@
+ #ifndef __RINGBUF_H__
+ #define __RINGBUF_H__
+ 
+-#include <Arduino.h>
++//#include <Arduino.h>
++#include <stdlib.h>
++#include <stdint.h>
+ 
+ /*
+  * Set the integer size used to store the size of the buffer according of
+@@ -203,33 +205,33 @@
+ 
+ template <typename ET, size_t S, typename IT, typename BT>
+ bool RingBuf<ET, S, IT, BT>::lockedPush(const ET inElement) {
+-  noInterrupts();
++  //noInterrupts();
+   bool result = push(inElement);
+-  interrupts();
++  //interrupts();
+   return result;
+ }
+ 
+ template <typename ET, size_t S, typename IT, typename BT>
+ bool RingBuf<ET, S, IT, BT>::lockedPush(const ET *const inElement) {
+-  noInterrupts();
++  //noInterrupts();
+   bool result = push(inElement);
+-  interrupts();
++  //interrupts();
+   return result;
+ }
+ 
+ template <typename ET, size_t S, typename IT, typename BT>
+ bool RingBuf<ET, S, IT, BT>::lockedPushOverwrite(const ET inElement) {
+-  noInterrupts();
++  //noInterrupts();
+   bool result = pushOverwrite(inElement);
+-  interrupts();
++  //interrupts();
+   return result;
+ }
+ 
+ template <typename ET, size_t S, typename IT, typename BT>
+ bool RingBuf<ET, S, IT, BT>::lockedPushOverwrite(const ET *const inElement) {
+-  noInterrupts();
++  //noInterrupts();
+   bool result = pushOverwrite(inElement);
+-  interrupts();
++  //interrupts();
+   return result;
+ }
+ 
+@@ -245,9 +247,9 @@
+ 
+ template <typename ET, size_t S, typename IT, typename BT>
+ bool RingBuf<ET, S, IT, BT>::lockedPop(ET &outElement) {
+-  noInterrupts();
++  //noInterrupts();
+   bool result = pop(outElement);
+-  interrupts();
++  //interrupts();
+   return result;
+ }
+ 
+@@ -267,9 +269,9 @@
+ 
+ template <typename ET, size_t S, typename IT, typename BT>
+ bool RingBuf<ET, S, IT, BT>::lockedPeek(ET &outElement, const size_t distance) {
+-  noInterrupts();
++  //noInterrupts();
+   bool result = peek(outElement, distance);
+-  interrupts();
++  //interrupts();
+   return result;
+ }
+ 

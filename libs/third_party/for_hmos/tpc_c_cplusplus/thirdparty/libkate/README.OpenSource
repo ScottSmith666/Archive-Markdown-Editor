@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libkate",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/Distrotech/libkate/blob/distrotech-libkate/COPYING",
+        "Version Number": "libkate-distrotech-libkate-0.4.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/Distrotech/libkate",
+        "Description": "libkate is an open source library for working with Kate stream metadata."
+    }
+]

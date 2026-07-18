@@ -1,0 +1,85 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=jbig2dec
+pkgver=0.19
+pkgrel=0
+pkgdesc="jbig2dec is a decoder library and example utility implementing the JBIG2 bi-level image compression spec. Also known as ITU T.88 and ISO IEC 14492, and included by reference in Adobe's PDF version 1.4 and later."
+url="https://jbig2dec.com/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("AGPLv3")
+depends=()
+makedepends=()
+
+source="https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs9533/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+source envset.sh
+host=
+
+prepare() {
+    cp -rf $builddir $pkgname-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    cd $pkgname-$ARCH-build
+    ./autogen.sh > `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+build() {
+    cd $pkgname-$ARCH-build
+    ./configure "$@" --host=$host >> `pwd`/build.log 2>&1
+    make -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+    return $ret
+}
+
+check() {
+    cd $pkgname-$ARCH-build
+    sed -i '/.*test_sha1.log: test_sha1$(EXEEXT)*/c\test_sha1.log: #test_sha1$(EXEEXT)' Makefile
+    sed -i '/.*test_jbig2dec.py.log: test_jbig2dec.py*/c\test_jbig2dec.py.log: #test_jbig2dec.py' Makefile
+    sed -i '/.*test_huffman.log: test_huffman$(EXEEXT)*/c\test_huffman.log: #test_huffman$(EXEEXT)' Makefile
+    sed -i '/.*test_arith.log: test_arith$(EXEEXT)*/c\test_arith.log: #test_arith$(EXEEXT)' Makefile
+    
+    # 将不能访问的/bin/bash 替换成/data/CIusr/bin/bash
+    sed -i "s#/bin/bash#/data/CIusr/bin/bash#g" Makefile config.status test_arith test_huffman
+    ret=$?
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例,备注:由于ohos不支持python,因此涉及到python的用例不通过
+    # make check-TESTS
+    return $ret
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $pkgname-armeabi-v7a-build  $pkgname-arm64-v8a-build #${PWD}/$packagename
+}

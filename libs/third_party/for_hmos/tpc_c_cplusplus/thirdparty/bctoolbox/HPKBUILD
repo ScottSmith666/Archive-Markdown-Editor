@@ -1,0 +1,63 @@
+# Contributor: 城meto <myxuan475@126.com>
+# Maintainer: 城meto <myxuan475@126.com>
+
+pkgname=bctoolbox
+pkgver=5.2.91
+pkgrel=0
+pkgdesc="Utilities library used by Belledonne Communications softwares like belle-sip, mediastreamer2 and liblinphone."
+url="https://github.com/BelledonneCommunications/bctoolbox"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-3.0 license")
+depends=("mbedtls_2_4_2" "bcunit" "erlang-libdecaf")
+makedepends=()
+source="https://codeload.github.com/BelledonneCommunications/$pkgname/zip/refs/tags/$pkgver"
+buildtools="cmake"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+
+builddir=$pkgname-$pkgver
+packagename=$pkgname-$pkgver.zip
+
+prepare() {
+    # 因编译器差异问题， 不支持mallinfo函数，需要打patch
+    if [ $patchflag == true ];then
+        cd $builddir
+        patch -p1 < `pwd`/../bctoolbox_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # mbedtls 使用2.4.2版本，更高版本接口不兼容
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -I${LYCIUM_ROOT}/usr/mbedtls_2_4_2/${ARCH}/include -Wno-error=unused-parameter" \
+        -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -I${LYCIUM_ROOT}/usr/mbedtls_2_4_2/${ARCH}/include" \
+        -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS} -L${LYCIUM_ROOT}/usr/mbedtls_2_4_2/${ARCH}/lib" \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # tester/bctoolbox_tester
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf $builddir
+}

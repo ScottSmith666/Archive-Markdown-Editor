@@ -1,0 +1,125 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: tyBrave <tianyong13@huawei.com>
+# Maintainer: tyBrave <tianyong13@huawei.com>
+
+pkgname=freetype2
+pkgver=2.14.3
+pkgrel=0
+pkgdesc="FreeType is a freely available software library to render fonts."
+url="https://freetype.org"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("GPL FTL")
+depends=("zlib_1_3_1" "bzip2_1_0_8" "brotli" "libpng")
+makedepends=()
+# 官方下载地址https://sourceforge.net/projects/freetype/files/$pkgname/$pkgver/freetype-$pkgver.tar.xz受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://download.sourceforge.net/freetype/freetype-${pkgver}.tar.xz"
+
+autounpack=true
+downloadpackage=true
+
+builddir=${pkgname:0:8}-${pkgver}
+packagename="freetype-${pkgver}.tar.xz"
+
+testdir=
+
+prepare() {
+    testdir=`pwd`/$builddir/$ARCH-build/freetype-cmake-testbuild
+    rm -rf $testdir
+    mkdir -p $testdir
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_HARFBUZZ=ON -DFT_DISABLE_PNG=ON -DFT_DISABLE_ZLIB=ON -DFT_ENABLE_ERROR_STRINGS=ON -B$testdir/ftb -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $testdir/ftb >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $testdir/ftb install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo -e " \n
+    cmake_minimum_required(VERSION 3.16.5) \n
+    project(freetype-cmake-testbuild)\n
+
+    set(FREETYPE_LIBRARY $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib) \n
+    set(FREETYPE_INCLUDE_DIRS $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/freetype2) \n
+	
+    include_directories($LYCIUM_ROOT/usr/$pkgname/$ARCH/include/freetype2) \n
+
+    add_executable(freetype-cmake-test main.c)\n
+	
+    target_link_libraries(freetype-cmake-test PUBLIC $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/libfreetype.a)\n
+    target_link_libraries(freetype-cmake-test PUBLIC $LYCIUM_ROOT/usr/brotli/$ARCH/lib/libbrotlidec.so)\n
+    target_link_libraries(freetype-cmake-test PUBLIC $LYCIUM_ROOT/usr/bzip2_1_0_8/$ARCH/lib/libbz2.a)\n
+    target_link_libraries(freetype-cmake-test PUBLIC $LYCIUM_ROOT/usr/libpng/$ARCH/lib/libpng.a)\n
+    target_link_libraries(freetype-cmake-test PUBLIC $LYCIUM_ROOT/usr/zlib_1_3_1/$ARCH/lib/libz.a)\n
+
+    enable_testing()\n
+    add_test(freetype-cmake-test freetype-cmake-test)" > $testdir/CMakeLists.txt
+
+
+
+    echo -e " \n
+    #include <stdio.h> \n
+    #include <stdlib.h> \n
+
+    #include <ft2build.h> \n
+    #include <freetype/freetype.h> \n
+
+    FT_Library library; \n
+
+    int main(int argc,char*argv[]) \n
+    { \n
+       FT_Error error; \n
+       FT_Int major = 0; \n
+       FT_Int minor = 0; \n
+       FT_Int patch = 0; \n
+
+       error = FT_Init_FreeType(&library); \n
+       if (error) return EXIT_FAILURE; \n
+
+       FT_Library_Version(library, &major, &minor, &patch); \n
+       if (major != FREETYPE_MAJOR|| minor != FREETYPE_MINOR|| patch != FREETYPE_PATCH) return EXIT_FAILURE; \n
+       printf(\"FT_Library_Version:%d.%d.%d\", major, minor, patch);\n
+       error = FT_Done_FreeType(library); \n
+       if (error) return EXIT_FAILURE; \n
+     
+       return EXIT_SUCCESS;
+    }" > $testdir/main.c
+
+    mkdir -p $testdir/tb
+    cd $testdir/tb
+    
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake $testdir -DCMAKE_TOOLCHAIN_FILE=$OHOS_SDK/native/build/cmake/ohos.toolchain.cmake -DCMAKE_BUILD_TYPE=Release -DOHOS_ARCH=$ARCH >> $testdir/../build.log 2>&1
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake --build . --config Release >> $testdir/../build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    return $ret
+    # cd freetype-cmake-testbuild/tb
+    # ctest -V -C Release
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

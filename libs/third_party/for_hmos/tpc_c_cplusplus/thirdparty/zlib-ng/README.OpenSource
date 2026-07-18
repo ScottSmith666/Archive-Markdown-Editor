@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "zlib-ng",
+        "License": "MIT License",
+        "License File": "https://github.com/zlib-ng/zlib-ng/blob/develop/LICENSE.md",
+        "Version Number": "2.3.0-rc2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/zlib-ng/zlib-ng",
+        "Description": "zlib-ng is a drop-in replacement for zlib with optimizations for next-generation systems"
+    }
+]

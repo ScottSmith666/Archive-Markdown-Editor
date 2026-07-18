@@ -1,0 +1,61 @@
+# Contributor: 城meto <myxuan475@126.com>
+# Maintainer: 城meto <myxuan475@126.com>
+
+pkgname=openmp
+pkgver=release_90
+pkgrel=0
+pkgdesc="openmp is a compoment of llvm-project."
+url="https://github.com/llvm-mirror/openmp"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("View license")
+depends=()
+makedepends=()
+source="https://codeload.github.com/llvm-mirror/$pkgname/zip/refs/heads/$pkgver"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+
+builddir=$pkgname-$pkgver
+packagename=$pkgname-$pkgver.zip
+
+prepare() {
+    # 因平台差异问题，缺少pthread_cancel需要打patch
+    if [ $patchflag == true ];then
+        cd $builddir
+        patch -p1 < `pwd`/../openmp_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # LIBOMP_USE_VERSION_SYMBOLS 打开后需要添加-DLIBOMP_LDFLAGS="-Wl,--version-script=`pwd`/runtime/src/exports_so.txt" 才可编译通过
+    PKG_CONFIG_LIBDIR="{pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DLIBOMP_USE_VERSION_SYMBOLS=OFF -DOHOS_ARCH=$ARCH \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--strip-all" \
+    -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install VERBOSE=1 >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

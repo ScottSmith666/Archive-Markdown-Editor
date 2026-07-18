@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <oatconfig>
+        <filefilterlist>
+            <filefilter name="copyrightPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="SHA512SUM" desc="SHA512SUM文件，不添加版权头"/>
+            </filefilter>
+            <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="SHA512SUM" desc="SHA512SUM文件，不添加版权头"/>
+            </filefilter>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="*.png" desc="指导文档需要的png图片"/>
+            </filefilter>
+			<filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="*.h265" desc=".h265文件，测试资源文件"/>
+            </filefilter>
+			<filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="*.yuv" desc=".yuv文件，测试资源文件"/>
+            </filefilter>
+			<filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="*.265" desc=".265文件，测试资源文件"/>
+            </filefilter>
+        </filefilterlist>
+    </oatconfig>
+</configuration>

@@ -1,0 +1,83 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhanghanyong <zhang_hanyong@h-partners.com>
+# Maintainer: zhanghanyong <zhang_hanyong@h-partners.com>
+
+pkgname=CRoaring 
+pkgver=3.0.1
+pkgrel=0 
+pkgdesc="ARoaring bitmaps in C (and C++), with SIMD (AVX2, AVX-512 and NEON) optimizations: used by Apache Doris, ClickHouse, and StarRocks"
+url="https://github.com/RoaringBitmap/CRoaring" 
+archs=("armeabi-v7a" "arm64-v8a") # cpu 架构
+license=("MIT License")
+source="https://github.com/RoaringBitmap/$pkgname/archive/refs/tags/v$pkgver.tar.gz" 
+patchflag=true
+autounpack=true
+downloadpackage=true
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        #替换github镜像路径改用码云地址
+        patch -p1 < `pwd`/../CRoaring_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -DBUILD_SHARED_LIBS=ON -DCMAKE_C_FLAGS=-Wno-unused-command-line-argument -DCMAKE_CXX_FLAGS=-Wno-unused-command-line-argument -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    if [ $ARCH == "arm64-v8a" ]; then
+        sed -i 's/typedef unsigned int uintptr_t;/typedef unsigned long uintptr_t;/g' $ARCH-build/_deps/cmocka-src/include/cmocka.h
+    fi
+    $MAKE -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 安装打包
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cp $ARCH-build/libcroaring-singleheader-source-lib.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cd $OLDPWD
+}
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

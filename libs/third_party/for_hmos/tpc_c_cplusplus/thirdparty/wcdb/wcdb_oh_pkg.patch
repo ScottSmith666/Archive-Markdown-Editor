@@ -1,0 +1,124 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 41d2617..6be5ec2 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -464,6 +464,9 @@ else ()
+             elseif(${OHOS_ARCH} STREQUAL "x86_64")
+                 target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/x86_64)
+                 target_link_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/x86_64)
++            elseif(${OHOS_ARCH} STREQUAL "armeabi-v7a")
++                target_link_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/armeabi-v7a/lib)
++                target_link_directories(sqlcipher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/armeabi-v7a/lib)
+             endif()
+         endif()
+     else ()
+@@ -493,6 +496,8 @@ else ()
+                 target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/arm64-v8a)
+             elseif(${OHOS_ARCH} STREQUAL "x86_64")
+                 target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/x86_64)
++            elseif(${OHOS_ARCH} STREQUAL "armeabi-v7a")
++                target_link_directories(sqlcipher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../tools/prebuild/openssl/ohos/armeabi-v7a/lib)
+             endif()
+         endif()
+     endif()
+@@ -565,3 +570,10 @@ elseif (WIN32)
+ else ()
+     message(FATAL_ERROR "Unsupported platform!")
+ endif ()
++add_executable(wcdb_test ${WCDB_SRC_DIR}/cpp/tests/WCDBTest.cpp)
++target_include_directories(wcdb_test PRIVATE
++        ${CMAKE_CURRENT_SOURCE_DIR}
++        ${WCDB_SRC_DIR}
++        ${WCDB_COMMON_INCLUDES}
++    )
++target_link_libraries(wcdb_test PRIVATE ${TARGET_NAME})
+diff --git a/src/cpp/tests/WCDBTest.cpp b/src/cpp/tests/WCDBTest.cpp
+new file mode 100644
+index 0000000..fa3cb02
+--- /dev/null
++++ b/src/cpp/tests/WCDBTest.cpp
+@@ -0,0 +1,84 @@
++#include "WCDBCpp.h"
++#include <cassert>
++#include <cstdio>
++#include <cstdlib>  
++#include <iostream>
++#include <string>
++#include <vector>
++
++using namespace WCDB;
++using namespace std;
++
++class TestData {
++public:
++    TestData() : id(0) {}
++    TestData(int id, const std::string &name) : id(id), name(name) {}
++
++    int id;
++    std::string name;
++
++    WCDB_CPP_ORM_DECLARATION(TestData)
++};
++
++WCDB_CPP_ORM_IMPLEMENTATION_BEGIN(TestData)
++WCDB_CPP_SYNTHESIZE(id)
++WCDB_CPP_SYNTHESIZE(name)
++WCDB_CPP_ORM_IMPLEMENTATION_END
++
++void testBasicOperations() {
++    std::remove("./test.db");
++
++    WCDB::Database db("./test.db");
++
++    bool created = db.createTable<TestData>("test_table");
++    assert(created && "Failed to create table!");
++
++    TestData data1(1, "Alice");
++    TestData data2(2, "Bob");
++    TestData data3(3, "Charlie");
++
++    bool inserted1 = db.insertObject(data1, "test_table");
++    assert(inserted1 && "Failed to insert data1!");
++
++    bool inserted2 = db.insertObject(data2, "test_table");
++    assert(inserted2 && "Failed to insert data2!");
++
++    bool inserted3 = db.insertObject(data3, "test_table");
++    assert(inserted3 && "Failed to insert data3!");
++
++    WCDB::OptionalValueArray<TestData> allResults = db.getAllObjects<TestData>("test_table");
++    assert(allResults.hasValue() && "Get all objects failed!");
++    assert(allResults.value().size() == 3 && "Inserted 3 items but got wrong count!");
++
++    TestData updateObject;
++    updateObject.name = "Bobby";
++    bool updated = db.updateObject(updateObject,
++                                   WCDB_FIELD(TestData::name),
++                                   "test_table",
++                                   WCDB_FIELD(TestData::id) == 2);
++    assert(updated && "Failed to update data2!");
++
++    bool deleted = db.deleteObjects("test_table", WCDB_FIELD(TestData::id) == 3);
++    assert(deleted && "Failed to delete data3!");
++
++    allResults = db.getAllObjects<TestData>("test_table");
++    assert(allResults.hasValue() && "Get all objects after delete failed!");
++    assert(allResults.value().size() == 2 && "Deleted 1 item but got wrong count!");
++
++    std::cout << "All basic operations tests passed successfully!" << std::endl;
++}
++
++int main() {
++    try {
++        testBasicOperations();
++        std::cout << "=============================" << std::endl;
++        std::cout << "All tests passed!" << std::endl;
++        return 0; 
++    } catch (const std::exception &e) {
++        std::cerr << "Test failed with exception: " << e.what() << std::endl;
++        return 1; 
++    } catch (...) {
++        std::cerr << "Test failed with unknown exception!" << std::endl;
++        return 1;
++    }
++}

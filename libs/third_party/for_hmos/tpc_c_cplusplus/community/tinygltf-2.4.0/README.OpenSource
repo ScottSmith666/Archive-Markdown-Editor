@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "tinygltf-2.4.0",
+        "License": "MIT license",
+        "License File": "https://github.com/syoyo/tinygltf/blob/release/LICENSE",
+        "Version Number": "v2.4.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/syoyo/tinygltf",
+        "Description": "tinygltf is a header only C++ library for processing glTF files to efficiently process and exchange 3D content between different applications and platforms."
+    }
+]

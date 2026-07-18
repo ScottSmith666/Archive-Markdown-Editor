@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libblur",
+        "License": "BSD-3-Clause OR Apache-2.0",
+        "License File": "https://github.com/awxkee/libblur/blob/master/LICENSE.md",
+        "Version Number": "0.23.1",
+        "Owner": "panjinling@huawei.com",
+        "Upstream URL": "https://github.com/awxkee/libblur",
+        "Description": "libblur is a high-performance, pure Rust library dedicated to image blurring. It provides a variety of production-ready blur algorithms (including Gaussian, Stack, Box, and Median blur) with deep optimizations for SIMD instruction sets (NEON, SSE, AVX). It is particularly well-suited for real-time image processing tasks on both desktop and embedded platforms."
+    }
+]

@@ -1,0 +1,91 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=glog
+pkgver=v0.6.0
+pkgrel=0
+pkgdesc="Google Logging (glog) is a C++14 library that implements application-level logging. The library provides logging APIs based on C++-style streams and various helper macros."
+url="https://github.com/google/glog"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=("googletest" "gflags")
+makedepends=()
+# 官网地址：https://github.com/google/$pkgname/archive/refs/tags/$pkgver.tar.gz，因网络原因采用gitee mirrors
+source="https://gitee.com/mirrors/$pkgname/repository/archive/$pkgver.zip"
+downloadpackage=true
+autounpack=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+patchflag=true
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if $patchflag
+    then
+        cd $builddir
+        # 1.测试代码无法正确识别64位系统导致测试用例无法通过，通过修改正确识别64位系统
+        # 2.部分ctest测试用例，使用cmake生成makefile，导致会检测CC编译器是否可用，开发板上没有编译器，导致测试报错
+        # 3.由于-O2级优化，导致匿名未使用对象被优化，不能出发检测机制；故接收该匿名对象，避免被编译器优化
+        # 4.编译器优化原因,导致测试用例backtrace统计调用栈少计算了一层,需要将1修改为0. 修改SDK版本:4.0.8.1
+        patch -p1 < `pwd`/../glog_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -DBUILD_TESTING=ON -DCMAKE_SHARED_LINKER_FLAGS="-s" -DCMAKE_EXE_LINKER_FLAGS="-s" -S./ -L > $ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir/$ARCH-build
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir/$ARCH-build
+    else
+        echo "The platform is not supported"
+    fi
+    
+    # 将测试用例使用的cmake改为CI工具的cmake
+    sed -i "s/\".*\/cmake\"/\"cmake\"/g" $builddir/$ARCH-build/CTestTestfile.cmake
+
+    # cd $ARCH-build
+    # 需要拷贝libc++_shared.so
+    # mount -o remount,rw /
+    # cd /data/local/tmp/thirdparty/glog-0.6.0/arm64-v8a/
+    # export LD_LIBRARY_PATH=/data/local/tmp/lycium/usr/glog/arm64-v8a/lib:$LD_LIBRARY_PATH
+    # ctest
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir # ${PWD}/$packagename
+}

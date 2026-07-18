@@ -1,0 +1,45 @@
+--- libical-3.0.16_old/src/test/CMakeLists.txt	2022-10-18 04:53:57.000000000 +0800
++++ libical-3.0.16/src/test/CMakeLists.txt	2023-08-09 09:43:12.591365757 +0800
+@@ -186,32 +186,30 @@
+     if(ICU_FOUND)
+       #test rscale capable rrules
+       set(test_args "-r")
++      add_test(NAME icalrecurtest-r-out
++        COMMAND ${test_cmd} ${test_args}
++      )
++      setprops(icalrecurtest-r-out)
+       if(HAVE_ICU_DANGI)
+         set(reference_data "icalrecur_withicu_dangi_test.out")
+       else()
+         set(reference_data "icalrecur_withicu_test.out")
+       endif()
+       add_test(NAME icalrecurtest-r
+-        COMMAND ${CMAKE_COMMAND}
+-        -D test_cmd=${test_cmd}
+-        -D test_args:string=${test_args}
+-        -D output_blessed=${CMAKE_SOURCE_DIR}/src/test/${reference_data}
+-        -D output_test=${CMAKE_BINARY_DIR}/bin/test.out
+-        -P ${CMAKE_SOURCE_DIR}/cmake/run_test.cmake
++        COMMAND cmake -E compare_files ${CMAKE_SOURCE_DIR}/src/test/${reference_data} ${CMAKE_BINARY_DIR}/bin/test.out
+       )
+       setprops(icalrecurtest-r)
+     endif()
+ 
+     #test non-rscale rrules
+     set(test_args "")
++    add_test(NAME icalrecurtest-out
++      COMMAND ${test_cmd} ${test_args}
++    )
++    setprops(icalrecurtest-out)
+     set(reference_data "icalrecur_test.out")
+     add_test(NAME icalrecurtest
+-      COMMAND ${CMAKE_COMMAND}
+-      -D test_cmd=${test_cmd}
+-      -D test_args:string=${test_args}
+-      -D output_blessed=${CMAKE_SOURCE_DIR}/src/test/${reference_data}
+-      -D output_test=${CMAKE_BINARY_DIR}/bin/test.out
+-      -P ${CMAKE_SOURCE_DIR}/cmake/run_test.cmake
++      COMMAND COMMAND cmake -E compare_files ${CMAKE_SOURCE_DIR}/src/test/${reference_data} ${CMAKE_BINARY_DIR}/bin/test.out
+     )
+     setprops(icalrecurtest)
+   endif()

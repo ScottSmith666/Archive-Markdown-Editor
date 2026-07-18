@@ -1,0 +1,40 @@
+diff -Nura cpp-httplib-0.13.1/test/Makefile cpp-httplib-0.13.1_ohos/test/Makefile
+--- cpp-httplib-0.13.1/test/Makefile	2023-07-08 19:41:24.000000000 +0800
++++ cpp-httplib-0.13.1_ohos/test/Makefile	2025-03-04 19:44:01.514686927 +0800
+@@ -1,11 +1,17 @@
+-CXX = clang++
+-CXXFLAGS = -g -std=c++11 -I. -Wall -Wextra -Wtype-limits -Wconversion -Wshadow # -fno-exceptions -DCPPHTTPLIB_NO_EXCEPTIONS -fsanitize=address
++#CXX = clang++
++ifeq ($(BUILD_ARC), armeabi-v7a)
++    CXXFLAGS = -g -std=c++11 -I. -Wall -Wextra -Wtype-limits -Wconversion -Wshadow -march=armv7-a
++else
++    CXXFLAGS = -g -std=c++11 -I. -Wall -Wextra -Wtype-limits -Wconversion -Wshadow
++endif
++#CXXFLAGS = -g -std=c++11 -I. -Wall -Wextra -Wtype-limits -Wconversion -Wshadow # -fno-exceptions -DCPPHTTPLIB_NO_EXCEPTIONS -fsanitize=address
++$(info    CXXFLAGS is $(CXXFLAGS))
+ 
+ PREFIX = /usr/local
+ #PREFIX = $(shell brew --prefix)
+ 
+-OPENSSL_DIR = $(PREFIX)/opt/openssl@1.1
+-#OPENSSL_DIR = $(PREFIX)/opt/openssl@3
++OPENSSL_DIR =$(BUILD_PATH)/openssl/$(BUILD_ARC)
++$(info    OPENSSL_DIR is $(OPENSSL_DIR))
+ OPENSSL_SUPPORT = -DCPPHTTPLIB_OPENSSL_SUPPORT -I$(OPENSSL_DIR)/include -L$(OPENSSL_DIR)/lib -lssl -lcrypto
+ 
+ ifneq ($(OS), Windows_NT)
+@@ -15,9 +21,12 @@
+ 	endif
+ endif
+ 
+-ZLIB_SUPPORT = -DCPPHTTPLIB_ZLIB_SUPPORT -lz
++ZIP_DIR = $(BUILD_PATH)/zlib/$(BUILD_ARC)
++$(info    ZIP_DIR is $(ZIP_DIR))
++ZLIB_SUPPORT = -DCPPHTTPLIB_ZLIB_SUPPORT -I$(ZIP_DIR)/include -L$(ZIP_DIR)/lib -lz
+ 
+-BROTLI_DIR = $(PREFIX)/opt/brotli
++BROTLI_DIR = $(BUILD_PATH)/brotli/$(BUILD_ARC)
++$(info    BROTLI_DIR is $(BROTLI_DIR))
+ BROTLI_SUPPORT = -DCPPHTTPLIB_BROTLI_SUPPORT -I$(BROTLI_DIR)/include -L$(BROTLI_DIR)/lib -lbrotlicommon -lbrotlienc -lbrotlidec
+ 
+ TEST_ARGS = gtest/gtest-all.cc gtest/gtest_main.cc $(OPENSSL_SUPPORT) $(ZLIB_SUPPORT) $(BROTLI_SUPPORT) -pthread

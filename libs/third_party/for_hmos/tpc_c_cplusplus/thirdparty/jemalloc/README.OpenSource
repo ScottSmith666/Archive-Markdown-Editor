@@ -1,0 +1,10 @@
+[
+    {
+        "Name": "jemalloc",
+        "License": "BSD-2-Clause",
+        "Version Number": "5.3.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/jemalloc/jemalloc/archive/refs/tags/5.3.0.tar.gz",
+        "Description": "jemalloc is a high-performance, low-fragmentation memory allocator, originally developed by the FreeBSD project, designed to address the performance bottlenecks and memory fragmentation issues of traditional memory allocators (such as glibc's malloc) in high-concurrency and long-running scenarios. It is widely used in various high-performance applications (such as Redis, Firefox, MySQL, Cloudflare services, etc.), and performs particularly well in multithreaded environments."
+    }
+]

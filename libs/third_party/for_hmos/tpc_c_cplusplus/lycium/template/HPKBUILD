@@ -1,0 +1,63 @@
+# This is an example HPKBUILD file. Use this as a start to creating your own,
+# and remove these comments.
+# NOTE: Please fill out the license field for your package! If it is unknown,
+# then please put 'unknown'.
+
+# Contributor: Your Name <youremail@domain.com>
+# Maintainer: Your Name <youremail@domain.com>
+
+pkgname=NAME # 库名
+pkgver=VERSION # 库版本
+pkgrel=0 # 发布号
+pkgdesc="" # 库描述
+url="" # 官网链接
+archs=("armeabi-v7a" "arm64-v8a") # cpu 架构
+license=()
+depends=() # 依赖库的目录名 必须保证被依赖的库的archs是当前库的archs的超集
+makedepends=() # 构建库时的依赖工具->需要用户安装的工具
+source="https://downloads.sourceforge.net/$pkgname/$pkgname-$pkgver.tar.gz" # 库源码下载链接
+
+downloadpackage=true # 是否自动下载压缩包，如若不写默认 true. (应对一些特殊情况，代码只能 git clone (项目中依赖 submoudle ))
+autounpack=true # 是否自动解压，如若不写默认 true, 如果为 false 则需要用户在 prepare 函数中自行解压
+buildtools= # 编译方法, 暂时支持cmake, configure, make等, 是什么就填写什么. 如若不写默认为cmake.
+
+builddir= # 源码压缩包解压后目录名 编译目录名
+packagename=$builddir.tar.gz # 压缩包名
+
+# 为编译设置环境，如设置环境变量，创建编译目录等
+prepare() {
+    cd $builddir
+    cd ${OLDPWD}
+}
+
+# ${OHOS_SDK} oh sdk安装路径
+# $ARCH 编译的架构是 archs 的遍历
+# $LYCIUM_ROOT/usr/$pkgname/$ARCH 安装到顶层目录的usr/$pkgname/$ARCH
+# 执行编译构建的命令
+build() {
+    # 如果是cmake构建 "$@"=-DCMAKE_FIND_ROOT_PATH="..." -DCMAKE_TOOLCHAIN_FILE="..." -DCMAKE_INSTALL_PREFIX="..." 依赖库的搜索路径,toolchain file 路径,安装路径
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L
+    make -j4 -C $ARCH-build
+    # 对最关键一步的退出码进行判断
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 打包安装
+package() {
+    cd $builddir
+    make -C $ARCH-build install
+    cd $OLDPWD
+}
+
+# 进行测试的准备和说明
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

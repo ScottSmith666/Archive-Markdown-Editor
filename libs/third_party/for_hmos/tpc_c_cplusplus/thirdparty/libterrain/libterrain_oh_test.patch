@@ -1,0 +1,304 @@
+diff --git a/libterrain/src/libterrain_oh_test.c b/libterrain/src/libterrain_oh_test.c
+new file mode 100644
+index 0000000..cfd7019
+--- /dev/null
++++ b/libterrain/src/libterrain_oh_test.c
+@@ -0,0 +1,298 @@
++#include <stdio.h>
++#include <stdbool.h>
++#include <string.h>
++
++#include "terrain.h"
++#include "image.h"
++
++#define FALSE (0)
++#define SUCCESS (1)
++
++void freeTerrain(Terrain *terrain) {
++    if (terrain != NULL && *terrain != NULL) {
++        destroyTerrain(terrain);
++    }
++}
++
++//基本地形创建和保存测试
++bool test_terrain_render() {
++
++    printf("========test_terrain_render Start========\r\n");
++    // 创建地形
++    Terrain terrain = newTerrain(512, 512);
++    if (terrain == NULL) {
++        printf("========newTerrain Failed========\r\n");
++        return FALSE;
++    }
++
++    // 设置地形属性
++    bool landPercentage = setLandPercentage(terrain, 70);
++    if (!landPercentage) {
++        printf("========setLandPercentage Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 设置水位线
++    bool waterLevel = setWaterLevel(terrain, 70);
++    if (!waterLevel) {
++        printf("========setWaterLevel Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 获取水位线
++    altitude waterLevelAlt = getWaterLevel(terrain);
++    if (waterLevelAlt != 70) {
++        printf("========getWaterLevel Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++    
++    // 设置水的颜色
++    bool waterColor = setWaterColor(terrain, DEFAULT_COLOR_WATER);
++    if (!waterColor) {
++        printf("========setWaterColor Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 获取水的颜色
++    Color waterColorVal = getWaterColor(terrain);
++    if (waterColorVal != DEFAULT_COLOR_WATER) {
++        printf("========getWaterColor Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 加载纹理
++   #ifdef HAVE_NETPBM_PAM_H
++    bool textureLoaded = loadTerrainTextureFromPAM(terrain, "texture.pam");
++    if (!textureLoaded) {
++        printf("========loadTerrainTextureFromPAM Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++    #endif
++    // 平整化地形
++    bool plainTerrain = plainTerrainUnderLevel(terrain, 1);
++    if (!plainTerrain) {
++        printf("========plainTerrainUnderLevel Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 获取指定位置的海拔高度 
++    for (nat i = 0; i < 3; i++) {
++        for (nat j = 0; j < 3; j++) {
++            altitude alt = getTerrainAltitude(terrain, i, j);
++            printf("DEBUG: Position (%lu,%lu) altitude: %u\n", i, j, alt);
++              if (alt != 1) {
++                printf("========getTerrainAltitude Failed========\r\n");
++                freeTerrain(&terrain);
++                return FALSE;
++            }
++        }
++    }
++
++    // 获取地形信息
++    nat width = getTerrainWidth(terrain);
++    if (width != 512) {
++        printf("========getTerrainWidth width Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++    nat length = getTerrainLength(terrain);
++    if (length != 512) {
++        printf("========getTerrainLength length Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 保存地形
++    bool saved = saveTerrain(terrain, "my_terrain.dat", RAW_TERRAIN);
++    if (!saved) {
++        printf("========saveTerrain Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 清理
++    destroyTerrain(&terrain);
++    if (terrain != NULL) {
++        printf("========destroyTerrain Failed========\r\n");
++        return FALSE;
++    }
++    printf("========test_terrain_render SUCCESS========\r\n");
++    return SUCCESS;
++}
++
++// 基础高程数据操作测试
++bool test_basic_altitude_operations() {
++    printf("========test_basic_altitude_operations Start========\r\n");
++
++    // 创建测试地形
++    Terrain terrain = newTerrain(10, 10);
++    if (terrain == NULL) {
++        printf("========newTerrain Create Failed========\r\n");
++        return FALSE;
++    }
++    
++    // 获取原始高程数据
++    altitude *raw_altitudes = getRawAltitudes(terrain);
++    if (raw_altitudes == NULL) {
++        printf("========getRawAltitudes Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    altitude **altitude_grid = getAltitudeGrid(terrain);
++    if (altitude_grid == NULL) {
++        printf("========getAltitudeGrid Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 默认水位
++    altitude default_water_level = getWaterLevel(terrain);
++    // 检查默认水位是否接近 127 (255/2)
++    if (default_water_level < 120 || default_water_level > 135) {
++        printf("========getWaterLevel default Failed: %u not in expected range [120-135]========\r\n", default_water_level);
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 设置水位线
++    altitude test_water_level = 15;
++    bool waterLevel = setWaterLevel(terrain, test_water_level);
++    if (!waterLevel) {
++        printf("========setWaterLevel Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 获取水位线
++    altitude current_water_level = getWaterLevel(terrain);
++    if (current_water_level != test_water_level) {
++        printf("========setWaterLevel getWaterLevel Failed========\r\n");
++        freeTerrain(&terrain);
++        return FALSE;
++    }
++
++    // 清理
++    destroyTerrain(&terrain);
++    if (terrain != NULL) {
++        printf("========setWaterLevel destroyTerrain Failed========\r\n");
++        return FALSE;
++    }
++    printf("========test_basic_altitude_operations SUCCESS========\r\n");
++    return SUCCESS;
++}
++
++// 不同海拔颜色测试
++bool test_color_altitude_relationship() {
++    printf("========test_color_altitude_relationship Start========\r\n");
++    
++    // 测试不同海拔对应的颜色 - 使用 altitude 值 (0-255)
++    altitude test_altitudes[] = {
++        10,    // 深水
++        51,    // 浅水 (0.2 * 255)
++        102,   // 海岸 (0.4 * 255)  
++        115,   // 沙滩 (0.45 * 255)
++        140,   // 草地 (0.55 * 255)
++        166,   // 泥土 (0.65 * 255)
++        204,   // 岩石 (0.8 * 255)
++        242    // 雪地 (0.95 * 255)
++    };
++    
++    const char* altitude_names[] = {
++        "Deep Water (10)",
++        "Shallow Water (51)", 
++        "Shore (102)",
++        "Sand (115)",
++        "Grass (140)",
++        "Dirt (166)",
++        "Rock (204)",
++        "Snow (242)"
++    };
++    
++    int num_tests = sizeof(test_altitudes) / sizeof(test_altitudes[0]);
++    int valid_colors = 0;
++    
++    for (int i = 0; i < num_tests; i++) {
++        Color color = terrainColorByAltitude(test_altitudes[i]);
++        printf("%s -> Color: 0x%08X\n", altitude_names[i], color);
++        
++        // 检查颜色是否有效(不为0)
++        if (color != 0) {
++            valid_colors++;
++        } else {
++            printf("Warning: Color for %s is 0x00000000\n", altitude_names[i]);
++        }
++    }
++    
++    // 如果大部分颜色都无效，认为测试失败
++    if (valid_colors < num_tests / 2) {
++        printf("========test_color_altitude_relationship Failed: only %d/%d valid colors========\r\n", 
++               valid_colors, num_tests);
++        return FALSE;
++    }
++    printf("========test_color_altitude_relationship SUCCESS========\r\n");
++    return SUCCESS;
++}
++
++//  边界条件和错误处理测试
++bool test_edge_cases_and_error_handling() {
++    printf("========test_edge_cases_and_error_handling Start========\r\n");
++    
++    // 测试空指针处理
++    altitude alt = getTerrainAltitude(NULL, 0, 0);
++    if (alt != 0) {
++        printf("========getTerrainAltitude alt Failed========\r\n");
++        return FALSE;
++    }
++    
++    nat size = getTerrainWidth(NULL);
++    if (size != 0) {
++        printf("========getTerrainWidth size Failed========\r\n");
++        return FALSE;
++    }
++    
++    // 测试创建极小地形
++    Terrain small_terrain = newTerrain(1, 1);
++    if (small_terrain == NULL) {
++        printf("========newTerrain small_terrain Failed========\r\n");
++        return FALSE;
++    }
++    altitude small_alt = getTerrainAltitude(small_terrain, 0, 0);
++    destroyTerrain(&small_terrain);    
++    if (small_terrain != NULL) {
++        printf("========getTerrainWidth small_terrain Failed========\r\n");
++        return FALSE;
++    }
++    
++    // 测试无效的陆地百分比
++    Terrain terrain = newTerrain(5, 5);
++    bool result = setLandPercentage(terrain, 150); // 无效值
++    if (result) {
++        printf("========setLandPercentage result Failed========\r\n");
++        return FALSE;
++    }
++    destroyTerrain(&terrain);
++    if (terrain != NULL) {
++        printf("========setLandPercentage destroyTerrain Failed========\r\n");
++        return FALSE;
++    }
++    printf("========test_edge_cases_and_error_handling SUCCESS========\r\n");
++    return SUCCESS;
++}
++
++int main() {
++    printf("========Test Case Start========\r\n");
++    test_terrain_render();
++    test_basic_altitude_operations();
++    test_color_altitude_relationship();
++    test_edge_cases_and_error_handling();
++    printf("========Test Case End========\r\n");
++    return 0;
++}

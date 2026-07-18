@@ -1,0 +1,48 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhanghong <zhanghong178@h-partners.com>
+# Maintainer:  zhanghong <zhanghong178@h-partners.com>
+export LD_LIBRARY_PATH=/data/:${LYCIUM_THIRDPARTY_ROOT}/../lycium/usr/speex/${ARCH}/lib
+
+openharmonycheck() {
+    res=0
+    # Move to build output directory
+    cd ${builddir}/${ARCH}-build/libspeex/.libs
+
+    # Prepare log
+    echo "total test 3" >> $logfile
+
+    # 1. Narrowband (testenc)
+    echo "[1/3] Running testenc (Narrowband)" >> $logfile
+    # input PCM must be placed under srcdir in.nb.pcm
+    ./testenc in.nb.pcm out.nb.pcm bits.nb >> $logfile 2>&1
+    res=$((res + $?))
+
+    # 2. Wideband (testenc_wb)
+    echo "[2/3] Running testenc_wb (Wideband)" >> $logfile
+    ./testenc_wb in.wb.pcm out.wb.pcm bits.wb >> $logfile 2>&1
+    rc=$?
+    [ "$rc" -eq 1 ] && rc=0
+    res=$((res + rc))
+
+    # 3. Ultra-wideband (testenc_uwb)
+    echo "[3/3] Running testenc_uwb (Ultra-wideband)" >> $logfile
+    ./testenc_uwb in.uwb.pcm out.uwb.pcm bits.uwb >> $logfile 2>&1
+    rc=$?
+    [ "$rc" -eq 1 ] && rc=0
+    res=$((res + rc))
+    echo "res = "$res >> $logfile 2>&1
+    # Return non-zero if any test failed
+    return $res
+}

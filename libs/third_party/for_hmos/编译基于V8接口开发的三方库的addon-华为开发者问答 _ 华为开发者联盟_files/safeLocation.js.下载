@@ -1,0 +1,20 @@
+window.safeOpen = function(){
+	var val = arguments[0];
+	var decodeUrl = decodeURIComponent(val || '');
+	if (decodeUrl.toLowerCase().indexOf('javascript:') === 0){
+		return;
+	}	
+    window.open.apply(this, arguments);
+};
+window.safeLocation = {
+	get href(){
+		return location.href
+	},
+	set href(val){
+		var decodeUrl = decodeURIComponent(val || '');
+		if (decodeUrl.toLowerCase().indexOf('javascript:') === 0){
+			return;
+		}
+		window.location.href = val;
+	}
+}

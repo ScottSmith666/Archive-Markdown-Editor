@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "ceres-solver",
+        "License": "BSD-3-Clause",
+        "License File": "http://ceres-solver.org/license.html",
+        "Version Number": "2.1.0",
+        "Owner": "swkec@isoftstone.com",
+        "Upstream URL": "http://ceres-solver.org/ceres-solver-2.1.0.tar.gz",
+        "Description": "Ceres solver is an open source C++library developed by Google for solving optimization problems with boundary constraints and nonlinear least squares problems, as well as general unconstrained optimization problems."
+    }
+]

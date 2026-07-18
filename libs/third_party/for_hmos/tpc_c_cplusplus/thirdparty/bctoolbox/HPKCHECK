@@ -1,0 +1,15 @@
+# Contributor: 城meto <myxuan475@126.com>
+# Maintainer: 城meto <myxuan475@126.com>
+
+source HPKBUILD > /dev/null 2>&1    # 导入HPKBUILD文件
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+# 在OH环境执行测试的接口
+openharmonycheck() {   
+    res=0                       
+    cd ${builddir}/${ARCH}-build   
+    tester/bctoolbox_tester > ${logfile} 2>&1 
+    res=$?           
+    cd $OLDPWD
+    return $res                          
+}

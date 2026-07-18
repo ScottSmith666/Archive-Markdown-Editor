@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "msgpack-c",
+        "License": "BSL-1.0",
+        "License File": "https://github.com/msgpack/msgpack-c/blob/cpp-6.1.1/LICENSE_1_0.txt",
+        "Version Number": "cpp-6.1.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://codeload.github.com/msgpack/msgpack-c/zip/refs/tags/cpp-6.1.1",
+        "Description": "msgpack-c is an efficient and lightweight binary serialization format that allows you to exchange data in a high-performance manner between multiple programming languages."
+    },
+	{
+        "Name": "boost",
+        "License": "BSL",
+        "License File": "https://github.com/boostorg/boost/blob/boost-1.81.0/LICENSE_1_0.txt",
+        "Version Number": "1.81.0",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz",
+        "Description": "Boost provides free peer-reviewed portable C++ source libraries."
+    }
+]

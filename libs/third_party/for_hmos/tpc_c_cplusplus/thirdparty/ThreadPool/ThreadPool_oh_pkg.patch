@@ -1,0 +1,23 @@
+diff -Naur ThreadPool-9a42ec1329f259a5f4881a291db1dcb8f2ad9040/Makefile ThreadPool-9a42ec1329f259a5f4881a291db1dcb8f2ad9040-new/Makefile
+--- ThreadPool-9a42ec1329f259a5f4881a291db1dcb8f2ad9040/Makefile	1970-01-01 08:00:00.000000000 +0800
++++ ThreadPool-9a42ec1329f259a5f4881a291db1dcb8f2ad9040-new/Makefile	2024-06-19 11:07:50.875319000 +0800
+@@ -0,0 +1,19 @@
++# Makefile
++
++CXX = g++
++CFLAGS = -g -Wall
++
++EXAMPLE = example
++SRCS:=$(wildcard *.cpp)
++OBJS:=$(patsubst %.cpp,%.o, $(SRCS))
++
++$(EXAMPLE): $(OBJS)
++	@echo "[CXX] $@"
++	@$(CXX) $(OBJS) -o $(EXAMPLE)
++
++%.o: %.cpp
++	@echo "[CXX] $< $@"
++	@$(CXX) $(CFLAGS) -c $< -o $@
++
++clean:
++	rm -f $(OBJS) $(EXAMPLE)

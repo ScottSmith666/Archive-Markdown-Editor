@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "phf",
+        "License": "MIT license",
+        "License File": "LICENSE",
+        "Version Number": "rel-20190215",:
+        "Owner": "chenbaodi@huawei.com",
+        "Upstream URL": "https://github.com/wahern/phf/archive/refs/tags/rel-20190215.tar.gz",
+        "Description": "Tiny perfect hash library for C, C++, and Lua"
+    }
+]

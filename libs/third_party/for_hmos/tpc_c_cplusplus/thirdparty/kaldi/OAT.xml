@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2021 Huawei Device Co., Ltd.
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+
+    This is the configuration file template for OpenHarmony OSS Audit Tool, please copy it to your project root dir and modify it refer to OpenHarmony/tools_oat/README.
+
+-->
+
+<configuration>
+    <oatconfig>
+        <licensefile></licensefile>
+        <policylist>
+            <policy name="projectPolicy" desc="">
+            </policy>
+        </policylist>
+        <filefilterlist>
+            <filefilter name="defaultFilter" desc="Files not to check">
+		    <filteritem type="filename" name="*.iml|*.json|*.txt|*.png|*.jpg|*.zip|*.tar.gz" desc="desc files"/>
+            </filefilter>
+            <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="fileitem" name="HPKBUILD" desc="自己编写的shell脚本,不涉及版权问题"/>
+                <filteritem type="fileitem" name="HPKCHECK" desc="自己编写的shell脚本,不涉及版权问题"/>
+                <filteritem type="fileitem" name="SHA512SUM" desc="自己编写的shell脚本,不涉及版权问题"/>
+            </filefilter>
+            <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies">
+                <filteritem type="fileitem" name="HPKBUILD" desc="自己编写的shell脚本,不涉及版权问题"/>
+                <filteritem type="fileitem" name="HPKCHECK" desc="自己编写的shell脚本,不涉及版权问题"/>
+                <filteritem type="fileitem" name="SHA512SUM" desc="自己编写的shell脚本,不涉及版权问题"/>
+            </filefilter>
+            <filefilter name="licenseFileNamePolicyFilter" desc="Filters for LICENSE file policies">
+            </filefilter>
+            <filefilter name="readmeFileNamePolicyFilter" desc="Filters for README file policies">
+            </filefilter>
+            <filefilter name="readmeOpenSourcefileNamePolicyFilter" desc="Filters for README.OpenSource file policies">
+            </filefilter>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies">
+            </filefilter>
+
+        </filefilterlist>
+        <licensematcherlist>
+        </licensematcherlist>
+    </oatconfig>
+</configuration>

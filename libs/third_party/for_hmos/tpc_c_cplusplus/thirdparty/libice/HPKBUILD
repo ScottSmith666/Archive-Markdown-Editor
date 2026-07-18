@@ -1,0 +1,137 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+
+# 警告: libice 依赖 X11 头文件中的数据结构,因此需要 X11 的头文件,依赖涉及到X11头文件存放在 X11 目录中.
+
+pkgname=libice
+pkgver=libICE-1.1.1
+pkgrel=0
+pkgdesc="Inter-Client Exchange Library"
+url="https://gitlab.freedesktop.org/xorg/lib/libice"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("The libice Open Source License")
+depends=()
+makedepends=()
+
+source="https://gitlab.freedesktop.org/xorg/lib/$pkgname/-/archive/$pkgver/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+patchflag=true
+host=
+
+prepare() {
+    if $patchflag
+    then
+        patch -p1 < `pwd`/libice_oh_pkg.patch > $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            echo "patch failed"
+            return -1
+        fi
+        
+        cd $builddir
+        patch -p1 < `pwd`/../libice_oh_test.patch >> $publicbuildlog 2>&1
+        cd $OLDPWD
+        
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+    fi
+    
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    export CFLAGS="-I$PKGBUILD_ROOT $CFLAGS"
+}
+
+# "error: must install xorg-macros": sudo apt-get install xutils-dev
+build() {
+    cd $builddir-$ARCH-build
+    ./autogen.sh "$@" --host=$host --disable-silent-rules > $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    ret=$?
+    cp -rf ../X11/* ${LYCIUM_ROOT}/usr/libice/$ARCH/include/X11/
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    cd $builddir-$ARCH-build/example
+    if [ "$ARCH" = "armeabi-v7a" ]
+    then
+        ${OHOS_SDK}/native/llvm/bin/clang main_test.c \
+            --target=arm-linux-ohos --sysroot=${OHOS_SDK}/native/sysroot -march=armv7a \
+            -I../include/X11/ICE/ -I../.. -I../src -I../include \
+            -L../src/.libs -lICE -o icetest
+    elif [ "$ARCH" = "arm64-v8a" ]
+    then
+        ${OHOS_SDK}/native/llvm/bin/clang main_test.c \
+            --target=aarch64-linux-ohos --sysroot=${OHOS_SDK}/native/sysroot \
+            -I../include/X11/ICE -I../.. -I../src -I../include \
+            -L../src/.libs -lICE -o icetest
+    else
+        echo "Not support ${ARCH}"
+        return -1
+    fi
+    
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+}
+
+recoverpkgbuildenv() {
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build ${PWD}/X11
+}

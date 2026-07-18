@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "jansson",
+        "License": "MIT license",
+        "License File": "https://github.com/akheron/jansson/blob/master/LICENSE",
+        "Version Number": "v2.14",
+        "Owner": "357489213@qq.com",
+        "Upstream URL": "https://gitee.com/mirrors/jansson/repository/archive/v2.14.zip",
+        "Description": "C library for encoding, decoding and manipulating JSON data."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libiec61850",
+        "License": "GPL-3.0 license",
+        "License File": "https://github.com/mz-automation/libiec61850/blob/v1.5/COPYING",
+        "Version Number": "v1.1.1",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/mz-automation/libiec61850",
+        "Description": "libiec61850 is an open-source (GPLv3) implementation of an IEC 61850 client and server library implementing the protocols MMS, GOOSE and SV."
+    }
+]

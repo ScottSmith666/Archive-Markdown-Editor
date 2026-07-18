@@ -1,0 +1,148 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=fribidi
+pkgver=v1.0.12
+pkgrel=0
+pkgdesc="The Free Implementation of the Unicode Bidirectional Algorithm."
+url="https://github.com/fribidi/fribidi"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("LGPL-2.1-only")
+depends=()
+makedepends=("unzip" "yacc" "flex")
+# 原仓地址: https://github.com/$pkgname/$pkgname/archive/refs/tags/$pkgver.tar.gz, 因网络原因使用镜像
+source="https://gitee.com/mirrors/$pkgname/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+
+source envset.sh
+autogenflag=true
+buildhostc2man=true
+host=
+originalPath=
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    # 编译c2man
+    if $buildhostc2man
+    then
+        # 原仓地址: https://github.com/fribidi/c2man/archive/refs/heads/master.zip，因网络原因使用镜像
+        curl -f -L https://gitee.com/lycium_pkg_mirror/c2man/repository/archive/master.zip -o c2man.zip
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        unzip c2man.zip > $buildlog 2>&1
+        cd c2man-master
+        PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./Configure -d -e > $buildlog 2>&1
+        $MAKE VERBOSE=1 >> $buildlog 2>&1
+        cd $OLDPWD
+        buildhostc2man=false
+    fi
+    # 把c2man的路径配置到PATH中
+    originalPath=$PATH
+    export PATH=$PATH:$LYCIUM_ROOT/../thirdparty/$pkgname/c2man-master
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    fi
+
+    if $autogenflag
+    then
+        cd $builddir
+        ./autogen.sh > $buildlog 2>&1
+        autogenflag=false
+        cd $OLDPWD
+    fi
+
+}
+
+build() {
+    local LOCAL_CFLAGS="${CFLAGS} -O3 -fstack-protector-strong -fPIC"
+    local LOCAL_CXXFLAGS="${CXXFLAGS} -O3 -fstack-protector-strong -fPIC"
+    local LOCAL_LDFLAGS="${LDFLAGS} -Wl,-z,relro,-z,now -Wl,--disable-new-dtags -s"
+
+    cd "$builddir/$ARCH-build"
+
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    CFLAGS="${LOCAL_CFLAGS}" \
+    CXXFLAGS="${LOCAL_CXXFLAGS}" \
+    LDFLAGS="${LOCAL_LDFLAGS}" \
+    ../configure "$@" \
+        --host="${host}" \
+        --enable-static \
+        --enable-shared \
+        --disable-rpath \
+        > "$buildlog" 2>&1
+
+    $MAKE VERBOSE=1 >> "$buildlog" 2>&1
+    local ret=$?
+    cd "$OLDPWD"
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 -C test/unicode-conformance BidiTest BidiCharacterTest >> $buildlog 2>&1
+    ret=$?
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    fi
+    # sed是为了避免在ohos设备测试时去编译可执行文件，导致测试失败
+    sed 's/check-TESTS: $(check_PROGRAMS)/check-TESTS: #$(check_PROGRAMS)/1' test/unicode-conformance/Makefile > test/unicode-conformance/tmp_Makefile
+    mv test/unicode-conformance/tmp_Makefile test/unicode-conformance/Makefile
+    cd $OLDPWD
+    unset host
+    export PATH=$originalPath
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # make -C test/unicode-conformance/ check-TESTS
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/c2man.zip ${PWD}/c2man-master #${PWD}/$packagename
+}

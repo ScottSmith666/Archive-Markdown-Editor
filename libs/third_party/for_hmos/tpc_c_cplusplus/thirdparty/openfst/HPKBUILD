@@ -1,0 +1,178 @@
+# Contributor: chengkan <kanchengc@isoftstone.com>
+# Maintainer: chengkan <kanchengc@isoftstone.com>
+pkgname=openfst
+pkgver=1.8.2
+pkgrel=0
+pkgdesc="OpenFst is a library for constructing, combining, optimizing, and searching weighted finite-state transducers (FSTs)"
+url="https://www.openfst.org/twiki/bin/view/FST/WebHome"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0 license")
+depends=()
+makedepends=()
+
+source="https://www.openfst.org/twiki/pub/FST/FstDownload/$pkgname-$pkgver.tar.gz"
+
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+patchflag=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+
+unpackageautomake=true
+
+# automake need to use 1.16.5 version
+automakepkgname=automake
+automakebuildhostflag=false
+automakepkgver=1.16.5
+automakesource="https://ftp.gnu.org/gnu/$automakepkgname/$automakepkgname-$automakepkgver.tar.gz"
+automakebuilddir=$automakepkgname-$automakepkgver
+automakepackagename=$automakebuilddir.tar.gz
+automakepath=
+
+downloadautomake() {
+    if [ ! -f "$automakepackagename" ];then
+        curl -L -f $automakesource > $automakepackagename
+        if [ "$?" != "0" ];then
+            echo "download $automakebuilddir fail"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+automakebuildhost() {
+    if [ $automakebuildhostflag == true ];then
+        return 0
+    fi
+
+    cd $automakebuilddir    
+    mkdir build
+
+    ./configure --prefix=${PWD}/build > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    $MAKE install >> $buildlog 2>&1
+
+    $PWD/build/bin/automake --version >> $buildlog 2>&1
+    if [ "$?" != "0" ];then
+        echo "compile linux  automake 1.16.5 fail"
+        return 1
+    fi
+    automakebuildhostflag=true
+    automakepath=$PWD/build/bin
+    cd $OLDPWD
+    return 0
+}
+
+prepare() {
+    downloadautomake
+    if [ "$?" != "0" ];then
+        return 1
+    fi
+
+    if [ $unpackageautomake == true ];then
+        tar xvfz $automakepackagename > /dev/null 2>&1
+        if [ "$?" != "0" ];then
+            return 2
+        fi
+        unpackageautomake=false
+    fi
+    
+    automakebuildhost
+    if [ $automakebuildhostflag == false ];then
+        return 3
+    fi    
+    export AUTOMAKE=$automakepath/automake
+
+    if $patchflag
+    then
+        cd $builddir
+        # 禁止make check阶段进行代码编译
+        patch -p1 < `pwd`/../openfst_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]; then
+        setarm32ENV
+        export LDFLAGS="${OHOS_SDK}/native/llvm/lib/clang/$CLANG_VERSION/lib/arm-linux-ohos/a7_hard_neon-vfpv4/libclang_rt.builtins.a ${LDFLAGS}"
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]; then
+        setarm64ENV
+        export LDFLAGS="${OHOS_SDK}/native/llvm/lib/clang/$CLANG_VERSION/lib/aarch64-linux-ohos/libclang_rt.builtins.a ${LDFLAGS}"
+        host=aarch64-linux
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi    
+}
+
+build() {
+    cd $builddir-$ARCH-build    
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ./configure "$@" --host=$host --enable-static --enable-compact-fsts \
+    --enable-compress --enable-const-fsts --enable-far \
+    --enable-fsts --enable-grm --enable-linear-fsts --enable-lookahead-fsts \
+    --enable-mpdt --enable-ngram-fsts --enable-pdt  >> $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+     
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+
+    if [ $ARCH == "armeabi-v7a" ]; then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        unsetarm64ENV
+    else
+        echo "$ARCH not support!"      
+    fi
+
+    unset AUTOMAKE
+    unset host   
+
+}
+
+check() {    
+    if [ $ARCH == "armeabi-v7a" ]; then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir-$ARCH-build
+    elif [ $ARCH == "arm64-v8a" ]; then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir-$ARCH-build
+    else
+        echo "$ARCH not support!"  
+        return -1    
+    fi
+
+    cd $builddir-$ARCH-build
+    sed -i 's/algo_test_lexicographic$(EXEEXT): $(algo_test_lexicographic_OBJECTS)/algo_test_lexicographic$(EXEEXT): /' src/test/Makefile
+    sed -i 's/algo_test_log$(EXEEXT): $(algo_test_log_OBJECTS)/algo_test_log$(EXEEXT): /' src/test/Makefile
+    sed -i 's/algo_test_minmax$(EXEEXT): $(algo_test_minmax_OBJECTS)/algo_test_minmax$(EXEEXT): /' src/test/Makefile
+    sed -i 's/algo_test_power$(EXEEXT): $(algo_test_power_OBJECTS)/algo_test_power$(EXEEXT): /' src/test/Makefile
+    sed -i 's/algo_test_tropical$(EXEEXT): $(algo_test_tropical_OBJECTS)/algo_test_tropical$(EXEEXT): /' src/test/Makefile
+    sed -i 's/fst_test$(EXEEXT): $(fst_test_OBJECTS)/fst_test$(EXEEXT): /' src/test/Makefile
+    sed -i 's/weight_test$(EXEEXT): $(weight_test_OBJECTS)/weight_test$(EXEEXT): /' src/test/Makefile
+    cd $OLDPWD
+
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # 进入到编译目录的src/test目录下执行
+    # make check
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$automakebuilddir ${PWD}/$builddir  ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build #${PWD}/$packagename
+}

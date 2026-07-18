@@ -1,0 +1,85 @@
+# Contributor: Ding Qian <1052888395@qq.com>
+# Maintainer: Ding Qian <1052888395@qq.com>
+pkgname=lpeg
+pkgver=master
+pkgrel=0
+pkgdesc="Peg is a new pattern-matching library for Lua"
+url="https://github.com/luvit/lpeg"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=("LuaJIT")
+makedepends=()
+source="https://github.com/luvit/$pkgname.git"
+commitid=fda374f3bbac50653bdeba7404d63e13972e6210
+
+autounpack=false
+downloadpackage=false
+buildtools="make"
+
+builddir=$pkgname-${commitid}
+packagename=
+cloneflag=true
+source envset.sh
+
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone -b $pkgver $source $builddir
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid
+        if [ $? != 0 ]
+        then
+            return -2
+        fi
+        cd $OLDPWD
+        cloneflag=false
+    fi
+
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build 
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+    fi
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    make CC=${CC} AR=${AR} CFLAGS="-Wno-macro-redefined -I ${LYCIUM_ROOT}/usr/LuaJIT/$ARCH/include/luajit-2.1 $CFLAGS" \
+    LDFLAGS="${LDFLAGS} -L ${LYCIUM_ROOT}/usr/LuaJIT/$ARCH/lib" -j4 > `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/test/
+    cp *.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp *.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp *test*  $LYCIUM_ROOT/usr/$pkgname/$ARCH/test/
+    cd $OLDPWD
+    unset cc ar
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build
+}

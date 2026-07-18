@@ -1,0 +1,111 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=openssl_1_1_1w
+pkgver=OpenSSL_1_1_1w
+pkgrel=0
+pkgdesc="OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+url="https://www.openssl.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("OpenSSL License","Original SSLeay License")
+depends=(zlib_1_3_1)
+makedepends=()
+
+# 官方下载地址https://github.com/openssl/$pkgname/archive/refs/tags/$pkgver.zip受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/${pkgname:0:7}/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=${pkgname:0:7}-${pkgver}
+packagename=$builddir.zip
+patchflag=true
+
+source envset.sh
+
+host=
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 屏蔽测试bug
+        patch -p1 < $PKGBUILD_ROOT/openssl_oh_test.patch > $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=linux-generic32
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=linux-aarch64
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+#参数1
+build() {
+    cd $builddir/$ARCH-build
+     #依赖zlib的OpenSSL支持使用gzip和deflate压缩算法的HTTPS协议可根据需求开启关闭
+    ../Configure "$@" $host zlib > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install VERBOSE=1 >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    $MAKE depend VERBOSE=1 >> $buildlog 2>&1
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    sed -i 's#/usr/bin/perl#/data/CIusr/bin/perl#g' $builddir/$ARCH-build/Makefile
+    # real test CMD
+    # 将编译目录加到 LD_LIBRARY_PATH 环境变量
+    # make test
+    # make test TESTS=test_shlibload V=1 运行指定测试用例
+    # 32 个用例错误判定为误报, 不同系统错误描述不同(实际为正常)
+    # 8 个 dlopen 用例错误(尽量避开使用dlopen加载动态库), 进程退出时 signal 11. 系在特定平台，使用方法问题 典型问题，采用patch规避
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

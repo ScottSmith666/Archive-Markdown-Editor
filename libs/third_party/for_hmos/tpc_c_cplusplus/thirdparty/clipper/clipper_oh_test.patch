@@ -1,0 +1,67 @@
+diff -Naur clipper_ver6.4.2/cpp/clipper_test.cpp clipper_ver6.4.2_new/cpp/clipper_test.cpp
+--- clipper_ver6.4.2/cpp/clipper_test.cpp	1970-01-01 08:00:00.000000000 +0800
++++ clipper_ver6.4.2_new/cpp/clipper_test.cpp	2023-10-11 18:13:10.385418314 +0800
+@@ -0,0 +1,52 @@
++// clipper库测试程序
++#include "clipper.hpp"
++
++using namespace ClipperLib;
++
++Paths subj;
++Paths clip;
++Paths solution;
++
++void addPoint(int x, int y, Path *path)
++{
++    IntPoint ip;
++    ip.X = x;
++    ip.Y = y;
++    path->push_back(ip);
++}
++
++int main()
++{
++    Paths subj;
++
++    Path p;
++    addPoint(100,100, &p);
++    addPoint(200,100, &p);
++    addPoint(200,200, &p);
++    addPoint(100,200, &p);
++    subj.push_back(p);
++
++    Path p2;
++    addPoint(150,50, &p2);
++    addPoint(175,50, &p2);
++    addPoint(175,250, &p2);
++    addPoint(150,250, &p2);
++    clip.push_back(p2);
++
++    Clipper c;
++    c.AddPaths(subj, ptSubject, true);
++    c.AddPaths(clip, ptClip, true);
++    c.Execute(ctIntersection, solution, pftNonZero, pftNonZero);
++
++    printf("solution size = %d\n",(int)solution.size());
++    for (unsigned i=0; i<solution.size(); i++)
++    {
++        Path p3 = solution.at(i);
++        for (unsigned j=0; j<p3.size(); j++)
++        {
++            IntPoint ip = p3.at(j);
++            printf("%d = %lld, %lld\n",j, ip.X,ip.Y);
++        }   
++    }   
++    return 0;
++}
+diff -Naur clipper_ver6.4.2/cpp/CMakeLists.txt clipper_ver6.4.2_new/cpp/CMakeLists.txt
+--- clipper_ver6.4.2/cpp/CMakeLists.txt	2015-04-23 09:04:20.000000000 +0800
++++ clipper_ver6.4.2_new/cpp/CMakeLists.txt	2023-10-11 18:07:32.803689800 +0800
+@@ -11,6 +11,7 @@
+ SET(BUILD_SHARED_LIBS ON CACHE BOOL
+     "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)")
+ ADD_LIBRARY(polyclipping clipper.cpp)
++add_executable(clipper_test clipper_test.cpp clipper.cpp)
+ 
+ CONFIGURE_FILE (polyclipping.pc.cmakein "${PCFILE}" @ONLY)
+ 

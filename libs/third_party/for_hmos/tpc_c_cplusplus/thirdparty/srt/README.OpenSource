@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "srt",
+        "License": "MPL-2.0 license",
+        "License File": "https://github.com/Haivision/srt/blob/master/LICENSE",
+        "Version Number": "1.5.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/Haivision/srt/archive/refs/tags/v1.5.3.tar.gz",
+        "Description": "Secure Reliable Transport (SRT) is a transport protocol for ultra low (sub-second) latency live video and audio streaming, as well as for generic bulk data transfer"
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1u.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    }
+]

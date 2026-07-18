@@ -1,0 +1,65 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname="libsvm"
+pkgver="v331"
+pkgrel=0
+pkgdesc="Libsvm is a simple, easy-to-use, and efficient software for SVM classification and regression. It solves C-SVM classification, nu-SVM classification, one-class-SVM, epsilon-SVM regression, and nu-SVM regression. It also provides an automatic model selection tool for C-SVM classification. This document explains the use of libsvm."
+url="https://github.com/cjlin1/libsvm"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD")
+depends=()
+makedepends=()
+install=
+source="https://github.com/cjlin1/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+cxx=
+
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang++
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang++
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE CXX=${cxx} all lib > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    # 由于没有install命令需要手动拷贝到安装目录
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp svm.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp libsvm.so.3 $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    ret=$?
+    cd $OLDPWD
+    unset cxx
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # ./svm-scale  test.data  >  test.scale
+    # ./svm-train  test.scale  test.model
+    # ./svm-predict  test.scale  test.model  test.predict
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

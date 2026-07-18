@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libresample",
+        "License": "BSD License",
+        "License File": "https://github.com/minorninth/libresample/blob/master/LICENSE-BSD.txt",
+        "Version Number": "master",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/minorninth/libresample",
+        "Description": "Real-time library for sample rate conversion"
+    }
+]

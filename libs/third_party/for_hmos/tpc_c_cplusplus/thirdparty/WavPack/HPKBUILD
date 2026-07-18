@@ -1,0 +1,61 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=WavPack
+pkgver=5.6.0
+pkgrel=0
+pkgdesc="WavPack encode/decode library, command-line programs, and several plugins"
+url="https://github.com/dbry/WavPack"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD")
+depends=()
+makedepends=()
+source="https://github.com/dbry/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+asmcompiler=
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        asmcompiler=$OHOS_SDK/native/llvm/bin/arm-linux-ohos-clang
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        asmcompiler=$OHOS_SDK/native/llvm/bin/aarch64-linux-ohos-clang
+    fi	
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DWAVPACK_BUILD_DOCS=OFF -DCMAKE_ASM_COMPILER=$asmcompiler \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行测试用例
+    # ctest
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packageName
+}

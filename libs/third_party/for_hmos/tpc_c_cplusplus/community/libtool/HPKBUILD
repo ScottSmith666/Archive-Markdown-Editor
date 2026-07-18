@@ -1,0 +1,76 @@
+# Contributor: xuzhao <xuzhaor@isoftstone.com>
+# Maintainer: xuzhao <xuzhaor@isoftstone.com>
+pkgname=libtool
+pkgver=2.4.6
+pkgrel=0
+pkgdesc="GNU Libtool is a generic library support script that hides the complexity of using shared libraries behind a consistent, portable interface."
+url="https://www.gnu.org"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPLv2") 
+depends=()
+makedepends=()
+
+source="https://ftpmirror.gnu.org/$pkgname/$pkgname-${pkgver}.tar.gz"
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux        
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+	    return -1
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ../configure "$@" --host=$host > $buildlog 2>&1
+    $MAKE V=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+	    return -1
+    fi
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}
+

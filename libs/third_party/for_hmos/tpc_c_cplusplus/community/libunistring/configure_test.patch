@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index f3e7421..a0a10e4 100644
+--- a/configure
++++ b/configure
+@@ -6150,7 +6150,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ 
+ 
+ 
+-am__api_version='1.18'
++am__api_version='1.16'
+ 
+ 
+ 

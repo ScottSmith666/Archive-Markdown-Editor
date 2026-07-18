@@ -1,0 +1,105 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: shilinke <shilinke001@chinasoftinc.com>
+# Maintainer: shilinke <shilinke001@chinasoftinc.com>
+
+pkgname=libsodium
+pkgver=1.0.20
+pkgrel=0
+pkgdesc="A modern, portable, easy to use crypto library"
+url="https://github.com/jedisct1/libsodium"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("ISC")
+depends=()
+makedepends=()
+
+source="https://github.jobcher.com/gh/https://github.com/jedisct1/libsodium/archive/refs/tags/$pkgver-RELEASE.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver-RELEASE
+packagename=$builddir.tar.gz
+
+source envset.sh
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure --host=$host "$@" > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    # 只生成了测试中间文件，在此生成测试可执行文件
+    cd $builddir/$ARCH-build
+    $MAKE check >> $buildlog 2>&1
+    cd $OLDPWD
+
+    cd $builddir/$ARCH-build/test/default
+    # 注释掉一些依赖，让测试在板端跳过编译
+    sed -i.bak '/\($(srcdir)\/Makefile.in:\)/,/\($(am__aclocal_m4_deps):\)/{s/^/#/}' Makefile
+    sed -i.bak 's/^\([a-zA-Z_][a-zA-Z0-9_]*\.log:\)/\1 #/' Makefile
+    sed -i.bak 's/\(check-TESTS:\)/\1 #/' Makefile
+    sed -i '/$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)/d' Makefile
+    
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

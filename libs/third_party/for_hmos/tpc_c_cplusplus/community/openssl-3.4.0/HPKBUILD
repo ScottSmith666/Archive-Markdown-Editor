@@ -1,0 +1,105 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Feng Long <longfeng202101@163.com>
+# Maintainer: Feng Long <longfeng202101@163.com>
+
+pkgname=openssl-3.4.0
+pkgver=3.4.0
+pkgrel=0
+pkgdesc="OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+url="https://www.openssl.org/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("OpenSSL License","Original SSLeay License")
+depends=()
+makedepends=()
+
+# 官方下载地址https://github.com/openssl/openssl/release/download/$pkgname/$pkgname.tar.gz受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/openssl/repository/archive/$pkgname.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=openssl-${pkgname}
+packagename=$builddir.tar.gz
+
+source envset.sh
+
+host=
+prepare() {
+    unset MAKE
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=linux-generic32
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=linux-aarch64
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=linux-x86_64
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    export CFLAGS="-O3 -flto=thin ${CFLAGS}"
+    export CXXFLAGS="-O3 -flto=thin ${CXXFLAGS}"
+
+}
+
+#参数1
+build() {
+    cd $builddir/$ARCH-build
+    ../Configure "$@" $host no-shared > `pwd`/build.log 2>&1
+    make -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    make depend >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$packagename
+}

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libtommath",
+        "License": "public domain",
+        "License File": "LICENSE",
+        "Version Number": "1.2.0",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://github.com/libtom/libtommath/archive/refs/tags/v1.2.0.tar.gz",
+        "Description": "This is the git repository for LibTomMath, a free open source portable number theoretic multiple-precision integer (MPI) library written entirely in C."
+    }
+]

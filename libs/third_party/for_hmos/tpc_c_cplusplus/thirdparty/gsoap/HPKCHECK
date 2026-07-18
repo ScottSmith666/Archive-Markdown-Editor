@@ -1,0 +1,91 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>,alnin <wangjianwu05@chinasoftinc.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+checkprepare(){
+    return 0
+}
+
+# 在OH环境执行测试的接口
+openharmonycheck() {
+    res=0
+    cd $builddir-$ARCH-build/gsoap/samples/autotest
+    ./test-self.sh > ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 1 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "test 1 pass" >> ${logfile}
+
+    ../primes/primes >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 2 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "test 2 pass" >> ${logfile}
+
+    ../rss/rss 10 http:// < ./../../../../your_rss_file.xml >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 3 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "test 3 pass" >> ${logfile}
+
+    ../template/primes >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 4 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "test 4 pass" >> ${logfile}
+
+    ../dom/domcpp ./../../../../menu.xml >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 5.1 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "test 5.1 pass" >> ${logfile}
+
+    ../dom/domcpp -c ./../../../../menu.xml >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "test 5.2 error" >> $logfile
+        cd $OLDPWD
+        return $res
+    fi
+    echo "test 5.2 pass" >> ${logfile}
+
+    echo "Total test: 5  pass: 5" >> ${logfile}
+    cd $OLDPWD
+    return $res
+}

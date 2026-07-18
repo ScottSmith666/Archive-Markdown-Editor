@@ -1,0 +1,79 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=zlib
+pkgver=v1.2.13
+pkgrel=0
+pkgdesc=""
+url=""
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("zlib License")
+depends=()
+makedepends=()
+
+# 官方下载地址source="https://github.com/madler/$pkgname/archive/refs/tags/$pkgver.tar.gz"受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/$pkgname/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+patch_flag=true
+
+source envset.sh
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ "$patch_flag" == true ]
+    then
+        cd $builddir
+        patch -p1 < ../zlib_ohos_pkg.patch
+        cd $OLDPWD
+        patch_flag=false
+    fi
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ../configure "$@" > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # make check
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

@@ -1,0 +1,64 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: liulihong <llh_01129@163.com>, Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: liulihong <llh_01129@163.com>
+
+pkgname=abseil-cpp
+pkgver=20230802.0
+pkgrel=0
+pkgdesc="The repository contains the Abseil C++ library code. Abseil is an open-source collection of C++ code (compliant to C++14) designed to augment the C++ standard library."
+url="https://github.com/abseil/abseil-cpp"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0 license")
+depends=("googletest")
+makedepends=()
+
+# 官网地址：https://github.com/abseil/$pkgname/archive/refs/tags/$pkgver.tar.gz，因网络原因采用gitee mirrors
+source="https://gitee.com/mirrors/$pkgname/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    cmake "$@" -DABSL_BUILD_TESTING=ON -DABSL_USE_EXTERNAL_GOOGLETEST=ON -DOHOS_ARCH=$ARCH \
+    -B$ARCH-build -S./ -LH > `pwd`/$ARCH-build/build.log 2>&1
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 执行 ctest 测试
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

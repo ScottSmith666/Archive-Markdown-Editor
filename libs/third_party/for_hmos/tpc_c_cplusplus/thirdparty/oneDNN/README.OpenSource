@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "oneDNN",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/oneapi-src/oneDNN/blob/main/LICENSE",
+        "Version Number": "v3.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.2.tar.gz",
+        "Description": "oneDNN is an open-source cross-platform performance library of basic building blocks for deep learning applications."
+    },
+    {
+        "Name": "openmp",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/llvm/llvm-project/blob/main/openmp/LICENSE.TXT",
+        "Version Number": "9.0.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/openmp-9.0.1.src.tar.xz",
+        "Description": "openmp is a compoment of llvm-project."
+    }
+]

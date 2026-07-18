@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "llama.cpp",
+        "License": "MIT",
+        "License File": "https://github.com/ggml-org/llama.cpp/blob/b7941/LICENSE",
+        "Version Number": "b7941",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://codeload.github.com/ggml-org/llama.cpp/zip/refs/tags/b7941",
+        "Description": "A lightweight, high-performance C++ inference engine for LLaMA series large language models,
+                        based on GGML library"
+    }
+]

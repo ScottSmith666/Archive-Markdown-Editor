@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libexpat",
+        "License": "MIT",
+        "License File": "https://github.com/libexpat/libexpat/blob/master/COPYING",
+        "Version Number": "R_2_5_0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libexpat/libexpat/archive/refs/tags/R_2_5_0.tar.gz",
+        "Description": "Fast streaming XML parser written in C99."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "ogg-1.3.4",
+        "License": "BSD 3-Clause License",
+        "License File": "https://github.com/xiph/ogg/blob/master/COPYING",
+        "Version Number": "1.3.4",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/xiph/ogg",
+        "Description": "Ogg project codecs use the Ogg bitstream format to arrange the raw, compressed bitstream into a more robust, useful form."
+    }
+]

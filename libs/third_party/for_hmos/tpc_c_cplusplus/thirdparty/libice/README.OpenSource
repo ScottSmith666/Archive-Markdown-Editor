@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libice",
+        "License": "The libice Source License",
+        "License File": "https://gitlab.freedesktop.org/xorg/lib/libice/-/blob/libICE-1.1.1/COPYING",
+        "Version Number": "libICE-1.1.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://gitlab.freedesktop.org/xorg/lib/libice",
+        "Description": "libice is a c/ C ++ class library that implements the interactive connection Establishment protocol defined in the RFC5245 specification, which defines interactive connection establishment (ICE) as a NAT traversal technique for UDP media streams established through the offer/answer model."
+    }
+]

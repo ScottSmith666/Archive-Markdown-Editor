@@ -1,0 +1,113 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: liucheng<1596268623@qq.com>
+# Maintainer: liucheng<1596268623@qq.com>
+
+pkgname=libmad
+pkgver=c2f96fa4166446ac99449bdf6905f4218fb7d6b5
+pkgrel=0
+pkgdesc="libmad - MPEG audio decoder library"
+url="https://www.underbit.com/products/mad//"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0-only")
+depends=()
+makedepends=()
+# 官方下载地址 https://github.com/markjeee/${pkgname}.git 受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/${pkgname}.git"
+
+downloadpackage=false
+autounpack=false
+buildtools="configure"
+
+builddir=${pkgname}-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+cloneflag=true
+prepare() {
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+    else
+        echo prepare no support $ARCH !!
+        return -1
+    fi
+
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone ${source} $builddir
+        if [ $? != 0 ]
+        then
+            return -2
+        fi
+        cd $builddir
+        git reset --hard $pkgver
+        if [ $? != 0 ]
+        then
+            return -3
+        fi
+        cd $OLDPWD
+        cloneflag=false
+    fi
+    cp -rf $builddir $builddir-$ARCH
+}
+
+build() {
+    cd $builddir-$ARCH
+    # 需要提前创建安装目录，否则会导致 --prefix 配置报错
+    mkdir -p $LYCIUM_ROOT/usr/libmad/$ARCH/
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" cross_compiling=yes > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    # 测试dome需要单独编译
+    $CC minimad.c .libs/libmad.a -o minimad 
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 打包安装
+package() {
+    cd $builddir-$ARCH
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    cd $OLDPWD
+ 
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+}
+
+# 进行测试的准备和说明
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 测试方式
+    # 进入构建目录
+    # 执行: ./minimad < ../bootsound.mp3 > bootsound.pcm
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir-*
+}

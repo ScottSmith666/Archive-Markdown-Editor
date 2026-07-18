@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "wolfssl",
+        "License": "GPL-3.0 license",
+        "License File": "https://github.com/wolfSSL/wolfssl?tab=GPL-3.0-1-ov-file",
+        "Version Number": "5.8.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/wolfSSL/wolfssl/releases/tag/v5.8.2-stable",
+        "Description": "wolfSSL is a lightweight, embedded-purpose, SSL/TLS encryption library designed for IoT and embedded systems."
+    }
+]

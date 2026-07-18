@@ -1,0 +1,27 @@
+# Contributor: chengkan <kanchengc@isoftstone.com>
+# Maintainer: chengkan <kanchengc@isoftstone.com>
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+OLD_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+checkprepare(){
+    export LD_LIBRARY_PATH=`pwd`/$builddir-$ARCH-build:$LD_LIBRARY_PATH
+
+}
+openharmonycheck() {
+    res=0
+    cd $builddir-$ARCH-build/src/test
+    make check >> ${logfile} 2>&1
+    res=$?
+        
+    if [ $res -ne 0 ]
+    then
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp -rf *.log ${LYCIUM_FAULT_PATH}/${pkgname}/
+    fi
+
+    export LD_LIBRARY_PATH=$OLD_LD_LIBRARY_PATH
+    unset OLD_LD_LIBRARY_PATH
+    cd $OLDPWD
+
+    return $res
+}

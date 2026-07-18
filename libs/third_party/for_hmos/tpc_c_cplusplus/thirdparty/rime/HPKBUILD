@@ -1,0 +1,61 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: dingchenjie1 <dingchenjie1@h-partners.com>
+# Maintainer: dingchenjie1 <dingchenjie1@h-partners.com>
+
+pkgname=rime
+pkgver=1.13.0
+pkgrel=0
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause license")
+depends=("leveldb" "glog" "yaml-cpp" "marisa-trie" "boost" "googletest" "OpenCC" "gflags")
+makedepends=()
+source="https://github.com/rime/lib${pkgname}/archive/refs/tags/${pkgver}.tar.gz"
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+builddir=lib$pkgname-${pkgver}
+packagename=${pkgver}.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+	${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -B${ARCH}-build \
+        -DBUILD_MERGED_PLUGINS=OFF \
+        -DENABLE_EXTERNAL_PLUGINS=ON > $buildlog 2>&1
+
+	${OHOS_SDK}/native/build-tools/cmake/bin/cmake --build ${ARCH}-build >> $buildlog 2>&1
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake --build ${ARCH}-build --target install >> $buildlog 2>&1
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+    return $ret
+}

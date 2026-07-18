@@ -1,0 +1,150 @@
+/*
+Overwrite 'max-width: 50%' with 'max-width: 50vw' to prevent the native Chrome bug:
+https://bugs.chromium.org/p/chromium/issues/detail?id=803045 (#1550).
+*/
+body.cke_editable > .cke_widget_wrapper_easyimage-side {
+  max-width: 50vw;
+}
+.cke_editable,
+.cke_article,
+.cke-article {
+  /*
+  The outline is not a part of the element's dimensions. A border needs to be used as an outline to align the linked image with a caption.
+  */
+  /* Loaders */
+  /* Fancy opacity effect discussed in #1533. Transition is assigned in this awkward way so that it **does not** happen for
+  the initial render, otherwise it would start transitioning from opacity 1 to 0.x upon the first render. */
+}
+.cke_editable .easyimage,
+.cke_article .easyimage,
+.cke-article .easyimage,
+.cke_editable .cke_widget_wrapper_easyimage,
+.cke_article .cke_widget_wrapper_easyimage,
+.cke-article .cke_widget_wrapper_easyimage {
+  background: transparent;
+  border: none;
+  outline: 0px;
+  padding: 0;
+}
+.cke_editable .easyimage a > img,
+.cke_article .easyimage a > img,
+.cke-article .easyimage a > img {
+  outline: none;
+  border: 1px solid #0782c1;
+  box-sizing: border-box;
+  padding: 1px;
+}
+.cke_editable .cke_widget_wrapper_easyimage div,
+.cke_article .cke_widget_wrapper_easyimage div,
+.cke-article .cke_widget_wrapper_easyimage div {
+  margin: 0;
+  padding: 10px;
+}
+.cke_editable .easyimage img,
+.cke_article .easyimage img,
+.cke-article .easyimage img,
+.cke_editable .cke_widget_uploadeasyimage img,
+.cke_article .cke_widget_uploadeasyimage img,
+.cke-article .cke_widget_uploadeasyimage img {
+  height: auto;
+  max-width: 100%;
+}
+.cke_editable .cke_widget_wrapper_easyimage-side,
+.cke_article .cke_widget_wrapper_easyimage-side,
+.cke-article .cke_widget_wrapper_easyimage-side,
+.cke_editable :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-side) > .easyimage-side,
+.cke_article :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-side) > .easyimage-side,
+.cke-article :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-side) > .easyimage-side,
+.cke_editable .cke_widget_wrapper_easyimage-align-right,
+.cke_article .cke_widget_wrapper_easyimage-align-right,
+.cke-article .cke_widget_wrapper_easyimage-align-right,
+.cke_editable :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-right) > .easyimage-align-right,
+.cke_article :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-right) > .easyimage-align-right,
+.cke-article :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-right) > .easyimage-align-right {
+  /*
+    The :not() selector will be used for Easy Image content ouside of the editor, for example: when the editor was destroyed.
+    See https://github.com/ckeditor/ckeditor4/pull/1150#discussion_r150415261 for more details.
+    */
+  text-align: right;
+  /*
+    In case of placement inside the parent container like a table cell, 'min-width' is needed to prevent the widget from having
+    tiny sizes. The `em` unit is used so it works well and has proper proportions to the textual content around (#1553).
+    */
+  min-width: 10px;
+  margin-left: 1.5em;
+}
+.cke_editable .cke_widget_wrapper_easyimage-align-left,
+.cke_article .cke_widget_wrapper_easyimage-align-left,
+.cke-article .cke_widget_wrapper_easyimage-align-left,
+.cke_editable :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-left) > .easyimage-align-left,
+.cke_article :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-left) > .easyimage-align-left,
+.cke-article :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-left) > .easyimage-align-left {
+  text-align: left;
+  min-width: 10px;
+  margin-right: 1.5em;
+}
+.cke_editable .cke_widget_wrapper_easyimage-align-center,
+.cke_article .cke_widget_wrapper_easyimage-align-center,
+.cke-article .cke_widget_wrapper_easyimage-align-center,
+.cke_editable :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-center) > .easyimage-align-center,
+.cke_article :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-center) > .easyimage-align-center,
+.cke-article :not(.cke_widget_wrapper_easyimage):not(.cke_widget_wrapper_easyimage-align-center) > .easyimage-align-center {
+  margin: 0 auto;
+  max-width: 90%;
+}
+.cke_editable .easyimage .cke_widget_editable,
+.cke_article .easyimage .cke_widget_editable,
+.cke-article .easyimage .cke_widget_editable {
+  background-color: #f7f7f7;
+  /* Add border so when caption is focused, blue border does not cause flickering. */
+  border: 1px solid #f7f7f7;
+  color: #333;
+  padding: 0.8em;
+}
+.cke_editable .cke_widget_wrapper:hover .easyimage .cke_widget_editable,
+.cke_article .cke_widget_wrapper:hover .easyimage .cke_widget_editable,
+.cke-article .cke_widget_wrapper:hover .easyimage .cke_widget_editable {
+  outline: 3px solid transparent;
+}
+.cke_editable .cke_widget_wrapper .easyimage .cke_widget_editable.cke_widget_editable_focused,
+.cke_article .cke_widget_wrapper .easyimage .cke_widget_editable.cke_widget_editable_focused,
+.cke-article .cke_widget_wrapper .easyimage .cke_widget_editable.cke_widget_editable_focused {
+  background-color: #fff;
+  border-color: #48a3f5;
+  outline: none;
+}
+.cke_editable .cke_widget_element.easyimage,
+.cke_article .cke_widget_element.easyimage,
+.cke-article .cke_widget_element.easyimage {
+  position: relative;
+}
+.cke_editable .cke_loader,
+.cke_article .cke_loader,
+.cke-article .cke_loader {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+}
+.cke_editable .cke_loader .cke_bar,
+.cke_article .cke_loader .cke_bar,
+.cke-article .cke_loader .cke_bar {
+  height: 10px;
+  background: #6a9ed1;
+  width: 0;
+}
+.cke_editable .cke_widget_wrapper_easyimage:not(.cke_widget_wrapper_uploading) div img,
+.cke_article .cke_widget_wrapper_easyimage:not(.cke_widget_wrapper_uploading) div img,
+.cke-article .cke_widget_wrapper_easyimage:not(.cke_widget_wrapper_uploading) div img {
+  transition: opacity 0.3s ease-in-out;
+}
+.cke_editable .cke_widget_wrapper_easyimage.cke_widget_wrapper_uploading div img,
+.cke_article .cke_widget_wrapper_easyimage.cke_widget_wrapper_uploading div img,
+.cke-article .cke_widget_wrapper_easyimage.cke_widget_wrapper_uploading div img {
+  opacity: 0.75;
+}
+.cke_editable .cke_image_resizer_wrapper img,
+.cke_article .cke_image_resizer_wrapper img,
+.cke-article .cke_image_resizer_wrapper img {
+  max-width: 100%;
+}

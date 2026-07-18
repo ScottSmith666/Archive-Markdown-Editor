@@ -1,0 +1,95 @@
+# Contributor: TangShaoteng <tangshaoteng@163.com>
+# Maintainer: TangShaoteng <tangshaoteng@163.com>
+
+pkgname=srs
+pkgver=v6.0-d0
+pkgrel=0
+pkgdesc="SRS is a simple, high-efficiency, real-time video server supporting RTMP, WebRTC, HLS, HTTP-FLV, SRT, MPEG-DASH, and GB28181."
+url="https://ossrs.io/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=("FFmpeg")
+makedepends=()
+source="https://github.com/ossrs/$pkgname/releases/download/$pkgver/$pkgname-server-${pkgver:1}.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+patchflag=true
+
+builddir=$pkgname-server-${pkgver:1}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../srs_oh_pkg.patch
+	# patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    # srs里的/usr/bin/bash导致测试失败，故改为/data/CIusr/bin/bash
+    sed -i "s#/usr/bin/bash#/data/CIusr/bin/bash#g" $builddir/trunk/etc/init.d/srs
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build/trunk
+    ./configure "$@" --cross-build --cc=$CC --cxx=$CXX --ar=$AR --ld=$LD --randlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib --host=$host --backtrace=off > `pwd`/../build.log 2>&1
+    make VERBOSE=1 -j4 >> `pwd`/../build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build/trunk
+    make install >> `pwd`/../build.log 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+    unset host
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir-$ARCH-build/trunk
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir-$ARCH-build/trunk
+    else
+        echo "${ARCH} not support"
+    fi
+    # real test
+    # ./objs/srs -c conf/srs.conf
+    # ffmpeg -re -i ./doc/source.flv -c copy -f flv rtmp://${ip}/live/livestream
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build
+}

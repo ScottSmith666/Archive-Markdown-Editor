@@ -1,0 +1,72 @@
+# Contributor: Chen Xu <chenxu.unix@gmail.com>
+# Maintainer:  Chen Xu <chenxu.unix@gmail.com>
+pkgname=lua-amf3
+pkgver=2.0.5
+pkgrel=0
+pkgdesc="lua-amf3 provides fast AMF3 encoding/decoding routines for Lua."
+url="https://github.com/neoxic/lua-amf3"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT License")
+depends=("LuaJIT")
+makedepends=()
+source="https://github.com/neoxic/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+    fi
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DUSE_LUA_VERSION=jit -DCMAKE_PREFIX_PATH=${LYCIUM_ROOT}/usr/LuaJIT/$ARCH \
+    -DCMAKE_SHARED_LINKER_FLAGS="-L${LYCIUM_ROOT}/usr/LuaJIT/$ARCH/lib -lluajit-5.1"     \
+    -DLUA_COMMAND="${LYCIUM_ROOT}/usr/LuaJIT/$ARCH/bin/luajit-2.1.0-beta3"               \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./  -L > `pwd`/$ARCH-build/build.log 2>&1
+    
+    # 编译
+    make -j4 -C $ARCH-build VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1   
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # export ROOT_PATH=/data/local/tmp/lycium
+    # cd ${ROOT_PATH}/main/lua-amf3/lua-amf3-2.0.5/arm64-v8a-build
+    # ctest
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

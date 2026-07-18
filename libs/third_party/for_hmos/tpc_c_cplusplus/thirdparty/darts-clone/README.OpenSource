@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "darts-clone",
+        "License": "BSD 2-clause license",
+        "License File": "https://github.com/s-yata/darts-clone/blob/master/COPYING.md",
+        "Version Number": "e40ce4627526985a7767444b6ed6893ab6ff8983",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/s-yata/darts-clone",
+        "Description": "Darts-clone is a clone of Darts (Double-ARray Trie System)."
+    }
+]

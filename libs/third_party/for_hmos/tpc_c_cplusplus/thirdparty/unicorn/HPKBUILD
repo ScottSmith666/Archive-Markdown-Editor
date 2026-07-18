@@ -1,0 +1,94 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: handong056@chinasoftinc.com
+# Maintainer: handong056@chinasoftinc.com
+
+pkgname=unicorn
+pkgver=2.1.4
+pkgrel=0
+pkgdesc="Unicorn Engine - Lightweight multi-platform, multi-architecture CPU emulator framework"
+url="https://github.com/unicorn-engine/unicorn"
+archs=( "arm64-v8a"  "x86_64" "armeabi-v7a")
+license=("GPL-2.0")
+depends=("zlib_1_3_1")
+makedepends=()
+
+source="https://github.com/unicorn-engine/unicorn/archive/refs/tags/2.1.4.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+patch_flag=true
+build_dir=build
+source envset.sh
+
+prepare() {
+    cp -r $builddir ${builddir}-${ARCH} >> $buildlog 2>&1
+    cd ${builddir}-${ARCH}
+    if [ "$ARCH" = "armeabi-v7a" ]; then
+        if [ -f ../unicorn_armv7a_fix.patch ]; then
+            patch -p1 < ../unicorn_armv7a_fix.patch >> $buildlog 2>&1
+        fi
+    fi
+    if [ -f ../unicorn_2.1.4_pkg.patch ]; then
+        patch -p1 < ../unicorn_2.1.4_pkg.patch >> $buildlog 2>&1
+    fi
+    cd $OLDPWD
+}
+
+build() {
+    cd ${builddir}-${ARCH}
+    if [ "$ARCH" = "armeabi-v7a" ]; then
+        echo "Configuring Unicorn with CMake..."
+        PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake  "$@"       \
+                -DCMAKE_VERBOSE_MAKEFILE=ON                                                             \
+                -DUNICORN_DISABLE_128BIT=ON                                                             \
+                -DOHOS_ARCH=$ARCH                                                                       \
+                -DCMAKE_BUILD_TYPE=Release                                                              \
+                -DUNICORN_BUILD_SHARED=ON                                                               \
+                -DUNICORN_BUILD_STATIC=ON                                                               \
+                -DCMAKE_POSITION_INDEPENDENT_CODE=ON                                                    \
+                -DUNICORN_BUILD_TESTS=OFF                                                               \
+                -DCMAKE_CXX_COMPILER_WORKS=ON                                                           \
+                -DCMAKE_C_COMPILER_WORKS=ON                                                             \
+                -DCMAKE_C_FLAGS=" -mfloat-abi=softfp -mfpu=neon -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -s"  \
+                -DCMAKE_CXX_FLAGS=" -mfloat-abi=softfp -mfpu=neon -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -s" \
+                -B$ARCH-build -S./ >> $buildlog 2>&1
+    else 
+        ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH 		\
+			-DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-s" -DCMAKE_CXX_FLAGS="-s"	\
+			-B$ARCH-build -S./ -L >> $buildlog 2>&1
+    fi
+    $MAKE -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd ${builddir}-${ARCH}
+    make -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/${builddir}-${ARCH}
+}

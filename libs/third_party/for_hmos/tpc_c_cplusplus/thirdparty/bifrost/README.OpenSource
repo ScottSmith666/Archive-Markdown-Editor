@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "bifrost",
+        "License": "BSD 2-Clause License",
+        "License File": "https://github.com/pmelsted/bifrost/blob/v1.3.5/LICENSE",
+        "Version Number": "v1.3.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/pmelsted/bifrost/archive/refs/tags/v1.3.5.zip",
+        "Description": "A bioinformatics toolkit for efficient and compact processing of large-scale genomic data"
+    }
+]

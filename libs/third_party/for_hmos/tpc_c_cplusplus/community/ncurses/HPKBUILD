@@ -1,0 +1,96 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: TangShaoteng <tangshaoteng@163.com>
+# Maintainer: TangShaoteng <tangshaoteng@163.com>
+
+pkgname=ncurses
+pkgver=6.4
+pkgrel=0
+pkgdesc="The ncurses (new curses) library is a free software emulation of curses in System V Release 4.0 (SVr4), and more. It uses terminfo format, supports pads and color and multiple highlights and forms characters and function-key mapping, and has all the other SVr4-curses enhancements over BSD curses. SVr4 curses became the basis of X/Open Curses."
+url="https://invisible-island.net/ncurses/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("MIT-X11")
+depends=()
+makedepends=()
+source="https://ftp.gnu.org/gnu/$pkgname/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+prepare() {
+	cp -arf $builddir $builddir-$ARCH-build
+	if [ $ARCH == "armeabi-v7a" ]
+	then
+		setarm32ENV
+		host=arm-linux
+	elif [ $ARCH == "arm64-v8a" ]
+	then
+		setarm64ENV
+		host=aarch64-linux
+	elif [ $ARCH == "x86_64" ]
+	then
+		setx86_64ENV
+		host=x86_64-linux
+	else
+		echo "${ARCH} not support"
+		return -1
+	fi
+}
+
+build() {
+	cd $builddir-$ARCH-build
+    export CFLAGS="-O3 -fPIC ${CFLAGS}"
+	export CXXFLAGS="-O3 -fPIC ${CXXFLAGS}"
+	# strip时使用的是x86主机的/usr/bin/install -s命令，从而导致strip失败，所以禁用strip
+	PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host --disable-stripping --enable-pc-files > $buildlog 2>&1
+	$MAKE V=1 >> $buildlog 2>&1
+	ret=$?
+	cd $OLDPWD
+	return $ret
+}
+
+package() {
+	cd $builddir-$ARCH-build
+	make install >> $buildlog 2>&1
+	cd $OLDPWD
+	unset host
+	if [ $ARCH == "armeabi-v7a" ]
+	then
+		unsetarm32ENV
+	elif [ $ARCH == "arm64-v8a" ]
+	then
+		unsetarm64ENV
+	elif [ $ARCH == "x86_64" ]
+	then
+ 	    unsetx86_64ENV
+	else
+		echo "${ARCH} not support"
+		return -1
+	fi
+}
+
+check() {
+	echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+	rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build ${PWD}/$builddir-${archs[2]}-build
+}
+

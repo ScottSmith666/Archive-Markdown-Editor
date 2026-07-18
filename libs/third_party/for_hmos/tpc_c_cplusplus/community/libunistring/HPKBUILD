@@ -1,0 +1,120 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: xiafeng <xiafeng@huawei.com>
+# Maintainer: xiafeng <xiafeng@huawei.com>
+
+pkgname=libunistring
+pkgver=1.4
+pkgrel=0
+pkgdesc="libunistring is an open-source C library primarily used for handling Unicode strings."
+url="https://ftp.gnu.org/gnu/libunistring"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("GPL-3.0-or-later")
+depends=()
+makedepends=()
+
+source="https://ftp.gnu.org/gnu/libunistring/libunistring-${pkgver}.tar.gz"
+
+autounpack=false
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+patchflag=true
+
+source envset.sh
+
+host=""
+
+prepare() {
+    mkdir -p $pkgname-$ARCH-build
+    tar -xzf $packagename -C $pkgname-$ARCH-build
+    
+    if [ ${ARCH} == armeabi-v7a ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ ${ARCH} == arm64-v8a ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ ${ARCH} == x86_64 ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    cd $pkgname-$ARCH-build/$builddir
+    
+    # 由于门禁环境无aclocal-1.18环境，故需要打patch降级aclocal工具至1.16版本
+    if $patchflag; then
+        patch -p1 < ../../configure_test.patch
+        patchflag=false
+    fi
+    cd $OLDPWD
+    return $?
+}
+
+build() {
+    cd $pkgname-$ARCH-build/$builddir
+    
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" \
+        --host=$host \
+        --enable-static \
+        --enable-shared \
+        --disable-doc \
+        >> ${buildlog} 2>&1
+
+    $MAKE -C lib >> ${buildlog} 2>&1
+    
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build/$builddir
+    ${MAKE} install >> ${buildlog} 2>&1
+    
+    cd $OLDPWD
+    
+    # 清理环境变量
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    fi
+    
+    unset host
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$pkgname-armeabi-v7a-build 
+    rm -rf ${PWD}/$pkgname-arm64-v8a-build 
+    rm -rf ${PWD}/$pkgname-x86_64-build
+    rm -f ${PWD}/$packagename
+}

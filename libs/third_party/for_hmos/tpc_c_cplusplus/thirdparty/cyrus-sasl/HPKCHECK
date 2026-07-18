@@ -1,0 +1,134 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: TangShaoteng <tangshaoteng@163.com>
+# Maintainer: TangShaoteng <tangshaoteng@163.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+checkprepare() {
+    # 添加lib子目录sasl2下的库路径到环境变量
+    export LD_LIBRARY_PATH=${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}/lib/sasl2:$LD_LIBRARY_PATH
+    ln -s /bin/sed /usr/bin/sed
+}
+
+openharmonycheck() {
+    res=0
+    sasluser=ohosuser
+    saslpassword=123456
+    cd $builddir/$ARCH-build
+
+    # 添加hosts文件
+    echo -e "127.0.0.1       localhost" > /etc/hosts
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "create file(/etc/hosts) failed" > ${logfile} 2>&1
+	cd $OLDPWD
+	return res
+    fi
+
+    # 验证localhost通路
+    ping localhost > ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "ping localhost failed" >> ${logfile} 2>&1
+	cd $OLDPWD
+	return res
+    fi
+
+    # 创建配置文件sample.conf
+    echo -e "pwcheck_method:auxprop\nauxprop_plugin:sasldb\nmech_list:plain login" > ${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}/sample.conf
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "create file(sample.conf) failed" >> ${logfile} 2>&1
+	cd $OLDPWD
+	return res
+    fi
+
+    # 运行saslauthd服务
+    ./saslauthd/saslauthd -a sasldb >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "saslauthd start failed" >> ${logfile} 2>&1
+	cd $OLDPWD
+	return res
+    fi
+
+    # 检查saslauthd服务运行状态
+    process_count=`ps -ef | grep saslauthd | grep -v grep | wc -l`
+    if [ $process_count -ne 5 ]
+    then
+        echo "saslauthd run failed" >> ${logfile} 2>&1
+	cd $OLDPWD
+	return res
+    fi
+
+    # 将密码写人文件，用来实现自动化输入密码
+    echo -e $saslpassword > saslpassword.txt
+    # 添加（注册）用户ohosuser(-c后面带的参数是用户名)，通过文件重定向输入自动设置文件中预置的密码作为注册密码
+    ./utils/saslpasswd2 -c $sasluser < saslpassword.txt < saslpassword.txt
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "add user failed" >> ${logfile} 2>&1
+	cd $OLDPWD
+	return res
+    fi
+
+    # 查询已经添加（注册）的用户
+    have_user=`./utils/sasldblistusers2 | grep -w $sasluser | wc -l`
+    if [ $have_user -ne 1 ]
+    then
+        echo "check user failed" >> ${logfile} 2>&1
+	cd $OLDPWD
+	return -1
+    fi
+
+    # 运行服务端
+    ./sample/server >> ${logfile} 2>&1 &
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "server start failed" >> ${logfile} 2>&1
+	cd $OLDPWD
+	return res
+    fi
+
+    # 运行客户端，通过管道方式自动化输入身份ID、授权ID、密码
+    echo -e "$sasluser\n$sasluser\n$saslpassword" | ./sample/client localhost >> ${logfile} 2>&1
+    return_codes=(${PIPESTATUS[*]})
+    if [ "${return_codes[0]}" -ne 0 ]; then
+        echo "echo strings error for client test" >> ${logfile} 2>&1
+        res=${return_codes[0]}
+        cd $OLDPWD
+        return $res
+    fi
+    if [ "${return_codes[1]}" -ne 0 ]; then
+        echo "client test filed" >> ${logfile} 2>&1
+        res=${return_codes[1]}
+        cd $OLDPWD
+        return $res
+    fi
+
+    # 结束进程
+    killall server
+    killall saslauthd
+
+    cd $OLDPWD
+
+    return $res
+}

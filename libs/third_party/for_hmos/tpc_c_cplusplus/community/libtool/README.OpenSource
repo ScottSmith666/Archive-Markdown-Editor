@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libtool",
+        "License": "GPL-2.0",
+        "License File": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+        "Version Number": "2.4.6",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz",
+        "Description": "GNU Libtool is a generic library support script that hides the complexity of using shared libraries behind a consistent, portable interface."
+    }
+]

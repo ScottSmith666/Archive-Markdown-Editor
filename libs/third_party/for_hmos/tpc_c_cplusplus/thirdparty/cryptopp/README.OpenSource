@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "cryptopp",
+        "License": "Boost Software License" "CRYPTOGAMS License",
+        "License File": "License.txt",
+        "Version Number": "Crypto++ 8.7 release",
+        "Owner": "chenbaodi@huawei.com",
+        "Upstream URL": "https://github.com/weidai11/cryptopp/archive/refs/tags/CRYPTOPP_8_7_0.tar.gz",
+        "Description": "free C++ class library of cryptographic schemes"
+    }
+]

@@ -1,0 +1,185 @@
+.cke_widget_videoUpload::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  content: ' ';
+}
+.cke_editable,
+.cke_article,
+.cke-article {
+  /*
+  The outline is not a part of the element's dimensions. A border needs to be used as an outline to align the linked image with a caption.
+  */
+  /*
+  Overwrite 'max-width: 50%' with 'max-width: 50vw' to prevent the native Chrome bug:
+  https://bugs.chromium.org/p/chromium/issues/detail?id=803045 (#1550).
+  */
+  /* Loaders */
+  /* Fancy opacity effect discussed in #1533. Transition is assigned in this awkward way so that it **does not** happen for
+  the initial render, otherwise it would start transitioning from opacity 1 to 0.x upon the first render. */
+}
+.cke_editable .video,
+.cke_article .video,
+.cke-article .video,
+.cke_editable .cke_widget_wrapper_video,
+.cke_article .cke_widget_wrapper_video,
+.cke-article .cke_widget_wrapper_video {
+  background: transparent;
+  border: none;
+  outline: 0px;
+  display: block;
+  padding: 0;
+  clear: both;
+}
+.cke_editable .video a > video,
+.cke_article .video a > video,
+.cke-article .video a > video {
+  outline: none;
+  border: 1px solid #0782c1;
+  box-sizing: border-box;
+  padding: 1px;
+}
+.cke_editable .cke_widget_wrapper_video figure,
+.cke_article .cke_widget_wrapper_video figure,
+.cke-article .cke_widget_wrapper_video figure {
+  margin: 0;
+}
+.cke_editable .video video,
+.cke_article .video video,
+.cke-article .video video,
+.cke_editable .cke_widget_uploadvideo video,
+.cke_article .cke_widget_uploadvideo video,
+.cke-article .cke_widget_uploadvideo video {
+  display: block;
+  height: auto;
+  margin: 0 auto;
+  max-width: 100%;
+}
+.cke_editable .cke_widget_wrapper_video-side,
+.cke_article .cke_widget_wrapper_video-side,
+.cke-article .cke_widget_wrapper_video-side,
+.cke_editable :not(.cke_widget_wrapper_video):not(.cke_widget_wrapper_video-side) > .video-side,
+.cke_article :not(.cke_widget_wrapper_video):not(.cke_widget_wrapper_video-side) > .video-side,
+.cke-article :not(.cke_widget_wrapper_video):not(.cke_widget_wrapper_video-side) > .video-side,
+.cke_editable .cke_widget_wrapper_video-align-right,
+.cke_article .cke_widget_wrapper_video-align-right,
+.cke-article .cke_widget_wrapper_video-align-right,
+.cke_editable .video-align-right,
+.cke_article .video-align-right,
+.cke-article .video-align-right {
+  /*
+    The :not() selector will be used for Easy Image content ouside of the editor, for example: when the editor was destroyed.
+    See https://github.com/ckeditor/ckeditor4/pull/1150#discussion_r150415261 for more details.
+    */
+  float: right;
+  max-width: 50%;
+  /*
+    In case of placement inside the parent container like a table cell, 'min-width' is needed to prevent the widget from having
+    tiny sizes. The `em` unit is used so it works well and has proper proportions to the textual content around (#1553).
+    */
+  min-width: 10em;
+  margin-left: 1.5em;
+}
+.cke_editable body.cke_editable > .cke_widget_wrapper_video-side,
+.cke_article body.cke_editable > .cke_widget_wrapper_video-side,
+.cke-article body.cke_editable > .cke_widget_wrapper_video-side {
+  max-width: 50vw;
+}
+.cke_editable .cke_widget_wrapper_video-align-left,
+.cke_article .cke_widget_wrapper_video-align-left,
+.cke-article .cke_widget_wrapper_video-align-left,
+.cke_editable .video-align-left,
+.cke_article .video-align-left,
+.cke-article .video-align-left {
+  float: left;
+  max-width: 50%;
+  min-width: 10em;
+  margin-right: 1.5em;
+}
+.cke_editable .cke_widget_wrapper_video-align-center,
+.cke_article .cke_widget_wrapper_video-align-center,
+.cke-article .cke_widget_wrapper_video-align-center,
+.cke_editable .video-align-center,
+.cke_article .video-align-center,
+.cke-article .video-align-center {
+  margin: 0 auto;
+  text-align: center;
+}
+.cke_editable .ckeditor-video,
+.cke_article .ckeditor-video,
+.cke-article .ckeditor-video {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+}
+.cke_editable .ckeditor-video.cke_widget_element,
+.cke_article .ckeditor-video.cke_widget_element,
+.cke-article .ckeditor-video.cke_widget_element {
+  padding-bottom: 56.25%;
+}
+.cke_editable .ckeditor-video video,
+.cke_article .ckeditor-video video,
+.cke-article .ckeditor-video video {
+  display: inline;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+.cke_editable .video .cke_widget_editable,
+.cke_article .video .cke_widget_editable,
+.cke-article .video .cke_widget_editable {
+  background-color: #f7f7f7;
+  /* Add border so when caption is focused, blue border does not cause flickering. */
+  border: 1px solid #f7f7f7;
+  color: #333;
+  padding: 0.8em;
+}
+.cke_editable .cke_widget_wrapper:hover .video .cke_widget_editable,
+.cke_article .cke_widget_wrapper:hover .video .cke_widget_editable,
+.cke-article .cke_widget_wrapper:hover .video .cke_widget_editable {
+  outline: 3px solid transparent;
+}
+.cke_editable .cke_widget_wrapper .video .cke_widget_editable.cke_widget_editable_focused,
+.cke_article .cke_widget_wrapper .video .cke_widget_editable.cke_widget_editable_focused,
+.cke-article .cke_widget_wrapper .video .cke_widget_editable.cke_widget_editable_focused {
+  background-color: #fff;
+  border-color: #48a3f5;
+  outline: none;
+}
+.cke_editable .cke_widget_element.video,
+.cke_article .cke_widget_element.video,
+.cke-article .cke_widget_element.video {
+  position: relative;
+}
+.cke_editable .cke_loader,
+.cke_article .cke_loader,
+.cke-article .cke_loader {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+}
+.cke_editable .cke_loader .cke_bar,
+.cke_article .cke_loader .cke_bar,
+.cke-article .cke_loader .cke_bar {
+  height: 10px;
+  background: #6a9ed1;
+  width: 0;
+}
+.cke_editable .cke_widget_wrapper_video:not(.cke_widget_wrapper_uploading) figure video,
+.cke_article .cke_widget_wrapper_video:not(.cke_widget_wrapper_uploading) figure video,
+.cke-article .cke_widget_wrapper_video:not(.cke_widget_wrapper_uploading) figure video {
+  transition: opacity 0.3s ease-in-out;
+}
+.cke_editable .cke_widget_wrapper_video.cke_widget_wrapper_uploading figure video,
+.cke_article .cke_widget_wrapper_video.cke_widget_wrapper_uploading figure video,
+.cke-article .cke_widget_wrapper_video.cke_widget_wrapper_uploading figure video {
+  opacity: 0.75;
+}

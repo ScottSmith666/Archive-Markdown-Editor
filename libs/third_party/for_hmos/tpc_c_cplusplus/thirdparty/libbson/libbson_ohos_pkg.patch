@@ -1,0 +1,44 @@
+--- a/src/libbson/src/bson/bson-decimal128.c
++++ b/src/libbson/src/bson/bson-decimal128.c
+@@ -577,23 +577,31 @@
+
+    /* Read exponent if exists */
+    if (*str_read == 'e' || *str_read == 'E') {
+-      int nread = 0;
+-#ifdef _MSC_VER
+-#define SSCANF sscanf_s
+-#else
+-#define SSCANF sscanf
+-#endif
++      const char *exponent_start = ++str_read; /* Skip 'e' or 'E' */
++      char *endptr = NULL;
++
++      /* Use strtoll for more reliable overflow detection than sscanf.
++       * strtoll properly sets errno to ERANGE on overflow/underflow.
++       */
++      errno = 0;
+       int64_t temp_exponent = 0;
+-      int read_exponent = SSCANF (++str_read, "%" SCNd64 "%n", &temp_exponent, &nread);
+-      str_read += nread;
++      temp_exponent = strtoll (exponent_start, &endptr, 10);
+
+-      if (!read_exponent || nread == 0 || !mlib_in_range (int32_t, temp_exponent)) {
++      /* Check for conversion failures:
++       * 1. No digits converted (endptr == exponent_start)
++       * 2. Overflow/underflow (errno == ERANGE)
++       * 3. Value outside int32_t range
++       */
++      if (endptr == exponent_start || errno == ERANGE ||
++          temp_exponent < INT32_MIN || temp_exponent > INT32_MAX) {
+          BSON_DECIMAL128_SET_NAN (*dec);
+          return false;
+       }
+
++      /* Move read pointer to after the parsed exponent */
++      str_read = endptr;
++
+       exponent = (int32_t) temp_exponent;
+-#undef SSCANF
+    }
+
+    if ((len == -1 || str_read < string + len) && *str_read) {

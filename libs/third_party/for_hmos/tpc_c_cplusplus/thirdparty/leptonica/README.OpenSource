@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "leptonica",
+        "License": "leptonica-license",
+        "License File": "leptonica-license.txt",
+        "Version Number": "1.83.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/DanBloomberg/leptonica/",
+        "Description": "Leptonica is an open source library containing software that is broadly useful for image processing and image analysis applications."
+    }
+]

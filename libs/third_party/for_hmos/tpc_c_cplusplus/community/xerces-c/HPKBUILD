@@ -1,0 +1,53 @@
+# Contributor: liulihong <llh_01129@163.com>
+# Maintainer: liulihong <llh_01129@163.com>
+pkgname=xerces-c
+pkgver=v3.2.4
+pkgrel=0
+pkgdesc="Apache Xerces-C validating XML parser"
+url="https://github.com/apache/xerces-c"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0 license")
+depends=()
+makedepends=()
+
+# 原仓位置：source="https://github.com/apache/$pkgname/archive/refs/tags/$pkgver.tar.gz"，因网络原因使用镜像
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build  VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # 将安装目录加到 LD_LIBRARY_PATH 环境变量
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

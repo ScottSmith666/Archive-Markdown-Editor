@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libmspack",
+        "License": "LGPL v2.1",
+        "License File": "https://github.com/kyz/libmspack/blob/master/libmspack/COPYING.LIB",
+        "Version Number": "v1.11",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/kyz/libmspack",
+        "Description": "libmspack is a library for some loosely related Microsoft compression formats: CAB, CHM, HLP, LIT, KWAJ and SZDD."
+    }
+]

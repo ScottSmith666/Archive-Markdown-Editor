@@ -1,0 +1,638 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6907a14..63fd609 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -12,6 +12,18 @@ set(CMAKE_CXX_STANDARD 11)
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ set(CMAKE_C_STANDARD 11)
+ 
++if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
++  set(PROCESSOR_ARM64 ON)
++elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
++  set(PROCESSOR_X86_64 ON)
++elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "i386|i686")
++  set(PROCESSOR_X86 ON)
++elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "armv7|arm")
++  set(PROCESSOR_ARM32 ON)
++endif ()
++endif ()
++
+ auto_source_group("." "auto-source-group" "\\.(cc|cpp|c|h)$")
+ 
+ # --- options
+@@ -250,6 +262,10 @@ get_target_property(logging.SOURCE_FILE_LIST logging SOURCES)
+ # add osbase library
+ add_subdirectory(external/osbase)
+ 
++if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++add_compile_options(-fstack-protector-strong)
++endif()
++
+ # ---
+ 
+ if (Plugin.SymbolResolver)
+diff --git a/cmake/build_environment_check.cmake b/cmake/build_environment_check.cmake
+index 790309b..6c5d574 100644
+--- a/cmake/build_environment_check.cmake
++++ b/cmake/build_environment_check.cmake
+@@ -61,6 +61,8 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "^Windows")
+   set(SYSTEM.Windows 1)
+ elseif(CMAKE_SYSTEM_NAME MATCHES "^Linux")
+   set(SYSTEM.Linux 1)
++elseif(CMAKE_SYSTEM_NAME MATCHES "^OHOS")
++  set(SYSTEM.Linux 1)
+ elseif(CMAKE_SYSTEM_NAME MATCHES "^iOS")
+   set(SYSTEM.iOS 1)
+   set(SYSTEM.Darwin 1)
+diff --git a/cmake/compiler_and_linker.cmake b/cmake/compiler_and_linker.cmake
+index dd60f3e..32f9a41 100644
+--- a/cmake/compiler_and_linker.cmake
++++ b/cmake/compiler_and_linker.cmake
+@@ -8,7 +8,11 @@ if (NOT DOBBY_DEBUG)
+   set(linker_flags "${linker_flags} -Wl,-x -Wl,-S")
+ endif ()
+ 
+-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions -fno-stack-protector")
++if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions -fno-stack-protector -fblocks")
++else ()
++  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions -fno-stack-protector")
++endif ()
+ 
+ if (SYSTEM.Darwin)
+   # set(compiler_flags "${compiler_flags} -nostdinc++")
+@@ -22,13 +26,25 @@ elseif (SYSTEM.Linux)
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+   if (COMPILER.Clang)
+     if (PROCESSOR.ARM)
+-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=armv7-unknown-linux-gnueabihf")
++      if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=arm-linux-ohos")
++      else ()
++        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=armv7-unknown-linux-gnueabihf")
++      endif ()
+     elseif (PROCESSOR.ARM64)
+-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=aarch64-unknown-linux-gnu")
++      if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=aarch64-linux-ohos -O3")
++        else ()
++        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=aarch64-unknown-linux-gnu")
++      endif ()
+     elseif (PROCESSOR.X86)
+       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=i686-unknown-linux-gnu")
+     elseif (PROCESSOR.X86_64)
+-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=x86_64-unknown-linux-gnu")
++      if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=x86_64-linux-ohos -O2")
++      else ()
++        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=x86_64-unknown-linux-gnu")
++      endif ()
+     endif ()
+   endif ()
+ elseif (SYSTEM.Windows)
+diff --git a/external/logging/logging/logging.h b/external/logging/logging/logging.h
+index 54da382..043b950 100644
+--- a/external/logging/logging/logging.h
++++ b/external/logging/logging/logging.h
+@@ -137,9 +137,15 @@ public:
+ };
+ 
+ inline static Logger gLogger;
++#if defined(__OHOS__)
++inline Logger *Logger::Shared() {
++  return &gLogger;
++}
++#else
+ Logger *Logger::Shared() {
+   return &gLogger;
+ }
++#endif
+ 
+ #endif
+ 
+diff --git a/source/Backend/UserMode/ExecMemory/code-patch-tool-posix.cc b/source/Backend/UserMode/ExecMemory/code-patch-tool-posix.cc
+index bfe7361..a974b77 100644
+--- a/source/Backend/UserMode/ExecMemory/code-patch-tool-posix.cc
++++ b/source/Backend/UserMode/ExecMemory/code-patch-tool-posix.cc
+@@ -13,10 +13,19 @@ PUBLIC int DobbyCodePatch(void *address, uint8_t *buffer, uint32_t buffer_size)
+   uintptr_t patch_page = ALIGN_FLOOR(address, page_size);
+   uintptr_t patch_end_page = ALIGN_FLOOR((uintptr_t)address + buffer_size, page_size);
+ 
++#if defined(__OHOS__)
++  // change page permission as rw
++  mprotect((void *)patch_page, page_size, PROT_READ | PROT_WRITE);
++#else
+   // change page permission as rwx
+   mprotect((void *)patch_page, page_size, PROT_READ | PROT_WRITE | PROT_EXEC);
++#endif
+   if (patch_page != patch_end_page) {
++#if defined(__OHOS__)
++    mprotect((void *)patch_end_page, page_size, PROT_READ | PROT_WRITE);
++#else
+     mprotect((void *)patch_end_page, page_size, PROT_READ | PROT_WRITE | PROT_EXEC);
++#endif
+   }
+ 
+   // patch buffer
+diff --git a/source/InstructionRelocation/arm64/InstructionRelocationARM64.cc b/source/InstructionRelocation/arm64/InstructionRelocationARM64.cc
+index 899ac9e..731af25 100644
+--- a/source/InstructionRelocation/arm64/InstructionRelocationARM64.cc
++++ b/source/InstructionRelocation/arm64/InstructionRelocationARM64.cc
+@@ -1,5 +1,6 @@
+ #include "platform_detect_macro.h"
+ 
++#if defined(__arm64__) || defined(__aarch64__)
+ #if defined(TARGET_ARCH_ARM64)
+ 
+ #include "InstructionRelocation/arm64/InstructionRelocationARM64.h"
+@@ -364,3 +365,4 @@ void GenRelocateCodeAndBranch(void *buffer, CodeMemBlock *origin, CodeMemBlock *
+ }
+ 
+ #endif
++#endif
+diff --git a/source/InterceptRouting/RoutingPlugin/NearBranchTrampoline/near_trampoline_arm64.cc b/source/InterceptRouting/RoutingPlugin/NearBranchTrampoline/near_trampoline_arm64.cc
+index 4b16c92..a4934c8 100644
+--- a/source/InterceptRouting/RoutingPlugin/NearBranchTrampoline/near_trampoline_arm64.cc
++++ b/source/InterceptRouting/RoutingPlugin/NearBranchTrampoline/near_trampoline_arm64.cc
+@@ -1,6 +1,7 @@
+ #include "platform_detect_macro.h"
+ #if defined(TARGET_ARCH_ARM64)
+ 
++#if defined(__arm64__) || defined(__aarch64__)
+ #include "dobby/dobby_internal.h"
+ 
+ #include "core/assembler/assembler-arm64.h"
+@@ -79,3 +80,4 @@ CodeBufferBase *GenerateNearTrampolineBuffer(InterceptRouting *routing, addr_t s
+ }
+ 
+ #endif
++#endif
+diff --git a/source/TrampolineBridge/ClosureTrampolineBridge/arm64/ClosureTrampolineARM64.cc b/source/TrampolineBridge/ClosureTrampolineBridge/arm64/ClosureTrampolineARM64.cc
+index 9dfc44c..5c39055 100644
+--- a/source/TrampolineBridge/ClosureTrampolineBridge/arm64/ClosureTrampolineARM64.cc
++++ b/source/TrampolineBridge/ClosureTrampolineBridge/arm64/ClosureTrampolineARM64.cc
+@@ -1,6 +1,7 @@
+ #include "platform_detect_macro.h"
+ #if defined(TARGET_ARCH_ARM64)
+ 
++#if defined(__arm64__) || defined(__aarch64__)
+ #include "dobby/dobby_internal.h"
+ 
+ #include "core/assembler/assembler-arm64.h"
+@@ -61,3 +62,4 @@ ClosureTrampolineEntry *ClosureTrampoline::CreateClosureTrampoline(void *carry_d
+ }
+ 
+ #endif
++#endif
+diff --git a/source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_bridge_arm64.cc b/source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_bridge_arm64.cc
+index 5e1bc0e..074326d 100644
+--- a/source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_bridge_arm64.cc
++++ b/source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_bridge_arm64.cc
+@@ -1,6 +1,7 @@
+ #include "platform_detect_macro.h"
+ #if defined(TARGET_ARCH_ARM64)
+ 
++#if defined(__arm64__) || defined(__aarch64__)
+ #include "dobby/dobby_internal.h"
+ 
+ #include "core/assembler/assembler.h"
+@@ -79,7 +80,7 @@ asm_func_t get_closure_bridge() {
+   _ add(TMP_REG_0, SP, 2 * 8);                          // closure trampoline reserved
+   _ add(TMP_REG_0, TMP_REG_0, 2 * 8 + 30 * 8 + 8 * 16); // x0, x1-x30, q0-q7 reserved
+ #if defined(FULL_FLOATING_POINT_REGISTER_PACK)
+-  _ add(TMP_REG_0, TMP_REG_0, 24 * 16);                 // q8-q31 reserved
++  _ add(TMP_REG_0, TMP_REG_0, 24 * 16); // q8-q31 reserved
+ #endif
+ 
+   // alloc stack, store original sp
+@@ -157,3 +158,4 @@ asm_func_t get_closure_bridge() {
+ }
+ 
+ #endif
++#endif
+diff --git a/source/TrampolineBridge/ClosureTrampolineBridge/arm64/helper_arm64.cc b/source/TrampolineBridge/ClosureTrampolineBridge/arm64/helper_arm64.cc
+index c0046d4..fece00d 100644
+--- a/source/TrampolineBridge/ClosureTrampolineBridge/arm64/helper_arm64.cc
++++ b/source/TrampolineBridge/ClosureTrampolineBridge/arm64/helper_arm64.cc
+@@ -1,6 +1,7 @@
+ #include "platform_detect_macro.h"
+ #if defined(TARGET_ARCH_ARM64)
+ 
++#if defined(__arm64__) || defined(__aarch64__)
+ #include "core/assembler/assembler-arm64.h"
+ 
+ #include "dobby/dobby_internal.h"
+@@ -15,3 +16,4 @@ void get_routing_bridge_next_hop(DobbyRegisterContext *ctx, void *address) {
+ }
+ 
+ #endif
++#endif
+diff --git a/source/TrampolineBridge/ClosureTrampolineBridge/x64/helper_x64.cc b/source/TrampolineBridge/ClosureTrampolineBridge/x64/helper_x64.cc
+index 1f59357..5efa9cc 100644
+--- a/source/TrampolineBridge/ClosureTrampolineBridge/x64/helper_x64.cc
++++ b/source/TrampolineBridge/ClosureTrampolineBridge/x64/helper_x64.cc
+@@ -1,6 +1,7 @@
+ #include "platform_detect_macro.h"
+ #if defined(TARGET_ARCH_X64)
+ 
++#if defined(_M_X64) || defined(__x86_64__)
+ #include "dobby/dobby_internal.h"
+ 
+ void set_routing_bridge_next_hop(DobbyRegisterContext *ctx, void *address) {
+@@ -14,4 +15,5 @@ void set_routing_bridge_next_hop(DobbyRegisterContext *ctx, void *address) {
+ void get_routing_bridge_next_hop(DobbyRegisterContext *ctx, void *address) {
+ }
+ 
++#endif
+ #endif
+\ No newline at end of file
+diff --git a/source/TrampolineBridge/Trampoline/arm64/trampoline_arm64.cc b/source/TrampolineBridge/Trampoline/arm64/trampoline_arm64.cc
+index 66eb63c..a181af9 100644
+--- a/source/TrampolineBridge/Trampoline/arm64/trampoline_arm64.cc
++++ b/source/TrampolineBridge/Trampoline/arm64/trampoline_arm64.cc
+@@ -1,6 +1,7 @@
+ #include "platform_detect_macro.h"
+ #if defined(TARGET_ARCH_ARM64)
+ 
++#if defined(__arm64__) || defined(__aarch64__)
+ #include "dobby/dobby_internal.h"
+ 
+ #include "core/assembler/assembler-arm64.h"
+@@ -39,3 +40,4 @@ CodeBufferBase *GenerateNormalTrampolineBuffer(addr_t from, addr_t to) {
+ }
+ 
+ #endif
++#endif
+diff --git a/source/core/assembler/assembler-arm64.h b/source/core/assembler/assembler-arm64.h
+index 70c5309..5d34e3e 100644
+--- a/source/core/assembler/assembler-arm64.h
++++ b/source/core/assembler/assembler-arm64.h
+@@ -29,6 +29,7 @@ static inline uint32_t High32Bits(uint64_t value) {
+ enum ref_label_type_t { kLabelImm19 };
+ 
+ namespace zz {
++#if defined(__arm64__) || defined(__aarch64__)
+ namespace arm64 {
+ 
+ constexpr Register TMP_REG_0 = X(ARM64_TMP_REG_NDX_0);
+@@ -557,4 +558,5 @@ public:
+ };
+ 
+ } // namespace arm64
++#endif
+ } // namespace zz
+\ No newline at end of file
+diff --git a/source/core/codegen/codegen-arm64.cc b/source/core/codegen/codegen-arm64.cc
+index 8e82718..8c1d140 100644
+--- a/source/core/codegen/codegen-arm64.cc
++++ b/source/core/codegen/codegen-arm64.cc
+@@ -5,6 +5,7 @@
+ #include "core/codegen/codegen-arm64.h"
+ 
+ namespace zz {
++#if defined(__arm64__) || defined(__aarch64__)
+ namespace arm64 {
+ 
+ void CodeGen::LiteralLdrBranch(uint64_t address) {
+@@ -21,6 +22,7 @@ void CodeGen::LiteralLdrBranch(uint64_t address) {
+ }
+ 
+ } // namespace arm64
++#endif
+ } // namespace zz
+ 
+ #endif
+diff --git a/source/core/codegen/codegen-arm64.h b/source/core/codegen/codegen-arm64.h
+index 99dafb3..e68d686 100644
+--- a/source/core/codegen/codegen-arm64.h
++++ b/source/core/codegen/codegen-arm64.h
+@@ -6,6 +6,7 @@
+ #include "core/assembler/assembler-arm64.h"
+ 
+ namespace zz {
++#if defined(__arm64__) || defined(__aarch64__)
+ namespace arm64 {
+ 
+ class CodeGen : public CodeGenBase {
+@@ -16,6 +17,7 @@ public:
+ };
+ 
+ } // namespace arm64
++#endif
+ } // namespace zz
+ 
+ #endif
+\ No newline at end of file
+diff --git a/source/dobby/pac_kit.h b/source/dobby/pac_kit.h
+index 12bf097..315ebdb 100644
+--- a/source/dobby/pac_kit.h
++++ b/source/dobby/pac_kit.h
+@@ -4,16 +4,20 @@
+ 
+ #ifndef PAC_KIT
+ #define PAC_KIT
++#if !defined(__OHOS__)
+ #if defined(__arm64e__) && __has_feature(ptrauth_calls)
+ #include <ptrauth.h>
+ #endif
++#endif
+ 
+ static inline void *pac_strip(void *addr) {
+   if (addr == NULL) {
+     return NULL;
+   }
++#if !defined(__OHOS__)
+ #if __has_feature(ptrauth_calls)
+   addr = ptrauth_strip(addr, ptrauth_key_asia);
++#endif
+ #endif
+   return addr;
+ }
+@@ -22,8 +26,10 @@ static inline void *pac_sign(void *addr) {
+   if (addr == NULL) {
+     return NULL;
+   }
++#if !defined(__OHOS__)
+ #if __has_feature(ptrauth_calls)
+   addr = ptrauth_sign_unauthenticated((void *)addr, ptrauth_key_asia, 0);
++#endif
+ #endif
+   return addr;
+ }
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 8cb2454..9cc5cb5 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -22,6 +22,7 @@ foreach (path ${DOBBY_SOURCE_FILE_LIST})
+ endforeach ()
+ 
+ 
++if (PROCESSOR_ARM64)
+ add_executable(test_insn_relo_arm64
+   test_insn_relo_arm64.cpp
+   UniconEmulator.cpp
+@@ -33,6 +34,7 @@ target_compile_definitions(test_insn_relo_arm64 PUBLIC
+   DISABLE_ARCH_DETECT=1
+   TARGET_ARCH_ARM64=1
+   TEST_WITH_UNICORN=1
++  CAPSTONE_AARCH64_COMPAT_HEADER=1
+   )
+ 
+ target_include_directories(test_insn_relo_arm64 PUBLIC
+@@ -52,6 +54,7 @@ target_link_libraries(test_insn_relo_arm64 PUBLIC
+ 
+ # ---
+ 
++elseif (PROCESSOR_ARM32)
+ add_executable(test_insn_relo_arm
+   test_insn_relo_arm.cpp
+   UniconEmulator.cpp
+@@ -82,6 +85,7 @@ target_link_libraries(test_insn_relo_arm PUBLIC
+ 
+ # ---
+ 
++elseif (PROCESSOR_X86_64)
+ add_executable(test_insn_relo_x64
+   test_insn_relo_x64.cpp
+   UniconEmulator.cpp
+@@ -111,6 +115,7 @@ target_link_libraries(test_insn_relo_x64 PUBLIC
+   ${UNICORN_LIBRARIES}
+   )
+ 
++endif ()
+ # ---
+ 
+ add_executable(test_native
+diff --git a/tests/UniconEmulator.cpp b/tests/UniconEmulator.cpp
+index a0848ca..75fc99d 100644
+--- a/tests/UniconEmulator.cpp
++++ b/tests/UniconEmulator.cpp
+@@ -166,7 +166,11 @@ void UniconEmulator::emulate(uintptr_t addr, uintptr_t end, char *buffer, size_t
+ }
+ 
+ void check_insn_relo(char *buffer, size_t buffer_size, bool check_fault_addr, int check_reg_id,
++#if defined(__OHOS__)
++                     EmulatorCallback callback, uintptr_t relo_stop_size) {
++#else
+                      void (^callback)(UniconEmulator *orig, UniconEmulator *relo), uintptr_t relo_stop_size) {
++#endif
+   auto *orig_ue = new UniconEmulator(g_arch);
+   auto *relo_ue = new UniconEmulator(g_arch);
+ 
+diff --git a/tests/UniconEmulator.h b/tests/UniconEmulator.h
+index 414618b..3c3dac6 100644
+--- a/tests/UniconEmulator.h
++++ b/tests/UniconEmulator.h
+@@ -3,6 +3,9 @@
+ #include <capstone.h>
+ #include <unicorn/unicorn.h>
+ 
++#if defined(__OHOS__)
++#include <functional>
++#endif
+ #include <iostream>
+ #include <unordered_map>
+ 
+@@ -66,8 +69,14 @@ private:
+   uc_engine *uc_;
+   uintptr_t unmapped_addr_;
+ };
+-
++#if defined(__OHOS__)
++using EmulatorCallback = std::function<void(UniconEmulator *, UniconEmulator *)>;
++#endif
+ void set_global_arch(std::string arch);
+ 
+ void check_insn_relo(char *buffer, size_t buffer_size, bool check_fault_addr, int check_reg_id,
+-                     void (^callback)(UniconEmulator *orig, UniconEmulator *relo), uintptr_t relo_stop_size = 0);
+\ No newline at end of file
++#if defined(__OHOS__)
++                     EmulatorCallback callback, uintptr_t relo_stop_size = 0);
++#else
++                     void (^callback)(UniconEmulator *orig, UniconEmulator *relo), uintptr_t relo_stop_size = 0);
++#endif
+\ No newline at end of file
+diff --git a/tests/test_insn_relo_arm.cpp b/tests/test_insn_relo_arm.cpp
+index 43dd16c..d1eaadf 100644
+--- a/tests/test_insn_relo_arm.cpp
++++ b/tests/test_insn_relo_arm.cpp
+@@ -1,23 +1,39 @@
+ #include "InstructionRelocation/InstructionRelocation.h"
+-
++#if defined(__OHOS__)
++#include <cassert>
++#include <functional>
++#endif
+ #include "UniconEmulator.h"
+ 
++#if defined(__OHOS__)
++using EmulatorCallback = std::function<void(UniconEmulator *, UniconEmulator *)>;
++#endif
+ void check_insn_relo_arm(char *buffer, size_t buffer_size, bool check_fault_addr, int check_reg_id,
++#if defined(__OHOS__)
++                         EmulatorCallback callback) {
++#else
+                          void (^callback)(UniconEmulator *orig, UniconEmulator *relo)) {
++#endif
+   __attribute__((aligned(4))) char code[64] = {0};
+   memcpy(code, buffer, buffer_size);
+   check_insn_relo(code, buffer_size, check_fault_addr, check_reg_id, callback);
+ }
+ 
+ void check_insn_relo_thumb(char *buffer, size_t buffer_size, bool check_fault_addr, int check_reg_id,
++#if defined(__OHOS__)
++                           EmulatorCallback callback, uintptr_t relo_stop_size = 0) {
++#else
+                            void (^callback)(UniconEmulator *orig, UniconEmulator *relo), uintptr_t relo_stop_size = 0) {
++#endif
+   __attribute__((aligned(4))) char code[64] = {0};
+   memcpy(code, buffer, buffer_size);
+   check_insn_relo(code, buffer_size, check_fault_addr, check_reg_id, callback, relo_stop_size);
+ }
+ 
+ int main() {
++#if !defined(__OHOS__)
+   log_set_level(0);
++#endif
+   set_global_arch("arm");
+ 
+   // ldr r0, [pc, #-0x20]
+@@ -26,7 +42,11 @@ int main() {
+ 
+   // ldr r0, [pc, #0x20]
+   __attribute__((aligned(4))) char *code_1 = "\x20\x00\x9f\xe5";
++#if defined(__OHOS__)
++  check_insn_relo(code_1, 4, false, -1, [](UniconEmulator *orig, UniconEmulator *relo) {
++#else
+   check_insn_relo(code_1, 4, false, -1, ^(UniconEmulator *orig, UniconEmulator *relo) {
++#endif
+     assert(relo->getFaultAddr() == 0x10014028);
+   });
+ 
+@@ -47,8 +67,12 @@ int main() {
+ 
+   set_global_arch("thumb");
+ 
+-  // cmp r0, pc
++// cmp r0, pc
++#if defined(__OHOS__)
++  check_insn_relo_thumb("\x78\x45", 2, false, -1, [](UniconEmulator *orig, UniconEmulator *relo) {
++#else
+   check_insn_relo_thumb("\x78\x45", 2, false, -1, ^(UniconEmulator *orig, UniconEmulator *relo) {
++#endif
+     assert(relo->readRegister(UC_ARM_REG_R12) == (void *)0x10014004);
+   });
+ 
+@@ -60,15 +84,23 @@ int main() {
+   // blx pc
+   check_insn_relo_thumb("\xf8\x47", 2, false, UC_ARM_REG_PC, nullptr);
+ 
+-  // ldr r0, [pc, #8]
++// ldr r0, [pc, #8]
++#if defined(__OHOS__)
++  check_insn_relo_thumb("\x02\x48", 2, false, -1, [](UniconEmulator *orig, UniconEmulator *relo) {
++#else
+   check_insn_relo_thumb("\x02\x48", 2, false, -1, ^(UniconEmulator *orig, UniconEmulator *relo) {
++#endif
+     assert(relo->getFaultAddr() == 0x1001400c);
+   });
+ 
+   // b #-8
+   check_insn_relo_thumb("\xfa\xe7", 2, true, -1, nullptr);
+   // b #8
++#if defined(__OHOS__)
++  check_insn_relo_thumb("\x02\xe0", 2, false, -1, [](UniconEmulator *orig, UniconEmulator *relo) {
++#else
+   check_insn_relo_thumb("\x02\xe0", 2, false, -1, ^(UniconEmulator *orig, UniconEmulator *relo) {
++#endif
+     assert(relo->getFaultAddr() == 0x10014008);
+   });
+ 
+@@ -76,7 +108,11 @@ int main() {
+   // cbz r0, #8
+   check_insn_relo_thumb("\x4f\xf0\x00\x00"
+                         "\x10\xb1",
++#if defined(__OHOS__)
++                        6, false, -1, [](UniconEmulator *orig, UniconEmulator *relo) {
++#else
+                         6, false, -1, ^(UniconEmulator *orig, UniconEmulator *relo) {
++#endif
+                           assert(relo->getFaultAddr() == 0x1001400c);
+                         });
+ 
+@@ -108,7 +144,11 @@ int main() {
+   // ldr r0, [pc, #0x512]
+   check_insn_relo_thumb(
+       "\xdf\xf8\x12\x05", 4, false, -1,
++#if defined(__OHOS__)
++      [](UniconEmulator *orig, UniconEmulator *relo) {
++#else
+       ^(UniconEmulator *orig, UniconEmulator *relo) {
++#endif
+         assert(relo->getFaultAddr() == 0x10014000 + 0x512 + 4);
+       },
+       0xc);
+diff --git a/tests/test_insn_relo_x64.cpp b/tests/test_insn_relo_x64.cpp
+index f9db59d..576471d 100644
+--- a/tests/test_insn_relo_x64.cpp
++++ b/tests/test_insn_relo_x64.cpp
+@@ -3,10 +3,11 @@
+ #include "UniconEmulator.h"
+ 
+ int main() {
++#if !defined(__OHOS__)
+   log_set_level(0);
++#endif
+   set_global_arch("x86_64");
+ 
+-
+   // cmp eax, eax
+   // jz -0x20
+   check_insn_relo("\x39\xc0\x74\xdc", 4, false, UC_X86_REG_IP, nullptr);
+@@ -19,7 +20,6 @@ int main() {
+   // jmp 0x20
+   check_insn_relo("\xeb\x1e", 2, false, UC_X86_REG_IP, nullptr);
+ 
+-
+   // jmp -0x4000
+   check_insn_relo("\xe9\xfb\xbf\xff\xff", 4, false, UC_X86_REG_IP, nullptr);
+   // jmp 0x4000
+diff --git a/tests/test_native.cpp b/tests/test_native.cpp
+index 21f84a9..a4258b0 100644
+--- a/tests/test_native.cpp
++++ b/tests/test_native.cpp
+@@ -8,11 +8,17 @@
+ void test_execve() {
+   char *argv[] = {NULL};
+   char *envp[] = {NULL};
+-  
++
+   LOG("test execve");
+-  
++#if defined(__OHOS__)
++  DobbyInstrument(DobbySymbolResolver(0, "execve"), [](void *, DobbyRegisterContext *ctx) {
++#if defined(_M_X64) || defined(__x86_64__)
++    LOG("execve: %s", (char *)ctx->general.regs.rdi);
++#endif
++#else
+   DobbyInstrument(DobbySymbolResolver(0, "_execve"), [](void *, DobbyRegisterContext *ctx) {
+     LOG("execve: %s", (char *)ctx->general.regs.rdi);
++#endif
+     return;
+   });
+ 
+@@ -22,9 +28,10 @@ void test_execve() {
+ }
+ 
+ int main(int argc, char *argv[]) {
+-    log_set_level(0);
+-    
++#if !defined(__OHOS__)
++  log_set_level(0);
++#endif
+   test_execve();
+-    
++
+   return 0;
+ }

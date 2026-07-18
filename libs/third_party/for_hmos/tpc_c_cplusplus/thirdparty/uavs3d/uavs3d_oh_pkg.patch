@@ -1,0 +1,24 @@
+--- uavs3d-master-old/source/CMakeLists.txt	2023-02-23 10:34:14.000000000 +0800
++++ uavs3d-master/source/CMakeLists.txt	2023-07-12 11:05:11.748347339 +0800
+@@ -45,21 +45,7 @@
+ 
+   list(APPEND UAVS3D_ASM_FILES ${DIR_X86_SRC})
+   list(APPEND UAVS3D_ASM_FILES ${DIR_X86_256_SRC})
+-elseif("${UAVS3D_TARGET_CPU}" MATCHES "armv7")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/armv7.c")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/alf_armv7.S")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/deblock_armv7.S")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/def_armv7.S")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/inter_pred_armv7.S")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/intra_pred_armv7.S")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/dct2_armv7.S")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/itrans_dct8_dst7_armv7.S")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/pixel_armv7.S")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/sao_armv7.c")
+-  list(APPEND UAVS3D_ASM_FILES "./decore/arm64/sao_kernel_armv7.S")
+ 
+-  add_definitions(-D _armv7a)
+-  enable_language(ASM)
+ elseif("${UAVS3D_TARGET_CPU}" MATCHES "arm64")
+   list(APPEND UAVS3D_ASM_FILES "./decore/arm64/arm64.c")
+   list(APPEND UAVS3D_ASM_FILES "./decore/arm64/alf_arm64.S")

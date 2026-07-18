@@ -1,0 +1,9 @@
+# SQLiteCpp-3.2.1三方库说明
+## 功能简介
+SQLiteCpp是一个简洁易用的c++ SQLite3包装器。
+## 三方库版本：
+- 3.2.1
+## 使用约束：
+- [IDE和SDK版本](../../docs/constraint.md)
+## 集成方式
++ [应用hap包集成](docs/hap_integrate.md)

@@ -1,0 +1,118 @@
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+openharmonycheck() {
+    res=1
+    cd ${builddir}/${ARCH}-build
+
+    #由于ctest测试使用到了python无法在开发板中正常测试，因此使用sample测试
+    echo " 读取iptc"  > $logfile 2>&1
+    ./bin/exiv2 -pi ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "添加iptc"  >> $logfile 2>&1
+    ./bin/exiv2 -M "add Iptc.Application2.Credit String mee too!" ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "修改iptc" >> $logfile 2>&1
+    ./bin/exiv2 -M "set Iptc.Application2.Credit String mee test!" ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "删除iptc" >> $logfile 2>&1
+    ./bin/exiv2 -M "del Iptc.Application2.Credit" ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "读取xmp" >> $logfile 2>&1
+    ./bin/exiv2 -px ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "添加xmp" >> $logfile 2>&1
+    ./bin/exiv2 -M "add Xmp.dc.format XmpText image/jpeg" ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "修改xmp" >> $logfile 2>&1
+    ./bin/exiv2 -M "set Xmp.dc.format XmpText image/png" ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "删除xmp" >> $logfile 2>&1
+    ./bin/exiv2 -M "del Xmp.dc.format" ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "读取exif" >> $logfile 2>&1
+    ./bin/exiv2 -pe ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "添加exif" >> $logfile 2>&1
+    ./bin/exiv2 -M "add Exif.Image.WhitePoint Short 32 12 4 5 6" ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "修改exif" >> $logfile 2>&1
+    ./bin/exiv2 -M "set Exif.Image.WhitePoint Short 10" ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "删除exif" >> $logfile 2>&1
+    ./bin/exiv2 -M "del Exif.Image.WhitePoint" ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "读取icc" >> $logfile 2>&1
+    ./bin/exiv2 -b -pC ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "添加或修改icc(添加或修改icc文件时，注意icc文件名要和当前的图片的名字保持一致,.icc文件放在和图片文件同目录下)" >> $logfile 2>&1
+    ./bin/exiv2 -iC ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+
+    echo "删除icc" >> $logfile 2>&1
+    ./bin/exiv2 -dC ../../exiv2.jpg >> $logfile 2>&1
+    if [ $? -ne 0 ]
+    then
+        return $res
+    fi
+    res=0
+    cd $OLDPWD
+    return $res
+}

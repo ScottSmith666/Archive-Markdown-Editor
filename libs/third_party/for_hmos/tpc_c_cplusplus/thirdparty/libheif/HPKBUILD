@@ -1,0 +1,95 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>,pappy-day <1833680962@qq.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=libheif
+pkgver=v1.15.2
+pkgrel=0
+pkgdesc="libheif is an HEIF and AVIF file format decoder and encoder."
+url="https://github.com/strukturag/libheif"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL-3.0-only and MIT")
+depends=("jpeg" "libpng" "libde265")
+makedepends=()
+
+#网络原因更换成gitee下载源
+#source="https://github.com/strukturag/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+source=https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+source envset.sh
+host=
+
+autogenflag=true
+
+prepare() {
+    if $autogenflag
+    then
+        cd $builddir
+        ./autogen.sh > $buildlog 2>&1
+        autogenflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+        export LDFLAGS="${OHOS_SDK}/native/llvm/lib/clang/$CLANG_VERSION/lib/arm-linux-ohos/a7_hard_neon-vfpv4/libclang_rt.builtins.a ${LDFLAGS}"
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+        export LDFLAGS="${OHOS_SDK}/native/llvm/lib/clang/$CLANG_VERSION/lib/aarch64-linux-ohos/libclang_rt.builtins.a ${LDFLAGS}"
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    # 不强依赖jpeg和libpng, 下方的写法能找到libpng但是找不到jpeg. 显示开启测试
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" libpng_CFLAGS="-I$LYCIUM_ROOT/usr/libpng/$ARCH/include" \
+	libpng_LIBS="-L$LYCIUM_ROOT/usr/libpng/$ARCH/lib -lpng" \
+	../configure "$@" --host=$host --enable-tests --disable-go --disable-gdk-pixbuf --disable-aom \
+	--enable-libde265 --disable-x265 --disable-rav1e --disable-dav1d --enable-svt > $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+}
+
+check() {
+    cd $builddir/$ARCH-build/tests
+    sed -i.bak 's|test-local: heif-unit-tests|test-local: #heif-unit-tests|g' Makefile
+    # 针对测试失败修改工具路径
+    sed -i "s#/bin/bash#/data/CIusr/bin/bash#g" `grep -rn '/bin/bash' | awk -F ':' '{print $1}' | sort -u`
+    sed -i "s#/usr/bin/sed#sed#g" `grep -rn '/usr/bin/sed' | awk -F ':' '{print $1}' | sort -u` 
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # make -C tests test-local
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

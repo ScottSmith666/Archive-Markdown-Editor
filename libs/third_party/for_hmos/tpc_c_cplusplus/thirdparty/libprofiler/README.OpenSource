@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libprofiler",
+        "License": "GPL-2.0 license",
+        "License File": "https://github.com/bouviervj/libprofiler/blob/master/LICENSE.txt",
+        "Version Number": "master",
+        "Owner": "xiefeng@huawei.com",
+        "Upstream URL": "https://github.com/bouviervj/libprofiler",
+        "Description": "This project aims at dynamically profile Linux applications."
+    }
+]

@@ -1,0 +1,51 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=uchardet
+pkgver=v0.0.8
+pkgrel=0
+pkgdesc="uchardet is an encoding detector library, which takes a sequence of bytes in an unknown character encoding without any additional information, and attempts to determine the encoding of the text. Returned encoding names are iconv-compatible."
+url="https://www.freedesktop.org/wiki/Software/uchardet/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MOZILLA PUBLIC LICENSE" "GPLV2" "LGPLV2")
+depends=()
+makedepends=()
+
+source="https://gitlab.freedesktop.org/$pkgname/$pkgname/-/archive/$pkgver/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

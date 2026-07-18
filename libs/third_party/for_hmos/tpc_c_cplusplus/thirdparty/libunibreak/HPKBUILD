@@ -1,0 +1,116 @@
+#Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: lyc <614222069@qq.com>
+# Maintainer: lyc <614222069@qq.com>
+
+pkgname=libunibreak
+pkgver=libunibreak_5_1
+pkgrel=0
+pkgdesc="libunibreak(formerly liblinebreak) to break the lines of input text."
+url="https://github.com/adah1972/$pkgname/tree/$pkgver"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("zlib License")
+depends=()
+makedepends=()
+# 原仓地址：source="https://github.com/adah1972/$pkgname/archive/refs/tags/$pkgver.tar.gz"，由于网络原因使用镜像
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver 
+packagename=$builddir.tar.gz
+patchflag=true
+commitid=d17601ab2f00d179eb3fbe05ade4bfe5dfe2f10e
+
+source envset.sh
+autogenflag=true
+host=
+prepare() {
+    if $patchflag
+    then
+        git clone https://github.com/adah1972/breaktext.git
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd breaktext
+        git reset --hard $commitid
+        if [ $? != 0 ]
+        then
+            return -2
+        fi
+        patch -p1 < $PKGBUILD_ROOT/libunibreak_oh_test.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p builddir-$ARCH-build && cp -r breaktext $builddir builddir-$ARCH-build
+    
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -3
+    fi
+}
+
+build() {
+    cd $PKGBUILD_ROOT/builddir-$ARCH-build/$builddir
+    ./autogen.sh  cross_compiling=yes "$@" > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $PKGBUILD_ROOT/builddir-$ARCH-build/$builddir
+    $MAKE install VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    cd $PKGBUILD_ROOT/builddir-$ARCH-build/breaktext
+    $MAKE CC=$CC CXX=$CXX CFLAGS="$CFLAGS -I$PKGBUILD_ROOT/builddir-$ARCH-build/$builddir/src -L$PKGBUILD_ROOT/builddir-$ARCH-build/$builddir/src/.libs" VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # 进入 lycium 目录下执行 ./test libunibreak
+    # 执行成功会在 check_result/manual_confirm/ 目录下返回两个文件 input.txt output.txt 
+    # 需要手动对比一下这两个文件的差异
+    return $ret
+}
+
+cleanbuild(){
+    rm -rf $builddir $builddir-armeabi-v7a-build $builddir-arm64-v8a-build breaktext
+}

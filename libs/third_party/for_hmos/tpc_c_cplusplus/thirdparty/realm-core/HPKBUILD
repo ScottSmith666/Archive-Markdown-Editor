@@ -1,0 +1,102 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+pkgname=realm-core
+pkgver=v14.12.0
+pkgrel=0
+pkgdesc="Core database component for the Realm Mobile Database SDKs."
+url="https://github.com/realm/realm-core"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0 license")
+depends=("zlib" "openssl_1_1_1w" "libuv")
+makedepends=()
+source="https://github.com/realm/$pkgname.git"
+
+autounpack=false
+downloadpackage=false
+buildtools="cmake"
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+cloneFlag=true
+patchflag=true
+
+prepare() {
+    if $cloneFlag
+    then
+        git clone -b $pkgver $source $builddir > $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            echo "$pkgname git clone $source error."
+            return -1
+        fi
+        cd $builddir
+        git checkout $pkgver
+        if [ $? -ne 0 ]
+        then
+            echo "$pkgname git checkout $pkgver error."
+            return -2
+        fi
+        git submodule update --init --recursive >> $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            echo "$pkgname git submodule update error."
+            return -3
+        fi
+        cloneFlag=false
+        cd $OLDPWD
+    fi
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../realm-core_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # cmake 要求3.22.1以上版本，所以需要使用系统的cmake
+    cmake "$@" -DZLIB_ROOT=$LYCIUM_ROOT/usr/zlib/$ARCH/ \
+        -DOPENSSL_ROOT_DIR=$LYCIUM_ROOT/usr/openssl_1_1_1w/$ARCH \
+        -DLibUV_INCLUDE_DIR=$LYCIUM_ROOT/usr/libuv/$ARCH/include \
+        -DOPENSSL_INCLUDE_DIR=$LYCIUM_ROOT/usr/openssl_1_1_1w/$ARCH/include \
+        -DOPENSSL_LIBRARIES="$LYCIUM_ROOT/usr/openssl_1_1_1w/$ARCH/lib/libssl.so;$LYCIUM_ROOT/usr/openssl_1_1_1w/$ARCH/lib/libcrypto.so" \
+        -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test cmd
+    # ctest
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

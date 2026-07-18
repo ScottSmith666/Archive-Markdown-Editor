@@ -1,0 +1,113 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: OneJUGE <wangwenju5@h-partners.com>
+# Maintainer:  OneJUGE <wangwenju5@h-partners.com>
+
+pkgname=libiscsi
+pkgver=1.19.0
+pkgrel=0
+pkgdesc="Libiscsi is a client-side library to implement the iSCSI protocol that can be used to access the resources of an iSCSI target."
+url="https://github.com/sahlberg/libiscsi"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2 or later" "LGPL-2.1 or later")
+depends=("libtool" "CUnit")
+makedepends=()
+source="https://github.com/sahlberg/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+autogenflags=true
+patchflag=true
+
+prepare() {
+    if [ $patchflag == true ];then
+        cd $builddir
+        # 头文件声明全局变量需要extern修饰符
+        patch -p1 < $PKGBUILD_ROOT/libiscsi_oh_pkg.patch > $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    if $autogenflags
+    then
+        cd $builddir
+        ./autogen.sh >> $publicbuildlog 2>&1
+        cd ${OLDPWD}
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    # pkgconfig找不到头文件和库，使用CFLAGS方式
+    export CFLAGS="-Wno-duplicate-symbols -I${LYCIUM_ROOT}/usr/CUnit/$ARCH/include \
+        -L${LYCIUM_ROOT}/usr/CUnit/$ARCH/lib -Wno-unused-command-line-argument \
+        -Wno-strict-prototypes -Wno-sign-compare $CFLAGS"
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host --enable-tests > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # read check/README.md
+}
+
+recoverpkgbuildenv() {
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build # ${PWD}/$packagename
+}

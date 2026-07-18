@@ -1,0 +1,97 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=libgltf
+pkgver=0.1.11
+pkgrel=0
+pkgdesc="glTF 2.0 parser/loader for C++17, supports many extensions likes \`KHR_draco_mesh_compression\`, \`KHR_lights_punctual\`, \`KHR_materials_clearcoat\`, and more."
+url="https://github.com/code4game/libgltf"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=()
+makedepends=()
+
+source="https://github.com/code4game/$pkgname.git"
+
+autounpack=false
+downloadpackage=false
+
+builddir=$pkgname-${pkgver}
+packagename=
+
+cloneFlag=true
+patchflag=true
+
+prepare() {
+    if $cloneFlag
+    then
+        git config --global http.postBuffer 1048576000
+        git config --global https.postBuffer 1048576000
+        git clone -b $pkgver $source $builddir > $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            echo "$pkgname git clone $source error."
+            return -1
+        fi
+        cd $builddir
+        git submodule update --init --recursive >> $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            echo "$pkgname git submodule update error."
+            return -3
+        fi
+        cloneFlag=false
+        cd $OLDPWD
+    fi
+    if $patchflag
+    then
+        cd $builddir
+        # 新增OHOS平台标识，添加OHOS系统的编译配置分支，更新系统兼容性检查逻辑
+        patch -p1 < $PKGBUILD_ROOT/libgltf_oh_pkg.patch >> $publicbuildlog 2>&1
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DLIBGLTF_BUILD_COVERAGE=ON \
+	    -DCMAKE_C_FLAGS="-s" \
+        -DCMAKE_CXX_FLAGS="-s" \
+        -DLIBGLTF_WITH_GOOGLE_DRACO=ON -DLIBGLTF_BUILD_RUNTEST=ON -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

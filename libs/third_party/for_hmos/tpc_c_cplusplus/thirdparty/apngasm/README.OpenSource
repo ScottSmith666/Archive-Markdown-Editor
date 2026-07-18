@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "apngasm",
+        "License": "zlib license",
+        "License File": "LICENSE.txt",
+        "Version Number": "3.1.10",
+        "Owner": "haoluocr@isoftstone.com",
+        "Upstream URL": "https://codeload.github.com/apngasm/apngasm/zip/refs/tags/3.1.10",
+        "Description": "The next generation of apngasm, the APNG Assembler"
+    }
+]

@@ -1,0 +1,13 @@
+diff --git a/cmake/CMakePlatforms.cmake b/cmake/CMakePlatforms.cmake
+index a2b440db..d8c7995d 100644
+--- a/cmake/CMakePlatforms.cmake
++++ b/cmake/CMakePlatforms.cmake
+@@ -24,7 +24,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+ 	string(REGEX MATCH "Xcode [0-9\\.]+" PLATFORM_XCODE_VERSION "${PLATFORM_XCODE_VERSION}")
+ 	string(REGEX REPLACE "Xcode ([0-9\\.]+)" "\\1" PLATFORM_XCODE_VERSION "${PLATFORM_XCODE_VERSION}")
+ 	message(STATUS "Building with Xcode version: ${PLATFORM_XCODE_VERSION}")
+-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
++elseif((${CMAKE_SYSTEM_NAME} STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME STREQUAL "OHOS"))
+ 	set(PLATFORM_LINUX 1)
+ 	set(PLATFORM_NAME "Linux")
+ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Android")

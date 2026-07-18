@@ -1,0 +1,77 @@
+diff --git a/app/Makefile b/app/Makefile
+index 9d16c0fa..e2f581ff 100644
+--- a/app/Makefile
++++ b/app/Makefile
+@@ -1,4 +1,4 @@
+-C++ = g++
++C++ = $(CXX)
+ 
+ ifndef os
+    os = LINUX
+@@ -38,6 +38,8 @@ endif
+ 
+ DIR = $(shell pwd)
+ 
++PREFIX ?= /usr/local
++
+ APP = appserver appclient sendfile recvfile test
+ 
+ all: $(APP)
+@@ -60,4 +62,6 @@ clean:
+ 	rm -f *.o $(APP)
+ 
+ install:
++	install -d $(PREFIX)/bin
++	install -m 755 $(APP) $(PREFIX)/bin/
+ 	export PATH=$(DIR):$$PATH
+diff --git a/app/test.cpp b/app/test.cpp
+index f17f8ca6..d1dac8b8 100644
+--- a/app/test.cpp
++++ b/app/test.cpp
+@@ -87,7 +87,7 @@ int createTCPSocket(SYSSOCKET& ssock, int port = 0, bool rendezvous = false)
+    }
+ 
+    ssock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+-   if (bind(ssock, res->ai_addr, res->ai_addrlen) != 0)
++   if (::bind(ssock, res->ai_addr, res->ai_addrlen) != 0)
+    {
+       return -1;
+    }
+diff --git a/src/Makefile b/src/Makefile
+index bc1e049b..e29cb408 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -1,4 +1,4 @@
+-C++ = g++
++C++ = $(CXX)
+ 
+ ifndef os
+    os = LINUX
+@@ -33,6 +33,8 @@ endif
+ OBJS = api.o buffer.o cache.o ccc.o channel.o common.o core.o epoll.o list.o md5.o packet.o queue.o window.o
+ DIR = $(shell pwd)
+ 
++PREFIX ?= /usr/local
++
+ all: libudt.so libudt.a udt
+ 
+ %.o: %.cpp %.h udt.h
+@@ -46,7 +48,7 @@ else
+ endif
+ 
+ libudt.a: $(OBJS)
+-	ar -rcs $@ $^
++	$(AR) -rcs $@ $^
+ 
+ udt:
+ 	cp udt.h udt
+@@ -55,4 +57,9 @@ clean:
+ 	rm -f *.o *.so *.dylib *.a udt
+ 
+ install:
++	install -d $(PREFIX)/include
++	install -d $(PREFIX)/lib
++	install -m 644 udt.h $(PREFIX)/include/
++	install -m 755 libudt.so $(PREFIX)/lib/
++	install -m 644 libudt.a $(PREFIX)/lib/
+ 	export LD_LIBRARY_PATH=$(DIR):$$LD_LIBRARY_PATH

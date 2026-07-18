@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "libavc",
+        "License": "Apache License Version 2.0",
+        "License File": "LICENSE",
+        "Version Number": "v1.4.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://android.googlesource.com/platform/external/libavc",
+        "Description": "a H.264 software decoder under apache v2.0 license."
+    },
+    {
+        "Name": "googletest",
+        "License": "BSD-3-Clause license",
+        "License File": "LICENSES",
+        "Version Number": "v1.13.0",
+        "Owner": "chenbaodi@huawei.com",
+        "Upstream URL": "https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz",
+        "Description": "Google Testing and Mocking Framework"
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libaim",
+        "License": "LGPLv2",
+        "License File": "LICENSE",
+        "Version Number": "master",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://libaim.sourceforge.net/",
+        "Description": "libaim is a library for C++ used to communicate with AOL's instant messaging service using the OSCAR protocol."
+    }
+]

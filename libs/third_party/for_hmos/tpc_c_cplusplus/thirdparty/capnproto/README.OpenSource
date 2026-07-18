@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "capnproto",
+        "License": "MIT License",
+        "License File": "https://github.com/capnproto/capnproto/blob/v2/LICENSE",
+        "Version Number": "v1.0.2",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/capnproto/capnproto",
+        "Description": "Cap'n Proto is an insanely fast data interchange format and capability-based RPC system. Think JSON, except binary. Or think Protocol Buffers, except faster. In fact, in benchmarks, Cap'n Proto is INFINITY TIMES faster than Protocol Buffers."
+    },
+    {
+        "Name": "zlib",
+        "License": "zlib License",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.2.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz",
+        "Description": "A massively spiffy yet delicately unobtrusive compression library."
+    }
+]

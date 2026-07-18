@@ -1,0 +1,54 @@
+--- libmill-1.18/CMakeLists.txt	2017-01-05 14:15:56.000000000 +0800
++++ libmill-1.18/CMakeLists.txt	2025-05-10 20:21:53.324083481 +0800
+@@ -40,18 +40,39 @@
+ endif()
+ 
+ # tests
+-enable_testing()
+-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/tests)
+-file(GLOB test_files tests/*.c)
+-foreach(test_file IN LISTS test_files)
+-  get_filename_component(test_name ${test_file} NAME_WE)
+-  add_executable(test_${test_name} ${test_file})
+-  set_target_properties(test_${test_name} PROPERTIES
+-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+-    OUTPUT_NAME ${test_name})
+-  target_link_libraries(test_${test_name} mill)
+-  add_test(test_${test_name} tests/${test_name})
+-endforeach()
++include(CTest)
++if(BUILD_TESTING)
++    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/tests)
++    set(test_names
++        ssl
++        udp
++        chan
++        choose
++        cls
++        example
++        fdwait
++        go
++        mfork1
++        mfork2
++        mfork3
++        overload
++        signals
++        sleep
++        tcp
++        unix
++    )
++    #file(GLOB test_files tests/*.c)
++    foreach(test_name IN LISTS test_names)
++     set(test_file tests/${test_name}.c)
++      #get_filename_component(test_name ${test_file} NAME_WE)
++      add_executable(test_${test_name} ${test_file})
++      set_target_properties(test_${test_name} PROPERTIES
++        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
++        OUTPUT_NAME ${test_name})
++      target_link_libraries(test_${test_name} mill)
++      add_test(test_${test_name} tests/${test_name})
++    endforeach()
++endif()
+ 
+ # perf
+ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/perf)

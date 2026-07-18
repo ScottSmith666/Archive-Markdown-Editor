@@ -1,0 +1,30 @@
+diff -uprN caffe-1.0/src/caffe/layers/window_data_layer.cpp caffe-1.0-ohos/src/caffe/layers/window_data_layer.cpp
+--- caffe-1.0/src/caffe/layers/window_data_layer.cpp	2017-04-16 00:17:48.000000000 +0800
++++ caffe-1.0-ohos/src/caffe/layers/window_data_layer.cpp	2023-06-07 14:55:24.540518069 +0800
+@@ -1,4 +1,5 @@
+ #ifdef USE_OPENCV
++#include <opencv2/imgcodecs/legacy/constants_c.h>
+ #include <opencv2/highgui/highgui_c.h>
+ #include <stdint.h>
+ 
+Binary files caffe-1.0/src/caffe/layers/.window_data_layer.cpp.swp and caffe-1.0-ohos/src/caffe/layers/.window_data_layer.cpp.swp differ
+diff -uprN caffe-1.0/src/caffe/test/test_io.cpp caffe-1.0-ohos/src/caffe/test/test_io.cpp
+--- caffe-1.0/src/caffe/test/test_io.cpp	2017-04-16 00:17:48.000000000 +0800
++++ caffe-1.0-ohos/src/caffe/test/test_io.cpp	2023-06-07 15:04:38.350290765 +0800
+@@ -1,4 +1,5 @@
+ #ifdef USE_OPENCV
++#include <opencv2/imgcodecs/legacy/constants_c.h>
+ #include <opencv2/core/core.hpp>
+ #include <opencv2/highgui/highgui.hpp>
+ #include <opencv2/highgui/highgui_c.h>
+diff -uprN caffe-1.0/src/caffe/util/io.cpp caffe-1.0-ohos/src/caffe/util/io.cpp
+--- caffe-1.0/src/caffe/util/io.cpp	2017-04-16 00:17:48.000000000 +0800
++++ caffe-1.0-ohos/src/caffe/util/io.cpp	2023-06-07 14:56:02.560471691 +0800
+@@ -3,6 +3,7 @@
+ #include <google/protobuf/io/zero_copy_stream_impl.h>
+ #include <google/protobuf/text_format.h>
+ #ifdef USE_OPENCV
++#include <opencv2/imgcodecs/legacy/constants_c.h>
+ #include <opencv2/core/core.hpp>
+ #include <opencv2/highgui/highgui.hpp>
+ #include <opencv2/highgui/highgui_c.h>

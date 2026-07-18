@@ -1,0 +1,27 @@
+# Contributor: chengkan <kanchengc@isoftstone.com>
+# Maintainer: chengkan <kanchengc@isoftstone.com>
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+checkprepare(){
+    # 保存当前系统时间到硬件时间
+    busybox hwclock --systohc
+    # 测试的crt证书过期，需要设置系统时间在过期前的日期进行测试
+    busybox date -s "2018-01-01 01:00:00" >> ${logfile} 2>&1
+}
+openharmonycheck() {
+    res=0
+    cd $builddir/$ARCH-build
+    ctest >> ${logfile} 2>&1
+    res=$?
+        
+    if [ $res -ne 0 ]
+    then
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp Testing/Temporary/LastTest.log ${LYCIUM_FAULT_PATH}/${pkgname}/
+    fi 
+    cd $OLDPWD
+    
+    # 从硬件时钟恢复系统时间
+    busybox hwclock --hctosys
+    return $res
+}

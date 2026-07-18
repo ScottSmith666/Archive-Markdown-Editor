@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "leveldb",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/google/leveldb/blob/main/LICENSE",
+        "Version Number": "1.23",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/leveldb/archive/refs/tags/1.23.tar.gz",
+        "Description": "LevelDB is a fast key-value storage library written at Google that provides an ordered mapping from string keys to string values."
+    },
+    {
+        "Name": "snappy",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/google/snappy/blob/main/COPYING",
+        "Version Number": "1.1.10",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/snappy/archive/refs/tags/1.1.10.tar.gz",
+        "Description": "Snappy is a compression/decompression library. It does not aim for maximum compression, or compatibility with any other compression library; instead, it aims for very high speeds and reasonable compression. For instance, compared to the fastest mode of zlib, Snappy is an order of magnitude faster for most inputs, but the resulting compressed files are anywhere from 20% to 100% bigger"
+    }
+]

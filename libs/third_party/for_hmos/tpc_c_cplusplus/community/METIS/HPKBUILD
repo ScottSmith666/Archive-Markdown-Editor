@@ -1,0 +1,75 @@
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+pkgname=METIS
+pkgver=v5.2.1
+pkgrel=0
+pkgdesc="METIS is a set of serial programs for partitioning graphs, partitioning finite element meshes, and producing fill reducing orderings for sparse matrices. The algorithms implemented in METIS are based on the multilevel recursive-bisection, multilevel k-way, and multi-constraint partitioning schemes developed in our lab."
+url="https://github.com/KarypisLab/METIS"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0")
+depends=("GKlib")
+makedepends=()
+
+source="https://github.com/KarypisLab/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+source envset.sh
+firstflag=true
+
+prepare() {
+    if [ $ARCH == "armeabi-v7a" ]; then
+        setarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        setarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    if $firstflag
+    then
+        cd $builddir
+        # https://github.com/KarypisLab/METIS/issues/54 官方相同bug
+        patch -p1 < ../METIS_oh_pkg.patch
+        cd $OLDPWD
+        firstflag=false
+    fi
+    cp -r $builddir $builddir-$ARCH-build
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    make config cc=$CC prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH gklib_path=$LYCIUM_ROOT/usr/GKlib/$ARCH/ > `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]; then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/METIS-5.2.1-arm64-v8a-build ${PWD}/METIS-5.2.1-armeabi-v7a-build
+}

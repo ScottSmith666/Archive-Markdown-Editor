@@ -1,0 +1,125 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the 'License');
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an 'AS IS' BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=mupdf
+pkgver=1.26.3
+pkgrel=0
+pkgdesc="MuPDF is the fast & powerful solution for managing PDF and other document formats."
+url="https://mupdf.com/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("AGPL-3.0")
+depends=("openssl")
+makedepends=()
+
+source="https://casper.mupdf.com/downloads/archive/mupdf-1.26.3-source.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-${pkgver}-source
+packagename=$builddir.tar.gz
+generateFlag=true
+patchFlag=true
+
+source envset.sh
+# mupdf 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+prepare() {
+
+    if $patchFlag
+    then
+        cd $builddir
+		#patch 主要对平台化的函数库做屏蔽，并补充一个多线程的参数
+        patch -p1 < $PKGBUILD_ROOT/mupdf_-1.26.3_oh_pkg.patch > $publicbuildlog 2>&1
+        if [ 0 -ne $? ]
+        then
+            echo "patch error!"
+            return -1
+        fi
+        patchFlag=false
+        cd $OLDPWD
+    fi
+    if $generateFlag
+    then
+        cd $builddir
+		# 用于生成字体数组
+        make generate > $publicbuildlog 2>&1
+        if [ 0 -ne $? ]
+        then
+            echo "make generate error!"
+            return -2
+        fi
+        generateFlag=false
+        cd $OLDPWD
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -3
+    fi
+    cd $OLDPWD
+
+	export CFLAGS="-I/${LYCIUM_ROOT}/usr/openssl/${ARCH}/include -L$LYCIUM_ROOT/usr/openssl/$ARCH/lib/ $CFLAGS"
+    export CXXFLAGS="-I/${LYCIUM_ROOT}/usr/openssl/${ARCH}/include -L$LYCIUM_ROOT/usr/openssl/$ARCH/lib/ $CXXFLAGS"
+    export LDFLAGS="-L$LYCIUM_ROOT/usr/openssl/$ARCH/lib/ -lcrypto $LDFLAGS"
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE OS=ohos verbose=yes > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE OS=ohos verbose=yes install prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH/ >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    cd $builddir-$ARCH-build
+    $MAKE OS=ohos examples > $buildlog 2>&1
+	ret=$?
+
+	cp build/ohos/release/example $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+	cp build/ohos/release/storytest $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+	cp build/ohos/release/multi-threaded $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+
+    cd $OLDPWD
+	
+    echo "The test must be on an OpenHarmony device!"
+	return $ret
+}
+
+recoverpkgbuildenv() {
+    unset cc ar ranlib
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

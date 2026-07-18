@@ -1,0 +1,90 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: handong056@chinasoftinc.com
+# Maintainer: handong056@chinasoftinc.com
+
+pkgname=TH
+pkgver=740c512b539d5c76d18c63377bb5d7e5281d44f4
+pkgrel=0
+pkgdesc="Torch TH: C tensor library (libTH) for Torch7 / xnn USE_TORCH, cross-built for OpenHarmony"
+url="https://github.com/torch/TH"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0")
+# 使用 community/OpenBLAS_0.3.23（CMake 全 BLAS，含 sgemm_ 等）；勿与 community/OpenBLAS 0.3.5 ONLY_CBLAS 混用。
+depends=(OpenBLAS_0.3.23)
+makedepends=()
+downloadpackage=false
+autounpack=false
+builddir=TH-master
+packagename=""
+buildtools="cmake"
+patchflag=true
+
+source envset.sh
+
+# Lycium 安装前缀与 pkgname 一致（见 OpenBLAS_0.3.23 HPKBUILD）
+_th_ob_pkg="OpenBLAS_0.3.23"
+_TH_COMMIT="740c512b539d5c76d18c63377bb5d7e5281d44f4"
+
+prepare() {
+    if [ ! -d "${builddir}" ]; then
+        git clone https://github.com/torch/TH.git "${builddir}"
+        cd "${builddir}"
+        git checkout "${_TH_COMMIT}"
+        cd "${OLDPWD}"
+    fi
+
+    if ${patchflag}; then
+        _patch_root="${PKGBUILD_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)}"
+        cd "${builddir}"
+        
+        # 补丁 th_ohos.patch：适配 OpenHarmony 交叉编译，绕过运行时检测，直接设置原子操作与 BLAS 配置
+        patch -p1 < "${_patch_root}/TH_oh_pkg.patch" >> "${publicbuildlog:-${buildlog:-/dev/null}}" 2>&1
+        patchflag=false
+        cd "${OLDPWD}"
+    fi
+    mkdir -p "${builddir}/${ARCH}-build"
+}
+
+build() {
+    cd "${builddir}"
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+        "${OHOS_SDK}/native/build-tools/cmake/bin/cmake" "$@" \
+        -B"${ARCH}-build" -S./ \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DWITH_OPENMP=OFF \
+        -DCMAKE_SHARED_LINKER_FLAGS="-s" \
+        -DCMAKE_EXE_LINKER_FLAGS="-s" \
+        >> "${buildlog}" 2>&1
+    $MAKE VERBOSE=1 -C "${ARCH}-build" >> "${buildlog}" 2>&1
+    ret=$?
+    cd "${OLDPWD}"
+    return "${ret}"
+}
+
+package() {
+    cd "${builddir}"
+    $MAKE VERBOSE=1 -C "${ARCH}-build" install >> "${buildlog}" 2>&1
+    ret=$?
+    cd "${OLDPWD}"
+    return "${ret}"
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf "${PWD:?}/${builddir}"
+}

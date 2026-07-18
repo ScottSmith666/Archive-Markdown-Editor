@@ -1,0 +1,86 @@
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+pkgname=pjsip
+pkgver=2.13.1
+pkgrel=0
+pkgdesc="PJSIP is a free and open-source multimedia communication library that implements standards-based protocols such as SIP, SDP, RTP, STUN, TURN, and ICE. It integrates the signaling protocol SIP-based multimedia framework and NAT traversal capabilities into a high-level abstracted multimedia communication API."
+url="https://www.pjsip.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL" "OSS")
+depends=("opus")
+makedepends=()
+
+source="https://github.com/$pkgname/pjproject/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+unpkgname=pjproject-2.13.1
+source envset.sh
+host=
+
+patchflag=true
+
+prepare() {
+    if $patchflag
+    then
+        cd ${unpkgname}
+        # 修复pjmedia-test死循环问题,patch来自官网https://github.com/pjsip/pjproject/pull/3641/files
+        patch  -p1 < ../pjsip_oh_pkg.patch
+        cd $OLDPWD
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+    fi
+
+    cp ${unpkgname} $pkgname-$ARCH-build -r
+    if [ $ARCH == "armeabi-v7a" ]; then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]; then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $pkgname-$ARCH-build
+    ./configure "$@" --host=$host LDFLAGS="${LDFLAGS} -L$LYCIUM_ROOT/usr/opus/$ARCH/lib" CFLAGS="${CFLAGS} -I$LYCIUM_ROOT/usr/opus/$ARCH/include" LD=$CXX  --disable-libwebrtc > `pwd`/build.log 2>&1
+    make dep >> `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]; then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    # 屏蔽python相关测试项
+    sed -i '104 s/pjsua-test/#pjsua-test/g' ./$pkgname-$ARCH-build/Makefile
+    echo "The test must be on an OpenHarmony device!"
+    # 编译生成目录$pkgname-$ARCH-build下执行make selftest
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$pkgname-$ARCH-build ${PWD}/${unpkgname}
+}

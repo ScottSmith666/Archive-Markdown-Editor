@@ -1,0 +1,1 @@
+CKEDITOR.plugins.setLang("fontsize","zh-cn",{title:"调整字号",panelTitle:"字体大小",tooltip:"字号 12~50px",increase:"增大 2 字号",decrease:"减小 2 字号"});

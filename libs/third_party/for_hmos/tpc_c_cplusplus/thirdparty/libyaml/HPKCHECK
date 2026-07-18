@@ -1,0 +1,167 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong2 <huangminzhong2@huawei.com>
+# Maintainer: huangminzhong2 <huangminzhong2@huawei.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    cd $builddir/$ARCH-build
+    echo "total test 13"  > ${logfile} 2>&1
+
+    total_tests=13
+    passed_tests=0
+
+    ./test-version >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "1/13 test-version .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "1/13 test-version .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    ./test-reader >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "2/13 test-reader .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "2/13 test-reader .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    cat ../examples/anchors.yaml | ./example-deconstructor >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "3/13 example-deconstructor .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "3/13 example-deconstructor .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    cat ../examples/anchors.yaml | ./example-deconstructor-alt >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "4/13 example-deconstructor-alt .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "4/13 example-deconstructor-alt .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    cat ../examples/anchors.yaml | ./example-reformatter >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "5/13 example-reformatter .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "5/13 example-reformatter .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    cat ../examples/anchors.yaml | ./example-reformatter-alt >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "6/13 example-reformatter-alt .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "6/13 example-reformatter-alt .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    ./run-dumper ../examples/global-tag.yaml >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "7/13 run-dumper .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "7/13 run-dumper .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    ./run-emitter ../examples/global-tag.yaml >> ${logfile} 2>&1 
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "8/13 run-emitter .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "8/13 run-emitter .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    ./run-parser-test-suite ../examples/anchors.yaml | ./run-emitter-test-suite >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "9/13 run-emitter-test-suite .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "9/13 run-emitter-test-suite .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    ./run-loader ../examples/global-tag.yaml >> ${logfile} 2>&1 
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "10/13 run-loader .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "10/13 run-loader .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    ./run-parser ../examples/global-tag.yaml >> ${logfile} 2>&1 
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "11/13 run-parser .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "11/13 run-parser .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    ./run-parser-test-suite ../examples/anchors.yaml >> ${logfile} 2>&1 
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "12/13 run-parser-test-suite .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "12/13 run-parser-test-suite .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    ./run-scanner ../examples/global-tag.yaml >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "13/13 run-scanner .......................... failed" >> ${logfile} 2>&1
+    else
+        echo "13/13 run-scanner .......................... passed" >> ${logfile} 2>&1
+        ((passed_tests++))
+    fi
+
+    test_fail=$((total_tests - passed_tests))
+    if [ $passed_tests -ne 13 ]
+    then
+        echo "$passed_tests tests passed, $test_fail tests failed" >> ${logfile} 2>&1
+    else
+        echo "100% tests passed, 0 tests failed out of 13" >> ${logfile} 2>&1
+    fi
+
+    cd $OLDPWD
+    return $test_fail
+}

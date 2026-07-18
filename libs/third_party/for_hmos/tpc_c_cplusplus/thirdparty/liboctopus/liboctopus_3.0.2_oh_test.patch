@@ -1,0 +1,262 @@
+diff -urN liboctopus-3.0.2-old/CMakeLists.txt liboctopus-3.0.2/CMakeLists.txt
+--- liboctopus-3.0.2-old/CMakeLists.txt	2023-03-07 15:49:53.000000000 +0800
++++ liboctopus-3.0.2/CMakeLists.txt	2025-10-22 14:12:56.214304641 +0800
+@@ -57,3 +57,43 @@
+ source_group("Octopus validator" FILES ${LIBOCTOPUS_VALIDATOR_SOURCES})
+ source_group("Octopus serialization" FILES ${LIBOCTOPUS_JSON_SOURCES})
+ source_group("Manifest serialization" FILES ${LIBOCTOPUS_MANIFEST_JSON_SOURCES})
++
++include(CTest)
++enable_language(CXX)
++
++set(CMAKE_CXX_STANDARD 14)
++set(CMAKE_CXX_STANDARD_REQUIRED ON)
++set(CMAKE_CXX_EXTENSIONS OFF)
++
++if(NOT TARGET gtest OR NOT TARGET gmock_main)
++configure_file(
++    cmake/googletest.CMakeLists.txt.in
++    googletest-download/CMakeLists.txt
++)
++
++execute_process(
++    COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
++    RESULT_VARIABLE result
++    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
++
++if(result)
++    message(FATAL_ERROR "CMake step for googletest failed: ${result}")
++endif()
++
++execute_process(
++    COMMAND ${CMAKE_COMMAND} --build .
++    RESULT_VARIABLE result
++    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
++
++if(result)
++    message(FATAL_ERROR "Build step for googletest failed: ${result}")
++endif()
++
++set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
++
++add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
++                    ${CMAKE_BINARY_DIR}/googletest-build
++                    EXCLUDE_FROM_ALL)
++endif()
++
++add_subdirectory(test)
+
+diff -urN liboctopus-3.0.2-old/cmake/googletest.CMakeLists.txt.in liboctopus-3.0.2/cmake/googletest.CMakeLists.txt.in
+--- liboctopus-3.0.2-old/cmake/googletest.CMakeLists.txt.in	1970-01-01 08:00:00.000000000 +0800
++++ liboctopus-3.0.2/cmake/googletest.CMakeLists.txt.in	2025-10-22 14:10:51.831755694 +0800
+@@ -0,0 +1,16 @@
++cmake_minimum_required(VERSION 2.8.2)
++
++project(googletest-download NONE)
++
++include(ExternalProject)
++ExternalProject_Add(googletest
++  GIT_REPOSITORY      https://github.com/google/googletest.git
++  GIT_TAG             main
++  UPDATE_DISCONNECTED ON
++  SOURCE_DIR          "${CMAKE_BINARY_DIR}/googletest-src"
++  BINARY_DIR          "${CMAKE_BINARY_DIR}/googletest-build"
++  CONFIGURE_COMMAND   ""
++  BUILD_COMMAND       ""
++  INSTALL_COMMAND     ""
++  TEST_COMMAND        ""
++)
+diff -urN liboctopus-3.0.2-old/test/CMakeLists.txt liboctopus-3.0.2/test/CMakeLists.txt
+--- liboctopus-3.0.2-old/test/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
++++ liboctopus-3.0.2/test/CMakeLists.txt	2025-10-22 14:12:11.958215520 +0800
+@@ -0,0 +1,12 @@
++
++include_directories(../)
++add_definitions(-DOCTOPUSTEST)
++
++add_executable(octopus_test octopus_test.cpp ../octopus/parser.cpp ../octopus/serializer.cpp ../octopus-manifest/parser.cpp ../octopus-manifest/serializer.cpp)
++target_link_libraries(octopus_test
++  PRIVATE
++    gtest
++    gmock_main
++)
++add_dependencies(octopus_test gtest gmock_main)
++add_test(NAME octopus_test COMMAND octopus_test)
+
+diff -urN liboctopus-3.0.2-old/test/octopus_test.cpp liboctopus-3.0.2/test/octopus_test.cpp
+--- liboctopus-3.0.2-old/test/octopus_test.cpp	1970-01-01 08:00:00.000000000 +0800
++++ liboctopus-3.0.2/test/octopus_test.cpp	2025-10-22 14:10:51.831755694 +0800
+@@ -0,0 +1,173 @@
++#include <gtest/gtest.h>
++#include "../octopus/parser.h"
++#include "../octopus/serializer.h"
++#include "../octopus-manifest/parser.h"
++#include "../octopus-manifest/serializer.h"
++
++TEST(OctopusTest, ParseValidOctopus) {
++    const std::string valid_json = R"(
++        {
++            "id": "layer_root",
++            "name": "Root Group",
++            "type": "OCTOPUS_COMPONENT",
++            "version": "3.0.2",
++            "visible": true,
++            "dimensions": {
++                "width": 1920,
++                "height": 1080
++            },
++            "content": {
++                "id": "layer_background",
++                "name": "Background",
++                "type": "MASK_GROUP",
++                "visible": true,
++                "opacity": 1.0
++            }
++        }
++    )";
++    octopus::Octopus octopus_obj;
++    octopus::Parser::Error error = octopus::Parser::parse(octopus_obj, valid_json.c_str());
++
++    EXPECT_EQ(error.type, octopus::Parser::Error::OK);
++    EXPECT_EQ(octopus_obj.type, octopus::Octopus::Type::OCTOPUS_COMPONENT);
++    EXPECT_STREQ(octopus_obj.id.c_str(), "layer_root");
++    EXPECT_STREQ(octopus_obj.version.c_str(), "3.0.2");
++    ASSERT_TRUE(octopus_obj.dimensions.has_value());
++    EXPECT_EQ(octopus_obj.dimensions.value().width, 1920);
++    EXPECT_EQ(octopus_obj.dimensions.value().height, 1080);
++
++    ASSERT_TRUE(octopus_obj.content.has_value());
++    EXPECT_EQ(octopus_obj.content->type, octopus::Layer::Type::MASK_GROUP);
++    EXPECT_STREQ(octopus_obj.content->id.c_str(), "layer_background");
++    EXPECT_STREQ(octopus_obj.content->name.c_str(), "Background");
++    EXPECT_EQ(octopus_obj.content->opacity, 1.0);
++    EXPECT_TRUE(octopus_obj.content->visible);
++}
++
++
++TEST(OctopusTest, SerializeValidOctopus) {
++    octopus::Octopus octopus_obj;
++    octopus_obj.type = octopus::Octopus::Type::OCTOPUS_COMPONENT;
++    octopus_obj.id = "layer_root";
++    octopus_obj.version = "3.0.2";
++    octopus_obj.dimensions = octopus::Dimensions{1920, 1080};
++
++    octopus_obj.content = nonstd::optional_ptr<octopus::Layer>(new octopus::Layer());
++    ASSERT_TRUE(octopus_obj.content.has_value());
++    octopus_obj.content->type = octopus::Layer::Type::MASK_GROUP;
++    octopus_obj.content->id = "layer_background";
++    octopus_obj.content->name = "Background";
++    octopus_obj.content->opacity = 1.0;
++    octopus_obj.content->visible = true;
++
++    std::string jsonString;
++    octopus::Serializer::Error error = octopus::Serializer::serialize(jsonString, octopus_obj);
++    ASSERT_EQ(error, octopus::Serializer::Error::OK);
++}
++
++TEST(OctopusTest, ParseValidLayer) {
++    const std::string valid_json = R"(
++        {
++            "id": "layer_background",
++            "name": "Background",
++            "type": "MASK_GROUP",
++            "visible": true,
++            "opacity": 1.0,
++            "blendMode": "SUBTRACT"
++        }
++    )";
++    octopus::Layer layer;
++    octopus::Parser::Error error = octopus::Parser::parse(layer, valid_json.c_str());
++
++    EXPECT_EQ(error.type, octopus::Parser::Error::OK);
++    EXPECT_EQ(layer.type, octopus::Layer::Type::MASK_GROUP);
++    EXPECT_STREQ(layer.id.c_str(), "layer_background");
++    EXPECT_STREQ(layer.name.c_str(), "Background");
++    EXPECT_EQ(layer.opacity, 1.0);
++    EXPECT_TRUE(layer.visible);
++    EXPECT_EQ(layer.blendMode, octopus::BlendMode::SUBTRACT);
++}
++
++TEST(OctopusTest, SerializeValidLayer) {
++    octopus::Layer layer;
++    layer.type = octopus::Layer::Type::MASK_GROUP;
++    layer.id = "layer_background";
++    layer.name = "Background";
++    layer.opacity = 1.0;
++    layer.visible = true;
++    layer.blendMode = octopus::BlendMode::SUBTRACT;
++
++    std::string jsonString;
++    octopus::Serializer::Error error = octopus::Serializer::serialize(jsonString, layer);
++    ASSERT_EQ(error, octopus::Serializer::Error::OK);
++}
++
++TEST(OctopusTest, ParseValidLayerChange) {
++    const std::string valid_json = R"(
++        {
++            "subject": "LAYER",
++            "op": "PROPERTY_CHANGE",
++            "index": 1,
++            "filterIndex": 1,
++            "values": {
++                "opacity": 1.0,
++                "visible": true,
++                "blendMode": "SUBTRACT"
++            }
++        }
++    )";
++    octopus::LayerChange layerChange;
++    octopus::Parser::Error error = octopus::Parser::parse(layerChange, valid_json.c_str());
++
++    EXPECT_EQ(error.type, octopus::Parser::Error::OK);
++
++    EXPECT_EQ(layerChange.subject, octopus::LayerChange::Subject::LAYER);
++    EXPECT_EQ(layerChange.op, octopus::LayerChange::Op::PROPERTY_CHANGE);
++
++    ASSERT_TRUE(layerChange.index.has_value());
++    ASSERT_TRUE(layerChange.filterIndex.has_value());
++    EXPECT_EQ(layerChange.index.value(), 1);
++    EXPECT_EQ(layerChange.filterIndex, 1);
++
++    ASSERT_TRUE(layerChange.values.opacity.has_value());
++    ASSERT_TRUE(layerChange.values.visible.has_value());
++    ASSERT_TRUE(layerChange.values.blendMode.has_value());
++
++    EXPECT_EQ(layerChange.values.opacity.value(), 1.0);
++    EXPECT_TRUE(layerChange.values.visible.value());
++    EXPECT_EQ(layerChange.values.blendMode.value(), octopus::BlendMode::SUBTRACT);
++}
++
++TEST(OctopusTest, ParseValidOctopusManifest) {
++    const std::string valid_json = R"(
++        {
++            "name": "Root Group",
++            "version": "3.0.2",
++            "origin": {
++                "name": "origin Root Group",
++                "version": "3.0.2"
++            }
++        }
++    )";
++
++    octopus::OctopusManifest manifest;
++    octopus::ManifestParser::Error error = octopus::ManifestParser::parse(manifest, valid_json.c_str());
++
++    EXPECT_EQ(error.type, octopus::ManifestParser::Error::OK);
++    EXPECT_STREQ(manifest.name.c_str(), "Root Group");
++    EXPECT_STREQ(manifest.version.c_str(), "3.0.2");
++    EXPECT_STREQ(manifest.origin.name.c_str(), "origin Root Group");
++    EXPECT_STREQ(manifest.origin.version.c_str(), "3.0.2");
++}
++
++TEST(OctopusTest, SerializeValidOctopusManifest) {
++    octopus::OctopusManifest manifest;
++    manifest.name = "Root Group";
++    manifest.version = "3.0.2";
++    manifest.origin.name = "origin Root Group";
++    manifest.origin.version = "3.0.2";
++
++    std::string jsonString;
++    octopus::ManifestSerializer::Error error = octopus::ManifestSerializer::serialize(jsonString, manifest);
++    ASSERT_EQ(error, octopus::ManifestSerializer::Error::OK);
++}

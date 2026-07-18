@@ -1,0 +1,107 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, Sunjiamei<939650669@qq.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=libextractor
+pkgver=1.11
+pkgrel=0
+pkgdesc="libextractor is a library used to extract meta data from files of arbitrary type."
+url=https://www.gnu.org/software/libextractor/
+archs=("armeabi-v7a" "arm64-v8a")
+license=(GPL-3.0-only)
+depends=("libtool" "gettext" "zlib_1_3_1" "bzip2_1_0_8")
+makedepends=()
+
+#source=https://git.gnunet.org/${pkgname}.git/snapshot/${pkgname}-${pkgver}.zip
+source=https://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.gz
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build 
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+	export CFLAGS="-I$LYCIUM_ROOT/usr/libtool/$ARCH/include -L$LYCIUM_ROOT/usr/libtool/$ARCH/lib"
+    cd $builddir-$ARCH-build
+    ./bootstrap > $buildlog 2>&1
+	cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    ./configure "$@" --host=$host --disable-testruns >> $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cd $builddir-$ARCH-build
+    #only build tests when --disable-testruns
+    $MAKE check >> $buildlog 2>&1
+    cd $OLDPWD
+    #then edit makefile from src/main and src/plugins
+    cd $builddir-$ARCH-build
+    sed -i.bak '/^all: all-recursive$/,/^\t@:$/s/^/#/' src/main/Makefile
+    sed -i.bak '/^all: all-recursive$/,/^\t@:$/s/^/#/' src/plugins/Makefile
+    sed -i.bak 's/^#TESTS = $(check_PROGRAMS)$/TESTS = $(check_PROGRAMS)/' src/main/Makefile
+    sed -i.bak 's/^#TESTS = \\$/TESTS = \\/' src/plugins/Makefile
+    sed -i.bak 's/^#  $(fuzz_tests) \\$/  $(fuzz_tests) \\/' src/plugins/Makefile
+    sed -i.bak 's/^#  $(check_PROGRAMS)$/  $(check_PROGRAMS)/' src/plugins/Makefile
+    cd $OLDPWD
+    #modify the path to sed in the test script
+    cd $builddir-$ARCH-build/src/main
+    for file in test_file test_gzip test_ipc test_plugin_load_multi test_plugin_loading test_trivial; do
+        sed -i.bak 's|/usr/bin/sed|/bin/sed|g' "$file"
+    done
+    cd $OLDPWD
+    cd $builddir-$ARCH-build/src/plugins
+    for file in test_deb test_dvi test_it test_man test_nsf test_nsfe test_odf test_png test_ps test_riff test_s3m test_sid test_wav test_xm test_zip ; do
+        sed -i.bak 's|/usr/bin/sed|/bin/sed|g' "$file"
+    done
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build
+}

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libsamplerate",
+        "License": "BSD License",
+        "License File": "https://github.com/libsndfile/libsamplerate/blob/master/docs/license.md",
+        "Version Number": "0.2.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libsndfile/libsamplerate/",
+        "Description": "An audio Sample Rate Conversion library"
+    }
+]

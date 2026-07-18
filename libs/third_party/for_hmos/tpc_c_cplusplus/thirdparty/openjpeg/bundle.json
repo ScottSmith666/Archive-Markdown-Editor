@@ -1,0 +1,33 @@
+{
+    "name": "@ohos/openjpeg",
+    "description": "",
+    "version": "2.5.0",
+    "license": "2-Clause BSD",
+    "publishAs": "code-segment",
+    "segment": {
+        "destPath": "third_party/openjpeg"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "openjpeg",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/openjpeg:openjpeg"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

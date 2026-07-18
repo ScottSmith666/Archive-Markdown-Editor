@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <oatconfig>
+        <filefilterlist>
+            <filefilter name="copyrightPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="SHA512SUM" desc="SHA512SUM文件，不添加版权头"/>
+            </filefilter>
+            <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="SHA512SUM" desc="SHA512SUM文件，不添加版权头"/>
+            </filefilter>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="*.png" desc="指导文档需要的png图片"/>
+                <filteritem type="filename" name="input.jpg" desc="测试需要的jpg图片"/>
+            </filefilter>
+        </filefilterlist>
+    </oatconfig>
+</configuration>

@@ -1,0 +1,76 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: fujiadong <fujiadong05@chinasoftinc.com>
+# Maintainer: fujiadong <fujiadong05@chinasoftinc.com>
+pkgname=libxnet
+pkgver=37a30d5
+pkgrel=0
+pkgdesc="Test suite for libxnet"
+url="https://github.com/Pawday/libxnet"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("Apache-2.0")
+# 官网没有提供压缩包
+source="https://github.com/Pawday/libxnet.git"
+
+downloadpackage=false
+autounpack=false
+builddir=$pkgname
+patchflag=true
+
+# 准备阶段
+prepare() { 
+    if [ ! -d "$builddir" ]; then
+       git clone "$source" "$builddir"
+       cd "$builddir"
+       git reset --hard $pkgver
+       cd $OLDPWD
+    fi
+    if $patchflag; then
+        patchflag=false
+        cd "$builddir" && patch -p1 < ../libxnet_master_oh_pkg.patch && cd $OLDPWD
+    fi
+    return 0
+}
+
+build() {
+    cd "$builddir"
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DBUILD_SHARED_LIBS=ON -DBUILD_TEST=ON -B"$ARCH-build" -S./ > $buildlog 2>&1
+
+    $MAKE -C $ARCH-build >> $buildlog 2>&1
+    local ret=$?
+
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+package() {
+    cd $builddir
+    ${MAKE} VERBOSE=1 -C build-test-$ARCH install >> $buildlog 2>&1
+    cd $OLDPWD
+    ret=$?
+    return $ret
+}
+
+# 清理函数
+cleanbuild() {
+    for arch in "${archs[@]}"; do
+        rm -rf "build-$arch" "build-direct-$arch"
+    done
+    rm -f build_*.log cmake_test_*.log 2>/dev/null
+    return 0
+}

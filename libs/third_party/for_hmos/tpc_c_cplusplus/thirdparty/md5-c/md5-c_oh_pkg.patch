@@ -1,0 +1,24 @@
+diff -Naur md5-c-main/Makefile md5-c-main-patch/Makefile
+--- md5-c-main/Makefile	2023-02-22 09:05:17.000000000 +0800
++++ md5-c-main-patch/Makefile	2023-06-08 11:03:29.521829330 +0800
+@@ -2,8 +2,20 @@
+ 
+ CFLAGS = -Wall -Wextra -O3
+ 
++
+ md5: md5.c main.c
+ 	@$(CC) $(CFLAGS) -o md5 md5.c main.c
+ 
+ clean:
+ 	@$(RM) md5
++
++build: libmd5.a
++
++libmd5.a: md5.o	
++	$(AR) crv $@ md5.o
++
++install:
++	mkdir -p $(DESTDIR)/lib/
++	mkdir -p $(DESTDIR)/include/
++	cp libmd5.a $(DESTDIR)/lib/
++	cp md5.h $(DESTDIR)/include

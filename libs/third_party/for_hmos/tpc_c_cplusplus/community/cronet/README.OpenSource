@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "cronet",
+        "License": "BSD-3-Clause",
+        "License File": "LICENSE",
+        "Version Number": "107.0.5304.150",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://github.com/chromium/chromium",
+        "Description": "Cronet 利用多种技术来减少延迟和提高网络请求吞吐量，以满足您的应用的运行需要。cronet 原生支持http/http2/http3-QUIC 协议"
+    }
+]

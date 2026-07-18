@@ -1,0 +1,78 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=p7zip
+pkgver=v17.05
+pkgrel=0
+pkgdesc="The original intention of p7zip is to make 7z run on unix-like systems. The latest 7zip already supports unix systems, so the new version of this project is not just a derivative of p7zip. "
+url="https://github.com/p7zip-project/p7zip"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL")
+depends=()
+makedepends=()
+
+source="https://github.com/p7zip-project/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+downloadpackage=true
+autounpack=true
+patchflag=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../p7zip_oh_pkg.patch > $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S`pwd`/CPP/7zip/CMAKE/ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin/Codecs
+    cp -rf `pwd`/$ARCH-build/bin/7z_ $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cp -rf `pwd`/$ARCH-build/bin/7za $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cp -rf `pwd`/$ARCH-build/bin/7zCon.sfx $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cp -rf `pwd`/$ARCH-build/bin/7zr $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cp -rf `pwd`/$ARCH-build/bin/7z.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cp -rf `pwd`/$ARCH-build/bin/Codecs/Rar.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin/Codecs
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir
+    # 下载官方测试
+    if $clonetestflag
+    then
+        git clone https://github.com/jinfeihan57/p7zip_test_utils.git >> $publicbuildlog 2>&1
+        res=$?
+        if [ $res -ne 0 ]
+        then
+            return -1
+        fi
+        clonetestflag=false
+    fi
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # 进入 sh p7zip_test_utils/check/check.sh bin/7zz
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

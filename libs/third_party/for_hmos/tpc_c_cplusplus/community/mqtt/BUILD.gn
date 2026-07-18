@@ -1,0 +1,463 @@
+# Copyright (c) 2023 iSoftStone Information Technology (Group) Co.,Ltd.
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v2.0
+# and Eclipse Distribution License v1.0 which accompany this distribution.
+#
+# The Eclipse Public License is available at
+#   https://www.eclipse.org/legal/epl-2.0/
+# and the Eclipse Distribution License is available at
+#   http://www.eclipse.org/org/documents/edl-v10.php.
+
+import("//build/ohos.gni")
+
+paho_mqtt_path = "//third_party/mqtt/paho.mqtt.c"
+mqtt_part_name = "mqtt"
+mqtt_subsystem_name = "thirdparty"
+
+declare_args() {
+  enable_mqtt_test = false
+}
+
+group("libmqtt") {
+  deps = [
+    ":paho-mqtt3a",
+    ":paho-mqtt3as",
+    ":paho-mqtt3c",
+    ":paho-mqtt3cs",
+  ]
+
+  if (enable_mqtt_test) {
+    deps += [
+      ":mqtt_samples",
+      ":mqtt_test",
+    ]
+  }
+}
+
+config("mqtt_config") {
+  cflags = [
+    "-Wno-sign-compare",
+    "-Wno-unused-variable",
+    "-Wno-deprecated-declarations",
+    "-Wno-format",
+    "-fvisibility=hidden",
+    "-Wno-error",
+    "-Wall",
+    "-fPIC",
+    "-Os",
+    "-g",
+  ]
+
+  defines = [
+    "_GNU_SOURCE",
+    "PAHO_MQTT_EXPORTS",
+  ]
+
+  if (use_musl) {
+    cflags += [ "-Wno-bool-operation" ]
+  }
+}
+
+ohos_source_set("mqtt_commom_dynamic") {
+  sources = [
+    "${paho_mqtt_path}/src/Base64.c",
+    "${paho_mqtt_path}/src/Clients.c",
+    "${paho_mqtt_path}/src/LinkedList.c",
+    "${paho_mqtt_path}/src/Log.c",
+    "${paho_mqtt_path}/src/MQTTPacket.c",
+    "${paho_mqtt_path}/src/MQTTPacketOut.c",
+    "${paho_mqtt_path}/src/MQTTPersistence.c",
+    "${paho_mqtt_path}/src/MQTTPersistenceDefault.c",
+    "${paho_mqtt_path}/src/MQTTProperties.c",
+    "${paho_mqtt_path}/src/MQTTProtocolClient.c",
+    "${paho_mqtt_path}/src/MQTTProtocolOut.c",
+    "${paho_mqtt_path}/src/MQTTReasonCodes.c",
+    "${paho_mqtt_path}/src/MQTTTime.c",
+    "${paho_mqtt_path}/src/Messages.c",
+    "${paho_mqtt_path}/src/Proxy.c",
+    "${paho_mqtt_path}/src/SHA1.c",
+    "${paho_mqtt_path}/src/Socket.c",
+    "${paho_mqtt_path}/src/SocketBuffer.c",
+    "${paho_mqtt_path}/src/Thread.c",
+    "${paho_mqtt_path}/src/Tree.c",
+    "${paho_mqtt_path}/src/WebSocket.c",
+    "${paho_mqtt_path}/src/utf-8.c",
+  ]
+
+  if (!defined(PAHO_HIGH_PERFORMANCE)) {
+    sources += [
+      "${paho_mqtt_path}/src/Heap.c",
+      "${paho_mqtt_path}/src/StackTrace.c",
+    ]
+  }
+  include_dirs = [
+    "adapted/src",
+    "${paho_mqtt_path}/src",
+  ]
+  configs = [ ":mqtt_config" ]
+}
+
+ohos_shared_library("paho-mqtt3a") {
+  include_dirs = [
+    "adapted/src",
+    "${paho_mqtt_path}/src",
+  ]
+  configs = [ ":mqtt_config" ]
+  sources = [
+    "${paho_mqtt_path}/src/MQTTAsync.c",
+    "${paho_mqtt_path}/src/MQTTAsyncUtils.c",
+  ]
+  deps = [ ":mqtt_commom_dynamic" ]
+  install_images = [ "system" ]
+  install_enable = true
+  part_name = "${mqtt_part_name}"
+  subsystem_name = "${mqtt_subsystem_name}"
+}
+
+ohos_shared_library("paho-mqtt3c") {
+  include_dirs = [
+    "adapted/src",
+    "${paho_mqtt_path}/src",
+  ]
+  configs = [ ":mqtt_config" ]
+  sources = [ "${paho_mqtt_path}/src/MQTTClient.c" ]
+  deps = [ ":mqtt_commom_dynamic" ]
+  install_images = [ "system" ]
+  install_enable = true
+  part_name = "${mqtt_part_name}"
+  subsystem_name = "${mqtt_subsystem_name}"
+}
+
+ohos_shared_library("paho-mqtt3as") {
+  include_dirs = [
+    "adapted/src",
+    "${paho_mqtt_path}/src",
+  ]
+  configs = [ ":mqtt_config" ]
+  sources = [
+    "${paho_mqtt_path}/src/MQTTAsync.c",
+    "${paho_mqtt_path}/src/MQTTAsyncUtils.c",
+    "${paho_mqtt_path}/src/SSLSocket.c",
+  ]
+  deps = [
+    ":mqtt_commom_dynamic",
+    "//third_party/openssl:libssl_shared",
+  ]
+  install_images = [ "system" ]
+  install_enable = true
+  part_name = "${mqtt_part_name}"
+  subsystem_name = "${mqtt_subsystem_name}"
+}
+
+ohos_shared_library("paho-mqtt3cs") {
+  include_dirs = [
+    "adapted/src",
+    "${paho_mqtt_path}/src",
+  ]
+  configs = [ ":mqtt_config" ]
+  sources = [
+    "${paho_mqtt_path}/src/MQTTClient.c",
+    "${paho_mqtt_path}/src/SSLSocket.c",
+  ]
+  deps = [
+    ":mqtt_commom_dynamic",
+    "//third_party/openssl:libssl_shared",
+  ]
+  install_images = [ "system" ]
+  install_enable = true
+  part_name = "${mqtt_part_name}"
+  subsystem_name = "${mqtt_subsystem_name}"
+}
+
+group("mqtt_samples") {
+  deps = [
+    ":MQTTAsync_publish",
+    ":MQTTAsync_subscribe",
+    ":MQTTClient_publish",
+    ":MQTTClient_publish_async",
+    ":MQTTClient_subscribe",
+    ":paho_c_pub",
+    ":paho_c_sub",
+    ":paho_cs_pub",
+    ":paho_cs_sub",
+  ]
+}
+
+config("mqtt_samples_config") {
+  cflags = [
+    "-Wno-unused-variable",
+    "-Wno-error",
+  ]
+  defines = [ "PAHO_MQTT_IMPORTS" ]
+}
+
+template("swanlink_mqtt_samples") {
+  ohos_executable(target_name) {
+    include_dirs = [ "${paho_mqtt_path}/src" ]
+    configs = [ ":mqtt_samples_config" ]
+    part_name = "${mqtt_part_name}"
+    subsystem_name = "${mqtt_subsystem_name}"
+    forward_variables_from(invoker, "*")
+  }
+}
+
+swanlink_mqtt_samples("MQTTAsync_publish") {
+  sources = [ "${paho_mqtt_path}/src/samples/MQTTAsync_publish.c" ]
+  deps = [ ":paho-mqtt3a" ]
+}
+
+swanlink_mqtt_samples("MQTTAsync_subscribe") {
+  sources = [ "${paho_mqtt_path}/src/samples/MQTTAsync_subscribe.c" ]
+  deps = [ ":paho-mqtt3a" ]
+}
+
+swanlink_mqtt_samples("MQTTClient_publish") {
+  sources = [ "${paho_mqtt_path}/src/samples/MQTTClient_publish.c" ]
+  deps = [ ":paho-mqtt3c" ]
+}
+
+swanlink_mqtt_samples("MQTTClient_publish_async") {
+  sources = [ "${paho_mqtt_path}/src/samples/MQTTClient_publish_async.c" ]
+  deps = [ ":paho-mqtt3c" ]
+}
+
+swanlink_mqtt_samples("MQTTClient_subscribe") {
+  sources = [ "${paho_mqtt_path}/src/samples/MQTTClient_subscribe.c" ]
+  deps = [ ":paho-mqtt3c" ]
+}
+
+swanlink_mqtt_samples("paho_c_pub") {
+  sources = [
+    "${paho_mqtt_path}/src/samples/paho_c_pub.c",
+    "${paho_mqtt_path}/src/samples/pubsub_opts.c",
+  ]
+  deps = [
+    ":mqtt_commom_dynamic",
+    ":paho-mqtt3as",
+  ]
+}
+
+swanlink_mqtt_samples("paho_c_sub") {
+  sources = [
+    "${paho_mqtt_path}/src/samples/paho_c_sub.c",
+    "${paho_mqtt_path}/src/samples/pubsub_opts.c",
+  ]
+  deps = [
+    ":mqtt_commom_dynamic",
+    ":paho-mqtt3as",
+  ]
+}
+
+swanlink_mqtt_samples("paho_cs_pub") {
+  sources = [
+    "${paho_mqtt_path}/src/samples/paho_cs_pub.c",
+    "${paho_mqtt_path}/src/samples/pubsub_opts.c",
+  ]
+  deps = [
+    ":mqtt_commom_dynamic",
+    ":paho-mqtt3cs",
+  ]
+}
+
+swanlink_mqtt_samples("paho_cs_sub") {
+  sources = [
+    "${paho_mqtt_path}/src/samples/paho_cs_sub.c",
+    "${paho_mqtt_path}/src/samples/pubsub_opts.c",
+  ]
+  deps = [
+    ":mqtt_commom_dynamic",
+    ":paho-mqtt3cs",
+  ]
+}
+
+group("mqtt_test") {
+  deps = [
+    ":sync_client_test",
+    ":test1",
+    ":test10",
+    ":test11",
+    ":test15",
+    ":test2",
+    ":test3",
+    ":test4",
+    ":test45",
+    ":test5",
+    ":test6",
+    ":test9",
+    ":test95",
+    ":test_mqtt4async",
+    ":test_mqtt4sync",
+  ]
+}
+
+config("mqtt_test_config") {
+  cflags = [
+    "-Wno-sign-compare",
+    "-Wno-unused-variable",
+    "-Wno-format",
+    "-Wno-error",
+  ]
+}
+
+ohos_source_set("mqtt_test_thread") {
+  include_dirs = [ "${paho_mqtt_path}/src" ]
+  configs = [ ":mqtt_test_config" ]
+  defines = [
+    "NOSTACKTRACE",
+    "NOLOG_MESSAGES",
+  ]
+  sources = [ "${paho_mqtt_path}/src/Thread.c" ]
+}
+
+ohos_source_set("mqtt_test_dynamic") {
+  include_dirs = [ "${paho_mqtt_path}/src" ]
+  configs = [ ":mqtt_test_config" ]
+  sources = [
+    "${paho_mqtt_path}/src/Base64.c",
+    "${paho_mqtt_path}/src/Clients.c",
+    "${paho_mqtt_path}/src/LinkedList.c",
+    "${paho_mqtt_path}/src/Log.c",
+    "${paho_mqtt_path}/src/MQTTPacket.c",
+    "${paho_mqtt_path}/src/MQTTPacketOut.c",
+    "${paho_mqtt_path}/src/MQTTPersistence.c",
+    "${paho_mqtt_path}/src/MQTTPersistenceDefault.c",
+    "${paho_mqtt_path}/src/MQTTProperties.c",
+    "${paho_mqtt_path}/src/MQTTProtocolClient.c",
+    "${paho_mqtt_path}/src/MQTTProtocolOut.c",
+    "${paho_mqtt_path}/src/MQTTReasonCodes.c",
+    "${paho_mqtt_path}/src/MQTTTime.c",
+    "${paho_mqtt_path}/src/Messages.c",
+    "${paho_mqtt_path}/src/Proxy.c",
+    "${paho_mqtt_path}/src/SHA1.c",
+    "${paho_mqtt_path}/src/Socket.c",
+    "${paho_mqtt_path}/src/SocketBuffer.c",
+    "${paho_mqtt_path}/src/Tree.c",
+    "${paho_mqtt_path}/src/WebSocket.c",
+    "${paho_mqtt_path}/src/utf-8.c",
+  ]
+
+  if (!defined(PAHO_HIGH_PERFORMANCE)) {
+    sources += [
+      "${paho_mqtt_path}/src/Heap.c",
+      "${paho_mqtt_path}/src/StackTrace.c",
+    ]
+  }
+}
+
+template("swanlink_mqtt_test") {
+  ohos_executable(target_name) {
+    include_dirs = [ "${paho_mqtt_path}/src" ]
+    configs = [ ":mqtt_test_config" ]
+    part_name = "${mqtt_part_name}"
+    subsystem_name = "${mqtt_subsystem_name}"
+    forward_variables_from(invoker, "*")
+  }
+}
+
+swanlink_mqtt_test("test1") {
+  sources = [ "${paho_mqtt_path}/test/test1.c" ]
+  deps = [
+    ":mqtt_test_thread",
+    ":paho-mqtt3c",
+  ]
+}
+
+swanlink_mqtt_test("test15") {
+  sources = [ "${paho_mqtt_path}/test/test15.c" ]
+  deps = [
+    ":mqtt_test_dynamic",
+    ":mqtt_test_thread",
+    ":paho-mqtt3c",
+  ]
+}
+
+swanlink_mqtt_test("test10") {
+  sources = [ "${paho_mqtt_path}/test/test10.c" ]
+  deps = [
+    ":mqtt_test_dynamic",
+    ":mqtt_test_thread",
+    ":paho-mqtt3c",
+  ]
+}
+
+swanlink_mqtt_test("test2") {
+  sources = [ "${paho_mqtt_path}/test/test2.c" ]
+  deps = [
+    ":mqtt_test_thread",
+    ":paho-mqtt3c",
+  ]
+}
+
+swanlink_mqtt_test("sync_client_test") {
+  sources = [ "${paho_mqtt_path}/test/sync_client_test.c" ]
+  deps = [
+    ":mqtt_test_thread",
+    ":paho-mqtt3c",
+  ]
+}
+
+swanlink_mqtt_test("test_mqtt4sync") {
+  sources = [ "${paho_mqtt_path}/test/test_mqtt4sync.c" ]
+  deps = [
+    ":mqtt_test_thread",
+    ":paho-mqtt3c",
+  ]
+}
+
+swanlink_mqtt_test("test3") {
+  sources = [ "${paho_mqtt_path}/test/test3.c" ]
+  deps = [ ":paho-mqtt3cs" ]
+}
+
+swanlink_mqtt_test("test4") {
+  sources = [ "${paho_mqtt_path}/test/test4.c" ]
+  deps = [ ":paho-mqtt3a" ]
+}
+
+swanlink_mqtt_test("test45") {
+  sources = [ "${paho_mqtt_path}/test/test45.c" ]
+  deps = [
+    ":mqtt_test_dynamic",
+    ":mqtt_test_thread",
+    ":paho-mqtt3a",
+  ]
+}
+
+swanlink_mqtt_test("test6") {
+  sources = [ "${paho_mqtt_path}/test/test6.c" ]
+  deps = [ ":paho-mqtt3a" ]
+}
+
+swanlink_mqtt_test("test9") {
+  sources = [ "${paho_mqtt_path}/test/test9.c" ]
+  deps = [ ":paho-mqtt3a" ]
+}
+
+swanlink_mqtt_test("test95") {
+  sources = [ "${paho_mqtt_path}/test/test95.c" ]
+  deps = [
+    ":mqtt_test_dynamic",
+    ":mqtt_test_thread",
+    ":paho-mqtt3a",
+  ]
+}
+
+swanlink_mqtt_test("test_mqtt4async") {
+  sources = [ "${paho_mqtt_path}/test/test_mqtt4async.c" ]
+  deps = [ ":paho-mqtt3a" ]
+}
+
+swanlink_mqtt_test("test11") {
+  sources = [ "${paho_mqtt_path}/test/test11.c" ]
+  deps = [
+    ":mqtt_test_dynamic",
+    ":mqtt_test_thread",
+    ":paho-mqtt3a",
+  ]
+}
+
+swanlink_mqtt_test("test5") {
+  sources = [ "${paho_mqtt_path}/test/test5.c" ]
+  deps = [ ":paho-mqtt3as" ]
+}

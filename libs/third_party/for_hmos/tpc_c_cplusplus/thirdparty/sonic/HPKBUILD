@@ -1,0 +1,60 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=sonic
+pkgver="release-0.2.0"
+pkgrel=0
+pkgdesc="Sonic is a simple algorithm for speeding up or slowing down speech.  However, it's optimized for speed ups of over 2X, unlike previous algorithms for changing speech rate.  The Sonic library is a very simple ANSI C library that is designed to easily be integrated into streaming voice applications, like TTS back ends."
+url="https://github.com/waywardgeek/sonic"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache License 2.0")
+depends=()
+makedepends=()
+
+# 原仓地址：source="https://github.com/waywardgeek/$pkgname/archive/refs/tags/$pkgver.tar.gz"，由于网络原因使用镜像
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+cc=
+
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE CC=${cc} > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    unset cc
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行测试用例
+    # ./sonic -s 2.0 sonic.wav out.wav
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

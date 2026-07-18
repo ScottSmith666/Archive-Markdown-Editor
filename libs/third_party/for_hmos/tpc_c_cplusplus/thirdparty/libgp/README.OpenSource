@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libgp",
+        "License": "Copyright (c) 2025, libgp Contributors All rights reserved.",
+        "License File": "https://github.com/mblum/libgp/blob/master/COPYING",
+        "Version Number": "0.3.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/mblum/libgp",
+        "Description": "A C++ library for Gaussian process regression. A Gaussian process defines a distribution over functions and inference takes place directly in function space. It is fully specified by a mean function and a positive definite covariance function."
+    }
+]

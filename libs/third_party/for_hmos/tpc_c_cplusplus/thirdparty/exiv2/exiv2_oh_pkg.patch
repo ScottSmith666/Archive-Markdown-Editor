@@ -1,0 +1,15 @@
+diff -Naur exiv2-0.27.6/samples/exiv2json.cpp exiv2-0.27.6_new/samples/exiv2json.cpp
+--- exiv2-0.27.6/samples/exiv2json.cpp	2023-01-19 05:57:53.000000000 +0800
++++ exiv2-0.27.6_new/samples/exiv2json.cpp	2023-11-24 17:17:28.050082300 +0800
+@@ -253,7 +253,11 @@
+ {
+     Jzon::Object& fs = (Jzon::Object&) nfs;
+     fs.Add("path",path);
++#ifdef __OHOS__
++    char resolved_path[FORTIFY_PATH_MAX];
++#else
+     char resolved_path[2000]; // PATH_MAX];
++#endif
+     fs.Add("realpath",realpath(path,resolved_path));
+ 
+     struct stat buf;

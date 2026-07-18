@@ -1,0 +1,28 @@
+diff -urN spirv-reflect-sdk-1.3.204.0_old/CMakeLists.txt spirv-reflect-sdk-1.3.204.0/CMakeLists.txt
+--- spirv-reflect-sdk-1.3.204.0_old/CMakeLists.txt	2024-10-07 23:12:59.000000000 +0800
++++ spirv-reflect-sdk-1.3.204.0/CMakeLists.txt	2024-10-30 23:36:30.978217836 +0800
+@@ -55,7 +55,8 @@
+     SET(BUILD_GTEST ON CACHE BOOL "Builds the googletest subproject" FORCE)
+     SET(INSTALL_GTEST OFF CACHE BOOL "Enable installation of googletest. (Projects embedding googletest generally turn this OFF.)" FORCE)
+     SET(gtest_force_shared_crt ON CACHE BOOL "Enable DLL for C runtime libraries on Windows" FORCE)
+-
++    # 启用测试
++    enable_testing()  
+     add_subdirectory(third_party/googletest)
+ 	add_executable(test-spirv-reflect ${CMAKE_CURRENT_SOURCE_DIR}/tests/test-spirv-reflect.cpp
+                                       ${CMAKE_CURRENT_SOURCE_DIR}/spirv_reflect.h
+@@ -72,12 +73,14 @@
+     add_custom_command(TARGET test-spirv-reflect POST_BUILD
+                        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                        ${CMAKE_CURRENT_SOURCE_DIR}/tests ${CMAKE_CURRENT_BINARY_DIR}/tests)
++     # 添加测试到 CTest
++     add_test(NAME Spirv_Refle_ctTest COMMAND test-spirv-reflect)
+ endif()
+ 
+ if(SPIRV_REFLECT_STATIC_LIB)
+     add_library(spirv-reflect-static STATIC ${CMAKE_CURRENT_SOURCE_DIR}/spirv_reflect.h
+                                      ${CMAKE_CURRENT_SOURCE_DIR}/spirv_reflect.c)
+-
++    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/spirv_reflect.h" DESTINATION include)
+     install(TARGETS spirv-reflect-static LIBRARY DESTINATION lib)
+ endif()

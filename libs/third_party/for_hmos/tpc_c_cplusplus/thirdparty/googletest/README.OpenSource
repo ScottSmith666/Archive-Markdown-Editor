@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "googletest",
+        "License": "BSD-3-Clause license",
+        "License File": "https://github.com/google/googletest/blob/main/LICENSE",
+        "Version Number": "v1.13.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz",
+        "Description": "Google Testing and Mocking Framework"
+    }
+]

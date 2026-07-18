@@ -1,0 +1,129 @@
+diff -Naur tink-1.7.0/cc/aead/internal/CMakeLists.txt tink-1.7.0-patch/cc/aead/internal/CMakeLists.txt
+--- tink-1.7.0/cc/aead/internal/CMakeLists.txt	2022-08-09 17:54:36.000000000 -0700
++++ tink-1.7.0-patch/cc/aead/internal/CMakeLists.txt	2023-07-10 21:18:16.805841985 -0700
+@@ -227,25 +227,25 @@
+     tink::util::test_matchers
+ )
+ 
+-tink_cc_test(
+-  NAME ssl_aead_large_inputs_test
+-  SRCS
+-    ssl_aead_large_inputs_test.cc
+-  DEPS
+-    tink::aead::internal::ssl_aead
+-    gmock
+-    absl::flat_hash_set
+-    absl::memory
+-    absl::status
+-    absl::strings
+-    absl::span
+-    tink::config::tink_fips
+-    tink::internal::ssl_util
+-    tink::subtle::subtle_util
+-    tink::util::secret_data
+-    tink::util::statusor
+-    tink::util::test_matchers
+-)
++#tink_cc_test(
++#  NAME ssl_aead_large_inputs_test
++#  SRCS
++#    ssl_aead_large_inputs_test.cc
++#  DEPS
++#    tink::aead::internal::ssl_aead
++#    gmock
++#    absl::flat_hash_set
++#    absl::memory
++#    absl::status
++#    absl::strings
++#    absl::span
++#    tink::config::tink_fips
++#    tink::internal::ssl_util
++#    tink::subtle::subtle_util
++#    tink::util::secret_data
++#    tink::util::statusor
++#    tink::util::test_matchers
++#)
+ 
+ tink_cc_test(
+   NAME zero_copy_aead_wrapper_test
+diff -Naur tink-1.7.0/cc/internal/bn_util_test.cc tink-1.7.0-patch/cc/internal/bn_util_test.cc
+--- tink-1.7.0/cc/internal/bn_util_test.cc	2022-08-09 17:54:36.000000000 -0700
++++ tink-1.7.0-patch/cc/internal/bn_util_test.cc	2023-07-24 21:54:09.070280117 -0700
+@@ -142,6 +142,7 @@
+ }
+ 
+ TEST(BnUtil, CompareBignumWithWord) {
++  #ifdef __aarch64__	
+   internal::SslUniquePtr<BIGNUM> bn(BN_new());
+   BN_set_word(bn.get(), /*value=*/0x0fffffffffffffffUL);
+   EXPECT_EQ(CompareBignumWithWord(bn.get(), /*word=*/0x0fffffffffffffffL), 0);
+@@ -157,6 +158,22 @@
+     EXPECT_LT(CompareBignumWithWord(bn.get(), word), 0)
+         << absl::StrCat("With value: 0x", absl::Hex(word));
+   }
++ #else
++  internal::SslUniquePtr<BIGNUM> bn(BN_new());
++  BN_set_word(bn.get(), /*value=*/0x0fffffffUL);
++  EXPECT_EQ(CompareBignumWithWord(bn.get(), /*word=*/0x0fffffffL), 0);
++  std::vector<BN_ULONG> smaller_words = {
++      0x00000000UL, 0x00000000UL, 0x00ffffffUL};
++  for (const auto& word : smaller_words) {
++      EXPECT_GT(CompareBignumWithWord(bn.get(), word), 0)
++      << absl::StrCat("With value: 0x", absl::Hex(word));
++  }
++  std::vector<BN_ULONG> larger_words = {0x10000000UL,0xffffffffUL};
++  for (const auto& word : larger_words) {
++      EXPECT_LT(CompareBignumWithWord(bn.get(), word), 0)
++      << absl::StrCat("With value: 0x", absl::Hex(word));
++  }
++ #endif 
+ }
+ 
+ }  // namespace
+diff -Naur tink-1.7.0/cmake/TinkBuildRules.cmake tink-1.7.0-patch/cmake/TinkBuildRules.cmake
+--- tink-1.7.0/cmake/TinkBuildRules.cmake	2022-08-09 17:54:36.000000000 -0700
++++ tink-1.7.0-patch/cmake/TinkBuildRules.cmake	2023-07-07 23:02:29.621966356 -0700
+@@ -245,7 +245,7 @@
+     list(APPEND tink_cc_proto_GEN_SRCS ${_gen_srcs})
+ 
+     add_custom_command(
+-      COMMAND protobuf::protoc
++      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+       ARGS
+         --cpp_out "${TINK_GENFILE_DIR}"
+         -I "${PROJECT_SOURCE_DIR}"
+@@ -253,7 +253,7 @@
+       OUTPUT
+         ${_gen_srcs}
+       DEPENDS
+-        protobuf::protoc
++        ${PROTOBUF_PROTOC_EXECUTABLE}
+         ${_src_absolute_path}
+       COMMENT "Running CXX protocol buffer compiler on ${_src_path}"
+       VERBATIM
+diff -Naur tink-1.7.0/CMakeLists.txt tink-1.7.0-patch/CMakeLists.txt
+--- tink-1.7.0/CMakeLists.txt	2022-08-09 17:54:36.000000000 -0700
++++ tink-1.7.0-patch/CMakeLists.txt	2023-07-13 21:38:14.300635737 -0700
+@@ -36,3 +36,22 @@
+ 
+ add_subdirectory(cc)
+ add_subdirectory(proto)
++
++install(DIRECTORY cc DESTINATION include
++                FILES_MATCHING PATTERN PATTERN "*.h")
++install(DIRECTORY ${OHOS_ARCH}-build/__third_party/com_google_absl/src/absl DESTINATION include/__third_party/com_google_absl
++                FILES_MATCHING PATTERN PATTERN "*.h")
++install(DIRECTORY ${OHOS_ARCH}-build/__third_party/com_google_protobuf/src/src/google/protobuf DESTINATION include/__third_party/com_google_protobuf
++                FILES_MATCHING PATTERN PATTERN "*.h")	
++install(DIRECTORY ${OHOS_ARCH}-build/__third_party/rapidjson/src/include/rapidjson DESTINATION include/__third_party/rapidjson
++                FILES_MATCHING PATTERN PATTERN "*.h")	
++install(DIRECTORY ${OHOS_ARCH}-build/cc DESTINATION lib
++                FILES_MATCHING PATTERN PATTERN "*.a")
++install(DIRECTORY ${OHOS_ARCH}-build/proto DESTINATION lib
++                FILES_MATCHING PATTERN PATTERN "*.a")
++install(DIRECTORY ${OHOS_ARCH}-build/__third_party/com_google_absl/build DESTINATION lib/__third_party/com_google_absl
++                FILES_MATCHING PATTERN PATTERN "*.a")	
++install(DIRECTORY ${OHOS_ARCH}-build/__third_party/com_google_protobuf/build DESTINATION lib/__third_party/com_google_protobuf
++                FILES_MATCHING PATTERN PATTERN "*.a")	
++
++

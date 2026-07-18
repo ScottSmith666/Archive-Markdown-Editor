@@ -1,0 +1,44 @@
+{
+  "name": "@ohos/behaviortree",
+  "description": "This C++ library provides a framework to create BehaviorTrees. It is designed to be flexible, easy to use and fast.",
+  "version": "v4.1.1",
+  "license": "MIT",
+  "publishAs": "",
+  "segment": {
+      "destPath": "third_party/behaviortree"
+  },
+  "dirs": {},
+  "scripts": {},
+  "readmePath": {
+  },
+  "component": {
+      "name": "behaviortree",
+      "subsystem": "thirdparty",
+      "syscap": [],
+      "features": [],
+      "adapted_system_type": ["standard"],
+      "rom": "",
+      "ram": "",
+      "deps": {
+          "components": [],
+          "third_party": []
+      },
+      "build": {
+          "sub_component": [
+            "//third_party/behaviortree:lexy_file",
+            "//third_party/behaviortree:bt_sample_nodes",
+            "//third_party/behaviortree:behaviortree_cpp",
+            "//third_party/behaviortree:dummy_nodes_dyn",
+            "//third_party/behaviortree:crossdoor_nodes_dyn",
+            "//third_party/behaviortree:movebase_node_dyn",
+            "//third_party/behaviortree:tests"
+          ],
+          "inner_kits": [],
+          "test": []
+      }
+  }
+}
+
+
+
+

@@ -1,0 +1,12 @@
+diff -rupN xmlrpc-c-1.54.06/test/cpp/server_abyss.cpp xmlrpc-c-patched/test/cpp/server_abyss.cpp
+--- xmlrpc-c-1.54.06/test/cpp/server_abyss.cpp	2015-12-30 04:22:14.000000000 +0000
++++ xmlrpc-c-patched/test/cpp/server_abyss.cpp	2023-04-04 07:20:34.086245327 +0000
+@@ -85,7 +85,7 @@ public:
+         sockAddr.sin_port   = htons(portNumber);
+         sockAddr.sin_addr.s_addr = 0;
+ 
+-        rc = bind(this->fd, (struct sockaddr *)&sockAddr, sizeof(sockAddr));
++        rc = ::bind(this->fd, (struct sockaddr *)&sockAddr, sizeof(sockAddr));
+         
+         if (rc != 0) {
+             closesock(this->fd);

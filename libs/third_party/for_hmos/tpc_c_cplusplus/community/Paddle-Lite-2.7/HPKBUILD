@@ -1,0 +1,159 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: liukai <liukai295@h-partners.com>
+# Maintainer: liukai <liukai295@h-partners.com>
+
+pkgname=Paddle-Lite-2.7
+pkgver=v2.7
+pkgrel=0
+pkgdesc="PaddlePaddle High Performance Deep Learning Inference Engine for Mobile and Edge."
+url="www.paddlepaddle.org.cn/lite"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0 license")
+depends=()
+makedepends=("python3")
+
+source="https://gitee.com/lycium_pkg_mirror/Paddle-Lite/repository/archive/$pkgver.zip"
+
+buildtools="cmake"
+autounpack=true
+patchflag=true
+downloadpackage=true
+
+builddir=Paddle-Lite-v2.7
+packagename=$pkgname.zip
+extracflags=
+arch=
+# 准备三方代码
+repos=(
+    "https://gitee.com/mirrors/gflags.git"              # 源链接: https://github.com/gflags/gflags.git
+    "https://gitee.com/mirrors/googletest.git"          # 源链接: https://github.com/google/googletest.git
+)
+# 对应文件夹
+folders=(
+    "third-party/gflags"
+    "third-party/googletest"
+)
+# branches
+
+commitIDs=(
+    "77592648e3f3be87d6c7123eb81cbad75f9aef5a"           # gflags
+    "ec44c6c1675c25b9827aacd08c02433cccde7780"           # googletest
+)
+
+clonesrc() {
+    for (( i=0; i<${#repos[@]}; i++ ));do
+        repo=${repos[$i]}
+        folder=${folders[$i]}
+        commitID=${commitIDs[$i]}
+
+        git clone $repo $folder
+        if [ $? -ne 0 ];then
+            return -1
+        fi
+        cd $folder
+        git checkout --detach $commitID
+        cd $OLDPWD
+    done
+}
+
+prepare() {
+    # 1、大多数仿照Android移植修改。但Android的测试用例是单独写的，只使用了部分测试用例，
+    # Android单元测试脚本： tools/ci_tools/ci_android_unit_test.sh
+    # 2、有部分修改是测试用例存在明显错误，没有指定模型文件，或模型文件指向不对，
+    #    参考issue: https://github.com/PaddlePaddle/Paddle-Lite/issues/10351
+    # 3、还有部分修改是因为OH系统性能不够，延长了超时时间
+    # 4、测试用例在执行汇编指令时出现段错误。
+    #   参考issue: https://github.com/PaddlePaddle/Paddle-Lite/issues/10355
+    #   参考PR:  https://github.com/PaddlePaddle/Paddle-Lite/pull/10365
+
+    mkdir -p $builddir/$ARCH-build
+
+    # 2. 准备分析工具
+    cd $builddir
+    mkdir -pv $ARCH-build/lite/tools/debug
+    cp -v lite/tools/debug/analysis_tool.py $ARCH-build/lite/tools/debug
+
+    #3. 准备生成源码文件
+    mkdir -pv $ARCH-build/lite/gen_code
+    touch $ARCH-build/lite/gen_code/__generated_code__.cc
+    cd $OLDPWD
+
+    if [ $ARCH == "armeabi-v7a" ];then
+        extracflags="-march=armv7-a"
+        arch="armv7"
+    elif [ $ARCH == "arm64-v8a" ];then
+        arch="armv8"
+        extracflags="-march=armv8"
+    else
+        echo "$ARCH not support!"
+        return -2
+    fi
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DARM_TARGET_OS="armlinux" -DARM_TARGET_LANG="clang" \
+        -DCMAKE_CXX_FLAGS="-Wno-error=register -Wno-unused-but-set-variable $extracflags" \
+        -DCMAKE_C_FLAGS="$extracflags -Wno-unused-but-set-variable" \
+        -DARM_TARGET_ARCH_ABI=$arch \
+        -DLITE_WITH_OPENMP=OFF \
+        -DLITE_ON_TINY_PUBLISH=ON \
+        -DWITH_ARM_DOTPROD=ON \
+        -DWITH_MKL=OFF \
+        -DWITH_LITE=ON \
+        -DLITE_WITH_ARM=ON \
+        -DLITE_WITH_X86=OFF \
+        -DLITE_BUILD_EXTRA=ON \
+        -DWITH_COVERAGE=ON \
+        -DLITE_WITH_LIGHT_WEIGHT_FRAMEWORK=ON \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    # 不支持make install, 参考$builddir/lite/tools/build_android.sh 的做法
+    $MAKE -C $ARCH-build publish_inference VERBOSE=1 >> $buildlog 2>&1
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH
+    cp -rf $ARCH-build/inference_lite_lib.armlinux.${arch}/cxx/* $LYCIUM_ROOT/usr/$pkgname/$ARCH/
+    #cp -rf $ARCH-build/lite/api/*.so $ARCH-build/lite/api/*.a $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    cd $OLDPWD
+
+    # 恢复环境
+    unset extracflags
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ];then
+        cp $OHOS_SDK/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir/$ARCH-build/
+    elif [ $ARCH == "arm64-v8a" ];then
+        cp $OHOS_SDK/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir/$ARCH-build/
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf $builddir
+}

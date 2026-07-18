@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "tink",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/tink-crypto/tink/blob/master/LICENSE",
+        "Version Number": "v1.7.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/tink/archive/refs/tags/v1.7.0.tar.gz",
+        "Description": "A multi-language, cross-platform library that provides cryptographic APIs that are secure, easy to use correctly, and hard(er) to misuse"
+    },
+    {
+        "Name": "googletest",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/google/googletest/blob/main/LICENSE",
+        "Version Number": "v1.13.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz",
+        "Description": "Google Testing and Mocking Framework"
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.openssl.org/source/old/1.1.1/openssl-1.1.1u.tar.gz",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    }
+]

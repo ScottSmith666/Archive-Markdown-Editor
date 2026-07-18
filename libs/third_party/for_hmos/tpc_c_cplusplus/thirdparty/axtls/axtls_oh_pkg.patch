@@ -1,0 +1,15 @@
+diff --git a/httpd/htpasswd.c b/httpd/htpasswd.c
+index 91feea1..025a7e9 100644
+--- a/httpd/htpasswd.c
++++ b/httpd/htpasswd.c
+@@ -113,8 +113,8 @@ int main(int argc, char *argv[])
+     if (argc != 2)
+         usage();
+ 
+-    pw = strdup(getpass("New password:"));
+-    if (strcmp(pw, getpass("Re-type new password:")) != 0)
++    pw = strdup((const char *)getpass("New password:"));
++    if (strcmp(pw, (const char *)getpass("Re-type new password:")) != 0)
+     {
+         fprintf(stderr, "They don't match, sorry.\n" );
+         exit(1);

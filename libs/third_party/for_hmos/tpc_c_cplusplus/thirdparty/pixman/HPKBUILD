@@ -1,0 +1,113 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=pixman
+pkgver=0.42.2
+pkgrel=0
+pkgdesc="Pixman is a low-level software library for pixel manipulation, providing features such as image compositing and trapezoid rasterization."
+url="http://www.pixman.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=("zlib" "libpng")
+makedepends=()
+
+unpkgname=Pixman
+# 官方下载地址source="https://www.cairographics.org/releases/$pkgname-$pkgver.tar.gz"受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/$unpkgname/repository/archive/$pkgname-$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$unpkgname-$pkgname-${pkgver}
+packagename=$builddir.zip
+
+source envset.sh
+host=
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    export CFLAGS="$CFLAGS -munaligned-access"
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    # 开启 simd neon 会导致编译失败
+    PKG_CONFIG_PATH="${pkgconfigpath}" ../autogen.sh "$@" --host=$host --enable-libpng --disable-silent-rules --disable-arm-simd --disable-arm-neon --disable-arm-a64-neon > `pwd`/build.log 2>&1
+    make VERBOSE=1 -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    unset host
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    # 屏蔽测试时，测试用例的编译(测试用例在 build() 时已经编译完成)
+    sed -i '/.*oob-test.log: oob-test$(EXEEXT)/c\oob-test.log: #oob-test$(EXEEXT)' test/Makefile
+    sed -i '/.*infinite-loop.log: infinite-loop$(EXEEXT)/c\infinite-loop.log: #infinite-loop$(EXEEXT)' test/Makefile
+    sed -i '/.*trap-crasher.log: trap-crasher$(EXEEXT)/c\trap-crasher.log: #trap-crasher$(EXEEXT)' test/Makefile
+    sed -i '/.*fence-image-self-test.log: fence-image-self-test$(EXEEXT)/c\fence-image-self-test.log: #fence-image-self-test$(EXEEXT)' test/Makefile
+    sed -i '/.*region-translate-test.log: region-translate-test$(EXEEXT)/c\region-translate-test.log: #region-translate-test$(EXEEXT)' test/Makefile
+    sed -i '/.*fetch-test.log: fetch-test$(EXEEXT)/c\fetch-test.log: #fetch-test$(EXEEXT)' test/Makefile
+    sed -i '/.*a1-trap-test.log: a1-trap-test$(EXEEXT)/c\a1-trap-test.log: #a1-trap-test$(EXEEXT)' test/Makefile
+    sed -i '/.*prng-test.log: prng-test$(EXEEXT)/c\prng-test.log: #prng-test$(EXEEXT)' test/Makefile
+    sed -i '/.*radial-invalid.log: radial-invalid$(EXEEXT)/c\radial-invalid.log: #radial-invalid$(EXEEXT)' test/Makefile
+    sed -i '/.*pdf-op-test.log: pdf-op-test$(EXEEXT)/c\pdf-op-test.log: #pdf-op-test$(EXEEXT)' test/Makefile
+    sed -i '/.*region-test.log: region-test$(EXEEXT)/c\region-test.log: #region-test$(EXEEXT)' test/Makefile
+    sed -i '/.*combiner-test.log: combiner-test$(EXEEXT)/c\combiner-test.log: #combiner-test$(EXEEXT)' test/Makefile
+    sed -i '/.*scaling-crash-test.log: scaling-crash-test$(EXEEXT)/c\scaling-crash-test.log: #scaling-crash-test$(EXEEXT)' test/Makefile
+    sed -i '/.*alpha-loop.log: alpha-loop$(EXEEXT)/c\alpha-loop.log: #alpha-loop$(EXEEXT)' test/Makefile
+    sed -i '/.*scaling-helpers-test.log: scaling-helpers-test$(EXEEXT)/c\scaling-helpers-test.log: #scaling-helpers-test$(EXEEXT)' test/Makefile
+    sed -i '/.*thread-test.log: thread-test$(EXEEXT)/c\thread-test.log: #thread-test$(EXEEXT)' test/Makefile
+    sed -i '/.*rotate-test.log: rotate-test$(EXEEXT)/c\rotate-test.log: #rotate-test$(EXEEXT)' test/Makefile
+    sed -i '/.*alphamap.log: alphamap$(EXEEXT)/c\alphamap.log: #alphamap$(EXEEXT)' test/Makefile
+    sed -i '/.*gradient-crash-test.log: gradient-crash-test$(EXEEXT)/c\gradient-crash-test.log: #gradient-crash-test$(EXEEXT)' test/Makefile
+    sed -i '/.*pixel-test.log: pixel-test$(EXEEXT)/c\pixel-test.log: #pixel-test$(EXEEXT)' test/Makefile
+    sed -i '/.*matrix-test.log: matrix-test$(EXEEXT)/c\matrix-test.log: #matrix-test$(EXEEXT)' test/Makefile
+    sed -i '/.*filter-reduction-test.log: filter-reduction-test$(EXEEXT)/c\filter-reduction-test.log: #filter-reduction-test$(EXEEXT)' test/Makefile
+    sed -i '/.*composite-traps-test.log: composite-traps-test$(EXEEXT)/c\composite-traps-test.log: #composite-traps-test$(EXEEXT)' test/Makefile
+    sed -i '/.*region-contains-test.log: region-contains-test$(EXEEXT)/c\region-contains-test.log: #region-contains-test$(EXEEXT)' test/Makefile
+    sed -i '/.*glyph-test.log: glyph-test$(EXEEXT)/c\glyph-test.log: #glyph-test$(EXEEXT)' test/Makefile
+    sed -i '/.*solid-test.log: solid-test$(EXEEXT)/c\solid-test.log: #solid-test$(EXEEXT)' test/Makefile
+    sed -i '/.*stress-test.log: stress-test$(EXEEXT)/c\stress-test.log: #stress-test$(EXEEXT)' test/Makefile
+    sed -i '/.*cover-test.log: cover-test$(EXEEXT)/c\cover-test.log: #cover-test$(EXEEXT)' test/Makefile
+    sed -i '/.*blitters-test.log: blitters-test$(EXEEXT)/c\blitters-test.log: #blitters-test$(EXEEXT)' test/Makefile
+    sed -i '/.*affine-test.log: affine-test$(EXEEXT)/c\affine-test.log: #affine-test$(EXEEXT)' test/Makefile
+    sed -i '/.*scaling-test.log: scaling-test$(EXEEXT)/c\scaling-test.log: #scaling-test$(EXEEXT)' test/Makefile
+    sed -i '/.*composite.log: composite$(EXEEXT)/c\composite.log: #composite$(EXEEXT)' test/Makefile
+    sed -i '/.*tolerance-test.log: tolerance-test$(EXEEXT)/c\tolerance-test.log: #tolerance-test$(EXEEXT)' test/Makefile
+
+    cd $OLDPWD    
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # make -C test check-TESTS
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

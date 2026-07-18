@@ -1,0 +1,27 @@
+diff -Naur djvulibre-debian-3.5.27.1-7-deb9u1/libdjvu/GThreads.cpp djvulibre-debian-3.5.27.1-7-deb9u1-patch/libdjvu/GThreads.cpp
+--- djvulibre-debian-3.5.27.1-7-deb9u1/libdjvu/GThreads.cpp	2021-05-28 18:49:55.000000000 +0800
++++ djvulibre-debian-3.5.27.1-7-deb9u1-patch/libdjvu/GThreads.cpp	2023-04-20 15:51:26.303032418 +0800
+@@ -376,10 +376,10 @@
+ # endif
+ #else // !DCETHREADS
+ # ifdef PTHREAD_CANCEL_ENABLE
+-  pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
++//  pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
+ # endif
+ # ifdef PTHREAD_CANCEL_ASYNCHRONOUS
+-  pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
++//  pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
+ # endif
+ #endif
+   // Catch exceptions
+@@ -446,8 +446,8 @@
+ void 
+ GThread::terminate()
+ {
+-  if (xentry || xarg)
+-    pthread_cancel(hthr);
++//  if (xentry || xarg)
++//    pthread_cancel(hthr);
+ }
+ 
+ int

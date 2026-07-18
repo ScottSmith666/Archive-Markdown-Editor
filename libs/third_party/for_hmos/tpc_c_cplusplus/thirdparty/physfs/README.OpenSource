@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "physfs",
+        "License": "Zlib license",
+        "License File": "https://github.com/icculus/physfs?tab=Zlib-1-ov-file#readme",
+        "Version Number": "3.2.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/icculus/physfs/releases/tag/release-3.2.0",
+        "Description": "PhysicsFS is a portable, flexible file i/o abstraction"
+    }
+]

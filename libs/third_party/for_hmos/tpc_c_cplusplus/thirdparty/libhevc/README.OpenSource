@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libhevc",
+        "License": "Apache License 2.0",
+        "License File": "LICENSE",
+        "Version Number": "simpleperf-release",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://android.googlesource.com/platform/external/libhevc",
+        "Description": "libhevc is a format codec library."
+    }
+]

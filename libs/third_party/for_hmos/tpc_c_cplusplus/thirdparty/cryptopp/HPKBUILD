@@ -1,0 +1,70 @@
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=cryptopp 
+pkgver=CRYPTOPP_8_7_0
+pkgrel=0
+pkgdesc="cryptoPP是开源的C++密码学库，集成了非常多的密码算法。"
+url="https://github.com/weidai11/cryptopp"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Boost Software License" "CRYPTOGAMS License")
+depends=()
+makedepends=()
+
+source="https://github.com/weidai11/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+patchflag=false 
+autounpack=true 
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-$pkgver 
+packagename=$builddir.tar.gz
+
+source envset.sh
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 > $buildlog 2>&1
+    # 对最关键一步的退出码进行判断
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # ./cryptest.exe tv
+    # ./cryptest.exe v
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build $builddir-arm64-v8a-build #${PWD}/$packagename
+}

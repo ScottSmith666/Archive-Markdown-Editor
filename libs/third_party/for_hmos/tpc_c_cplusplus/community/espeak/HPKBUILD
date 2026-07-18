@@ -1,0 +1,102 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=espeak
+pkgver=1.48.04-source
+pkgrel=0
+pkgdesc="eSpeak是一个小型的、开放源码的语音合成系统，支持多种语言。"
+url="https://sourceforge.net/projects/espeak"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GNU GENERAL PUBLIC LICENSE")
+depends=("portaudio")
+makedepends=()
+source="https://sourceforge.net/projects/$pkgname/files/$pkgname/espeak-1.48/$pkgname-$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+
+source envset.sh
+
+prefix=
+datadir=
+patchflag=true
+
+prepare() {
+    if [ $patchflag == true ]
+    then
+        cd $builddir
+        # 系统没有cancel接口,通过patch删除
+        patch -p1 < ../espeak_ohos.patch > $buildlog 2>&1
+        # 一些Linux发行版（例如SuSe 10）的PortAudio版本为19，该版本具有略微不同的API。通过在编译之前将文件portaudio19.h复制到PortAudio.h，可以将speak程序编译为使用PortAudio版本19
+        cp src/portaudio19.h src/portaudio.h
+        cd $OLDPWD
+        patchflag=false
+    fi
+    
+    cp -rfa $builddir $builddir-$ARCH-build
+    
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    
+    prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH
+    datadir=$prefix/share/espeak-data
+}
+build() {
+    cd $builddir-$ARCH-build/src
+    ${MAKE} VERBOSE=1 DATADIR=$datadir PREFIX=$prefix LDFLAGS="-L$LYCIUM_ROOT/usr/portaudio/$ARCH/lib" >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build/src
+    ${MAKE} PREFIX=$prefix DATADIR=$datadir install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+recoverpkgbuildenv() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build #${PWD}/$packagename
+}

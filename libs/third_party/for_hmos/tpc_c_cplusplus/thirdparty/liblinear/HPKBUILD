@@ -1,0 +1,64 @@
+# Contributor: 城meto <myxuan475@126.com>
+# Maintainer: 城meto <myxuan475@126.com>
+
+pkgname=liblinear
+pkgver=v246
+pkgrel=0
+pkgdesc="LIBLINEAR is a simple package for solving large-scale regularized linear classification, regression and outlier detection."
+url="https://www.csie.ntu.edu.tw"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=()
+makedepends=()
+source="https://codeload.github.com/cjlin1/$pkgname/tar.gz/refs/tags/$pkgver"
+buildtools="make"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$pkgname-$pkgver.tar.gz
+
+source envset.sh
+
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build/
+    if [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+    elif [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+    else
+        echo "$ARCH not support"
+        return -1
+    fi
+}
+
+build() {
+    $MAKE -C $builddir-$ARCH-build VERBOSE=1 >> $builddir-$ARCH-build/build.log 2>&1
+    ret=$?
+    return $ret
+}
+
+package() {
+    # Makefile 没有提供install，只能copy
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    find $builddir-$ARCH-build -name '*.a' -exec cp -af {} $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/ \;
+    find ./$builddir-$ARCH-build -name '*.h' -exec cp -af {} $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/ \;
+    cp -af $builddir-$ARCH-build/predict $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cp -af $builddir-$ARCH-build/train $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # train heart_scale  生成heart_scale.model
+    # predict heart_scale.t heart_scale.model output 查看预测精度
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf $builddir-armeabi-v7a-build $builddir-arm64-v8a-build
+    rm -rf $builddir # $packagename
+}

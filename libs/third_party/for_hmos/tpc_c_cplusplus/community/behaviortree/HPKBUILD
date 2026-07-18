@@ -1,0 +1,80 @@
+# Copyright (c) 2023, HiHope Community.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: jiajiahao <jia_jiahao@runkaihong.com.cn>
+# Maintainer: jiajiajiao <jia_jiahao@runkaihong.com.cn>
+
+pkgname=BehaviorTree.CPP
+pkgver=4.1.1
+pkgrel=0
+pkgdesc="This C++ library provides a framework to create BehaviorTrees. It is designed to be flexible, easy to use and fast."
+url="https://www.behaviortree.dev/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=("googletest" "sqlite")
+makedepends=()
+
+source="https://codeload.github.com/BehaviorTree/${pkgname}/zip/refs/tags/$pkgver"
+
+downloadpackage=true 
+autounpack=true 
+builddir=$pkgname-${pkgver} 
+packagename=$builddir.zip 
+patchflag=true
+
+prepare() {
+    if [ $patchflag == true ];then
+        cd $builddir
+        # 打patch的原因有以下两点：
+        # 1.behaviortree原生库有一项测试用例依赖三方库（无法编译），打补丁注释掉
+        # 2.behaviortree原生库依赖googletest，关闭behaviortree的tests/CMakeLists.txt中的find_package(GTest)部分。换成在HPKBUILD中来指定googletest的头文件和库文件。
+        patch -p1 < `pwd`/../behaviortree_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+# -DBTCPP_SQLITE_LOGGING=ON 表示打开对sqlite依赖 、-DBTCPP_UNIT_TESTS=ON 表示打开对googletest的依赖、
+# BehaviorTree.CPP中的CMakeLists.txt声明了BTCPP_EXTRA_INCLUDE_DIRS和BTCPP_EXTRA_LIBRARIES用于指定依赖的头文件的库文件路径
+# GROOT是BehaviorTree.CPP的图形编辑器依赖qt，故关闭对GROOT的依赖，-DBTCPP_GROOT_INTERFACE=OFF
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+          -DBTCPP_UNIT_TESTS=ON -DBTCPP_GROOT_INTERFACE=OFF -DBTCPP_SQLITE_LOGGING=ON \
+          -DBTCPP_EXTRA_INCLUDE_DIRS=$LYCIUM_ROOT/usr/sqlite/$ARCH/include \
+          -DBTCPP_EXTRA_LIBRARIES=$LYCIUM_ROOT/usr/sqlite/$ARCH/lib \
+          -DCMAKE_CXX_FLAGS="-Wno-unused-command-line-argument -Wno-unused-lambda-capture -Wno-deprecated-volatile -L$LYCIUM_ROOT/usr/googletest/$ARCH/lib -lgtest -I$LYCIUM_ROOT/usr/googletest/$ARCH/include $cxxflag" \
+          -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1 # 此处使用$MAKE，在lycium/build.sh中定义，变量值为make -j32。日志路径使用变量build.log
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1 # 此处使用$MAKE，在lycium/build.sh中定义，变量值为make -j32。日志路径使用变量build.log
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

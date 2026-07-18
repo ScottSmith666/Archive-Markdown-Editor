@@ -1,0 +1,173 @@
+diff -Naur dcmtk-DCMTK-3.6.8/CMake/dcmtkMacros.cmake dcmtk-DCMTK-3.6.8_new/CMake/dcmtkMacros.cmake
+--- dcmtk-DCMTK-3.6.8/CMake/dcmtkMacros.cmake	2023-12-19 18:12:57.000000000 +0800
++++ dcmtk-DCMTK-3.6.8_new/CMake/dcmtkMacros.cmake	2024-07-31 18:05:31.953232346 +0800
+@@ -13,6 +13,8 @@
+                 string(REPLACE "\\" "\\\\" TEST_COMMAND "${TEST_COMMAND}")
+             elseif(ANDROID)
+                 set(TEST_COMMAND "${ANDROID_TEMPORARY_FILES_LOCATION}/${MODULE}_tests")
++            elseif(OHOS)
++                set(TEST_COMMAND "${TEST_EXECUTABLE}")
+             else()
+                 # not reachable, handled by not defining DCMTK_RUN_CTEST_SCRIPT
+             endif()
+diff -Naur dcmtk-DCMTK-3.6.8/CMakeLists.txt dcmtk-DCMTK-3.6.8_new/CMakeLists.txt
+--- dcmtk-DCMTK-3.6.8/CMakeLists.txt	2023-12-19 18:12:57.000000000 +0800
++++ dcmtk-DCMTK-3.6.8_new/CMakeLists.txt	2024-07-31 18:07:13.123228859 +0800
+@@ -60,6 +60,8 @@
+     set(DCMTK_RUN_CTEST_SCRIPT "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/dcmtkCTestRunWine.cmake" CACHE INTERNAL "path to the CMake script for launching a unit test as a detached Wine process in the prepared wineprefix")
+   elseif(ANDROID)
+     set(DCMTK_RUN_CTEST_SCRIPT "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/dcmtkCTestRunAndroid.cmake" CACHE INTERNAL "path to the CMake script for launching a unit test via the android emulator")
++  elseif(OHOS)
++    set(DCMTK_RUN_CTEST_SCRIPT "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/dcmtkCTestRun.cmake" CACHE INTERNAL "path to the CMake script for launching a unit test")
+   else()
+     message(WARNING "Emulation for your target platform is not available, CTest will not be able to execute the unit tests!")
+   endif()
+@@ -141,6 +143,11 @@
+     configure_file("${DCMTK_SOURCE_DIR}/CMake/CTest/dcmtkCTestRunAndroid.cmake.in"
+       "${DCMTK_RUN_CTEST_SCRIPT}" ESCAPE_QUOTES @ONLY
+     )
++  elseif(OHOS)
++    string(REPLACE ";" "${ENVIRONMENT_PATH_SEPARATOR}" DCMDICTPATH "${DCMTK_DICOM_DICTIONARIES}")
++    configure_file("${DCMTK_SOURCE_DIR}/CMake/CTest/dcmtkCTestRun.cmake.in"
++    "${DCMTK_RUN_CTEST_SCRIPT}" ESCAPE_QUOTES @ONLY
++    )
+   else()
+     # Nothing to do
+   endif()
+diff -Naur dcmtk-DCMTK-3.6.8/config/include/dcmtk/config/arith.h dcmtk-DCMTK-3.6.8_new/config/include/dcmtk/config/arith.h
+--- dcmtk-DCMTK-3.6.8/config/include/dcmtk/config/arith.h	1970-01-01 08:00:00.000000000 +0800
++++ dcmtk-DCMTK-3.6.8_new/config/include/dcmtk/config/arith.h	2024-07-31 18:08:06.683242598 +0800
+@@ -0,0 +1,58 @@
++#ifndef CONFIG_ARITH_H
++#define CONFIG_ARITH_H
++
++#define DCMTK_SIGNED_CHAR_DIGITS10 2
++#define DCMTK_UNSIGNED_CHAR_DIGITS10 2
++#define DCMTK_SIGNED_SHORT_DIGITS10 4
++#define DCMTK_UNSIGNED_SHORT_DIGITS10 4
++#define DCMTK_SIGNED_INT_DIGITS10 9
++#define DCMTK_UNSIGNED_INT_DIGITS10 9
++#define DCMTK_SIGNED_LONG_DIGITS10 18
++#define DCMTK_UNSIGNED_LONG_DIGITS10 19
++#define DCMTK_FLOAT_MAX_DIGITS10 9
++#define DCMTK_DOUBLE_MAX_DIGITS10 17
++#define DCMTK_CHAR_TRAPS OFFalse
++#define DCMTK_CHAR_MODULO OFTrue
++#define DCMTK_SIGNED_CHAR_TRAPS OFFalse
++#define DCMTK_SIGNED_CHAR_MODULO OFTrue
++#define DCMTK_UNSIGNED_CHAR_TRAPS OFFalse
++#define DCMTK_UNSIGNED_CHAR_MODULO OFTrue
++#define DCMTK_SIGNED_SHORT_TRAPS OFFalse
++#define DCMTK_SIGNED_SHORT_MODULO OFTrue
++#define DCMTK_UNSIGNED_SHORT_TRAPS OFFalse
++#define DCMTK_UNSIGNED_SHORT_MODULO OFTrue
++#define DCMTK_SIGNED_INT_TRAPS OFFalse
++#define DCMTK_SIGNED_INT_MODULO OFTrue
++#define DCMTK_UNSIGNED_INT_TRAPS OFFalse
++#define DCMTK_UNSIGNED_INT_MODULO OFTrue
++#define DCMTK_SIGNED_LONG_TRAPS OFFalse
++#define DCMTK_SIGNED_LONG_MODULO OFTrue
++#define DCMTK_UNSIGNED_LONG_TRAPS OFFalse
++#define DCMTK_UNSIGNED_LONG_MODULO OFTrue
++#define DCMTK_FLOAT_TRAPS OFFalse
++#define DCMTK_DOUBLE_TRAPS OFFalse
++#define DCMTK_FLOAT_HAS_INFINITY OFTrue
++#define DCMTK_FLOAT_INFINITY *OFreinterpret_cast( const float*, "\000\000\200\177" )
++#define DCMTK_DOUBLE_HAS_INFINITY OFTrue
++#define DCMTK_DOUBLE_INFINITY *OFreinterpret_cast( const double*, "\000\000\000\000\000\000\360\177" )
++#define DCMTK_FLOAT_HAS_QUIET_NAN OFTrue
++#define DCMTK_FLOAT_QUIET_NAN *OFreinterpret_cast( const float*, "\000\000\300\177" )
++#define DCMTK_DOUBLE_HAS_QUIET_NAN OFTrue
++#define DCMTK_DOUBLE_QUIET_NAN *OFreinterpret_cast( const double*, "\000\000\000\000\000\000\370\177" )
++#define DCMTK_FLOAT_HAS_SIGNALING_NAN OFFalse
++#define DCMTK_FLOAT_SIGNALING_NAN *OFreinterpret_cast( const float*, "\001\000\200\177" )
++#define DCMTK_DOUBLE_HAS_SIGNALING_NAN OFFalse
++#define DCMTK_DOUBLE_SIGNALING_NAN *OFreinterpret_cast( const double*, "\001\000\000\000\000\000\360\177" )
++#define DCMTK_FLOAT_IS_IEC559 OFFalse
++#define DCMTK_DOUBLE_IS_IEC559 OFFalse
++#define DCMTK_FLOAT_HAS_DENORM OFdenorm_present
++#define DCMTK_FLOAT_DENORM_MIN *OFreinterpret_cast( const float*, "\001\000\000\000" )
++#define DCMTK_DOUBLE_HAS_DENORM OFdenorm_present
++#define DCMTK_DOUBLE_DENORM_MIN *OFreinterpret_cast( const double*, "\001\000\000\000\000\000\000\000" )
++#define DCMTK_FLOAT_TINYNESS_BEFORE OFTrue
++#define DCMTK_DOUBLE_TINYNESS_BEFORE OFTrue
++#define DCMTK_FLOAT_HAS_DENORM_LOSS OFTrue
++#define DCMTK_DOUBLE_HAS_DENORM_LOSS OFTrue
++#define DCMTK_ROUND_STYLE 1
++
++#endif // CONFIG_ARITH_H
+diff -Naur dcmtk-DCMTK-3.6.8/ofstd/libsrc/ofipc.cc dcmtk-DCMTK-3.6.8_new/ofstd/libsrc/ofipc.cc
+--- dcmtk-DCMTK-3.6.8/ofstd/libsrc/ofipc.cc	2023-12-19 18:12:57.000000000 +0800
++++ dcmtk-DCMTK-3.6.8_new/ofstd/libsrc/ofipc.cc	2024-08-07 14:29:24.712416208 +0800
+@@ -308,7 +308,7 @@
+   // construct name of unix domain socket
+   char port_str[12];
+   OFStandard::snprintf(port_str, sizeof(port_str), "%lu", OFstatic_cast(unsigned long, port));
+-  queue_name_ = "/tmp/";
++  queue_name_ = "/data/storage/el2/base/temp/";
+   queue_name_ += name;
+   queue_name_ += "_";
+   queue_name_ += port_str;
+@@ -799,7 +799,7 @@
+   // construct name of unix domain socket
+   char port_str[12];
+   OFStandard::snprintf(port_str, sizeof(port_str), "%lu", OFstatic_cast(unsigned long, port));
+-  OFString socketname = "/tmp/";
++  OFString socketname = "/data/storage/el2/base/temp/";
+   socketname += name;
+   socketname += "_";
+   socketname += port_str;
+diff -Naur dcmtk-DCMTK-3.6.8/dcmdata/tests/tparser.cc dcmtk-DCMTK-3.6.8_new/dcmdata/tests/tparser.cc
+--- dcmtk-DCMTK-3.6.8/dcmdata/tests/tparser.cc	2023-12-19 18:12:57.000000000 +0800
++++ dcmtk-DCMTK-3.6.8_new/dcmdata/tests/tparser.cc	2024-08-07 16:39:05.312403753 +0800
+@@ -259,7 +259,7 @@
+     OFCondition cond;
+     DcmElement *elem;
+     Uint8 buf[bytesToRead];
+-    OFTempFile temp;
++    OFTempFile temp(O_RDWR,"/data/local/tmp","",".tmp");
+ 
+     if (temp.getStatus().bad())
+     {
+diff -Naur dcmtk-DCMTK-3.6.8/dcmect/tests/t_roundtrip.cc dcmtk-DCMTK-3.6.8_new/dcmect/tests/t_roundtrip.cc
+--- dcmtk-DCMTK-3.6.8/dcmect/tests/t_roundtrip.cc	2023-12-19 18:12:57.000000000 +0800
++++ dcmtk-DCMTK-3.6.8_new/dcmect/tests/t_roundtrip.cc	2024-08-07 16:53:37.322418350 +0800
+@@ -110,7 +110,7 @@
+     checkCreatedObject(dset_dump);
+ 
+     // Save to disk, and re-load to test import
+-    OFTempFile tf;
++    OFTempFile tf(O_RDWR,"/data/local/tmp","",".tmp");
+     OFString temp_fn = tf.getFilename();
+     OFCHECK(!temp_fn.empty());
+     OFCHECK(ct->saveFile(temp_fn.c_str(), EXS_LittleEndianExplicit).good());
+@@ -453,7 +453,7 @@
+     {
+         OFStringStream s;
+         s << "concat_" << n << "_";
+-        OFTempFile tf(O_RDWR, "", s.str().c_str(), ".dcm");
++        OFTempFile tf(O_RDWR, "/data/local/tmp/", s.str().c_str(), ".dcm");
+         result = cc.writeNextInstance(tf.getFilename());
+         OFCHECK(result.good());
+         if (result.good())
+diff -Naur dcmtk-DCMTK-3.6.8/dcmseg/tests/troundtrip.cc dcmtk-DCMTK-3.6.8_new/dcmseg/tests/troundtrip.cc
+--- dcmtk-DCMTK-3.6.8/dcmseg/tests/troundtrip.cc	2024-08-08 10:14:20.162284203 +0800
++++ dcmtk-DCMTK-3.6.8_new/dcmseg/tests/troundtrip.cc	2024-08-08 10:10:44.012283660 +0800
+@@ -80,7 +80,7 @@
+     checkCreatedObject(dset_dump);
+ 
+     // Save to disk, and re-load to test import
+-    OFTempFile tf;
++    OFTempFile tf(O_RDWR,"/data/local/tmp","",".tmp");
+     OFString temp_fn = tf.getFilename();
+     OFCHECK(!temp_fn.empty());
+     OFCHECK(seg->saveFile(temp_fn.c_str(), EXS_LittleEndianExplicit).good());
+@@ -267,7 +267,7 @@
+     {
+         OFStringStream s;
+         s << "concat_" << n << "_";
+-        OFTempFile tf(O_RDWR, "", s.str().c_str(), ".dcm");
++        OFTempFile tf(O_RDWR, "/data/local/tmp", s.str().c_str(), ".dcm");
+         result = cc.writeNextInstance(tf.getFilename());
+         OFCHECK(result.good());
+         if (result.good())

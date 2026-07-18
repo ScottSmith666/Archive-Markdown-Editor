@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libzmq",
+        "License": "MPL-2.0",
+        "License File": "https://github.com/zeromq/libzmq/blob/master/LICENSE",
+        "Version Number": "v4.8.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/zeromq/libzmq",
+        "Description": "A library which extends the standard socket interfaces with features traditionally provided by specialised messaging middleware products."
+    }
+]

@@ -1,0 +1,84 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Ding Qian <1052888395@qq.com>
+# Maintainer: Ding Qian <1052888395@qq.com>
+
+pkgname=libmediasoupclient
+pkgver=3.4.0
+pkgrel=0
+pkgdesc="C++ client side library for building mediasoup based applications."
+url="https://github.com/versatica/libmediasoupclient"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("ISC License")
+depends=()
+makedepends=()
+source="https://github.com/versatica/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+buildtools="cmake"
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 增加编译开关,默认关闭webrtc开关.若后期支持,则在编译选项中增加两个开关即可MEDIASOUPCLIENT_SUPPORT_WEBRTC=ON SUPPORT_WEBRTC_TEST=ON
+        # 当前webtrc不支持，需要剔除掉关于webtrc的依赖
+        patch -p1 < `pwd`/../libmediasoupclient_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1 
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ];then
+        cp -af $OHOS_SDK/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir/$ARCH-build/
+    elif [ $ARCH == "arm64-v8a" ];then
+        cp -af $OHOS_SDK/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir/$ARCH-build/
+    else
+        echo "$ARCH not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build 
+}
+

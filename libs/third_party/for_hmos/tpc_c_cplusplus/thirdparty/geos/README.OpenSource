@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "geos",
+        "License": "LGPL-2.1-only",
+        "License File": "https://github.com/libgeos/geos/blob/3.11.2/COPYING",
+        "Version Number": "3.11.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libgeos/geos/archive/refs/tags/3.11.2.tar.gz",
+        "Description": "GEOS is a C++ library for performing operations on two-dimensional vector geometries. It is primarily a port of the JTS Topology Suite Java library. It provides many of the algorithms used by PostGIS, the Shapely package for Python, the sf package for R, and others."
+    }
+]

@@ -1,0 +1,48 @@
+# Contributor: TangShaoteng <tangshaoteng@163.com>
+# Maintainer: TangShaoteng <tangshaoteng@163.com>
+
+pkgname=libvorbis
+pkgver=v1.3.7
+pkgrel=0
+pkgdesc="Reference implementation of the Ogg Vorbis audio format."
+url="https://www.xiph.org/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("BSD-3-Clause")
+depends=("libogg")
+makedepends=()
+
+source="https://github.com/xiph/vorbis/releases/download/$pkgver/$pkgname-${pkgver:1}.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

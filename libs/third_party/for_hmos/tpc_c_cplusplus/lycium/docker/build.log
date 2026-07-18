@@ -1,0 +1,67 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.47kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:22.04
+#2 DONE 2.2s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [ 1/15] FROM docker.io/library/ubuntu:22.04@sha256:a6d2b38300ce017add71440577d5b0a90460d0e57fd7aec21dd0d1b0761bbfb2
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 34B done
+#5 DONE 0.0s
+
+#6 [ 6/15] RUN apt install -y --reinstall ca-certificates
+#6 CACHED
+
+#7 [ 5/15] RUN apt update
+#7 CACHED
+
+#8 [ 4/15] RUN ln -snf /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime && echo "Asia/Hong_Kong" > /etc/timezone
+#8 CACHED
+
+#9 [ 7/15] RUN apt update
+#9 CACHED
+
+#10 [10/15] RUN mkdir -p /data/bin
+#10 CACHED
+
+#11 [11/15] WORKDIR /data/bin
+#11 CACHED
+
+#12 [ 9/15] RUN pip3 install meson==1.1.1
+#12 CACHED
+
+#13 [ 2/15] COPY sources.list /etc/apt
+#13 CACHED
+
+#14 [12/15] RUN curl -L https://cmake.org/files/v3.26/cmake-3.26.4-linux-x86_64.tar.gz --output cmake-3.26.4-linux-x86_64.tar.gz
+#14 CACHED
+
+#15 [ 3/15] RUN cat /etc/apt/sources.list
+#15 CACHED
+
+#16 [ 8/15] RUN apt install -y curl git vim gcc g++ make pkg-config autoconf automake patch libtool autopoint gperf     tcl8.6-dev wget unzip gccgo-go flex bison premake4 python3 python3-pip ninja-build meson sox gfortran     subversion build-essential module-assistant gcc-multilib g++-multilib libltdl7-dev cabextract     libboost-all-dev libxml2-utils gettext libxml-libxml-perl libxml2 libxml2-dev libxml-parser-perl     texinfo xmlto po4a libtool-bin yasm nasm xutils-dev libx11-dev xtrans-dev
+#16 CACHED
+
+#17 [13/15] RUN tar -zxf cmake-3.26.4-linux-x86_64.tar.gz
+#17 CACHED
+
+#18 [14/15] RUN mkdir -p /data/ohos
+#18 DONE 0.3s
+
+#19 [15/15] WORKDIR /data
+#19 DONE 0.0s
+
+#20 exporting to image
+#20 exporting layers 0.0s done
+#20 writing image sha256:3754668c2ce1a08e2f127d8a39296f34d12d581f5f7f49b44042e78e92bfef8d done
+#20 naming to docker.io/library/lycium_ubuntu22 done
+#20 DONE 0.0s

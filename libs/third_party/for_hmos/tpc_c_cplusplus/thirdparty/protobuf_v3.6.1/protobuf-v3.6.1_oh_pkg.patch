@@ -1,0 +1,17 @@
+diff -Nur protobuf-3.6.1/cmake/CMakeLists.txt protobuf-3.6.1_patch/cmake/CMakeLists.txt
+--- protobuf-3.6.1/cmake/CMakeLists.txt	2018-07-28 04:30:28.000000000 +0800
++++ protobuf-3.6.1_patch/cmake/CMakeLists.txt	2023-07-14 10:11:53.661304913 +0800
+@@ -15,11 +15,11 @@
+ # Project
+ project(protobuf C CXX)
+ 
+-# Add c++11 flags
++# Add c++14 flags
+ if (CYGWIN)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+ else()
+-  set(CMAKE_CXX_STANDARD 11)
++  set(CMAKE_CXX_STANDARD 14)
+   set(CMAKE_CXX_STANDARD_REQUIRED ON)
+   set(CMAKE_CXX_EXTENSIONS OFF)
+ endif()

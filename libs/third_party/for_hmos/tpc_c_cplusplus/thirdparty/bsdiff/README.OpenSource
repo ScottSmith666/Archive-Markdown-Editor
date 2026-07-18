@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "bsdiff",
+        "License": "BSD-2-Clause",
+        "License File": "https://github.com/mendsley/bsdiff/blob/master/LICENSE",
+        "Version Number": "b817e9491cf7b8699c8462ef9e2657ca4ccd7667",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/mendsley/bsdiff",
+        "Description": "bsdiff and bspatch are libraries for building and applying patches to binary files."
+    },
+    {
+    "Name": "Bzip2",
+    "License": "bzip2",
+    "License File": "https://sourceforge.net/p/bzip2/bzip2/ci/master/tree/LICENSE",
+    "Version Number": "1.0.6",
+    "Owner": "xiafeng@huawei.com",
+    "Upstream URL": "https://sourceforge.net/projects/bzip2/files/bzip2-1.0.6.tar.gz",
+    "Description": "bzip2 is a freely available, patent free (see below), high-quality data compressor. It typically compresses files to within 10% to 15% of the best available techniques (the PPM family of statistical compressors), whilst being around twice as fast at compression and six times faster at decompression."
+  }
+]

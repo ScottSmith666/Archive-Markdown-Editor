@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "filesystem",
+        "License": "MIT License",
+        "License File": "https://github.com/gulrak/filesystem/blob/v1.5.14/LICENSE",
+        "Version Number": "1.5.14",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/gulrak/filesystem/archive/refs/tags/v1.5.14.tar.gz",
+        "Description": "A C++ library for filesystem"
+    }
+]

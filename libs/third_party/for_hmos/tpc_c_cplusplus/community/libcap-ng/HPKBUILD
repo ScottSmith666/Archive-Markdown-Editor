@@ -1,0 +1,109 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: lixingyang<lixingyang15@h-partners.com>
+# Maintainer: lixingyang<lixingyang15@h-partners.com>
+
+pkgname=libcap-ng
+pkgver=v0.9.2
+pkgrel=0
+pkgdesc="A library for Linux Capabilities (Next Generation)"
+url="https://people.redhat.com/sgrubb/libcap-ng/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("LGPL-2.1-or-later")
+depends=()
+
+# source=https://github.com/stevegrubb/libcap-ng/archive/refs/tags/v${pkgver}.tar.gz 因网络原因使用镜像
+
+source=https://gitee.com/mirrors/libcap-ng/repository/archive/${pkgver}.zip
+
+autounpack=true
+downloadpackage=true
+
+builddir=libcap-ng-${pkgver}
+packagename=$builddir.zip
+buildtools="configure"
+
+source envset.sh
+host=
+
+prepare() {
+
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    return 0
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    # 创建 README 符号链接
+    [ -f README ] || ln -sf README.md README
+    # 生成 configure 脚本
+    ./autogen.sh || autoreconf -i -f
+    # 强制禁用 Python 绑定
+    export PYTHON=no
+    export am_cv_path_PYTHON=no
+    export am_cv_python_pyexecdir=no
+    export ac_cv_prog_SWIG=no
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host --without-python3 --disable-deprecated > $buildlog 2>&1
+    unset PYTHON am_cv_path_PYTHON am_cv_python_pyexecdir ac_cv_prog_SWIG
+
+    $MAKE V=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    fi
+    unset host
+    return $ret
+}
+
+check() {
+    echo "libcap-ng check skipped for OpenHarmony"
+}
+
+cleanbuild() {
+    rm -rf ${builddir}*
+}

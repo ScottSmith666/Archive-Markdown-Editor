@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "dcmtk",
+        "License": "Apache-2.0 or BSD-3-Clause",
+        "License File": "https://github.com/DCMTK/dcmtk/blob/DCMTK-3.6.8/COPYRIGHT",
+        "Version Number": "3.6.8",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/dcmtk/dcmtk",
+        "Description": "DCMTK It provides the ability to process and manipulate DICOM format data"
+    },
+    {
+        "Name": "jpeg",
+        "License": "IJG",
+        "License File": "https://www.ijg.org/files/README",
+        "Version Number": "v9e",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "http://www.ijg.org/files/jpegsrc.v9e.tar.gz",
+        "Description": "IJG is an informal group that writes and distributes a widely used free library for JPEG image compression"
+    }
+]

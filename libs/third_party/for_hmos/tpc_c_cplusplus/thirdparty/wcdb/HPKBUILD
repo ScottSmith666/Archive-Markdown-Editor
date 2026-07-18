@@ -1,0 +1,104 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zws <zhouwusong05@chinasoftinc.com>
+# Maintainer: zws <zhouwusong05@chinasoftinc.com>
+
+pkgname=wcdb
+pkgver=v2.1.14
+pkgrel=0
+pkgdesc="WCDB is a cross-platform database framework developed by WeChat."
+url="https://github.com/Tencent/wcdb"
+archs=( "arm64-v8a" "x86_64" "armeabi-v7a")
+license=("MIT")
+depends=("openssl" "zlib")
+source="https://github.com/Tencent/$pkgname.git"
+downloadpackage=false
+autounpack=false
+cloneflag=true
+patchflag=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $cloneflag
+    then # --recurse-submodules
+        git clone -b $pkgver $source $builddir > $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            echo "$pkgname git clone $source error."
+            return -1
+        fi
+        cd $builddir
+        git submodule update --init --recursive >> $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            echo "$pkgname git submodule update error."
+            return -2
+        fi
+        cloneflag=false
+        cd $OLDPWD
+    fi
+    if $patchflag
+    then
+        cd $builddir
+        mkdir -p tools/prebuild/openssl/ohos/
+        cp -rf $LYCIUM_ROOT/usr/openssl/* tools/prebuild/openssl/ohos/
+        mkdir -p tools/prebuild/zlib/ohos/
+        cp -rf $LYCIUM_ROOT/usr/zlib/* tools/prebuild/zlib/ohos/
+        # 预编译二进制配置和添加测试用例文件
+        patch -p1 < $PKGBUILD_ROOT/wcdb_oh_pkg.patch > $publicbuildlog 2>&1
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DCMAKE_C_FLAGS="-Wl,-Bsymbolic" \
+	-DCMAKE_CXX_FLAGS="-Wl,-Bsymbolic" -B$ARCH-build -S./src > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    mkdir -p $LYCIUM_ROOT/usr/wcdb/$ARCH/include
+    cp --parents $(find "./src/cpp" -type f -name "*.h") $LYCIUM_ROOT/usr/wcdb/$ARCH/include
+    cp --parents $(find "./src/cpp" -type f -name "*.hpp") $LYCIUM_ROOT/usr/wcdb/$ARCH/include
+    mkdir -p $LYCIUM_ROOT/usr/wcdb/$ARCH/lib
+    cp $ARCH-build/libWCDB.so $LYCIUM_ROOT/usr/wcdb/$ARCH/lib
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "x86_64" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/x86_64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    fi
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

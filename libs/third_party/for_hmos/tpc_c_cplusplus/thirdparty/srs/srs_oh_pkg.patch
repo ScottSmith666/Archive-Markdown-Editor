@@ -1,0 +1,151 @@
+diff --git a/trunk/3rdparty/srt-1-fit/configure-data.tcl b/trunk/3rdparty/srt-1-fit/configure-data.tcl
+index eace99d..e63402b 100644
+--- a/trunk/3rdparty/srt-1-fit/configure-data.tcl
++++ b/trunk/3rdparty/srt-1-fit/configure-data.tcl
+@@ -203,6 +203,10 @@ proc GetCompilerCommand {} {
+ 
+ 	if { [info exists ::optval(--with-compiler-prefix)] } {
+ 		set prefix $::optval(--with-compiler-prefix)
++		set plen [string length $prefix]
++		if { [string range $prefix $plen-5 end] == "clang" || [string range $prefix $plen-7 end] == "clang++" } {
++			return $prefix
++		}
+ 		return ${prefix}$compiler
+ 	} else {
+ 		return $compiler
+diff --git a/trunk/3rdparty/srt-1-fit/srtcore/sync_posix.cpp b/trunk/3rdparty/srt-1-fit/srtcore/sync_posix.cpp
+index c44fe86..e1c81f0 100644
+--- a/trunk/3rdparty/srt-1-fit/srtcore/sync_posix.cpp
++++ b/trunk/3rdparty/srt-1-fit/srtcore/sync_posix.cpp
+@@ -393,7 +393,7 @@ srt::sync::CThread& srt::sync::CThread::operator=(CThread& other)
+         LOGC(inlog.Error, log << "IPE: Assigning to a thread that is not terminated!");
+ 
+ #ifndef DEBUG
+-#ifndef __ANDROID__
++#if !defined(__ANDROID__) && !defined(__OHOS__)
+         // In case of production build the hanging thread should be terminated
+         // to avoid hang ups and align with C++11 implementation.
+         // There is no pthread_cancel on Android. See #1476. This error should not normally
+diff --git a/trunk/auto/depends.sh b/trunk/auto/depends.sh
+index 6a38a23..42795dd 100755
+--- a/trunk/auto/depends.sh
++++ b/trunk/auto/depends.sh
+@@ -244,7 +244,7 @@ fi
+ # state-threads
+ #####################################################################################
+ # check the cross build flag file, if flag changed, need to rebuild the st.
+-_ST_MAKE=linux-debug && _ST_OBJ="LINUX_`uname -r`_DBG"
++_ST_MAKE=linux-optimized && _ST_OBJ="LINUX_`uname -r`_OPT"
+ # Always alloc on heap, @see https://github.com/ossrs/srs/issues/509#issuecomment-719931676
+ _ST_EXTRA_CFLAGS="-DMALLOC_STACK"
+ # For valgrind to detect memory issues.
+@@ -598,6 +598,9 @@ if [[ $SRS_FFMPEG_FIT == YES ]]; then
+             cd ${SRS_OBJS}/${SRS_PLATFORM}/ffmpeg-4-fit &&
+             $FFMPEG_CONFIGURE --prefix=${SRS_DEPENDS_LIBS}/${SRS_PLATFORM}/3rdparty/ffmpeg \
+                 --pkg-config=pkg-config --pkg-config-flags='--static' --extra-libs='-lpthread' --extra-libs='-lm' \
++                --extra-ldflags=-L$OHOS_SDK/native/sysroot/usr/lib/$SRS_CROSS_BUILD_ARCH-linux-ohos \
++                --ranlib=$OHOS_SDK/native/llvm/bin/llvm-ranlib \
++                --nm=$OHOS_SDK/native/llvm/bin/llvm-nm \
+                 ${FFMPEG_OPTIONS}
+         ) &&
+         # See https://www.laoyuyu.me/2019/05/23/android/clang_compile_ffmpeg/
+@@ -608,7 +611,7 @@ if [[ $SRS_FFMPEG_FIT == YES ]]; then
+           # For MIPS, which fail with:
+           #     ./libavutil/libm.h:54:32: error: static declaration of 'cbrt' follows non-static declaration
+           #     /root/openwrt/staging_dir/toolchain-mipsel_24kc_gcc-8.4.0_musl/include/math.h:163:13: note: previous declaration of 'cbrt' was here
+-          if [[ $SRS_CROSS_BUILD_ARCH == "mipsel" || $SRS_CROSS_BUILD_ARCH == "arm" ]]; then
++          if [[ $SRS_CROSS_BUILD_ARCH == "mipsel" || $SRS_CROSS_BUILD_ARCH == "arm" || $SRS_CROSS_BUILD_ARCH == "aarch64" ]]; then
+             sed -i -e 's/#define HAVE_CBRT 0/#define HAVE_CBRT 1/g'         ${SRS_OBJS}/${SRS_PLATFORM}/ffmpeg-4-fit/config.h &&
+             sed -i -e 's/#define HAVE_CBRTF 0/#define HAVE_CBRTF 1/g'       ${SRS_OBJS}/${SRS_PLATFORM}/ffmpeg-4-fit/config.h &&
+             sed -i -e 's/#define HAVE_COPYSIGN 0/#define HAVE_COPYSIGN 1/g' ${SRS_OBJS}/${SRS_PLATFORM}/ffmpeg-4-fit/config.h &&
+@@ -688,6 +691,10 @@ if [[ $SRS_SRT == YES ]]; then
+         fi
+         echo "Build srt-1-fit" &&
+         rm -rf ${SRS_OBJS}/${SRS_PLATFORM}/srt-1-fit ${SRS_OBJS}/${SRS_PLATFORM}/3rdparty/srt ${SRS_OBJS}/srt &&
++        mkdir -p ${SRS_OBJS}/srt/bin &&
++        mkdir -p ${SRS_OBJS}/srt/include &&
++        mkdir -p ${SRS_OBJS}/srt/lib &&
++        LIBSRT_OPTIONS="$LIBSRT_OPTIONS --with-compiler-type=clang --with-compiler-prefix=${SRT_COMPILER_PREFIX%clang*} --with-target-path=${SRS_DEPENDS_LIBS}/srt" &&
+         cp -rf ${SRS_WORKDIR}/3rdparty/srt-1-fit ${SRS_OBJS}/${SRS_PLATFORM}/ &&
+         (
+             cd ${SRS_OBJS}/${SRS_PLATFORM}/srt-1-fit &&
+diff --git a/trunk/auto/options.sh b/trunk/auto/options.sh
+index e5028b5..8cfebc5 100755
+--- a/trunk/auto/options.sh
++++ b/trunk/auto/options.sh
+@@ -493,11 +493,16 @@ function apply_auto_options() {
+         if [[ $SRS_CROSS_BUILD_PREFIX == "" ]]; then
+             SRS_CROSS_BUILD_PREFIX="${SRS_CROSS_BUILD_HOST}-"
+         fi
+-        SRS_TOOL_CC=${SRS_CROSS_BUILD_PREFIX}gcc
+-        SRS_TOOL_CXX=${SRS_CROSS_BUILD_PREFIX}g++
+-        SRS_TOOL_AR=${SRS_CROSS_BUILD_PREFIX}ar
+-        SRS_TOOL_LD=${SRS_CROSS_BUILD_PREFIX}ld
+-        SRS_TOOL_RANDLIB=${SRS_CROSS_BUILD_PREFIX}randlib
++        if [[ ${SRS_TOOL_CC: -5} == "clang" ]] || [[ ${SRS_TOOL_CXX: -7} == "clang++" ]]
++        then
++            echo "use clang tools"
++        else
++            SRS_TOOL_CC=${SRS_CROSS_BUILD_PREFIX}gcc
++            SRS_TOOL_CXX=${SRS_CROSS_BUILD_PREFIX}g++
++            SRS_TOOL_AR=${SRS_CROSS_BUILD_PREFIX}ar
++            SRS_TOOL_LD=${SRS_CROSS_BUILD_PREFIX}ld
++            SRS_TOOL_RANDLIB=${SRS_CROSS_BUILD_PREFIX}randlib
++        fi
+         if [[ $SRS_CROSS_BUILD_ARCH == "" ]]; then
+             echo $SRS_TOOL_CC| grep arm >/dev/null 2>&1 && SRS_CROSS_BUILD_ARCH="arm"
+             echo $SRS_TOOL_CC| grep aarch64 >/dev/null 2>&1 && SRS_CROSS_BUILD_ARCH="aarch64"
+@@ -523,7 +528,7 @@ function apply_auto_options() {
+     # @see https://github.com/ossrs/srs/issues/3347
+     if [[ $SRS_SANITIZER == NO && $OS_IS_CENTOS != YES ]]; then
+         echo "Enable asan by auto options."
+-        SRS_SANITIZER=YES
++        #SRS_SANITIZER=YES
+     fi
+ 
+     # If enable gperf, disable sanitizer.
+diff --git a/trunk/etc/init.d/srs b/trunk/etc/init.d/srs
+index 371b450..7ad15eb 100755
+--- a/trunk/etc/init.d/srs
++++ b/trunk/etc/init.d/srs
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/usr/bin/bash
+ 
+ ### BEGIN INIT INFO
+ # Provides:          ossrs(srs)
+@@ -53,7 +53,7 @@ load_process_info() {
+     srs_pid=`cat $pid_file 2>/dev/null`
+     ret=$?; if [[ 0 -ne $ret ]]; then error_msg="No pid file $pid_file"; return 1; fi
+     
+-    ps -p ${srs_pid} >/dev/null 2>/dev/null
++    ps -p ${srs_pid} | grep srs >/dev/null 2>/dev/null
+     ret=$?; if [[ 0 -ne $ret ]]; then error_msg="Process $srs_pid does not exists"; return 2; fi
+     
+     return 0;
+diff --git a/trunk/src/app/srs_app_hls.cpp b/trunk/src/app/srs_app_hls.cpp
+index 268f48b..7ac45df 100644
+--- a/trunk/src/app/srs_app_hls.cpp
++++ b/trunk/src/app/srs_app_hls.cpp
+@@ -1413,7 +1413,7 @@ void SrsHls::hls_show_mux_log()
+     // the run time is not equals to stream time,
+     // @see: https://github.com/ossrs/srs/issues/81#issuecomment-48100994
+     // it's ok.
+-    srs_trace("-> " SRS_CONSTS_LOG_HLS " time=%dms, sno=%d, ts=%s, dur=%dms, dva=%dp",
++    srs_trace("-> " SRS_CONSTS_LOG_HLS " time=%lldms, sno=%d, ts=%s, dur=%dms, dva=%dp",
+               pprint->age(), controller->sequence_no(), controller->ts_url().c_str(),
+               srsu2msi(controller->duration()), controller->deviation());
+ }
+diff --git a/trunk/src/app/srs_app_threads.cpp b/trunk/src/app/srs_app_threads.cpp
+index bbf2a40..dbfc3e0 100644
+--- a/trunk/src/app/srs_app_threads.cpp
++++ b/trunk/src/app/srs_app_threads.cpp
+@@ -49,7 +49,7 @@ using namespace std;
+ 
+ // These functions first appeared in glibc in version 2.12.
+ // See https://man7.org/linux/man-pages/man3/pthread_setname_np.3.html
+-#if defined(SRS_CYGWIN64) || (defined(SRS_CROSSBUILD) && ((__GLIBC__ < 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 12)))
++#if defined(SRS_CYGWIN64) || (defined(SRS_CROSSBUILD) && ((__GLIBC__ < 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 12))) && !defined(__OHOS__)
+     void pthread_setname_np(pthread_t trd, const char* name) {
+     }
+ #endif

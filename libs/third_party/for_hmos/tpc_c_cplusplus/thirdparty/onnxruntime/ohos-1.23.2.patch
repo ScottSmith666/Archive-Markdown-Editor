@@ -1,0 +1,683 @@
+diff --git a/build.sh b/build.sh
+index bf799ac..b3cfdac 100755
+--- a/build.sh
++++ b/build.sh
+@@ -16,6 +16,8 @@ if [[ "$*" == *"--ios"* ]]; then
+     DIR_OS="iOS"
+ elif [[ "$*" == *"--android"* ]]; then
+     DIR_OS="Android"
++elif [[ "$*" == *"--ohos"* ]]; then
++    DIR_OS="OHOS"
+ fi
+ 
+ python3 $DIR/tools/ci_build/build.py --build_dir $DIR/build/$DIR_OS "$@"
+diff --git a/tools/ci_build/build.py b/tools/ci_build/build.py
+index d34c762..128b9f8 100644
+--- a/tools/ci_build/build.py
++++ b/tools/ci_build/build.py
+@@ -836,6 +836,34 @@ def generate_build_tree(
+         if args.android_cpp_shared:
+             cmake_args += ["-DANDROID_STL=c++_shared"]
+ 
++    # OpenHarmony
++    if args.ohos:
++        cmake_args += [
++            f"-DOHOS_ARCH={args.ohos_abi}",
++            "-DCMAKE_TOOLCHAIN_FILE=" + args.ohos_toolchain_path,
++            "-DCMAKE_SKIP_RPATH=ON",
++            "-DCMAKE_SKIP_INSTALL_RPATH=ON",
++            "-DCMAKE_SHARED_LINKER_FLAGS=-s",
++            "-DCMAKE_EXE_LINKER_FLAGS=-s",
++        ]
++        if args.ohos_abi == "armeabi-v7a" :
++            cmake_args += [
++                "-DCMAKE_ASM_FLAGS=-mfloat-abi=softfp",
++                "-DCMAKE_CXX_FLAGS=-mfloat-abi=softfp -fstack-protector-all",
++                "-DCMAKE_C_FLAGS=-mfloat-abi=softfp -fstack-protector-all",
++            ]
++        elif args.ohos_abi == "arm64-v8a" :
++            cmake_args += [
++                "-DCMAKE_ASM_FLAGS=-march=armv8.6-a",
++                "-DCMAKE_CXX_FLAGS=-march=armv8.6-a -fstack-protector-all",
++                "-DCMAKE_C_FLAGS=-march=armv8.6-a -fstack-protector-all",
++            ]
++        elif args.ohos_abi == "x86_64" :
++            cmake_args += [
++                "-DCMAKE_C_FLAGS=-fstack-protector-all",
++                "-DCMAKE_CXX_FLAGS=-fstack-protector-all"
++             ]
++
+     if is_macOS() and not args.android:
+         add_default_definition(cmake_extra_defines, "CMAKE_OSX_ARCHITECTURES", args.osx_arch)
+         # Code sign the binaries, if the code signing development identity and/or team id are provided
+diff --git a/tools/ci_build/build_args.py b/tools/ci_build/build_args.py
+index c42f8e3..22f42fa 100644
+--- a/tools/ci_build/build_args.py
++++ b/tools/ci_build/build_args.py
+@@ -285,6 +285,18 @@ def add_android_args(parser: argparse.ArgumentParser) -> None:
+         "--android_run_emulator", action="store_true", help="Start an Android emulator if needed for tests."
+     )
+ 
++def add_ohos_args(parser: argparse.ArgumentParser) -> None:
++    "Adds arguments for Android platform builds."
++    parser.add_argument("--ohos", action="store_true", help="Build for Openharmony")
++    parser.add_argument("--ohos_abi",
++        default="arm64-v8a",
++        choices=["armeabi-v7a", "arm64-v8a", "x86_64"],
++        help="Target Open Harmony ABI",
++    )
++    parser.add_argument("--ohos_sdk", type=str, default=os.environ.get("OHOS_SDK", ""), help="Path to Open Harmony SDK")
++    parser.add_argument("--ohos_cmake_path", type=str, default="", help="Path to OpenHarmony cross-compiling cmake")
++    parser.add_argument("--ohos_ctest_path", type=str, default="", help="Path to OpenHarmony cross-compiling ctest")
++    parser.add_argument("--ohos_toolchain_path", type=str, default="", help="Path to OpenHarmony cmake toolchain file")
+ 
+ def add_apple_args(parser: argparse.ArgumentParser) -> None:
+     """Adds arguments for Apple platform builds (iOS, macOS, visionOS, tvOS)."""
+@@ -835,6 +847,7 @@ def parse_arguments() -> argparse.Namespace:
+     add_documentation_args(parser)
+     add_cross_compile_args(parser)  # Non-Windows cross-compile args
+     add_android_args(parser)
++    add_ohos_args(parser)
+     add_webassembly_args(parser)
+     add_dependency_args(parser)
+     add_extension_args(parser)
+@@ -873,6 +886,28 @@ def parse_arguments() -> argparse.Namespace:
+     if args.android_ndk_path:
+         args.android_ndk_path = os.path.normpath(args.android_ndk_path)
+ 
++    # Cross-compilation path configuration for the OpenHarmony platform
++    if args.ohos:
++        if args.ohos_sdk == "" :
++            parser.error("Cross-compiling for the OpenHarmony platform requires both ohos and ohos_sdk to be set.")
++        else:
++            print(args.ohos_sdk)
++            args.ohos_sdk = os.path.normpath(args.ohos_sdk)
++            print(args.ohos_sdk)
++            if args.ohos_cmake_path == "" :
++                args.ohos_cmake_path = os.path.join(args.ohos_sdk, "native/build-tools/cmake/bin/cmake")
++            if args.ohos_ctest_path == "" :
++                args.ohos_ctest_path = os.path.join(args.ohos_sdk, "native/build-tools/cmake/bin/ctest")
++            if args.ohos_toolchain_path == "" :
++                args.ohos_toolchain_path = os.path.join(args.ohos_sdk, "native/build/cmake/ohos.toolchain.cmake")
++            print(args.ohos_cmake_path)
++            print(args.ohos_ctest_path)
++            print(args.ohos_toolchain_path)
++            # Typically, cross-compilation produces libraries for multiple target platforms.
++            args.build_dir = os.path.join(args.build_dir, args.ohos_abi)
++            args.cmake_path = args.ohos_cmake_path
++            args.ctest_path = args.ohos_ctest_path
++
+     # Handle WASM exception logic
+     if args.enable_wasm_api_exception_catching:
+         args.disable_wasm_exception_catching = True  # Catching at API level implies disabling broader catching
+diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
+index 0b37ade..0a7200f 100644
+--- a/cmake/CMakeLists.txt
++++ b/cmake/CMakeLists.txt
+@@ -39,6 +39,11 @@ else()
+ set(CMAKE_CXX_STANDARD 17)
+ endif()
+ 
++if(OHOS_ARCH STREQUAL "armeabi-v7a" AND CMAKE_SYSTEM_NAME STREQUAL "OHOS" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "arm")
++set(CMAKE_SYSTEM_PROCESSOR armv7-a)
++message(WARNING "change ohos CMAKE_SYSTEM_PROCESSOR='${CMAKE_SYSTEM_PROCESSOR}'")
++endif()
++
+ if (MSVC)
+   #  Make sure Visual Studio sets __cplusplus macro correctly: https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
+@@ -596,14 +601,27 @@ else()
+   endif()
+   check_function_exists(reallocarray HAS_REALLOCARRAY)
+   if (NOT APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten" AND onnxruntime_target_platform STREQUAL "aarch64")
+-   check_cxx_compiler_flag(-march=armv8.2-a+bf16 HAS_ARM64_BFLOAT16)
+-   if(NOT HAS_ARM64_BFLOAT16)
+-     message(FATAL_ERROR  "The compiler doesn't support BFLOAT16!!!")
+-   endif()
+-   check_cxx_compiler_flag(-march=armv8.2-a+fp16 HAS_ARM64_FLOAT16)
+-   if(NOT HAS_ARM64_FLOAT16)
+-     message(FATAL_ERROR  "The compiler doesn't support FLOAT16!!!")
+-   endif()
++    if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++      # HarmonyOS aarch64 requires ARMv8.6 as the minimum architecture version
++      # to support BFloat16 (BF16) and Float16 (FP16) instructions.
++      check_cxx_compiler_flag(-march=armv8.6-a+bf16 HAS_ARM64_BFLOAT16)
++      if(NOT HAS_ARM64_BFLOAT16)
++        message(FATAL_ERROR  "The compiler doesn't support BFLOAT16!!!")
++      endif()
++      check_cxx_compiler_flag(-march=armv8.6-a+fp16 HAS_ARM64_FLOAT16)
++      if(NOT HAS_ARM64_FLOAT16)
++        message(FATAL_ERROR  "The compiler doesn't support FLOAT16!!!")
++      endif()
++    else()
++      check_cxx_compiler_flag(-march=armv8.2-a+bf16 HAS_ARM64_BFLOAT16)
++      if(NOT HAS_ARM64_BFLOAT16)
++        message(FATAL_ERROR  "The compiler doesn't support BFLOAT16!!!")
++      endif()
++      check_cxx_compiler_flag(-march=armv8.2-a+fp16 HAS_ARM64_FLOAT16)
++      if(NOT HAS_ARM64_FLOAT16)
++        message(FATAL_ERROR  "The compiler doesn't support FLOAT16!!!")
++      endif()
++    endif()
+   endif()
+   if (HAS_TAUTOLOGICAL_POINTER_COMPARE)
+     #we may have extra null pointer checkings in debug build, it's not an issue
+@@ -660,13 +678,28 @@ if (onnxruntime_USE_KLEIDIAI AND (
+ 
+   # TODO Add checks for MSVC Compilation
+   if(NOT MSVC)
+-    check_cxx_compiler_flag(-march=armv8.2-a+dotprod HAS_ARM64_DOTPROD)
+-    check_cxx_compiler_flag(-march=armv8.2-a+i8mm HAS_ARM64_I8MM)
+-    if (NOT HAS_ARM64_DOTPROD)
+-      message(FATAL_ERROR "The compiler doesn't support dotprod")
+-    endif()
+-    if (NOT HAS_ARM64_I8MM)
+-      message(FATAL_ERROR "The compiler doesn't support i8mm")
++    if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++      # HarmonyOS requires ARMv8.6-A as the minimum architecture version with the 
++      # following extensions to enable KleidiAI optimization:
++      # - dotprod: Dot product instructions for accelerated matrix multiplication
++      # - i8mm: 8-bit integer matrix multiply extension for quantized model inference
++      check_cxx_compiler_flag(-march=armv8.6-a+dotprod HAS_ARM64_DOTPROD)
++      check_cxx_compiler_flag(-march=armv8.6-a+i8mm HAS_ARM64_I8MM)
++      if (NOT HAS_ARM64_DOTPROD)
++        message(FATAL_ERROR "The compiler doesn't support dotprod")
++      endif()
++      if (NOT HAS_ARM64_I8MM)
++        message(FATAL_ERROR "The compiler doesn't support i8mm")
++      endif()
++    else()
++      check_cxx_compiler_flag(-march=armv8.2-a+dotprod HAS_ARM64_DOTPROD)
++      check_cxx_compiler_flag(-march=armv8.2-a+i8mm HAS_ARM64_I8MM)
++      if (NOT HAS_ARM64_DOTPROD)
++        message(FATAL_ERROR "The compiler doesn't support dotprod")
++      endif()
++      if (NOT HAS_ARM64_I8MM)
++        message(FATAL_ERROR "The compiler doesn't support i8mm")
++      endif()
+     endif()
+   else()
+     message(STATUS "Skipping -march= checks on MSVC (not supported), assuming dotprod/i8mm support manually.")
+@@ -1107,6 +1140,10 @@ function(onnxruntime_set_compile_flags target_name)
+       if (CMAKE_CXX_COMPILER_ID STREQUAL "IBMClang")
+         target_compile_options(${target_name} PRIVATE "-Wno-unused-function")
+       endif()
++      if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++        # Suppress "unused command line argument" warnings from the HarmonyOS toolchain
++        target_compile_options(${target_name} PRIVATE "-Wno-unused-command-line-argument")
++      endif()
+     endif()
+     foreach(ORT_FLAG ${ORT_PROVIDER_FLAGS})
+       target_compile_definitions(${target_name} PRIVATE ${ORT_FLAG})
+@@ -1589,7 +1626,7 @@ endif()
+ # check if we need to link against librt on Linux
+ include(CheckLibraryExists)
+ include(CheckFunctionExists)
+-if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
++if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "OHOS")
+   check_library_exists(rt clock_gettime "time.h" HAVE_CLOCK_GETTIME)
+ 
+   if (NOT HAVE_CLOCK_GETTIME)
+diff --git a/cmake/onnxruntime_common.cmake b/cmake/onnxruntime_common.cmake
+index d927489..711efac 100644
+--- a/cmake/onnxruntime_common.cmake
++++ b/cmake/onnxruntime_common.cmake
+@@ -219,6 +219,15 @@ elseif(NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+     elseif (CMAKE_ANDROID_ARCH_ABI STREQUAL "x86")
+       set(X86 TRUE)
+     endif()
++  elseif (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++    message(STATUS "run onnxruntime_target_platform ${onnxruntime_target_platform}")
++    if (onnxruntime_target_platform STREQUAL "aarch64")
++      set(ARM64 TRUE)
++    elseif (onnxruntime_target_platform STREQUAL "armv7-a")
++      set(ARM TRUE)
++    elseif (onnxruntime_target_platform STREQUAL "x86_64")
++      set(X86_64 TRUE)
++    endif()
+   else()
+     execute_process(
+       COMMAND ${CMAKE_C_COMPILER} -dumpmachine
+diff --git a/cmake/onnxruntime_mlas.cmake b/cmake/onnxruntime_mlas.cmake
+index 3530ab0..53bfe6f 100644
+--- a/cmake/onnxruntime_mlas.cmake
++++ b/cmake/onnxruntime_mlas.cmake
+@@ -435,10 +435,18 @@ else()
+         if (onnxruntime_USE_KLEIDIAI)
+           setup_kleidiai()
+         endif()
+-        set_source_files_properties(${MLAS_SRC_DIR}/sqnbitgemm_kernel_neon_int8.cpp
+-                                    PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+dotprod")
+-        set_source_files_properties(${MLAS_SRC_DIR}/sqnbitgemm_kernel_neon_int8_i8mm.cpp 
+-				    PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+i8mm ")
++
++        if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++          set_source_files_properties(${MLAS_SRC_DIR}/sqnbitgemm_kernel_neon_int8.cpp
++                                      PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+dotprod")
++          set_source_files_properties(${MLAS_SRC_DIR}/sqnbitgemm_kernel_neon_int8_i8mm.cpp 
++				      PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+i8mm ")
++        else()
++          set_source_files_properties(${MLAS_SRC_DIR}/sqnbitgemm_kernel_neon_int8.cpp
++                                      PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+dotprod")
++          set_source_files_properties(${MLAS_SRC_DIR}/sqnbitgemm_kernel_neon_int8_i8mm.cpp 
++				      PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+i8mm ")
++        endif()
+ 
+         if (NOT APPLE)
+           set(mlas_platform_srcs
+@@ -461,20 +469,37 @@ else()
+             ${MLAS_SRC_DIR}/softmax_kernel_neon_fp16.cpp
+             ${MLAS_SRC_DIR}/eltwise_kernel_neon_fp16.cpp
+           )
+-          set_source_files_properties(${MLAS_SRC_DIR}/aarch64/HalfGemmKernelNeon.S PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/aarch64/QgemmS8S8KernelSmmla.S PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+i8mm ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/aarch64/QgemmU8X8KernelUmmla.S PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+i8mm ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/aarch64/SbgemmKernelNeon.S PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+bf16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/activate_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/dwconv.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/pooling_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/sbgemm_kernel_neon.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+bf16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/cast_kernel_neon.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/hqnbitgemm_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/rotary_embedding_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/halfgemm_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/softmax_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
+-          set_source_files_properties(${MLAS_SRC_DIR}/eltwise_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++          if (CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++            set_source_files_properties(${MLAS_SRC_DIR}/aarch64/HalfGemmKernelNeon.S PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/aarch64/QgemmS8S8KernelSmmla.S PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+i8mm ")
++            set_source_files_properties(${MLAS_SRC_DIR}/aarch64/QgemmU8X8KernelUmmla.S PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+i8mm ")
++            set_source_files_properties(${MLAS_SRC_DIR}/aarch64/SbgemmKernelNeon.S PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+bf16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/activate_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/dwconv.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/pooling_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/sbgemm_kernel_neon.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+bf16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/cast_kernel_neon.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/hqnbitgemm_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/rotary_embedding_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/halfgemm_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/softmax_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/eltwise_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.6-a+fp16 ")
++          else()
++            set_source_files_properties(${MLAS_SRC_DIR}/aarch64/HalfGemmKernelNeon.S PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/aarch64/QgemmS8S8KernelSmmla.S PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+i8mm ")
++            set_source_files_properties(${MLAS_SRC_DIR}/aarch64/QgemmU8X8KernelUmmla.S PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+i8mm ")
++            set_source_files_properties(${MLAS_SRC_DIR}/aarch64/SbgemmKernelNeon.S PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+bf16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/activate_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/dwconv.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/pooling_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/sbgemm_kernel_neon.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+bf16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/cast_kernel_neon.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/hqnbitgemm_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/rotary_embedding_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/halfgemm_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/softmax_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++            set_source_files_properties(${MLAS_SRC_DIR}/eltwise_kernel_neon_fp16.cpp PROPERTIES COMPILE_FLAGS " -march=armv8.2-a+fp16 ")
++          endif()
+         endif()
+ 
+         if(ONNXRUNTIME_MLAS_MULTI_ARCH)
+@@ -655,7 +680,7 @@ else()
+           ${MLAS_SRC_DIR}/rotary_embedding_kernel_avx2.cpp
+           ${MLAS_SRC_DIR}/rotary_embedding_kernel_avx2.cpp
+         )
+-        if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 13.1 AND NOT(APPLE))
++        if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 13.1 AND NOT(APPLE) AND NOT(OHOS))
+           set(mlas_platform_srcs_avx2
+             ${mlas_platform_srcs_avx2}
+             ${MLAS_SRC_DIR}/x86_64/cvtfp16Avx.S
+diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
+index 3189b64..13633a8 100644
+--- a/cmake/external/onnxruntime_external_deps.cmake
++++ b/cmake/external/onnxruntime_external_deps.cmake
+@@ -209,7 +209,7 @@ set(protobuf_BUILD_TESTS OFF CACHE BOOL "Build protobuf tests" FORCE)
+ #set(protobuf_INSTALL OFF CACHE BOOL "Install protobuf binaries and files" FORCE)
+ set(protobuf_USE_EXTERNAL_GTEST ON CACHE BOOL "" FORCE)
+ 
+-if (ANDROID)
++if (ANDROID OR OHOS)
+   set(protobuf_WITH_ZLIB OFF CACHE BOOL "Build protobuf with zlib support" FORCE)
+ endif()
+ 
+@@ -382,6 +382,20 @@ if (CPUINFO_SUPPORTED)
+         PATCH_COMMAND ${Patch_EXECUTABLE} -p1 < ${PROJECT_SOURCE_DIR}/patches/cpuinfo/9bb12d342fd9479679d505d93a478a6f9cd50a47.patch
+         FIND_PACKAGE_ARGS NAMES cpuinfo
+       )
++  elseif (CMAKE_SYSTEM_NAME STREQUAL "OHOS" AND
++         (onnxruntime_target_platform STREQUAL "armv7-a" OR
++          onnxruntime_target_platform STREQUAL "aarch64" OR
++          onnxruntime_target_platform STREQUAL "x86_64"
++          ))
++      message(STATUS "Applying a patch for OHOS in cpuinfo")
++      onnxruntime_fetchcontent_declare(
++        pytorch_cpuinfo
++        URL ${DEP_URL_pytorch_cpuinfo}
++        URL_HASH SHA1=${DEP_SHA1_pytorch_cpuinfo}
++        EXCLUDE_FROM_ALL
++        PATCH_COMMAND ${Patch_EXECUTABLE} -p1 < ${PROJECT_SOURCE_DIR}/patches/cpuinfo/ohos_cpuinfo.patch
++        FIND_PACKAGE_ARGS NAMES cpuinfo
++      )
+   else()
+       onnxruntime_fetchcontent_declare(
+         pytorch_cpuinfo
+diff --git a/onnxruntime/core/common/cpuid_info.cc b/onnxruntime/core/common/cpuid_info.cc
+index 6c66047..f608217 100644
+--- a/onnxruntime/core/common/cpuid_info.cc
++++ b/onnxruntime/core/common/cpuid_info.cc
+@@ -159,7 +159,7 @@ void CPUIDInfo::X86Init() {
+         CheckIntelResult check_intel = CheckIntel();
+         if (check_intel.is_intel) {
+ #ifdef __linux__
+-#if !defined(__ANDROID__)
++#if !defined(__ANDROID__) && !defined(__OHOS__)
+           has_tpause_ = __builtin_cpu_supports("waitpkg") != 0;
+ #endif
+ #else
+diff --git a/onnxruntime/core/common/cpuid_info_vendor.cc b/onnxruntime/core/common/cpuid_info_vendor.cc
+index d4d940e..e0e89b3 100644
+--- a/onnxruntime/core/common/cpuid_info_vendor.cc
++++ b/onnxruntime/core/common/cpuid_info_vendor.cc
+@@ -198,7 +198,7 @@ constexpr std::array kCpuVendorInfos{
+     CpuVendorInfo{cpuinfo_vendor_nvidia, "Nvidia", 0x10DE},
+     CpuVendorInfo{cpuinfo_vendor_apple, "Apple", 0x106B},
+     CpuVendorInfo{cpuinfo_vendor_arm, "ARM", 0x13B5},
+-
++    CpuVendorInfo{cpuinfo_vendor_huawei, "Huawei", 0x48},
+     // TODO add more as needed
+ };
+ 
+diff --git a/onnxruntime/core/common/spin_pause.cc b/onnxruntime/core/common/spin_pause.cc
+index 329f3f1..45d2ff5 100644
+--- a/onnxruntime/core/common/spin_pause.cc
++++ b/onnxruntime/core/common/spin_pause.cc
+@@ -34,7 +34,7 @@ void SpinPause() {
+   if (has_tpause) {
+ #if defined(_WIN32)
+     _tpause(0x0, __rdtsc() + tpause_spin_delay_cycles);
+-#elif defined(__linux__)
++#elif defined(__linux__) && !defined(__OHOS__)
+     __builtin_ia32_tpause(0x0, __rdtsc() + tpause_spin_delay_cycles);
+ #else
+     _mm_pause();
+diff --git a/onnxruntime/core/mlas/lib/qgemm.h b/onnxruntime/core/mlas/lib/qgemm.h
+index 596267c..d7c1a41 100644
+--- a/onnxruntime/core/mlas/lib/qgemm.h
++++ b/onnxruntime/core/mlas/lib/qgemm.h
+@@ -883,9 +883,19 @@ MlasGemmQuantGetDispatch(
+         GemmQuantDispatch = GetMlasPlatform().GemmU8U8Dispatch;
+     }
+ #elif defined(MLAS_TARGET_ARM64EC) || (defined(MLAS_TARGET_ARM) && !defined(_MSC_VER))
++#if defined(__OHOS__) && defined(__arm__)
++    /*
++        OpenHarmony ARMv7a: When both A and B are S8,
++        NEON accumulator overflow occurs, leading to incorrect results.
++    */
++    if (!(AIsSigned && BIsSigned) && (BIsSigned || !AIsSigned)) {
++        GemmQuantDispatch = &MlasGemmU8X8DispatchNeon;
++    }
++#else
+     if(BIsSigned || !AIsSigned) {
+         GemmQuantDispatch = &MlasGemmU8X8DispatchNeon;
+     }
++#endif
+ #elif defined(MLAS_TARGET_WASM_RELAXED_SIMD)
+     if (!AIsSigned) {
+         if (HasUSDot()) {
+diff --git a/onnxruntime/core/mlas/lib/qladd.cpp b/onnxruntime/core/mlas/lib/qladd.cpp
+index 5dafa17..a9229e5 100644
+--- a/onnxruntime/core/mlas/lib/qladd.cpp
++++ b/onnxruntime/core/mlas/lib/qladd.cpp
+@@ -331,12 +331,34 @@ MlasQLinearAddKernelHelper(
+             i8x8 = SUI::vget_high_i8(vc);
+         }
+         if (N & 4) {
++#if defined(__OHOS__) && defined(__arm__)
++            if (reinterpret_cast<uintptr_t>(OutputC) % 4 == 0) {
++                vst1_lane_u32_ex((uint32_t*)OutputC, SUI::vreinterpret_u32_i8(i8x8), 0, 8);
++            } else {
++                uint32_t temp;
++                memcpy(&temp, OutputC, sizeof(uint32_t));
++                vst1_lane_u32(&temp, SUI::vreinterpret_u32_i8(i8x8), 0);
++                memcpy(OutputC, &temp, sizeof(uint32_t));
++            }
++#else
+             vst1_lane_u32_ex((uint32_t*)OutputC, SUI::vreinterpret_u32_i8(i8x8), 0, 8);
++#endif
+             OutputC += 4;
+             i8x8 = SUI::template vext_i8<4>(i8x8, i8x8);
+         }
+         if (N & 2) {
++#if defined(__OHOS__) && defined(__arm__)
++            if (reinterpret_cast<uintptr_t>(OutputC) % 4 == 0) {
++                vst1_lane_u16_ex((uint16_t*)OutputC, SUI::vreinterpret_u16_i8(i8x8), 0, 8);
++            } else {
++                uint16_t temp_value;
++                memcpy(&temp_value, OutputC, sizeof(uint16_t));
++                vst1_lane_u16_ex(&temp_value, SUI::vreinterpret_u16_i8(i8x8), 0, 8);
++                memcpy(OutputC, &temp_value, sizeof(uint16_t));
++            }
++#else
+             vst1_lane_u16_ex((uint16_t*)OutputC, SUI::vreinterpret_u16_i8(i8x8), 0, 8);
++#endif
+             OutputC += 2;
+             i8x8 = SUI::template vext_i8<2>(i8x8, i8x8);
+         }
+diff --git a/onnxruntime/core/optimizer/common_subexpression_elimination.cc b/onnxruntime/core/optimizer/common_subexpression_elimination.cc
+index 8f78f9c..ba596d1 100644
+--- a/onnxruntime/core/optimizer/common_subexpression_elimination.cc
++++ b/onnxruntime/core/optimizer/common_subexpression_elimination.cc
+@@ -186,7 +186,11 @@ bool AreScalarTensorAttributeEqual(const ONNX_NAMESPACE::TensorProto& lhs_t, con
+   const void* rhs_value = rhs_t.raw_data().data();
+   switch (lhs_t.data_type()) {
+     case onnx::TensorProto_DataType_FLOAT:
++#if defined(__OHOS__) && defined(__arm__)
++      return lhs_t.raw_data() == rhs_t.raw_data();
++#else
+       return *reinterpret_cast<const float*>(lhs_value) == *reinterpret_cast<const float*>(rhs_value);
++#endif
+     case onnx::TensorProto_DataType_FLOAT16:
+       return *reinterpret_cast<const MLFloat16*>(lhs_value) == *reinterpret_cast<const MLFloat16*>(rhs_value);
+     case onnx::TensorProto_DataType_INT64:
+@@ -243,7 +247,11 @@ std::size_t GetTensorAttributeHash(const ONNX_NAMESPACE::TensorProto& attr_t) {
+     switch (data_type) {
+       case onnx::TensorProto_DataType_FLOAT:
+         UpdateHash(data_type, hash);
++#if defined(__OHOS__) && defined(__arm__)
++        UpdateHash(attr_t.raw_data(), hash);
++#else
+         UpdateHash(*reinterpret_cast<const float*>(attr_t.raw_data().data()), hash);
++#endif
+         break;
+       case onnx::TensorProto_DataType_FLOAT16:
+         UpdateHash(data_type, hash);
+diff --git a/onnxruntime/core/platform/posix/env.cc b/onnxruntime/core/platform/posix/env.cc
+index fed697e..27d677f 100644
+--- a/onnxruntime/core/platform/posix/env.cc
++++ b/onnxruntime/core/platform/posix/env.cc
+@@ -202,7 +202,7 @@ class PosixThread : public EnvThread {
+   static void* ThreadMain(void* param) {
+     std::unique_ptr<Param> p(static_cast<Param*>(param));
+     ORT_TRY {
+-#if !defined(__APPLE__) && !defined(__ANDROID__) && !defined(__wasm__) && !defined(_AIX)
++#if !defined(__APPLE__) && !defined(__ANDROID__) && !defined(__wasm__) && !defined(_AIX) && !defined(__OHOS__)
+       if (p->affinity.has_value() && !p->affinity->empty()) {
+         cpu_set_t cpuset;
+         CPU_ZERO(&cpuset);
+diff --git a/onnxruntime/test/contrib_ops/sampling_test.cc b/onnxruntime/test/contrib_ops/sampling_test.cc
+index 69789b8..7502f77 100644
+--- a/onnxruntime/test/contrib_ops/sampling_test.cc
++++ b/onnxruntime/test/contrib_ops/sampling_test.cc
+@@ -17,7 +17,7 @@ extern std::unique_ptr<Ort::Env> ort_env;
+ namespace onnxruntime {
+ namespace test {
+ 
+-#if defined(__linux__) && !defined(__ANDROID__)
++#if defined(__linux__) && !defined(__ANDROID__) && !defined(__OHOS__)
+ #if defined(USE_CUDA) || defined(USE_ROCM)
+ TEST(SamplingTest, Gpt2Sampling_GPU) {
+   std::vector<int32_t> input_ids{
+diff --git a/onnxruntime/test/framework/sparse_kernels_test.cc b/onnxruntime/test/framework/sparse_kernels_test.cc
+index 43de3a9..553f00d 100644
+--- a/onnxruntime/test/framework/sparse_kernels_test.cc
++++ b/onnxruntime/test/framework/sparse_kernels_test.cc
+@@ -1072,9 +1072,19 @@ static void RawSparseDataChecker(gsl::span<const T> expected_values,
+                                  gsl::span<const int64_t> expected_indicies,
+                                  const SparseTensorProto& actual) {
+   const int64_t actual_size = ActualSize(actual);
+-
++#if defined(__OHOS__) && defined(__arm__)
++  /*
++   On OpenHarmony for ARMv7a, the returned address may not be properly aligned.
++   ARMv7a requires aligned memory access; unaligned access triggers a SIGBUS (signal 7) crash.
++   Therefore, we must copy the data to an aligned buffer.
++  */
++  auto raw_data = std::make_unique<T[]>(actual_size);
++  memcpy(raw_data.get(), actual.values().raw_data().data(), sizeof(T) * actual_size);
++  auto actual_span = gsl::make_span<const T>(raw_data.get(), actual_size);
++#else
+   const T* raw_data = reinterpret_cast<const T*>(actual.values().raw_data().data());
+   auto actual_span = gsl::make_span<const T>(raw_data, actual_size);
++#endif
+ 
+   ASSERT_THAT(actual_span, testing::ContainerEq(expected_values));
+ 
+diff --git a/onnxruntime/test/providers/cpu/generator/random_test.cc b/onnxruntime/test/providers/cpu/generator/random_test.cc
+index a923df2..6072460 100644
+--- a/onnxruntime/test/providers/cpu/generator/random_test.cc
++++ b/onnxruntime/test/providers/cpu/generator/random_test.cc
+@@ -256,7 +256,7 @@ TEST(Random, MultinomialGoodCase) {
+   const std::vector<int64_t> output_dims{batch_size, num_samples};
+ #ifdef _WIN32
+   const std::vector<int64_t> expected_output{2, 0, 0, 2, 2, 2, 0, 2, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 2, 0};
+-#elif defined(__MACH__) || defined(__ANDROID__) || defined(__FreeBSD__) || defined(__wasm__) || (defined(_AIX) && defined(__clang__))
++#elif defined(__MACH__) || defined(__ANDROID__) || defined(__FreeBSD__) || defined(__wasm__) || (defined(_AIX) && defined(__clang__)) || defined(__OHOS__)
+   const std::vector<int64_t> expected_output{1, 1, 2, 2, 0, 2, 2, 2, 0, 2, 1, 1, 2, 0, 2, 2, 0, 2, 1, 1};
+ #else
+   const std::vector<int64_t> expected_output{2, 0, 0, 1, 0, 1, 2, 0, 1, 0, 0, 1, 1, 0, 1, 0, 2, 0, 2, 0};
+@@ -294,7 +294,7 @@ TEST(Random, MultinomialDefaultDType) {
+ #ifdef _WIN32
+   const std::vector<int32_t> expected_output_1{2, 0, 0, 2, 2, 2, 0, 2, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 2, 0};
+   const std::vector<int32_t> expected_output_2{0, 0, 1, 0, 2, 2, 2, 0, 2, 1, 2, 1, 0, 2, 0, 2, 2, 1, 2, 1};
+-#elif defined(__MACH__) || defined(__ANDROID__) || defined(__FreeBSD__) || defined(__wasm__) || (defined(_AIX) && defined(__clang__))
++#elif defined(__MACH__) || defined(__ANDROID__) || defined(__FreeBSD__) || defined(__wasm__) || (defined(_AIX) && defined(__clang__)) || defined(__OHOS__)
+   const std::vector<int32_t> expected_output_1{1, 1, 2, 2, 0, 2, 2, 2, 0, 2, 1, 1, 2, 0, 2, 2, 0, 2, 1, 1};
+   const std::vector<int32_t> expected_output_2{1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 2, 0, 1, 1, 0, 2, 2, 2, 1};
+ #else
+diff --git a/cmake/patches/cpuinfo/ohos_cpuinfo.patch b/cmake/patches/cpuinfo/ohos_cpuinfo.patch
+new file mode 100644
+index 0000000..4e4d806
+--- /dev/null
++++ b/cmake/patches/cpuinfo/ohos_cpuinfo.patch
+@@ -0,0 +1,112 @@
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -108,7 +108,7 @@
++       "Target operating system is not specified. "
++       "cpuinfo will compile, but cpuinfo_initialize() will always fail.")
++   SET(CPUINFO_SUPPORTED_PLATFORM FALSE)
++-ELSEIF(NOT CMAKE_SYSTEM_NAME MATCHES "^(Windows|WindowsStore|CYGWIN|MSYS|Darwin|Linux|Android|FreeBSD)$")
+++ELSEIF(NOT CMAKE_SYSTEM_NAME MATCHES "^(Windows|WindowsStore|CYGWIN|MSYS|Darwin|Linux|Android|OHOS|FreeBSD)$")
++   IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14" AND NOT IS_APPLE_OS)
++     MESSAGE(WARNING
++       "Target operating system \"${CMAKE_SYSTEM_NAME}\" is not supported in cpuinfo. "
++@@ -173,7 +173,7 @@
++       src/x86/cache/init.c
++       src/x86/cache/descriptor.c
++       src/x86/cache/deterministic.c)
++-    IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+++    IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++       LIST(APPEND CPUINFO_SRCS
++         src/x86/linux/init.c
++         src/x86/linux/cpuinfo.c)
++@@ -192,7 +192,7 @@
++     LIST(APPEND CPUINFO_SRCS
++       src/arm/uarch.c
++       src/arm/cache.c)
++-    IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+++    IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++       LIST(APPEND CPUINFO_SRCS
++         src/arm/linux/init.c
++         src/arm/linux/cpuinfo.c
++@@ -202,7 +202,8 @@
++         src/arm/linux/hwcap.c)
++       IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^armv[5-8]")
++         LIST(APPEND CPUINFO_SRCS src/arm/linux/aarch32-isa.c)
++-        IF(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI STREQUAL "armeabi")
+++        IF(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI STREQUAL "armeabi" OR
+++           CMAKE_SYSTEM_NAME STREQUAL "OHOS" AND OHOS_ARCH STREQUAL "armebai-v7a")
++           SET_SOURCE_FILES_PROPERTIES(src/arm/linux/aarch32-isa.c PROPERTIES COMPILE_FLAGS -marm)
++         ENDIF()
++       ELSEIF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
++@@ -231,7 +232,7 @@
++       src/emscripten/init.c)
++   ENDIF()
++ 
++-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++     LIST(APPEND CPUINFO_SRCS
++       src/linux/smallfile.c
++       src/linux/multiline.c
++@@ -243,7 +244,7 @@
++     LIST(APPEND CPUINFO_SRCS src/freebsd/topology.c)
++   ENDIF()
++ 
++-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++     SET(CMAKE_THREAD_PREFER_PTHREAD TRUE)
++     SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
++     FIND_PACKAGE(Threads REQUIRED)
++@@ -303,7 +304,7 @@
++ 
++ IF(CPUINFO_SUPPORTED_PLATFORM)
++   TARGET_COMPILE_DEFINITIONS(cpuinfo INTERFACE CPUINFO_SUPPORTED_PLATFORM=1)
++-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++     TARGET_LINK_LIBRARIES(cpuinfo PUBLIC ${CMAKE_THREAD_LIBS_INIT})
++     TARGET_LINK_LIBRARIES(cpuinfo_internals PUBLIC ${CMAKE_THREAD_LIBS_INIT})
++     TARGET_COMPILE_DEFINITIONS(cpuinfo PRIVATE _GNU_SOURCE=1)
++@@ -347,7 +348,7 @@
++       "${CONFU_DEPENDENCIES_BINARY_DIR}/googlebenchmark")
++   ENDIF()
++ 
++-  IF(CMAKE_SYSTEM_NAME MATCHES "^(Linux|Android)$")
+++  IF(CMAKE_SYSTEM_NAME MATCHES "^(Linux|Android|OHOS)$")
++     ADD_EXECUTABLE(get-current-bench bench/get-current.cc)
++     TARGET_LINK_LIBRARIES(get-current-bench cpuinfo benchmark)
++   ENDIF()
++@@ -376,7 +377,7 @@
++   IF(CPUINFO_TARGET_PROCESSOR MATCHES "^(i[3-6]86|AMD64|x86(_64)?)$")
++     LIST(APPEND CPUINFO_MOCK_SRCS src/x86/mockcpuid.c)
++   ENDIF()
++-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++     LIST(APPEND CPUINFO_MOCK_SRCS src/linux/mockfile.c)
++   ENDIF()
++ 
++@@ -389,7 +390,7 @@
++   TARGET_COMPILE_DEFINITIONS(cpuinfo_mock PUBLIC "CPUINFO_MOCK=1")
++   TARGET_COMPILE_DEFINITIONS(cpuinfo_mock PRIVATE "CPUINFO_LOG_LEVEL=5")
++   TARGET_COMPILE_DEFINITIONS(cpuinfo_mock PRIVATE "CPUINFO_LOG_TO_STDIO=1")
++-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++     TARGET_LINK_LIBRARIES(cpuinfo_mock PUBLIC ${CMAKE_THREAD_LIBS_INIT})
++     TARGET_COMPILE_DEFINITIONS(cpuinfo_mock PRIVATE _GNU_SOURCE=1)
++   ENDIF()
++@@ -814,7 +815,7 @@
++   TARGET_LINK_LIBRARIES(init-test PRIVATE cpuinfo gtest gtest_main)
++   ADD_TEST(NAME init-test COMMAND init-test)
++ 
++-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++     ADD_EXECUTABLE(get-current-test test/get-current.cc)
++     CPUINFO_TARGET_ENABLE_CXX11(get-current-test)
++     CPUINFO_TARGET_RUNTIME_LIBRARY(get-current-test)
++@@ -878,7 +879,7 @@
++   TARGET_LINK_LIBRARIES(cache-info PRIVATE cpuinfo)
++   INSTALL(TARGETS cache-info RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
++ 
++-  IF(CMAKE_SYSTEM_NAME MATCHES "^(Android|Linux)$" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv[5-8].*|aarch64)$")
+++  IF(CMAKE_SYSTEM_NAME MATCHES "^(Android|Linux|OHOS)$" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv[5-8].*|aarch64)$")
++     ADD_EXECUTABLE(auxv-dump tools/auxv-dump.c)
++     CPUINFO_TARGET_ENABLE_C99(auxv-dump)
++     CPUINFO_TARGET_RUNTIME_LIBRARY(auxv-dump)

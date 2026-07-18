@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "srs",
+        "License": "MIT License",
+        "License File": "https://github.com/ossrs/srs/blob/develop/LICENSE",
+        "Version Number": "v6.0-d0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/ossrs/srs/releases/download/v6.0-d0/srs-server-6.0-d0.tar.gz",
+        "Description": "SRS is a simple, high efficiency and realtime video server, supports RTMP/WebRTC/HLS/HTTP-FLV/SRT."
+    },
+    {
+        "Name": "FFmpge",
+        "License": "GPL2/GPL3/LGPL3 license",
+        "License File": "https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md",
+        "Version Number": "n6.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n6.0.tar.gz",
+        "Description": "FFmpeg is a collection of libraries and tools to process multimedia content such as audio, video, subtitles and related metadata."
+    }
+]

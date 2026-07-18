@@ -1,0 +1,51 @@
+# Contributor: chengkan <kanchengc@isoftstone.com>
+# Maintainer: chengkan <kanchengc@isoftstone.com>
+pkgname=ngtcp2
+pkgver=v0.16.0
+pkgrel=0
+pkgdesc="ngtcp2 project is an effort to implement RFC9000 QUIC protocol"
+url="https://github.com/ngtcp2/ngtcp2"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=("CUnit" "openssl_quic" "nghttp3")
+makedepends=()
+
+source="https://github.com/ngtcp2/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # ohos的cmake 3.16 版本不支持 CMakeCCompiler.cmake:45:set(CMAKE_C_BYTE_ORDER "LITTLE_ENDIAN") 这个变量，所以使用编译机3.26版本的cmake
+    cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    # main是ngtcp2的单元测试程序 需要一起编译出来
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1 && make VERBOSE=1 -j4 main -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 设置LD_LIBRARY_PATH环境变量
+    # ctest测试
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

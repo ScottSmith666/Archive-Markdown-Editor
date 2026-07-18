@@ -1,0 +1,36 @@
+diff -urN PROJ-9.4.1/src/filemanager.cpp PROJ-9.4.1_new/src/filemanager.cpp
+--- PROJ-9.4.1/src/filemanager.cpp	2024-05-28 03:08:24.000000000 +0800
++++ PROJ-9.4.1_new/src/filemanager.cpp	2024-08-07 15:25:31.036571265 +0800
+@@ -1198,7 +1198,7 @@
+                 path = std::string(home) + "/.local/share";
+ #endif
+             } else {
+-                path = "/tmp";
++                path = "/data/storage/el2/base/temp/";
+             }
+         }
+ #endif
+diff -urN PROJ-9.4.1/test/unit/proj_context_test.cpp PROJ-9.4.1_new/test/unit/proj_context_test.cpp
+--- PROJ-9.4.1/test/unit/proj_context_test.cpp	2024-05-28 03:08:24.000000000 +0800
++++ PROJ-9.4.1_new/test/unit/proj_context_test.cpp	2024-08-07 15:31:33.111247167 +0800
+@@ -182,7 +182,7 @@
+ // ---------------------------------------------------------------------------
+ 
+ TEST(proj_context, proj_context_set_ca_bundle_path) {
+-    std::string dirname("/tmp/dummmy/path/cacert.pem");
++    std::string dirname("/data/local/tmp/dummmy/path/cacert.pem");
+     auto ctx = proj_context_create();
+     proj_context_set_ca_bundle_path(ctx, dirname.c_str());
+     ASSERT_EQ(ctx->ca_bundle_path, dirname);
+diff -urN PROJ-9.4.1/test/unit/test_c_api.cpp PROJ-9.4.1_new/test/unit/test_c_api.cpp
+--- PROJ-9.4.1/test/unit/test_c_api.cpp	2024-05-28 03:08:24.000000000 +0800
++++ PROJ-9.4.1_new/test/unit/test_c_api.cpp	2024-08-07 15:26:22.247890394 +0800
+@@ -4664,7 +4664,7 @@
+         tempdir = getenv("TMP");
+     }
+     if (!tempdir) {
+-        tempdir = "/tmp";
++        tempdir = "/data/local/tmp";
+     }
+     std::string tmp_filename(std::string(tempdir) +
+                              "/test_proj_context_set_autoclose_database.db");

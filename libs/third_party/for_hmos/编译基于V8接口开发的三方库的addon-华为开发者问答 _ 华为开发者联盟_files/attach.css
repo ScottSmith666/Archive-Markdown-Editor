@@ -1,0 +1,13 @@
+.attachment-upload.file-upload + .info-tip {
+  display: flex;
+  padding: 10px 0;
+}
+.attachment-upload.file-upload + .info-tip .perfix-tip {
+  margin-right: 4px;
+}
+.attachment-upload.file-upload + .info-tip .perfix-tip,
+.attachment-upload.file-upload + .info-tip .content .format-size,
+.attachment-upload.file-upload + .info-tip .content .zip-format {
+  color: #cccccc;
+  font-size: 12px;
+}

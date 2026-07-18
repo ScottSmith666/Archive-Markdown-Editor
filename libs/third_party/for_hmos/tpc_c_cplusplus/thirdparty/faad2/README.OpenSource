@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "faad2",
+        "License": "GPL-2.0-only",
+        "License File": "https://github.com/knik0/faad2/blob/master/COPYING",
+        "Version Number": "2.10.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/knik0/faad2/archive/refs/tags/2.10.1.tar.gz",
+        "Description": "FAAD2 is a HE, LC, MAIN and LTP profile, MPEG2 and MPEG-4 AAC decoder"
+    }
+]

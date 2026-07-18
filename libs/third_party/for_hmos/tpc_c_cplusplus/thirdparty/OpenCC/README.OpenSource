@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "OpenCC",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/BYVoid/OpenCC/blob/master/LICENSE",
+        "Version Number": "ver.1.1.9",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/BYVoid/OpenCC/archive/refs/tags/ver.1.1.9.tar.gz",
+        "Description": "Open Chinese Convert (OpenCC, 開放中文轉換) is an opensource project for conversions between Traditional Chinese, Simplified Chinese and Japanese Kanji (Shinjitai)."
+    }
+]

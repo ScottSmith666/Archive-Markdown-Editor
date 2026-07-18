@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl.org/source/license-openssl-ssleay.txt",
+        "Version Number": "3.4.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/openssl-3.4.0.tar.gz",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    }
+]

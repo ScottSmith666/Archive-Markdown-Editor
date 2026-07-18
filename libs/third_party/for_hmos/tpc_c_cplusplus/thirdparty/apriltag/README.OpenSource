@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "apriltag",
+        "License": "BSD 2-Clause License",
+        "License File": "https://github.com/AprilRobotics/apriltag/blob/master/LICENSE.md",
+        "Version Number": "v3.4.2",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/AprilRobotics/apriltag/archive/refs/tags/v3.4.2.tar.gz",
+        "Description": "AprilTag is a visual fiducial system popular in robotics research."
+    }
+]

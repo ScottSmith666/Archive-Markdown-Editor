@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "eigen",
+        "License": "MPL-2.0",
+        "License File": "https://www.mozilla.org/en-US/MPL/2.0/",
+        "Version Number": "3.4.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz",
+        "Description": "Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms."
+    }
+]

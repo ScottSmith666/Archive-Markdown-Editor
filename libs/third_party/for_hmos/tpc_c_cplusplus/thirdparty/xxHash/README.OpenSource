@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "xxHash",
+        "License": "BSD licensed",
+        "License File": "https://github.com/Cyan4973/xxHash/blob/dev/LICENSE",
+        "Version Number": "v0.8.1",
+        "Owner": "1596268623@qq.com",
+        "Upstream URL": "https://github.com/Cyan4973/xxHash/archive/refs/tags/v0.8.1.tar.gz",
+        "Description": "xxHash is an Extremely fast Hash algorithm, processing at RAM speed limits. Code is highly portable."
+    }
+]

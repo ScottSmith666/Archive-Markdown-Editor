@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "x265",
+        "License": "GNU GENERAL PUBLIC LICENSE V2.0",
+        "License File": "COPYING",
+        "Version Number": "x265_4.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.videolan.org/developers/x265.html",
+        "Description": "x265 is a free software library and application for encoding video streams into the H.265/MPEG-H HEVC compression format, and is released under the terms of the GNU GPL."
+    }
+]

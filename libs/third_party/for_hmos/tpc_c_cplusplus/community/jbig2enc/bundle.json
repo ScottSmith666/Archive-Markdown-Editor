@@ -1,0 +1,33 @@
+{
+    "name": "@ohos/jbig2enc",
+    "description": "This is an encoder for JBIG2.",
+    "version": "0.29",
+    "license": "Apache License",
+    "publishAs": "",
+    "segment": {
+        "destPath": "third_party/jbig2enc"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "jbig2enc",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": ["standard"],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/jbig2enc:jbig2enc"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

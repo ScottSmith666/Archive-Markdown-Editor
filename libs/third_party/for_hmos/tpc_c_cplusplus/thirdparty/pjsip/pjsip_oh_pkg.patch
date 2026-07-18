@@ -1,0 +1,27 @@
+*** pjproject-2.13.1_old/pjmedia/src/pjmedia/wsola.c
+--- pjproject-2.13.1/pjmedia/src/pjmedia/wsola.c
+***************
+*** 634,639
+- 
+-         start = find_pitch(templ, 
+-                            templ - wsola->expand_sr_max_dist, 
+-                            templ - wsola->expand_sr_min_dist,
+-                            wsola->templ_size, 
+-                            1);
+--- 634,642 -----
++         if ((wsola->options & PJMEDIA_WSOLA_NO_PLC) == 0) {
++             start = find_pitch(templ, 
++                             templ - wsola->expand_sr_max_dist, 
++                             templ - wsola->expand_sr_min_dist,
++                             wsola->templ_size, 
++                             1);
++         } else {
++             start = PJ_MAX(templ - needed + generated, reg1);
++         }
+*** pjproject-2.13.1_old/pjmedia/src/test/mips_test.c
+--- pjproject-2.13.1/pjmedia/src/test/mips_test.c
+***************
+*** 1025
+-     if ((pj_rand() % 100) > wp->loss_pct) {
+--- 1025 -----
++     if ((pj_rand() % 100) >= wp->loss_pct) {

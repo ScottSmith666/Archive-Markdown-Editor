@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "hdf5",
+        "License": "hdf5 License",
+        "License File": "https://github.com/HDFGroup/hdf5/blob/develop/COPYING",
+        "Version Number": "hdf5-1_14_1-2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5-1_14_1-2.tar.gz",
+        "Description": "his repository contains a high-performance library's source code and a file format specification that implement the HDF5® data model."
+    }
+]
+

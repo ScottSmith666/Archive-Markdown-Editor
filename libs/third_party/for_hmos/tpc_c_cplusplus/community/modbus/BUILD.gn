@@ -1,0 +1,111 @@
+# Copyright (c) 2023 iSoftStone Information Technology (Group) Co.,Ltd.
+#
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+import("//build/ohos.gni")
+
+modbus_part_name = "modbus"
+modbus_subsystem_name = "thirdparty"
+
+modbus_includes = [
+  "adapted/src",
+  "libmodbus",
+  "libmodbus/src",
+]
+
+config("modbus_config") {
+  cflags = [
+    "-Wall",
+    "-Wmissing-declarations",
+    "-Wmissing-prototypes",
+    "-Wnested-externs",
+    "-Wpointer-arith",
+    "-Wpointer-arith",
+    "-Wsign-compare",
+    "-Wchar-subscripts",
+    "-Wstrict-prototypes",
+    "-Wshadow",
+    "-Wformat-security",
+  ]
+}
+
+ohos_shared_library("modbus") {
+  install_enable = true
+  include_dirs = modbus_includes
+  sources = [
+    "libmodbus/src/modbus-data.c",
+    "libmodbus/src/modbus-rtu.c",
+    "libmodbus/src/modbus-tcp.c",
+    "libmodbus/src/modbus.c",
+  ]
+  configs = [ ":modbus_config" ]
+  part_name = "${modbus_part_name}"
+  subsystem_name = "${modbus_subsystem_name}"
+}
+
+template("swanlink_modbus_test") {
+  ohos_executable(target_name) {
+    use_exceptions = true
+    include_dirs = [ 
+      "libmodbus/tests",
+      "adapted/tests",
+    ]
+    include_dirs += modbus_includes
+    deps = [ ":modbus" ]
+    configs = [ ":modbus_config" ]
+    part_name = "${modbus_part_name}"
+    subsystem_name = "${modbus_subsystem_name}"
+    forward_variables_from(invoker, "*")
+  }
+}
+
+swanlink_modbus_test("unit-test-client") {
+  sources = [ "libmodbus/tests/unit-test-client.c" ]
+}
+
+swanlink_modbus_test("unit-test-server") {
+  sources = [ "libmodbus/tests/unit-test-server.c" ]
+}
+
+swanlink_modbus_test("random-test-client") {
+  sources = [ "libmodbus/tests/random-test-client.c" ]
+}
+
+swanlink_modbus_test("random-test-server") {
+  sources = [ "libmodbus/tests/random-test-server.c" ]
+}
+
+swanlink_modbus_test("bandwidth-client") {
+  sources = [ "libmodbus/tests/bandwidth-client.c" ]
+}
+
+swanlink_modbus_test("bandwidth-server-one") {
+  sources = [ "libmodbus/tests/bandwidth-server-one.c" ]
+}
+
+swanlink_modbus_test("bandwidth-server-many-up") {
+  sources = [ "libmodbus/tests/bandwidth-server-many-up.c" ]
+}
+
+group("modbus_tests") {
+  deps = [
+    ":unit-test-client",
+    ":unit-test-server",
+    ":random-test-client",
+    ":random-test-server",
+    ":bandwidth-client",
+    ":bandwidth-server-one",
+    ":bandwidth-server-many-up",
+  ]
+}
+
+declare_args() {
+    enable_modbus_test = false
+}
+
+group("libmodbus") {
+  deps = [ ":modbus" ]
+  if (enable_modbus_test) {
+      deps += [ ":modbus_tests" ]
+  }
+}

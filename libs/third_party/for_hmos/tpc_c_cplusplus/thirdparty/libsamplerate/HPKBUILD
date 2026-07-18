@@ -1,0 +1,62 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zws <zhouwusong05@chinasoftinc.com>
+# Maintainer: zws <zhouwusong05@chinasoftinc.com>
+
+pkgname=libsamplerate
+pkgver=0.2.2
+pkgrel=0
+pkgdesc="An audio Sample Rate Conversion library"
+url="https://github.com/libsndfile/libsamplerate/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("BSD License")
+depends=("libsndfile")
+source="https://github.com/libsndfile/libsamplerate/archive/refs/tags/0.2.2.tar.gz"
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH \
+    -B$ARCH-build -S./ -L \
+    -DLIBSAMPLERATE_EXAMPLES=OFF >> `pwd`/$ARCH-build/make.log 2>&1
+    
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/install.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

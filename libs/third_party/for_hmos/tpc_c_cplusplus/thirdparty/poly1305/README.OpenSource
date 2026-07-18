@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "poly1305",
+        "License": "MIT or PUBLIC DOMAIN",
+        "License File": "https://github.com/floodyberry/poly1305-donna/blob/master/README.md#license",
+        "Version Number": "poly1305-donna-master",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/floodyberry/poly1305-donna",
+        "Description": "Poly1305 is a widely used MAC algorithm that is particularly well suited to the encryption suite in modern cryptography."
+    }
+]

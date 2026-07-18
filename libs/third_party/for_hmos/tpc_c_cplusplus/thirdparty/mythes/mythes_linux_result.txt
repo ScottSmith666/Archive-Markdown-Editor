@@ -1,0 +1,208 @@
+Thesaurus uses encoding ISO8859-1
+
+simple has 9 meanings
+   meaning 0: (adj) simple 
+       simple 
+       elemental
+       ultimate
+       oversimplified
+       simplistic
+       simplex
+       simplified
+       unanalyzable
+       undecomposable
+       uncomplicated
+       unsophisticated
+       easy
+       plain
+       unsubdivided
+
+   meaning 1: (adj) elementary
+       elementary
+       uncomplicated
+       unproblematic
+       easy 
+
+   meaning 2: (adj) bare
+       bare
+       mere
+       plain 
+
+   meaning 3: (adj) childlike
+       childlike
+       wide-eyed
+       dewy-eyed
+       naive 
+       naif
+
+   meaning 4: (adj) dim-witted
+       dim-witted
+       half-witted
+       simple-minded
+       retarded 
+
+   meaning 5: (adj) simple 
+       simple 
+       unsubdivided
+       unlobed
+       smooth
+
+   meaning 6: (adj) plain 
+       plain 
+
+   meaning 7: (noun) herb
+       herb
+       herbaceous plant
+
+   meaning 8: (noun) simpleton
+       simpleton
+       person
+       individual
+       someone
+       somebody
+       mortal
+       human
+       soul
+
+
+
+complex has 5 meanings
+   meaning 0: (adj) complex 
+       complex 
+       analyzable
+       decomposable
+       Byzantine
+       convoluted
+       intricate
+       involved
+       knotty
+       labyrinthine
+       tangled
+       tortuous
+       colonial
+       compound
+       complicated
+       composite
+       compound
+       daedal
+       Gordian
+       interlacing
+       interlinking
+       interlocking
+       interwoven
+       labyrinthine
+       labyrinthian
+       mazy
+       multifactorial
+       multiplex
+       thickening
+       compound
+       difficult
+       hard
+
+   meaning 1: (noun) composite
+       composite
+       whole
+
+   meaning 2: (noun) coordination compound
+       coordination compound
+       compound
+       chemical compound
+
+   meaning 3: (noun) feeling
+       feeling
+
+   meaning 4: (noun) building complex
+       building complex
+       structure
+       construction
+
+
+
+junk has 3 meanings
+   meaning 0: (noun) debris
+       debris
+       dust
+       rubble
+       detritus
+       rubbish
+       trash
+       scrap
+
+   meaning 1: (noun) boat
+       boat
+
+   meaning 2: (verb) trash
+       trash
+       scrap
+       discard
+       fling
+       toss
+       toss out
+       toss away
+       chuck out
+       cast aside
+       dispose
+       throw out
+       cast out
+       throw away
+       cast away
+       put away
+
+
+
+"jhjhjh" is not in thesaurus!
+Thesaurus uses encoding ISO8859-1
+
+mouse has 1 meanings
+   meaning 0: (n) rodent
+       rodent
+
+
+
+stem: mouse
+mouse has 1 meanings
+   meaning 0: (n) rodent
+       rodents
+
+
+
+stem: rodent
+rodent has 1 meanings
+   meaning 0: (n) mouse
+       mice
+
+
+
+stem: eat
+eat has 1 meanings
+   meaning 0: (v) consume
+       consumes
+       ingests
+
+
+
+stem: eat
+eat has 1 meanings
+   meaning 0: (v) consume
+       consumed
+       ingested
+
+
+
+stem: eat
+eat has 1 meanings
+   meaning 0: (v) consume
+       consumed
+       ingested
+
+
+
+stem: eat
+eat has 1 meanings
+   meaning 0: (v) consume
+       consuming
+       ingesting
+
+
+

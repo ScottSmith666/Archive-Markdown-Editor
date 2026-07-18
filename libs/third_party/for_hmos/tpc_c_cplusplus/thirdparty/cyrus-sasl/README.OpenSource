@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "cyrus-sasl",
+        "License": "Carnegie Mellon Computing Services License",
+        "License File": "https://github.com/cyrusimap/cyrus-sasl/blob/master/COPYING",
+        "Version Number": "2.1.28",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/cyrusimap/cyrus-sasl/releases/download/cyrus-sasl-2.1.28/cyrus-sasl-2.1.28.tar.gz",
+        "Description": "Simple Authentication and Security Layer (SASL) is a specification that describes how authentication mechanisms can be plugged into an application protocol on the wire. Cyrus SASL is an implementation of SASL that makes it easy for application developers to integrate authentication mechanisms into their application in a generic way."
+    },
+    {
+        "Name": "sqlite",
+        "License": "Public Domain",
+        "License File": "https://www.sqlite.org/copyright.html",
+        "Version Number": "version-3.42.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/sqlite/sqlite/archive/refs/tags/.tar.gz",
+        "Description": "This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+    },
+    {
+        "Name": "gdbm",
+        "License": "GPL-3.0",
+        "License File": "https://www.gnu.org/licenses/gpl-3.0.html",
+        "Version Number": "1.23",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://ftp.gnu.org/gnu/gdbm/gdbm-1.23.tar.gz",
+        "Description": "GNU dbm (or GDBM, for short) is a library of database functions that use extensible hashing and work similar to the standard UNIX dbm."
+    }
+]

@@ -1,0 +1,20 @@
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir/$ARCH-build
+    ./aac-enc  ./../../ring.wav ring.aac > ${logfile} 2>&1
+    res=$?
+    if [ $res -eq 0 ]
+    then
+        mkdir ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}
+        cp ring.aac ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}/
+    fi
+    cd $OLDPWD
+
+    return $res
+}

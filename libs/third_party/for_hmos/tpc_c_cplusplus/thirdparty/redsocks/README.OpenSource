@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "redsocks",
+        "License": "Apache 2.0 license",
+        "License File": "",
+        "Version Number": "release-0.5",
+        "Owner": "darkk",
+        "Upstream URL": "https://github.com/darkk/redsocks",
+        "Description": "transparent TCP-to-proxy redirector"
+    }
+]

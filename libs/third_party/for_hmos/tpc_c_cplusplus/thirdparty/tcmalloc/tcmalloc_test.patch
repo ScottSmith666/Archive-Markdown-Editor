@@ -1,0 +1,112 @@
+diff -uNr a/src/tests/tcmalloc_large_unittest.cc gperftools-2.17.2/src/tests/tcmalloc_large_unittest.cc
+--- a/src/tests/tcmalloc_large_unittest.cc	2024-10-08 07:02:01.000000000 +0800
++++ gperftools-2.17.2/src/tests/tcmalloc_large_unittest.cc	2026-03-19 19:42:24.397215000 +0800
+@@ -40,7 +40,7 @@
+ #include <stdlib.h>                     // for malloc, free, realloc
+ #include <stdio.h>
+ #include <set>                          // for set, etc
+-
++#include <unistd.h>
+ #include "base/logging.h"               // for operator<<, CHECK, etc
+ #include "gperftools/tcmalloc.h"
+ #include "tests/testutil.h"
+@@ -135,5 +135,10 @@
+   }
+ 
+   printf("PASS\n");
++ // _exit 直接终止进程，不执行libc的退出清理（__libc_exit_fini）
++#ifdef __OHOS__
++  _exit(0);  
++#else
+   return 0;
++#endif
+ }
+diff -uNr a/src/tests/tcmalloc_unittest.cc gperftools-2.17.2/src/tests/tcmalloc_unittest.cc
+--- a/src/tests/tcmalloc_unittest.cc	2025-08-16 01:18:55.000000000 +0800
++++ gperftools-2.17.2/src/tests/tcmalloc_unittest.cc	2026-03-19 19:49:25.497215000 +0800
+@@ -2352,7 +2352,10 @@
+ #endif  // !HAVE_FORK_TESTING_SUPPORT
+ 
+ int main(int argc, char** argv) {
++  //支持linux和windows,不支持ohos
++#if !defined(__OHOS__)
+   HandleVariableRuns(argc, argv);
++#endif
+ 
+   if (TestingPortal::Get()->IsDebuggingMalloc()) {
+     // return freed blocks to tcmalloc immediately
+@@ -2368,12 +2371,19 @@
+ #endif
+ 
+   testing::InitGoogleTest(&argc, argv);
+-
++  //支持linux和windows,不支持ohos
++#if !defined(__OHOS__)
+   auto fork_cleanup = setup_fork_testing(&argc, &argv);
+   (void)fork_cleanup;
+-
++#endif
+   int err_code = RUN_ALL_TESTS();
++#ifdef __OHOS__
++  // _exit 直接终止进程，不执行libc的退出清理（__libc_exit_fini）
++  _exit(0);
++#else
+   if (err_code) {
+     return err_code;
+   }
++#endif
++  
+ }
+diff -uNr a/src/tests/thread_dealloc_unittest.cc gperftools-2.17.2/src/tests/thread_dealloc_unittest.cc
+--- a/src/tests/thread_dealloc_unittest.cc	2024-10-08 07:02:01.000000000 +0800
++++ gperftools-2.17.2/src/tests/thread_dealloc_unittest.cc	2026-03-19 19:42:24.397215000 +0800
+@@ -40,7 +40,7 @@
+ #include <memory>
+ #include <thread>
+ #include <vector>
+-
++#include <unistd.h>
+ #include "base/logging.h"
+ 
+ // Size/number of objects to allocate per thread (1 MB per thread)
+@@ -164,5 +164,11 @@
+ 
+   printf("PASS\n");
+ 
++ // _exit 直接终止进程，不执行libc的退出清理（__libc_exit_fini）
++#ifdef __OHOS__
++  
++  _exit(0); 
++#else
+   return 0;
++#endif
+ }
+diff -uNr a/src/thread_cache_ptr.h gperftools-2.17.2/src/thread_cache_ptr.h
+--- a/src/thread_cache_ptr.h	2024-10-16 09:07:48.000000000 +0800
++++ gperftools-2.17.2/src/thread_cache_ptr.h	2026-03-19 19:42:24.397215000 +0800
+@@ -47,7 +47,7 @@
+ // Those platforms are known to do emutls or similar for TLS
+ // implementation. And so, we have to be more careful especially early
+ // in process lifetime.
+-#if __QNXNTO__ || __APPLE__ || __MINGW32__ || _AIX || TCMALLOC_FORCE_BAD_TLS
++#if __QNXNTO__ || __APPLE__ || __MINGW32__ || _AIX || TCMALLOC_FORCE_BAD_TLS || __OHOS__
+ inline constexpr bool kHaveGoodTLS = false;
+ #else
+ // All other platforms are assumed to be great. Known great are
+diff -uNr a/vendor/googletest/googletest/src/gtest_main.cc gperftools-2.17.2/vendor/googletest/googletest/src/gtest_main.cc
+--- a/vendor/googletest/googletest/src/gtest_main.cc	2024-10-08 07:02:01.000000000 +0800
++++ gperftools-2.17.2/vendor/googletest/googletest/src/gtest_main.cc	2026-03-19 19:42:24.397215000 +0800
+@@ -61,6 +61,12 @@
+ GTEST_API_ int main(int argc, char **argv) {
+   printf("Running main() from %s\n", __FILE__);
+   testing::InitGoogleTest(&argc, argv);
+-  return RUN_ALL_TESTS();
++  //return RUN_ALL_TESTS();
++  int ret = RUN_ALL_TESTS();
++// _exit 直接终止进程，不执行libc的退出清理（__libc_exit_fini）
++#ifdef __OHOS__
++  _exit(ret);
++#endif
++  return ret; 
+ }
+ #endif

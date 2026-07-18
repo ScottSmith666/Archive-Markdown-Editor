@@ -1,0 +1,97 @@
+diff -Nura clip2tri-master/CMakeLists.txt clip2tri-master_patch/CMakeLists.txt
+--- clip2tri-master/CMakeLists.txt	2023-09-28 02:11:44.079155011 -0700
++++ clip2tri-master_patch/CMakeLists.txt	2023-09-28 02:56:07.517253705 -0700
+@@ -61,6 +61,11 @@
+     ARCHIVE DESTINATION ${LIB_DIR})
+ endif(BUILD_STATIC_LIBS)
+ 
++add_executable(test test.cpp)
++target_link_libraries(test PRIVATE clip2tri)
++
++enable_testing()
++add_test(NAME test_clip2tri COMMAND test)
+ 
+ # Install header files
+ install(DIRECTORY clip2tri/ 
+diff -Nura clip2tri-master/test.cpp clip2tri-master_patch/test.cpp
+--- clip2tri-master/test.cpp	2014-10-30 17:11:28.000000000 -0700
++++ clip2tri-master_patch/test.cpp	2023-10-07 02:43:05.945262633 -0700
+@@ -14,9 +14,78 @@
+ int main() {
+    vector<vector<Point> > inputPolygons;
+    vector<Point> outputTriangles;  // Every 3 points is a triangle
++   vector<Point> outputTriangles1;
+ 
+    vector<Point> boundingPolygon;
++   vector<Point> boundingPolygon1;
++
++   vector<Point> outputTrianglesCompare={
++      {0.0, 15.0},{5.0, 10.0},{15.0, 15.0},
++      {0.0, 15.0},{0.0, 0.0},{5.0, 10.0},
++      {0.0, 0.0},{5.0, 5.0},{5.0, 10.0},
++      {5.0, 5.0},{0.0, 0.0},{15.0, 0.0},
++      {10.0, 5.0},{5.0, 5.0},{15.0, 0.0},
++      {10.0, 5.0},{15.0, 0.0},{20.0, 5.0},
++      {10.0, 10.0},{10.0, 5.0},{20.0, 5.0},
++      {15.0, 15.0},{10.0, 10.0},{20.0, 5.0},
++      {5.0, 10.0},{10.0, 10.0},{15.0, 15.0},
++   };
++   vector<Point> outputTrianglesCompare1={
++      {20.0, 20.0},{0.0, 20.0},{10.0, 10.0},
++      {10.0, 10.0},{20.0, 0.0},{20.0, 20.0},
++      {10.0, 10.0},{10.0, 5.0},{20.0, 0.0},
++      {20.0, 0.0},{10.0, 5.0},{0.0, 0.0},
++      {10.0, 5.0},{5.0, 5.0},{0.0, 0.0},
++      {0.0, 0.0},{5.0, 5.0},{5.0, 10.0},
++      {0.0, 20.0},{0.0, 0.0},{5.0, 10.0},
++      {0.0, 20.0},{5.0, 10.0},{10.0, 10.0},
++   };
++
++   float eps = 1e-2;
++
++   Point p1 = {5.0, 5.0};
++   Point p2 = {10.0, 5.0};
++   Point p3 = {10.0, 10.0};
++   Point p4 = {5.0, 10.0};
++
++   vector<Point> newData = {p1,p2,p3,p4};
++   inputPolygons.push_back(newData);
++
++   boundingPolygon.push_back({0.0, 0.0});
++   boundingPolygon.push_back({15.0, 0.0});
++   boundingPolygon.push_back({20.0, 5.0});
++   boundingPolygon.push_back({15.0, 15.0});
++   boundingPolygon.push_back({0.0, 15.0});
++
++   boundingPolygon1.push_back({0.0, 0.0});
++   boundingPolygon1.push_back({20.0, 0.0});
++   boundingPolygon1.push_back({20.0, 20.0});
++   boundingPolygon1.push_back({0.0, 20.0});
+ 
+    clip2tri clip2tri;
+    clip2tri.triangulate(inputPolygons, outputTriangles, boundingPolygon);
++   clip2tri.triangulate(inputPolygons, outputTriangles1, boundingPolygon1);
++
++   for (const auto& point : outputTriangles) {
++	static int i = 0;
++      if(fabs(point.x - outputTrianglesCompare[i].x) < eps && fabs(point.y - outputTrianglesCompare[i].y) < eps){
++         i++;
++         continue;
++      }
++      else{
++         return -1;
++      }
++   }
++   for (const auto& point : outputTriangles1) {
++	static int m = 0;
++      if(fabs(point.x - outputTrianglesCompare1[m].x) < eps && fabs(point.y - outputTrianglesCompare1[m].y) < eps){
++         m++;
++         continue;
++      }
++      else{
++         return -1;
++      }
++   }
++   printf("test_ok\n");
++   return 0;
+ }

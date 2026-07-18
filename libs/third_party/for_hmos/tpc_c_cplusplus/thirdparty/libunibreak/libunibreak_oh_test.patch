@@ -1,0 +1,13 @@
+diff --git a/breaktext.c b/breaktext.c
+index abe56cf..7588d26 100644
+--- a/breaktext.c
++++ b/breaktext.c
+@@ -686,7 +686,7 @@ int main(int argc, char *argv[])
+     FILE *fp_out;
+     size_t c;
+     const char opts[] = "L:l:w:iv";
+-    char opt;
++    int opt;
+     wint_t wch;
+     const char *loc;
+     pctimer_t t1, t2, t3, t4;

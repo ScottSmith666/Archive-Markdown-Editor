@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "tremolo",
+        "License": "BSD-3-Clause",
+        "License File": "http://wss.co.uk/pinknoise/tremolo/index.html",
+        "Version Number": "0.08",
+        "Owner": "swkec@isoftstone.com",
+        "Upstream URL": "http://wss.co.uk/pinknoise/tremolo/Tremolo008.zip",
+        "Description": "Tremolo is an ARM optimised version of the Tremor lib from xiph.org. For those that don't know, the Tremor lib is an integer only library for doing Ogg Vorbis decompression."
+    }
+]

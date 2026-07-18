@@ -1,0 +1,1 @@
+CKEDITOR.plugins.add("cktomd",{lang:"en,zh-cn",icons:"cktomd",hidpi:!1,init:function(d){d.addCommand("cktomd",{exec:function(d){d.fire("cktomd")}}),d.ui.addButton&&d.ui.addButton("cktomd",{label:d.lang.cktomd.Title,icon:"cktomd",command:"cktomd"})}});

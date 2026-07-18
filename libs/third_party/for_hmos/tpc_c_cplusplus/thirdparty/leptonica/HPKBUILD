@@ -1,0 +1,271 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: liulihong <llh_01129@163.com> shann <swkec@isoftstone.com>
+# Maintainer: liulihong <llh_01129@163.com>
+
+pkgname=leptonica
+pkgver=1.83.1
+pkgrel=0
+pkgdesc="Leptonica is an open source library containing software that is broadly useful for image processing and image analysis applications."
+url="https://github.com/DanBloomberg/leptonica"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("leptonica-license")
+depends=("zlib" "libpng" "libjpeg-turbo" "libwebp" "tiff" "giflib" "openjpeg")
+makedepends=()
+
+# 官方下载地址source="https://github.com/DanBloomberg/$pkgname/archive/refs/tags/$pkgver.tar.gz"受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/$pkgname//repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+
+patchflag=true
+
+source envset.sh
+host=
+
+fix_test() {
+    #设备版本4.0.0.13测试ok,
+    #rk3568 3.2release测试ok，
+    #设备4.0.0.52,测试失败，
+    #系统api不太稳定，如下几个测试用例先关闭
+    sed -i 's/ccthin2_reg//g'  prog/Makefile.am
+    sed -i 's/ioformats_reg//g'  prog/Makefile.am
+    sed -i 's/jp2kio_reg//g'  prog/Makefile.am
+    sed -i 's/pnmio_reg//g'  prog/Makefile.am
+    sed -i 's/pixcomp_reg//g'  prog/Makefile.am
+}
+
+prepare() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+
+    if [ "$patchflag" == true ]
+    then
+        cd $builddir
+        # 屏蔽open_memstream接口,将源码中的/tmp路径改为/data/local/tmp,以解决因路径问题导致的测试失败
+        patch -p1 < ../leptonica_oh_test.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+
+    cd $builddir-$ARCH-build
+    fix_test
+    ./autogen.sh -i > `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+        LIBTIFF_LIBS="-L$LYCIUM_ROOT/usr/tiff/$ARCH/lib -ltiff" \
+        LIBTIFF_CFLAGS="-I$LYCIUM_ROOT/usr/tiff/$ARCH/include" \
+        ./configure "$@" --host=$host --enable-programs > $buildlog 2>&1
+    $MAKE CFLAGS="-pedantic -Og -Wpadded -Wall -g3" >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir-$ARCH-build
+    # 屏蔽测试时，测试用例的编译(测试用例在 build() 时已经编译完成)
+    sed -i 's/TESTS_ENVIRONMENT =/& bash/' prog/Makefile
+    sed -i '/.*check-TESTS: $(check_PROGRAMS)/c\check-TESTS: #$(check_PROGRAMS)' prog/Makefile
+    sed -i '/.*adaptmap_reg.log: adaptmap_reg$(EXEEXT)/c\adaptmap_reg.log: #adaptmap_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*adaptnorm_reg.log: adaptnorm_reg$(EXEEXT)/c\adaptnorm_reg.log: #adaptnorm_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*affine_reg.log: affine_reg$(EXEEXT)/c\affine_reg.log: #affine_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*alphaops_reg.log: alphaops_reg$(EXEEXT)/c\alphaops_reg.log: #alphaops_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*alphaxform_reg.log: alphaxform_reg$(EXEEXT)/c\alphaxform_reg.log: #alphaxform_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*baseline_reg.log: baseline_reg$(EXEEXT)/c\baseline_reg.log: #baseline_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*bilateral2_reg.log: bilateral2_reg$(EXEEXT)/c\bilateral2_reg.log: #bilateral2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*bilinear_reg.log: bilinear_reg$(EXEEXT)/c\bilinear_reg.log: #bilinear_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*binarize_reg.log: binarize_reg$(EXEEXT)/c\binarize_reg.log: #binarize_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*binmorph1_reg.log: binmorph1_reg$(EXEEXT)/c\binmorph1_reg.log: #binmorph1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*binmorph3_reg.log: binmorph3_reg$(EXEEXT)/c\binmorph3_reg.log: #binmorph3_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*binmorph6_reg.log: binmorph6_reg$(EXEEXT)/c\binmorph6_reg.log: #binmorph6_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*blackwhite_reg.log: blackwhite_reg$(EXEEXT)/c\blackwhite_reg.log: #blackwhite_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*blend1_reg.log: blend1_reg$(EXEEXT)/c\blend1_reg.log: #blend1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*blend2_reg.log: blend2_reg$(EXEEXT)/c\blend2_reg.log: #blend2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*blend3_reg.log: blend3_reg$(EXEEXT)/c\blend3_reg.log: #blend3_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*blend4_reg.log: blend4_reg$(EXEEXT)/c\blend4_reg.log: #blend4_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*blend5_reg.log: blend5_reg$(EXEEXT)/c\blend5_reg.log: #blend5_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*boxa1_reg.log: boxa1_reg$(EXEEXT)/c\boxa1_reg.log: #boxa1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*boxa2_reg.log: boxa2_reg$(EXEEXT)/c\boxa2_reg.log: #boxa2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*boxa3_reg.log: boxa3_reg$(EXEEXT)/c\boxa3_reg.log: #boxa3_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*boxa4_reg.log: boxa4_reg$(EXEEXT)/c\boxa4_reg.log: #boxa4_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*bytea_reg.log: bytea_reg$(EXEEXT)/c\bytea_reg.log: #bytea_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*ccbord_reg.log: ccbord_reg$(EXEEXT)/c\ccbord_reg.log: #ccbord_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*ccthin1_reg.log: ccthin1_reg$(EXEEXT)/c\ccthin1_reg.log: #ccthin1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*ccthin2_reg.log: ccthin2_reg$(EXEEXT)/c\ccthin2_reg.log: #ccthin2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*checkerboard_reg.log: checkerboard_reg$(EXEEXT)/c\checkerboard_reg.log: #checkerboard_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*circle_reg.log: circle_reg$(EXEEXT)/c\circle_reg.log: #circle_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*cmapquant_reg.log: cmapquant_reg$(EXEEXT)/c\cmapquant_reg.log: #cmapquant_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*colorcontent_reg.log: colorcontent_reg$(EXEEXT)/c\colorcontent_reg.log: #colorcontent_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*colorfill_reg.log: colorfill_reg$(EXEEXT)/c\colorfill_reg.log: #colorfill_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*coloring_reg.log: coloring_reg$(EXEEXT)/c\coloring_reg.log: #coloring_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*colorize_reg.log: colorize_reg$(EXEEXT)/c\colorize_reg.log: #colorize_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*colormask_reg.log: colormask_reg$(EXEEXT)/c\colormask_reg.log: #colormask_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*colormorph_reg.log: colormorph_reg$(EXEEXT)/c\colormorph_reg.log: #colormorph_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*colorquant_reg.log: colorquant_reg$(EXEEXT)/c\colorquant_reg.log: #colorquant_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*colorseg_reg.log: colorseg_reg$(EXEEXT)/c\colorseg_reg.log: #colorseg_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*colorspace_reg.log: colorspace_reg$(EXEEXT)/c\colorspace_reg.log: #colorspace_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*compare_reg.log: compare_reg$(EXEEXT)/c\compare_reg.log: #compare_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*compfilter_reg.log: compfilter_reg$(EXEEXT)/c\compfilter_reg.log: #compfilter_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*conncomp_reg.log: conncomp_reg$(EXEEXT)/c\conncomp_reg.log: #conncomp_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*conversion_reg.log: conversion_reg$(EXEEXT)/c\conversion_reg.log: #conversion_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*convolve_reg.log: convolve_reg$(EXEEXT)/c\convolve_reg.log: #convolve_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*crop_reg.log: crop_reg$(EXEEXT)/c\crop_reg.log: #crop_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*dewarp_reg.log: dewarp_reg$(EXEEXT)/c\dewarp_reg.log: #dewarp_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*distance_reg.log: distance_reg$(EXEEXT)/c\distance_reg.log: #distance_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*dither_reg.log: dither_reg$(EXEEXT)/c\dither_reg.log: #dither_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*dna_reg.log: dna_reg$(EXEEXT)/c\dna_reg.log: #dna_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*dwamorph1_reg.log: dwamorph1_reg$(EXEEXT)/c\dwamorph1_reg.log: #dwamorph1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*edge_reg.log: edge_reg$(EXEEXT)/c\edge_reg.log: #edge_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*encoding_reg.log: encoding_reg$(EXEEXT)/c\encoding_reg.log: #encoding_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*enhance_reg.log: enhance_reg$(EXEEXT)/c\enhance_reg.log: #enhance_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*equal_reg.log: equal_reg$(EXEEXT)/c\equal_reg.log: #equal_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*expand_reg.log: expand_reg$(EXEEXT)/c\expand_reg.log: #expand_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*extrema_reg.log: extrema_reg$(EXEEXT)/c\extrema_reg.log: #extrema_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*falsecolor_reg.log: falsecolor_reg$(EXEEXT)/c\falsecolor_reg.log: #falsecolor_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*fhmtauto_reg.log: fhmtauto_reg$(EXEEXT)/c\fhmtauto_reg.log: #fhmtauto_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*findcorners_reg.log: findcorners_reg$(EXEEXT)/c\findcorners_reg.log: #findcorners_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*findpattern_reg.log: findpattern_reg$(EXEEXT)/c\findpattern_reg.log: #findpattern_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*flipdetect_reg.log: flipdetect_reg$(EXEEXT)/c\flipdetect_reg.log: #flipdetect_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*fpix1_reg.log: fpix1_reg$(EXEEXT)/c\fpix1_reg.log: #fpix1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*fpix2_reg.log: fpix2_reg$(EXEEXT)/c\fpix2_reg.log: #fpix2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*genfonts_reg.log: genfonts_reg$(EXEEXT)/c\genfonts_reg.log: #genfonts_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*grayfill_reg.log: grayfill_reg$(EXEEXT)/c\grayfill_reg.log: #grayfill_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*graymorph1_reg.log: graymorph1_reg$(EXEEXT)/c\graymorph1_reg.log: #graymorph1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*graymorph2_reg.log: graymorph2_reg$(EXEEXT)/c\graymorph2_reg.log: #graymorph2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*grayquant_reg.log: grayquant_reg$(EXEEXT)/c\grayquant_reg.log: #grayquant_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*hardlight_reg.log: hardlight_reg$(EXEEXT)/c\hardlight_reg.log: #hardlight_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*hash_reg.log: hash_reg$(EXEEXT)/c\hash_reg.log: #hash_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*heap_reg.log: heap_reg$(EXEEXT)/c\heap_reg.log: #heap_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*insert_reg.log: insert_reg$(EXEEXT)/c\insert_reg.log: #insert_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*ioformats_reg.log: ioformats_reg$(EXEEXT)/c\ioformats_reg.log: #ioformats_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*iomisc_reg.log: iomisc_reg$(EXEEXT)/c\iomisc_reg.log: #iomisc_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*italic_reg.log: italic_reg$(EXEEXT)/c\italic_reg.log: #italic_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*jbclass_reg.log: jbclass_reg$(EXEEXT)/c\jbclass_reg.log: #jbclass_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*jpegio_reg.log: jpegio_reg$(EXEEXT)/c\jpegio_reg.log: #jpegio_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*kernel_reg.log: kernel_reg$(EXEEXT)/c\kernel_reg.log: #kernel_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*label_reg.log: label_reg$(EXEEXT)/c\label_reg.log: #label_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*lineremoval_reg.log: lineremoval_reg$(EXEEXT)/c\lineremoval_reg.log: #lineremoval_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*locminmax_reg.log: locminmax_reg$(EXEEXT)/c\locminmax_reg.log: #locminmax_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*logicops_reg.log: logicops_reg$(EXEEXT)/c\logicops_reg.log: #logicops_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*lowaccess_reg.log: lowaccess_reg$(EXEEXT)/c\lowaccess_reg.log: #lowaccess_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*lowsat_reg.log: lowsat_reg$(EXEEXT)/c\lowsat_reg.log: #lowsat_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*maze_reg.log: maze_reg$(EXEEXT)/c\maze_reg.log: #maze_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*mtiff_reg.log: mtiff_reg$(EXEEXT)/c\mtiff_reg.log: #mtiff_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*multitype_reg.log: multitype_reg$(EXEEXT)/c\multitype_reg.log: #multitype_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*nearline_reg.log: nearline_reg$(EXEEXT)/c\nearline_reg.log: #nearline_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*newspaper_reg.log: newspaper_reg$(EXEEXT)/c\newspaper_reg.log: #newspaper_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*numa1_reg.log: numa1_reg$(EXEEXT)/c\numa1_reg.log: #numa1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*numa2_reg.log: numa2_reg$(EXEEXT)/c\numa2_reg.log: #numa2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*numa3_reg.log: numa3_reg$(EXEEXT)/c\numa3_reg.log: #numa3_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*overlap_reg.log: overlap_reg$(EXEEXT)/c\overlap_reg.log: #overlap_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pageseg_reg.log: pageseg_reg$(EXEEXT)/c\pageseg_reg.log: #pageseg_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*paint_reg.log: paint_reg$(EXEEXT)/c\paint_reg.log: #paint_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*paintmask_reg.log: paintmask_reg$(EXEEXT)/c\paintmask_reg.log: #paintmask_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pdfio1_reg.log: pdfio1_reg$(EXEEXT)/c\pdfio1_reg.log: #pdfio1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pdfio2_reg.log: pdfio2_reg$(EXEEXT)/c\pdfio2_reg.log: #pdfio2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pdfseg_reg.log: pdfseg_reg$(EXEEXT)/c\pdfseg_reg.log: #pdfseg_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pixa1_reg.log: pixa1_reg$(EXEEXT)/c\pixa1_reg.log: #pixa1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pixa2_reg.log: pixa2_reg$(EXEEXT)/c\pixa2_reg.log: #pixa2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pixadisp_reg.log: pixadisp_reg$(EXEEXT)/c\pixadisp_reg.log: #pixadisp_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pixcomp_reg.log: pixcomp_reg$(EXEEXT)/c\pixcomp_reg.log: #pixcomp_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pixmem_reg.log: pixmem_reg$(EXEEXT)/c\pixmem_reg.log: #pixmem_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pixserial_reg.log: pixserial_reg$(EXEEXT)/c\pixserial_reg.log: #pixserial_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pngio_reg.log: pngio_reg$(EXEEXT)/c\pngio_reg.log: #pngio_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pnmio_reg.log: pnmio_reg$(EXEEXT)/c\pnmio_reg.log: #pnmio_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*projection_reg.log: projection_reg$(EXEEXT)/c\projection_reg.log: #projection_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*projective_reg.log: projective_reg$(EXEEXT)/c\projective_reg.log: #projective_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*psio_reg.log: psio_reg$(EXEEXT)/c\psio_reg.log: #psio_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*psioseg_reg.log: psioseg_reg$(EXEEXT)/c\psioseg_reg.log: #psioseg_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*pta_reg.log: pta_reg$(EXEEXT)/c\pta_reg.log: #pta_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*ptra1_reg.log: ptra1_reg$(EXEEXT)/c\ptra1_reg.log: #ptra1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*ptra2_reg.log: ptra2_reg$(EXEEXT)/c\ptra2_reg.log: #ptra2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*quadtree_reg.log: quadtree_reg$(EXEEXT)/c\quadtree_reg.log: #quadtree_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*rankbin_reg.log: rankbin_reg$(EXEEXT)/c\rankbin_reg.log: #rankbin_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*rankhisto_reg.log: rankhisto_reg$(EXEEXT)/c\rankhisto_reg.log: #rankhisto_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*rank_reg.log: rank_reg$(EXEEXT)/c\rank_reg.log: #rank_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*rasteropip_reg.log: rasteropip_reg$(EXEEXT)/c\rasteropip_reg.log: #rasteropip_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*rasterop_reg.log: rasterop_reg$(EXEEXT)/c\rasterop_reg.log: #rasterop_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*rectangle_reg.log: rectangle_reg$(EXEEXT)/c\rectangle_reg.log: #rectangle_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*rotate1_reg.log: rotate1_reg$(EXEEXT)/c\rotate1_reg.log: #rotate1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*rotate2_reg.log: rotate2_reg$(EXEEXT)/c\rotate2_reg.log: #rotate2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*rotateorth_reg.log: rotateorth_reg$(EXEEXT)/c\rotateorth_reg.log: #rotateorth_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*scale_reg.log: scale_reg$(EXEEXT)/c\scale_reg.log: #scale_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*seedspread_reg.log: seedspread_reg$(EXEEXT)/c\seedspread_reg.log: #seedspread_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*selio_reg.log: selio_reg$(EXEEXT)/c\selio_reg.log: #selio_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*shear1_reg.log: shear1_reg$(EXEEXT)/c\shear1_reg.log: #shear1_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*shear2_reg.log: shear2_reg$(EXEEXT)/c\shear2_reg.log: #shear2_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*skew_reg.log: skew_reg$(EXEEXT)/c\skew_reg.log: #skew_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*smallpix_reg.log: smallpix_reg$(EXEEXT)/c\smallpix_reg.log: #smallpix_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*speckle_reg.log: speckle_reg$(EXEEXT)/c\speckle_reg.log: #speckle_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*splitcomp_reg.log: splitcomp_reg$(EXEEXT)/c\splitcomp_reg.log: #splitcomp_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*string_reg.log: string_reg$(EXEEXT)/c\string_reg.log: #string_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*subpixel_reg.log: subpixel_reg$(EXEEXT)/c\subpixel_reg.log: #subpixel_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*texturefill_reg.log: texturefill_reg$(EXEEXT)/c\texturefill_reg.log: #texturefill_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*threshnorm_reg.log: threshnorm_reg$(EXEEXT)/c\threshnorm_reg.log: #threshnorm_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*translate_reg.log: translate_reg$(EXEEXT)/c\translate_reg.log: #translate_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*warper_reg.log: warper_reg$(EXEEXT)/c\warper_reg.log: #warper_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*watershed_reg.log: watershed_reg$(EXEEXT)/c\watershed_reg.log: #watershed_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*wordboxes_reg.log: wordboxes_reg$(EXEEXT)/c\wordboxes_reg.log: #wordboxes_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*writetext_reg.log: writetext_reg$(EXEEXT)/c\writetext_reg.log: #writetext_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*xformbox_reg.log: xformbox_reg$(EXEEXT)/c\xformbox_reg.log: #xformbox_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*gifio_reg.log: gifio_reg$(EXEEXT)/c\gifio_reg.log: #gifio_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*webpio_reg.log: webpio_reg$(EXEEXT)/c\webpio_reg.log: #webpio_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*webpanimio_reg.log: webpanimio_reg$(EXEEXT)/c\webpanimio_reg.log: #webpanimio_reg$(EXEEXT)' prog/Makefile
+    sed -i '/.*jp2kio_reg.log: jp2kio_reg$(EXEEXT)/c\jp2kio_reg.log: #jp2kio_reg$(EXEEXT)' prog/Makefile
+    sed -i "s#/bin/bash#/data/CIusr/bin/bash#g" `grep -rn "/bin/bash" | awk -F ':' '{print $1}' | sort -u`
+    sed -i "s#/usr/bin/sed#sed#g" `grep -rn "/usr/bin/sed" | awk -F ':' '{print $1}' | sort -u`
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # 在构建目录下，执行make -C prog check-TESTS
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build $builddir-arm64-v8a-build  #${PWD}/$packagename
+}

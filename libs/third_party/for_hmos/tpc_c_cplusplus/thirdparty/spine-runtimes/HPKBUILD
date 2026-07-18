@@ -1,0 +1,63 @@
+# Contributor: liucheng <1596268623@qq.com>
+# Maintainer: liucheng <1596268623@qq.com>
+
+pkgname=spine-runtimes
+pkgver=4.1.00
+pkgrel=0
+pkgdesc="This GitHub project hosts the Spine Runtimes which are needed to use Spine 2D skeletal animation data with various game toolkits."
+url="http://zh.esotericsoftware.com//"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("")
+depends=()
+makedepends=()
+source="https://github.com/EsotericSoftware/${pkgname}/archive/refs/tags/${pkgver}.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools="cmake"
+
+builddir=${pkgname}-${pkgver}
+packagename=$builddir.tar.gz
+
+sed_ok_flag=false
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $sed_ok_flag == "false" ] ; then
+        sed_ok_flag="true"
+        cd $builddir
+        patch < ../spine-runtimes_oh_pkg.patch
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    cd $builddir
+    #cmake 要求3.17以上版本，所以需要使用系统的cmake
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" cmake "$@" \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L -DCMAKE_CXX_FLAGS=-w \
+    -DCMAKE_C_FLAGS=-w > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 打包安装
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+# 进行测试的准备和说明
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 测试方式
+    # 进入构建目录
+    # 执行: ./spine_cpp_unit_test
+}
+
+# 清理环境fmt
+cleanbuild() {
+   rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

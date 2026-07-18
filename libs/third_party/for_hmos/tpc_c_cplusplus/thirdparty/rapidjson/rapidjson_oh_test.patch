@@ -1,0 +1,116 @@
+diff -Nura rapidjson-6089180ecb704cb2b136777798fa1be303618975/.git/config rap_patch/.git/config
+--- rapidjson-6089180ecb704cb2b136777798fa1be303618975/.git/config	2024-08-19 17:40:52.824762104 +0800
++++ rap_patch/.git/config	2024-08-19 17:44:13.295915227 +0800
+@@ -9,3 +9,4 @@
+ [branch "master"]
+ 	remote = origin
+ 	merge = refs/heads/master
++	vscode-merge-base = origin/master
+diff -Nura rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/CMakeLists.txt rap_patch/test/unittest/CMakeLists.txt
+--- rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/CMakeLists.txt	2024-08-19 17:40:52.868761699 +0800
++++ rap_patch/test/unittest/CMakeLists.txt	2024-08-19 17:46:40.412532865 +0800
+@@ -82,9 +82,9 @@
+ 
+ if(NOT MSVC)
+     # Not running SIMD.* unit test cases for Valgrind
+-    add_test(NAME valgrind_unittest
+-        COMMAND valgrind --suppressions=${CMAKE_SOURCE_DIR}/test/valgrind.supp --leak-check=full --error-exitcode=1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/unittest --gtest_filter=-SIMD.*
+-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
++    # add_test(NAME valgrind_unittest
++    #     COMMAND valgrind --suppressions=${CMAKE_SOURCE_DIR}/test/valgrind.supp --leak-check=full --error-exitcode=1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/unittest --gtest_filter=-SIMD.*
++    #     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+ 
+     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+         add_test(NAME symbol_check
+diff -Nura rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/encodedstreamtest.cpp rap_patch/test/unittest/encodedstreamtest.cpp
+--- rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/encodedstreamtest.cpp	2024-08-19 17:40:52.846761901 +0800
++++ rap_patch/test/unittest/encodedstreamtest.cpp	2024-08-19 17:46:50.070526852 +0800
+# 标准库里的宏长度20,路径替换后变长了导致部分会被丢弃，故将原来标准库里的宏直接替换为固定长度
+@@ -163,7 +163,7 @@
+     void TestEncodedOutputStream(const char* expectedFilename, bool putBOM) {
+         // Test FileWriteStream
+         {
+-            char filename[L_tmpnam];
++            char filename[128];
+             FILE* fp = TempFile(filename);
+             char buffer[16];
+             FileWriteStream os(fp, buffer, sizeof(buffer));
+@@ -196,7 +196,7 @@
+     void TestAutoUTFOutputStream(UTFType type, bool putBOM, const char *expectedFilename) {
+         // Test FileWriteStream
+         {
+-            char filename[L_tmpnam];
++            char filename[128];
+             FILE* fp = TempFile(filename);
+ 
+             char buffer[16];
+diff -Nura rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/filestreamtest.cpp rap_patch/test/unittest/filestreamtest.cpp
+--- rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/filestreamtest.cpp	2024-08-19 17:40:52.846761901 +0800
++++ rap_patch/test/unittest/filestreamtest.cpp	2024-08-19 17:46:50.071528382 +0800
+@@ -130,7 +130,7 @@
+ }
+ 
+ TEST_F(FileStreamTest, FileWriteStream) {
+-    char filename[L_tmpnam];
++    char filename[128];
+     FILE* fp = TempFile(filename);
+ 
+     char buffer[65536];
+diff -Nura rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/ostreamwrappertest.cpp rap_patch/test/unittest/ostreamwrappertest.cpp
+--- rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/ostreamwrappertest.cpp	2024-08-19 17:40:52.846761901 +0800
++++ rap_patch/test/unittest/ostreamwrappertest.cpp	2024-08-19 17:46:50.071528382 +0800
+@@ -63,7 +63,7 @@
+ 
+ template <typename FileStreamType>
+ static void TestFileStream() {
+-    char filename[L_tmpnam];
++    char filename[128];
+     FILE* fp = TempFile(filename);
+     fclose(fp);
+ 
+diff -Nura rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/prettywritertest.cpp rap_patch/test/unittest/prettywritertest.cpp
+--- rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/prettywritertest.cpp	2024-08-19 17:40:52.847761892 +0800
++++ rap_patch/test/unittest/prettywritertest.cpp	2024-08-19 17:46:50.071528382 +0800
+@@ -165,7 +165,7 @@
+ 
+ // For covering FileWriteStream::PutN()
+ TEST(PrettyWriter, FileWriteStream) {
+-    char filename[L_tmpnam];
++    char filename[128];
+     FILE* fp = TempFile(filename);
+     ASSERT_TRUE(fp!=NULL);
+     char buffer[16];
+# 路径变更
+diff -Nura rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/unittest.h rap_patch/test/unittest/unittest.h
+--- rapidjson-6089180ecb704cb2b136777798fa1be303618975/test/unittest/unittest.h	2024-08-19 17:40:52.848761883 +0800
++++ rap_patch/test/unittest/unittest.h	2024-08-19 17:45:56.210130664 +0800
+@@ -88,7 +88,7 @@
+         
+     return fopen(filename, "wb");
+ #else
+-    strcpy(filename, "/tmp/fileXXXXXX");
++    strcpy(filename, "/data/local/tmp/fileXXXXXX");
+     int fd = mkstemp(filename);
+     return fdopen(fd, "w");
+ #endif
+diff -Nura rapidjson-6089180ecb704cb2b136777798fa1be303618975/travis-doxygen.sh rap_patch/travis-doxygen.sh
+--- rapidjson-6089180ecb704cb2b136777798fa1be303618975/travis-doxygen.sh	2024-08-19 17:40:52.849761873 +0800
++++ rap_patch/travis-doxygen.sh	2024-08-19 17:45:56.209130406 +0800
+@@ -46,7 +46,7 @@
+ # install doxygen binary distribution
+ doxygen_install()
+ {
+-	cd ${TMPDIR-/tmp}
++	cd ${TMPDIR-/data/local/tmp}
+ 	curl ${DOXYGEN_URL} -o doxygen.tar.gz
+ 	tar zxvf doxygen.tar.gz
+ 	mkdir doxygen_build
+@@ -54,7 +54,7 @@
+ 	cmake ../doxygen-Release_${DOXYGEN_VER}/
+ 	make
+     
+-	export PATH="${TMPDIR-/tmp}/doxygen_build/bin:$PATH"
++	export PATH="${TMPDIR-/data/local/tmp}/doxygen_build/bin:$PATH"
+ 	
+ 	cd ../../
+ }

@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "websocketpp",
+        "License": "BSD-3-Clause and zlib License and MIT",
+        "License File": "https://github.com/zaphoyd/websocketpp/blob/master/COPYING",
+        "Version Number": "0.8.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/zaphoyd/websocketpp/archive/refs/tags/0.8.2.tar.gz",
+        "Description": "C++ websocket client/server library"
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.openssl.org/source/old/1.1.1/openssl-1.1.1u.tar.gz",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    },
+    {
+        "Name": "boost",
+        "License": "Boost Software License",
+        "License File": "https://www.boost.org/LICENSE_1_0.txt",
+        "Version Number": "1.81.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz",
+        "Description": "Boost provides free peer-reviewed portable C++ source libraries."
+    }
+]

@@ -1,0 +1,91 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: baijn <1225837220@qq.com>
+# Maintainer: baijn <1225837220@qq.com>
+
+pkgname=lzo
+pkgver=2.10
+pkgrel=0
+pkgdesc="LZO is a real-time data compression library, it is particularly suitable for the need for rapid compression and decompression of the occasion."
+url="http://www.oberhumer.com/opensource/lzo/"
+archs=("armeabi-v7a" "arm64-v8a"  "x86_64")
+license=("GNU GENERAL PUBLIC LICENSE V2.0")
+depends=()
+makedepends=()
+source="http://www.oberhumer.com/opensource/$pkgname/download/$pkgname-$pkgver.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+source envset.sh
+host=
+
+prepare() {
+    cp -rf $builddir $pkgname-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    return 0
+}
+
+build() {
+    cd $pkgname-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host > $buildlog 2>&1
+    $MAKE V=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    fi
+    unset host
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build $builddir-x86_64-build #${PWD}/$packagename
+}

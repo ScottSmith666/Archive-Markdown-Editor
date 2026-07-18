@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libmp3lame",
+        "License": "LGPL",
+        "License File": "COPYING",
+        "Version Number": "v3.99.5",
+        "Owner" : "ding_chengjie@hoperun.com",
+        "Upstream URL": "https://github.com/gypified/libmp3lame",
+        "Description": "开源mp3编码库，使用MPGLIB解码引擎，专门用于编码 mp3"
+    }
+]

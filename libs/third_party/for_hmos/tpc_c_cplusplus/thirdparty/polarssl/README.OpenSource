@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "polarssl",
+        "License": "GPL-2.0 license",
+        "License File": "https://github.com/Linphone-sync/polarssl/blob/polarssl-1.4/LICENSE",
+        "Version Number": "1.4",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/Linphone-sync/polarssl/archive/refs/heads/polarssl-1.4.zip",
+        "Description": "The PolarSSL SSL library is an implementation of the SSL and TLS protocols and the respective cryptographic algorithms."
+    },
+    {
+        "Name": "pkcs11-helper",
+        "License": "GPL BSD",
+        "License File": "https://github.com/OpenSC/pkcs11-helper?tab=License-1-ov-file",
+        "Version Number": "1.29.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/OpenSC/pkcs11-helper/archive/refs/tags/pkcs11-helper-1.29.0.tar.gz",
+        "Description": "Library that simplifies the interaction with PKCS#11 providers for end-user applications using a simple API and optional OpenSSL engine."
+    },
+    {
+        "Name": "zlib",
+        "License": "LGPL-2.1 license",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.2.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz",
+        "Description": "A massively spiffy yet delicately unobtrusive compression library."
+    },
+    {
+        "Name": "openssl",
+        "License": "Apache License 2.0",
+        "License File": "https://www.openssl.org/source/license.html",
+        "Version Number": "openssl-1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1u.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    }
+]

@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "qpdf",
+        "License": "Apache License 2.0",
+        "License File": "https://github.com/qpdf/qpdf/blob/main/LICENSE.txt",
+        "Version Number": "v11.6.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/qpdf/qpdf/archive/refs/tags/v11.6.3.tar.gz",
+        "Description": "QPDF is a command-line tool and C++ library that performs content-preserving transformations on PDF files. "
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1u.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    },
+    {
+        "Name": "jpeg",
+        "License": "Independent JPEG Group License",
+        "License File": "https://www.ijg.org/files/README",
+        "Version Number": "v9e",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "http://www.ijg.org/files/jpegsrc.v9e.tar.gz",
+        "Description": "IJG is an informal group that writes and distributes a widely used free library for JPEG image compression"
+    }
+]

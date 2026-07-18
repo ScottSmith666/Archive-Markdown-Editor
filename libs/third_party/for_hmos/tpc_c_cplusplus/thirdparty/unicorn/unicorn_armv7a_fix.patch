@@ -1,0 +1,327 @@
+diff --git a/qemu/configure b/qemu/configure
+index cfd344f7..000cc674 100755
+--- a/qemu/configure
++++ b/qemu/configure
+@@ -2496,9 +2496,9 @@ if test "$cpuid_h" = "yes" ; then
+   echo "CONFIG_CPUID_H=y" >> $config_host_mak
+ fi
+ 
+-if test "$int128" = "yes" ; then
+-  echo "CONFIG_INT128=y" >> $config_host_mak
+-fi
++#if test "$int128" = "yes" ; then
++#  echo "CONFIG_INT128=y" >> $config_host_mak
++#fi
+ 
+ if test "$atomic128" = "yes" ; then
+   echo "CONFIG_ATOMIC128=y" >> $config_host_mak
+diff --git a/qemu/include/qemu/atomic128.h b/qemu/include/qemu/atomic128.h
+index 4183863d..2074c0de 100644
+--- a/qemu/include/qemu/atomic128.h
++++ b/qemu/include/qemu/atomic128.h
+@@ -14,6 +14,8 @@
+ #define QEMU_ATOMIC128_H
+ 
+ #include "int128.h"
++#include <stdbool.h>
++#include <string.h>
+ 
+ /*
+  * GCC is a house divided about supporting large atomic operations.
+@@ -41,13 +43,64 @@
+  * Therefore, special case each platform.
+  */
+ 
+-#if defined(CONFIG_ATOMIC128)
+-static inline Int128 atomic16_cmpxchg(Int128 *ptr, Int128 cmp, Int128 new)
++/* 宏定义：检查是否是 ARMv7 架构 */
++#if defined(__arm__) && !defined(__aarch64__)
++#define IS_ARM32_V7 1
++#else
++#define IS_ARM32_V7 0
++#endif
++
++/* 原子操作的基础函数声明 - 替换原来的 qatomic_* 调用 */
++static inline uint64_t atomic_read_u64(const uint64_t *ptr)
++{
++    /* 使用 volatile 和内存屏障确保原子性 */
++    uint64_t value;
++    __atomic_load(ptr, &value, __ATOMIC_SEQ_CST);
++    return value;
++}
++
++static inline uint64_t atomic_cmpxchg_u64(uint64_t *ptr, uint64_t cmp, uint64_t new)
+ {
+-    return atomic_cmpxchg__nocheck(ptr, cmp, new);
++    uint64_t old;
++    __atomic_compare_exchange(ptr, &cmp, &new, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
++    old = cmp;
++    return old;
+ }
+-# define HAVE_CMPXCHG128 1
++
++static inline void atomic_set_u64(uint64_t *ptr, uint64_t val)
++{
++    __atomic_store(ptr, &val, __ATOMIC_SEQ_CST);
++}
++
++/* 选择实现策略 */
++#if IS_ARM32_V7
++/* ARMv7 实现 - 采用第一段代码的通用实现 */
++#define USE_GENERIC_IMPLEMENTATION 1
++#elif defined(CONFIG_ATOMIC128)
++#define USE_NATIVE_IMPLEMENTATION 1
+ #elif defined(CONFIG_CMPXCHG128)
++#define USE_CMPXCHG128_IMPLEMENTATION 1
++#elif defined(__aarch64__)
++#define USE_AARCH64_IMPLEMENTATION 1
++#else
++#define USE_GENERIC_IMPLEMENTATION 1
++#endif
++
++/* atomic16_cmpxchg 实现 */
++#if USE_NATIVE_IMPLEMENTATION
++/* Native atomic128 implementation */
++static inline Int128 atomic16_cmpxchg(Int128 *ptr, Int128 cmp, Int128 new)
++{
++    Int128 old;
++    __atomic_compare_exchange((__int128 *)ptr, (__int128 *)&cmp, (__int128 *)&new, 
++                              false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
++    old = cmp;
++    return old;
++}
++#define HAVE_CMPXCHG128 1
++
++#elif USE_CMPXCHG128_IMPLEMENTATION
++/* CMPXCHG128 implementation */
+ static inline Int128 atomic16_cmpxchg(Int128 *ptr, Int128 cmp, Int128 new)
+ {
+ #ifdef _MSC_VER
+@@ -59,13 +112,58 @@ static inline Int128 atomic16_cmpxchg(Int128 *ptr, Int128 cmp, Int128 new)
+         *ptr = new;
+     }
+     return save;
++#elif defined(__SIZEOF_INT128__) && defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_16)
++    /* 使用 GCC 内置的 16 字节原子比较交换 */
++    typedef union {
++        Int128 s;
++        unsigned __int128 u;
++    } Int128Union;
++
++    Int128Union cmp_u = {.s = cmp};
++    Int128Union new_u = {.s = new};
++    Int128Union old_u;
++
++    old_u.u = __sync_val_compare_and_swap_16((unsigned __int128 *)ptr, cmp_u.u, new_u.u);
++    return old_u.s;
+ #else
+-    return __sync_val_compare_and_swap_16(ptr, cmp, new);
++    /* 回退到通用实现 */
++    uint64_t *ptr64 = (uint64_t *)ptr;
++    uint64_t cmpl = int128_getlo(cmp), cmph = int128_gethi(cmp);
++    uint64_t newl = int128_getlo(new), newh = int128_gethi(new);
++    
++    /* 简单的自旋锁实现 */
++    while (true) {
++        /* 读取当前值 */
++        uint64_t oldh = atomic_read_u64(&ptr64[1]);
++        uint64_t oldl = atomic_read_u64(&ptr64[0]);
++        
++        /* 检查是否匹配 */
++        if (oldl != cmpl || oldh != cmph) {
++            return int128_make128(oldl, oldh);
++        }
++        
++        /* 尝试原子更新：先更新低位，再更新高位 */
++        uint64_t tmp = atomic_cmpxchg_u64(&ptr64[0], cmpl, newl);
++        if (tmp == cmpl) {
++            /* 低位更新成功，尝试更新高位 */
++            tmp = atomic_cmpxchg_u64(&ptr64[1], cmph, newh);
++            if (tmp == cmph) {
++                /* 完全成功 */
++                return int128_make128(cmpl, cmph);
++            } else {
++                /* 高位失败，回滚低位 */
++                atomic_set_u64(&ptr64[0], cmpl);
++            }
++        }
++        
++        /* 失败，重试 */
++    }
+ #endif
+ }
+-# define HAVE_CMPXCHG128 1
+-#elif defined(__aarch64__)
+-/* Through gcc 8, aarch64 has no support for 128-bit at all.  */
++#define HAVE_CMPXCHG128 1
++
++#elif USE_AARCH64_IMPLEMENTATION
++/* AArch64 implementation */
+ static inline Int128 atomic16_cmpxchg(Int128 *ptr, Int128 cmp, Int128 new)
+ {
+     uint64_t cmpl = int128_getlo(cmp), cmph = int128_gethi(cmp);
+@@ -88,28 +186,71 @@ static inline Int128 atomic16_cmpxchg(Int128 *ptr, Int128 cmp, Int128 new)
+ 
+     return int128_make128(oldl, oldh);
+ }
+-# define HAVE_CMPXCHG128 1
++#define HAVE_CMPXCHG128 1
++
++#elif USE_GENERIC_IMPLEMENTATION
++/* 通用实现 - 适用于 ARMv7 和其他没有原生支持的平台 */
++static inline Int128 atomic16_cmpxchg(Int128 *ptr, Int128 cmp, Int128 new)
++{
++    uint64_t *ptr64 = (uint64_t *)ptr;
++    uint64_t cmpl = int128_getlo(cmp), cmph = int128_gethi(cmp);
++    uint64_t newl = int128_getlo(new), newh = int128_gethi(new);
++    
++    /* 简单的自旋锁实现 */
++    while (true) {
++        /* 读取当前值 */
++        uint64_t oldh = atomic_read_u64(&ptr64[1]);
++        uint64_t oldl = atomic_read_u64(&ptr64[0]);
++        
++        /* 检查是否匹配 */
++        if (oldl != cmpl || oldh != cmph) {
++            return int128_make128(oldl, oldh);
++        }
++        
++        /* 尝试原子更新：先更新低位，再更新高位 */
++        uint64_t tmp = atomic_cmpxchg_u64(&ptr64[0], cmpl, newl);
++        if (tmp == cmpl) {
++            /* 低位更新成功，尝试更新高位 */
++            tmp = atomic_cmpxchg_u64(&ptr64[1], cmph, newh);
++            if (tmp == cmph) {
++                /* 完全成功 */
++                return int128_make128(cmpl, cmph);
++            } else {
++                /* 高位失败，回滚低位 */
++                atomic_set_u64(&ptr64[0], cmpl);
++            }
++        }
++        
++        /* 失败，重试 */
++    }
++}
++#define HAVE_CMPXCHG128 1
++
+ #else
+-/* Fallback definition that must be optimized away, or error.  */
++/* 错误处理 */
+ Int128 QEMU_ERROR("unsupported atomic")
+     atomic16_cmpxchg(Int128 *ptr, Int128 cmp, Int128 new);
+-# define HAVE_CMPXCHG128 0
+-#endif /* Some definition for HAVE_CMPXCHG128 */
++#define HAVE_CMPXCHG128 0
++#endif
+ 
+-#if defined(CONFIG_ATOMIC128)
++/* atomic16_read 实现 */
++#if USE_NATIVE_IMPLEMENTATION
+ static inline Int128 atomic16_read(Int128 *ptr)
+ {
+-    return atomic_read__nocheck(ptr);
++    Int128 value;
++    __atomic_load((__int128 *)ptr, (__int128 *)&value, __ATOMIC_SEQ_CST);
++    return value;
+ }
+ 
+ static inline void atomic16_set(Int128 *ptr, Int128 val)
+ {
+-    atomic_set__nocheck(ptr, val);
++    __atomic_store((__int128 *)ptr, (__int128 *)&val, __ATOMIC_SEQ_CST);
+ }
+ 
+-# define HAVE_ATOMIC128 1
+-#elif defined(__aarch64__)
+-/* We can do better than cmpxchg for AArch64.  */
++#define HAVE_ATOMIC128 1
++
++#elif USE_AARCH64_IMPLEMENTATION
++/* AArch64 专用实现 */
+ static inline Int128 atomic16_read(Int128 *ptr)
+ {
+     uint64_t l, h;
+@@ -137,8 +278,10 @@ static inline void atomic16_set(Int128 *ptr, Int128 val)
+         : [l] "r"(l), [h] "r"(h));
+ }
+ 
+-# define HAVE_ATOMIC128 1
++#define HAVE_ATOMIC128 1
++
+ #elif HAVE_CMPXCHG128
++/* 使用 cmpxchg 实现的 atomic16_read/set */
+ static inline Int128 atomic16_read(Int128 *ptr)
+ {
+     /* Maybe replace 0 with 0, returning the old value.  */
+@@ -147,29 +290,61 @@ static inline Int128 atomic16_read(Int128 *ptr)
+     Int128 y = int128_make64(0);
+     return atomic16_cmpxchg(ptr, x, y);
+ #else
+-    return atomic16_cmpxchg(ptr, 0, 0);
++    Int128 zero = int128_make64(0);
++    return atomic16_cmpxchg(ptr, zero, zero);
+ #endif
+ }
+ 
+ static inline void atomic16_set(Int128 *ptr, Int128 val)
+ {
+-    Int128 old = *ptr, cmp;
++    Int128 old = atomic16_read(ptr), cmp;
+     do {
+         cmp = old;
+         old = atomic16_cmpxchg(ptr, cmp, val);
+ #ifdef _MSC_VER
+     } while (memcmp(&old, &cmp, sizeof(old)));
+ #else
+-    } while (old != cmp);
++    } while (!int128_eq(old, cmp));
+ #endif
+ }
+ 
+-# define HAVE_ATOMIC128 1
++#define HAVE_ATOMIC128 1
++
++#elif USE_GENERIC_IMPLEMENTATION
++/* 通用实现 */
++static inline Int128 atomic16_read(Int128 *ptr)
++{
++    uint64_t *ptr64 = (uint64_t *)ptr;
++    uint64_t l, h;
++    
++    /* 顺序读取，确保不会读取到撕裂的值 */
++    do {
++        h = atomic_read_u64(&ptr64[1]);
++        l = atomic_read_u64(&ptr64[0]);
++        /* 如果在此期间高64位发生变化，重试 */
++    } while (h != atomic_read_u64(&ptr64[1]));
++    
++    return int128_make128(l, h);
++}
++
++static inline void atomic16_set(Int128 *ptr, Int128 val)
++{
++    uint64_t *ptr64 = (uint64_t *)ptr;
++    uint64_t l = int128_getlo(val);
++    uint64_t h = int128_gethi(val);
++    
++    /* 简单的顺序写入 */
++    atomic_set_u64(&ptr64[1], h);
++    atomic_set_u64(&ptr64[0], l);
++}
++
++#define HAVE_ATOMIC128 1
++
+ #else
+-/* Fallback definitions that must be optimized away, or error.  */
++/* 错误处理 */
+ Int128 QEMU_ERROR("unsupported atomic") atomic16_read(Int128 *ptr);
+ void QEMU_ERROR("unsupported atomic") atomic16_set(Int128 *ptr, Int128 val);
+-# define HAVE_ATOMIC128 0
+-#endif /* Some definition for HAVE_ATOMIC128 */
++#define HAVE_ATOMIC128 0
++#endif
+ 
+-#endif /* QEMU_ATOMIC128_H */
++#endif /* QEMU_ATOMIC128_H */
+\ No newline at end of file

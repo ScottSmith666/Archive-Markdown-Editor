@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "tinyxml2",
+        "License": "zlib license",
+        "License File": "LICENSE",
+        "Version Number": "v9.0.0",
+        "Owner": "longfeng20@huawei.com",
+        "Upstream URL": "https://github.com/leethomason/tinyxml2.git",
+        "Description": "TinyXML-2 is a simple, small, efficient, C++ XML parser that can be easily integrated into other programs."
+    }
+]

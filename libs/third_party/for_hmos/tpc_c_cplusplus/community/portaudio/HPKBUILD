@@ -1,0 +1,71 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+
+
+pkgname=portaudio
+pkgver=pa_stable_v190700_20210406
+pkgrel=0
+pkgdesc="PortAudio是一个免费、跨平台、开源的音频I/O库。"
+url="https://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("Copyright (c) 1999-2006 Ross Bencina and Phil Burk")
+depends=()
+makedepends=()
+source="https://files.$pkgname.com/archives/$pkgver.tgz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+builddir=$pkgname
+packagename=$builddir.tgz
+
+patchflag=true
+
+prepare() {
+    if [ $patchflag == true ]
+    then
+        patchflag=false
+        cd $builddir
+        patch -p1 < ../portaudio_ohos.patch
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    $MAKE -C $ARCH-build install >>  $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

@@ -1,0 +1,179 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: <shilinke001@chinasoftinc.com>
+# Maintainer: <shilinke001@chinasoftinc.com>
+
+source HPKBUILD > /dev/null 2>&1
+
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+mkdir -p $(dirname ${logfile})
+
+extract_algorithms() {
+    local alg_type=$1
+    ./dump_alg_info | awk -v type="${alg_type}" '
+        BEGIN { in_section=0; pending_alg=""; }
+        $0 ~ "^" type ":" { in_section=1; next; }
+        in_section == 1 && $0 ~ /^  [[:graph:]]+:/ {
+            split($0, parts, ":");
+            alg_name = parts[1];
+            gsub(/^  /, "", alg_name);
+            gsub(/ /, "", alg_name);
+            pending_alg = (alg_name != "") ? alg_name : "";
+            next;
+        }
+        in_section == 1 && pending_alg != "" && $0 ~ /isnull:/ {
+            if ($0 ~ /false/) print pending_alg;
+            pending_alg = "";
+        }
+        in_section == 1 && $0 != "" && $0 !~ /^  / { exit; }
+    '
+}
+
+TEST_TIMEOUT=${TEST_TIMEOUT:-120}
+
+run_single_test() {
+    local test_idx=$1
+    local test_name=$2
+    local test_cmd=$3
+    local res=0
+    
+    echo "Test ${test_idx}: ${test_name} -> ${test_cmd}" >> ${logfile}
+    
+    local run_result
+    if [[ "${TEST_TIMEOUT}" -gt 0 ]]; then
+        timeout ${TEST_TIMEOUT} bash -c "${test_cmd}" >> ${logfile} 2>&1
+        run_result=$?
+        [[ ${run_result} -eq 124 ]] && echo "Test ${test_idx}: TIMEOUT (${TEST_TIMEOUT}s)" >> ${logfile}
+    else
+        eval "${test_cmd}" >> ${logfile} 2>&1
+        run_result=$?
+    fi
+    if [[ ${run_result} -eq 0 ]]; then
+        echo "Test ${test_idx}: ${test_name} - PASS" >> ${logfile}
+        res=0
+    else
+        echo "Test ${test_idx}: ${test_name} - FAIL (exit=${run_result})" >> ${logfile}
+        res=1
+    fi
+    return ${res}
+}
+
+openharmonycheck() {
+    local res=0
+    local total=0
+    local pass=0
+    local fail=0
+    local test_dir="${builddir}/${ARCH}-build/tests"
+    local SIG_STFL_BASE_PATH="../../tests/KATs/sig_stfl"
+    
+    cd "${test_dir}"
+    echo "Starting liboqs tests at $(date)" > ${logfile}
+    echo "Test architecture: ${ARCH}" >> ${logfile}
+    echo "OHOS SDK version: ${OHOS_SDK_VER}" >> ${logfile}
+    echo "----------------------------------------" >> ${logfile}
+
+    echo "Extracting all supported algorithms..." >> ${logfile}
+    local KEM_ALGS=($(extract_algorithms "KEMs"))
+    local SIG_ALGS=($(extract_algorithms "SIGs"))
+    local SIG_STFL_ALGS=($(extract_algorithms "SIG_STFLs"))
+    
+    echo "algorithms: KEM(${#KEM_ALGS[@]}) | SIG(${#SIG_ALGS[@]}) | SIG_STFL(${#SIG_STFL_ALGS[@]})" >> ${logfile}
+    echo "KEM list: ${KEM_ALGS[*]}" >> ${logfile}
+    echo "SIG list: ${SIG_ALGS[*]}" >> ${logfile}
+    echo "SIG_STFL list: ${SIG_STFL_ALGS[*]}" >> ${logfile}
+    echo "----------------------------------------" >> ${logfile}
+
+    local common_tests=(
+        "test_aes|./test_aes"
+        "test_sha3|./test_sha3"
+        "test_hash (sha3_256)|echo -n 'liboqs_test_hash_data' | ./test_hash sha3_256"
+    )
+    for test_case in "${common_tests[@]}"; do
+        total=$((total + 1))
+        IFS='|' read -r test_name test_cmd <<< "${test_case}"
+        run_single_test "${total}" "${test_name}" "${test_cmd}"
+        if [ $? -eq 0 ]; then
+            pass=$((pass + 1))
+        else
+            fail=$((fail + 1))
+            res=1
+        fi
+    done
+
+    for alg in "${KEM_ALGS[@]}"; do
+        [[ -z "${alg}" ]] && continue
+        
+        total=$((total + 1))
+        run_single_test "${total}" "test_kem (${alg})" "./test_kem ${alg}"
+        [ $? -eq 0 ] && pass=$((pass + 1)) || { fail=$((fail + 1)); res=1; }
+
+        total=$((total + 1))
+        run_single_test "${total}" "kat_kem (${alg})" "./kat_kem ${alg}"
+        [ $? -eq 0 ] && pass=$((pass + 1)) || { fail=$((fail + 1)); res=1; }
+
+        total=$((total + 1))
+        run_single_test "${total}" "test_kem_mem (${alg})" "./test_kem_mem ${alg} 0"
+        [ $? -eq 0 ] && pass=$((pass + 1)) || { fail=$((fail + 1)); res=1; }
+    done
+
+    for alg in "${SIG_ALGS[@]}"; do
+        [[ -z "${alg}" ]] && continue
+        
+        total=$((total + 1))
+        run_single_test "${total}" "test_sig (${alg})" "./test_sig ${alg}"
+        [ $? -eq 0 ] && pass=$((pass + 1)) || { fail=$((fail + 1)); res=1; }
+
+        total=$((total + 1))
+        run_single_test "${total}" "test_sig_mem (${alg})" "./test_sig_mem ${alg} 0"
+        [ $? -eq 0 ] && pass=$((pass + 1)) || { fail=$((fail + 1)); res=1; }
+    done
+
+    local SIG_STFL_MAX=0
+    local sig_stfl_idx=0
+    for alg in "${SIG_STFL_ALGS[@]}"; do
+        [[ -z "${alg}" ]] && continue
+        [[ ${sig_stfl_idx} -ge ${SIG_STFL_MAX} ]] && break
+        sig_stfl_idx=$((sig_stfl_idx + 1))
+        
+        if [[ "${alg}" == XMSS* ]]; then
+            local kat_dir="${SIG_STFL_BASE_PATH}/xmss"
+        elif [[ "${alg}" == LMS* ]]; then
+            local kat_dir="${SIG_STFL_BASE_PATH}/lms"
+        else
+            local kat_dir="${SIG_STFL_BASE_PATH}"
+        fi
+        local alg_file_name=$(echo "${alg}" | tr '/' '-')
+        local kat_file="${kat_dir}/${alg_file_name}.rsp"
+
+        total=$((total + 1))
+        run_single_test "${total}" "test_sig_stfl (${alg})" "./test_sig_stfl ${alg} ${kat_file}"
+        [ $? -eq 0 ] && pass=$((pass + 1)) || { fail=$((fail + 1)); res=1; }
+    done
+
+    echo "----------------------------------------" >> ${logfile}
+    echo "Total tests executed: ${total}" >> ${logfile}
+    echo "Passed tests: ${pass}" >> ${logfile}
+    echo "Failed tests: ${fail}" >> ${logfile}
+    echo "Test completed at $(date)" >> ${logfile}
+
+    local conclusion="RESULT: $([ ${fail} -eq 0 ] && echo 'PASS' || echo 'FAIL') (total=${total}, pass=${pass}, fail=${fail})"
+    echo "========================================" >> ${logfile}
+    echo "${conclusion}" >> ${logfile}
+    echo "========================================" >> ${logfile}
+    echo "${conclusion}"
+
+    cd ${OLDPWD}
+    return ${res}
+}

@@ -1,0 +1,149 @@
+diff -Naur old/CMakeLists.txt new/CMakeLists.txt
+--- old/CMakeLists.txt	2024-03-17 11:56:54.347204400 +0800
++++ new/CMakeLists.txt	2024-03-21 11:04:53.797204400 +0800
+@@ -92,7 +92,7 @@
+       "cpuinfo will compile, but cpuinfo_initialize() will always fail.")
+     SET(CPUINFO_SUPPORTED_PLATFORM FALSE)
+   ENDIF()
+-ELSEIF(NOT CPUINFO_TARGET_PROCESSOR MATCHES "^(i[3-6]86|AMD64|x86(_64)?|armv[5-8].*|aarch64|arm64.*|ARM64.*)$")
++ELSEIF(NOT CPUINFO_TARGET_PROCESSOR MATCHES "^(i[3-6]86|AMD64|x86(_64)?|armv[5-8].*|aarch64|arm64.*|ARM64.*|arm.*)$")
+   MESSAGE(WARNING
+     "Target processor architecture \"${CPUINFO_TARGET_PROCESSOR}\" is not supported in cpuinfo. "
+     "cpuinfo will compile, but cpuinfo_initialize() will always fail.")
+@@ -105,7 +105,7 @@
+       "Target operating system is not specified. "
+       "cpuinfo will compile, but cpuinfo_initialize() will always fail.")
+   SET(CPUINFO_SUPPORTED_PLATFORM FALSE)
+-ELSEIF(NOT CMAKE_SYSTEM_NAME MATCHES "^(Windows|WindowsStore|CYGWIN|MSYS|Darwin|Linux|Android)$")
++ELSEIF(NOT CMAKE_SYSTEM_NAME MATCHES "^(Windows|WindowsStore|CYGWIN|MSYS|Darwin|Linux|Android|OHOS)$")
+   IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14" AND NOT IS_APPLE_OS)
+     MESSAGE(WARNING
+       "Target operating system \"${CMAKE_SYSTEM_NAME}\" is not supported in cpuinfo. "
+@@ -170,7 +170,7 @@
+       src/x86/cache/init.c
+       src/x86/cache/descriptor.c
+       src/x86/cache/deterministic.c)
+-    IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
++    IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+       LIST(APPEND CPUINFO_SRCS
+         src/x86/linux/init.c
+         src/x86/linux/cpuinfo.c)
+@@ -183,11 +183,11 @@
+     LIST(APPEND CPUINFO_SRCS
+       src/arm/windows/init-by-logical-sys-info.c
+       src/arm/windows/init.c)
+-  ELSEIF(CPUINFO_TARGET_PROCESSOR MATCHES "^(armv[5-8].*|aarch64|arm64.*)$" OR IOS_ARCH MATCHES "^(armv7.*|arm64.*)$")
++  ELSEIF(CPUINFO_TARGET_PROCESSOR MATCHES "^(armv[5-8].*|aarch64|arm64.*|arm.*)$" OR IOS_ARCH MATCHES "^(armv7.*|arm64.*|arm.*)$")
+     LIST(APPEND CPUINFO_SRCS
+       src/arm/uarch.c
+       src/arm/cache.c)
+-    IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
++    IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+       LIST(APPEND CPUINFO_SRCS
+         src/arm/linux/init.c
+         src/arm/linux/cpuinfo.c
+@@ -195,9 +195,9 @@
+         src/arm/linux/chipset.c
+         src/arm/linux/midr.c
+         src/arm/linux/hwcap.c)
+-      IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^armv[5-8]")
++	IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv[5-8]|arm.*)$")
+         LIST(APPEND CPUINFO_SRCS src/arm/linux/aarch32-isa.c)
+-        IF(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI STREQUAL "armeabi")
++	IF((CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI STREQUAL "armeabi") OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+           SET_SOURCE_FILES_PROPERTIES(src/arm/linux/aarch32-isa.c PROPERTIES COMPILE_FLAGS -marm)
+         ENDIF()
+       ELSEIF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+@@ -217,7 +217,7 @@
+       src/emscripten/init.c)
+   ENDIF()
+ 
+-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+     LIST(APPEND CPUINFO_SRCS
+       src/linux/smallfile.c
+       src/linux/multiline.c
+@@ -227,7 +227,7 @@
+     LIST(APPEND CPUINFO_SRCS src/mach/topology.c)
+   ENDIF()
+ 
+-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+     SET(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+     SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
+     FIND_PACKAGE(Threads REQUIRED)
+@@ -287,7 +287,7 @@
+ 
+ IF(CPUINFO_SUPPORTED_PLATFORM)
+   TARGET_COMPILE_DEFINITIONS(cpuinfo INTERFACE CPUINFO_SUPPORTED_PLATFORM=1)
+-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+     TARGET_LINK_LIBRARIES(cpuinfo PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+     TARGET_LINK_LIBRARIES(cpuinfo_internals PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+     TARGET_COMPILE_DEFINITIONS(cpuinfo PRIVATE _GNU_SOURCE=1)
+@@ -328,7 +328,7 @@
+       "${CONFU_DEPENDENCIES_BINARY_DIR}/googlebenchmark")
+   ENDIF()
+ 
+-  IF(CMAKE_SYSTEM_NAME MATCHES "^(Linux|Android)$")
++  IF(CMAKE_SYSTEM_NAME MATCHES "^(Linux|Android|OHOS)$")
+     ADD_EXECUTABLE(get-current-bench bench/get-current.cc)
+     TARGET_LINK_LIBRARIES(get-current-bench cpuinfo benchmark)
+   ENDIF()
+@@ -357,7 +357,7 @@
+   IF(CPUINFO_TARGET_PROCESSOR MATCHES "^(i[3-6]86|AMD64|x86(_64)?)$")
+     LIST(APPEND CPUINFO_MOCK_SRCS src/x86/mockcpuid.c)
+   ENDIF()
+-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+     LIST(APPEND CPUINFO_MOCK_SRCS src/linux/mockfile.c)
+   ENDIF()
+ 
+@@ -370,7 +370,7 @@
+   TARGET_COMPILE_DEFINITIONS(cpuinfo_mock PUBLIC "CPUINFO_MOCK=1")
+   TARGET_COMPILE_DEFINITIONS(cpuinfo_mock PRIVATE "CPUINFO_LOG_LEVEL=5")
+   TARGET_COMPILE_DEFINITIONS(cpuinfo_mock PRIVATE "CPUINFO_LOG_TO_STDIO=1")
+-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+     TARGET_LINK_LIBRARIES(cpuinfo_mock PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+     TARGET_COMPILE_DEFINITIONS(cpuinfo_mock PRIVATE _GNU_SOURCE=1)
+   ENDIF()
+@@ -790,7 +790,7 @@
+   TARGET_LINK_LIBRARIES(init-test PRIVATE cpuinfo gtest gtest_main)
+   ADD_TEST(NAME init-test COMMAND init-test)
+ 
+-  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
++  IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+     ADD_EXECUTABLE(get-current-test test/get-current.cc)
+     CPUINFO_TARGET_ENABLE_CXX11(get-current-test)
+     CPUINFO_TARGET_RUNTIME_LIBRARY(get-current-test)
+diff -Naur old/src/arm/linux/aarch64-isa.c new/src/arm/linux/aarch64-isa.c
+--- old/src/arm/linux/aarch64-isa.c	2024-04-18 16:23:14.450072400 +0800
++++ new/src/arm/linux/aarch64-isa.c	2024-04-18 16:31:55.291651700 +0800
+@@ -108,6 +108,7 @@
+ 		case UINT32_C(0x51008050): /* Kryo 485 Silver (Cortex-A55) */
+ 		case UINT32_C(0x53000030): /* Exynos-M4 */
+ 		case UINT32_C(0x53000040): /* Exynos-M5 */
++		case UINT32_C(0x4800D020): /* some kernels */ 
+ 			isa->dot = true;
+ 			break;
+ 		case UINT32_C(0x4100D050): /* Cortex A55: revision 1 or later only */
+diff -Naur old/src/arm/linux/cpuinfo.c new/src/arm/linux/cpuinfo.c
+--- old/src/arm/linux/cpuinfo.c	2024-04-18 16:23:14.454068800 +0800
++++ new/src/arm/linux/cpuinfo.c	2024-04-18 16:29:47.945880100 +0800
+@@ -332,6 +332,15 @@
+ 		}
+ 	}
+    
++	/* The CPU architecture of some kernels is 0xf，adapted separately */
++	if (cpu_architecture_length == 3) {
++		if (memcmp(cpu_architecture_start, "0xf", cpu_architecture_length) == 0) {
++			processor->midr = midr_set_architecture(processor->midr, UINT32_C(0xF));
++			processor->architecture_version = 8;
++			processor->flags |= CPUINFO_ARM_LINUX_VALID_ARCHITECTURE | CPUINFO_ARM_LINUX_VALID_PROCESSOR;
++			return;
++		}
++	}
+ 
+ 	uint32_t architecture = 0;
+ 	const char* cpu_architecture_ptr = cpu_architecture_start;

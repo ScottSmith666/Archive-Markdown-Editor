@@ -1,0 +1,74 @@
+[
+    {
+        "Name": "irods",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/irods/irods/blob/main/LICENSE",
+        "Version Number": "4.3.2",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/irods/irods",
+        "Description": "iRODS is an open source data management system."
+    },
+    {
+        "Name": "avrocpp",
+        "License": "Apache-2.0 license",
+        "License File": "LICENSES",
+        "Version Number": "1.11.1",
+        "Owner": "wlxuz@isoftstone.com",
+        "Upstream URL": "https://github.com/apache/avro/archive/refs/tags/release-1.11.1.tar.gz",
+        "Description": "Apache Avro is a data serialization system."
+    },
+    {
+        "Name": "boost",
+        "License": "Boost Software License",
+        "License File": "https://www.boost.org/LICENSE_1_0.txt",
+        "Version Number": "1.81.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz",
+        "Description": "Boost provides free peer-reviewed portable C++ source libraries."
+    },
+    {
+        "Name": "fmt",
+        "License": "MIT",
+        "License File": "https://github.com/fmtlib/fmt/blob/master/LICENSE",
+        "Version Number": "8.1.1",
+        "Owner": "CHENGLIUQ@isoftstone.com",
+        "Upstream URL": "https://github.com/fmtlib/fmt/releases/tag/8.1.1",
+        "Description": "fmt is an open-source formatting library providing a fast and safe alternative to C stdio and C++ iostreams."
+    },
+    {
+        "Name": "json",
+        "License": "MIT",
+        "License File": "https://github.com/nlohmann/json/blob/develop/LICENSE.MIT",
+        "Version Number": "v3.11.2",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://github.com/nlohmann/json/archive/refs/tags/v3.11.2.tar.gz",
+        "Description": "JSON for Modern C++"
+    },
+    {
+        "Name": "libarchive",
+        "License": "GNU Library General Public License",
+        "License File": "https://github.com/libarchive/libarchive/blob/master/COPYING",
+        "Version Number": "v3.6.2",
+        "Owner": "1596268623@qq.com",
+        "Upstream URL": "https://github.com/libarchive/libarchive/archive/refs/tags/v3.6.2.tar.gz",
+        "Description": "The libarchive project develops a portable, efficient C library that can read and write streaming archives in a variety of formats."
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "OpenSSL_1_1_1t",
+        "Owner": "llh_01129@163.com",
+        "Upstream URL": "https://github.com/openssl/openssl/archive/refs/tags/OpenSSL_1_1_1t.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    },
+    {
+        "Name": "curl",
+        "License": "BSD/ISC/curl",
+        "License File": "COPYING",
+        "Version Number": "curl-8_0_1",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://github.com/curl/curl/archive/refs/tags/curl-8_0_1.tar.gz",
+        "Description": "Curl is a command-line tool for transferring data specified with URL syntax. Find out how to use curl by reading the curl.1 man page or the MANUAL document. Find out how to install Curl by reading the INSTALL document."
+    }
+]

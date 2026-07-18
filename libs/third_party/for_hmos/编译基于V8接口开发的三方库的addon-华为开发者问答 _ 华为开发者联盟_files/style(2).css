@@ -1,0 +1,111 @@
+.intel-pop-up-wrapper {
+  position: fixed;
+  bottom: 30px;
+  left: 48px;
+  width: 485px;
+  z-index: 100;
+  box-sizing: content-box !important;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: border 0.5s ease-in-out;
+}
+.intel-pop-up-wrapper:hover {
+  border: 1px solid transparent;
+  transition: border 0.5s ease-in-out;
+}
+.intel-pop-up-wrapper::after {
+  position: absolute;
+  content: "";
+  top: -4px;
+  left: -4px;
+  bottom: -4px;
+  right: -4px;
+  z-index: 99;
+  background-color: rgba(255, 255, 255, 0);
+  border-radius: 26px;
+  transition: background-color 0.5s ease-in-out;
+}
+.intel-pop-up-wrapper.hidden {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
+.intel-pop-up-wrapper:hover::after {
+  background-color: rgba(10, 89, 247, 0.1);
+  cursor: pointer;
+  transition: background-color 0.5s ease-in-out;
+}
+.intel-pop-up-inner {
+  position: relative;
+  padding: 24px;
+  z-index: 101;
+  border-radius: 23px;
+  backdrop-filter: blur(200px);
+}
+.intel-pop-up-plain-text-orange {
+  background: radial-gradient(97.75% 83.15% at 93% 104%, rgba(247, 133, 10, 0.2), rgba(247, 133, 10, 0) 100%), rgba(255, 255, 255, 0.96);
+}
+.intel-pop-up-plain-text-purple {
+  background: radial-gradient(97.75% 83.15% at 83% 104%, rgba(172, 73, 245, 0.2), rgba(172, 73, 245, 0) 100%), rgba(255, 255, 255, 0.96);
+}
+.intel-pop-up-plain-text-blue {
+  background: radial-gradient(97.75% 83.15% at 83% 104%, rgba(10, 89, 247, 0.2), rgba(10, 89, 247, 0) 100%), rgba(255, 255, 255, 0.96);
+}
+.intel-pop-up-plain-text-green {
+  background: radial-gradient(97.75% 83.15% at 83% 104%, rgba(100, 187, 92, 0.2), rgba(100, 187, 92, 0) 100%), rgba(255, 255, 255, 0.96);
+}
+.intel-pop-up-plain-text-red {
+  background: radial-gradient(97.75% 83.15% at 83% 104%, rgba(232, 64, 38, 0.2), rgba(232, 64, 38, 0) 100%), rgba(255, 255, 255, 0.96);
+}
+.intel-pop-up-close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.intel-pop-up-fir-title {
+  height: 28px;
+  margin-bottom: 12px;
+  line-height: 28px;
+  font-size: 20px;
+  color: rgba(0, 0, 0, 0.9);
+  font-family: "HarmonyOSHans-Regular", "HarmonyOSHans-fallback", "PingFangSC-Regular", "Microsoft YaHei", "Arial", "Helvetica", sans-serif;
+  font-weight: 700;
+}
+.intel-pop-up-fir-title-no-bottom {
+  margin-bottom: 0;
+}
+.intel-pop-up-sec-title {
+  margin-bottom: 4px;
+  line-height: 24px;
+  color: rgba(0, 0, 0, 0.9);
+  font-family: "HarmonyOSHans-Regular", "HarmonyOSHans-fallback", "PingFangSC-Regular", "Microsoft YaHei", "Arial", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0px;
+}
+.intel-pop-up-content {
+  line-height: 20px;
+  color: rgba(0, 0, 0, 0.6);
+  font-family: "HarmonyOSHans-Regular", "HarmonyOSHans-fallback", "PingFangSC-Regular", "Microsoft YaHei", "Arial", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.intel-pop-up-icon {
+  position: absolute;
+  right: 47px;
+  bottom: 0;
+  width: 94px;
+}
+.intel-pop-up-scale1 {
+  width: 70px !important;
+  right: 50px;
+}
+

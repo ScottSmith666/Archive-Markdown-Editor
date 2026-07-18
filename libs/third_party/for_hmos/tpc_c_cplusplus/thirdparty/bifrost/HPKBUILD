@@ -1,0 +1,77 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and limitations under the License.
+
+# Contributor: zhaozhuo <zhuozhao@isoftstone.com>
+# Maintainer: zhaozhuo <zhuozhao@isoftstone.com>
+
+pkgname=bifrost
+pkgver=v1.3.5
+pkgrel=0
+pkgdesc="Highly parallel construction and indexing of colored and compacted de Bruijn graphs"
+url="https://github.com/pmelsted/bifrost"
+archs=("arm64-v8a" "x86_64")
+#armeabi-v7a：不支持，此库源码大量使用__uint128_t类型，armeabi-v7a是32位位架构，无法支持__uint128_t
+
+license=("BSD 2-Clause License")
+depends=()
+makedepends=()
+
+source="https://github.com/pmelsted/$pkgname/archive/refs/tags/$pkgver.zip"
+downloadpackage=true
+autounpack=true
+buildtools="cmake"
+
+builddir=${pkgname}-${pkgver:1}
+packagename=$builddir.zip
+rootDir=$PWD
+
+prepare() {
+    cp -arf $builddir $builddir-$ARCH-build
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    #DCOMPILATION_ARCH=OFF原因：该库源代码CMakeLists.txt中默认情况下 COMPILATION_ARCH 被设置为 "native"，这会在编译时
+    #添加 -march=native 选项，在交叉编译环境中， -march=native 是不支持的，因为它会尝试使用主机的架构特性，而不是目标架构的特
+    #性，导致编译失败
+    #DENABLE_AVX2=OFF原因：ARM64架构（包括arm64-v8a）使用的是不同的SIMD指令集（如NEON），不支持AVX2指令
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DCOMPILATION_ARCH=OFF \
+    -DENABLE_AVX2=OFF \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_FLAGS_RELEASE="-O3 -s" \
+    -DCMAKE_C_FLAGS_RELEASE="-O3 -s" \
+    -DCMAKE_EXE_LINKER_FLAGS="-s" \
+    -DCMAKE_SHARED_LINKER_FLAGS="-s" \
+    -DOHOS_ARCH=$ARCH \
+    -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $rootDir
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $rootDir
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+    rm -rf ${PWD}/$builddir-arm64-v8a-build
+    rm -rf ${PWD}/$builddir-x86_64-build
+}

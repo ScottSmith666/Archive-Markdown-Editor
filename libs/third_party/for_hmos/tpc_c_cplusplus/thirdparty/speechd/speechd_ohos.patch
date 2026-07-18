@@ -1,0 +1,189 @@
+diff -Naur speech-dispatcher-0.11.5/src/api/c/libspeechd.c speech-dispatcher-0.11.5_ohos/src/api/c/libspeechd.c
+--- speech-dispatcher-0.11.5/src/api/c/libspeechd.c	2023-08-06 10:47:57.000000000 -0700
++++ speech-dispatcher-0.11.5_ohos/src/api/c/libspeechd.c	2023-11-12 23:13:46.657859121 -0800
+@@ -542,10 +542,11 @@
+ 	if (!connection->stream)
+ 		SPD_FATAL("Can't create a stream for socket, fdopen() failed.");
+ 	/* Switch to line buffering mode */
++#ifndef __OHOS__
+ 	ret = setvbuf(connection->stream, NULL, _IONBF, SPD_REPLY_BUF_SIZE);
+ 	if (ret)
+ 		SPD_FATAL("Can't set buffering, setvbuf failed.");
+-
++#endif
+ 	pthread_mutex_init(&connection->ssip_mutex, NULL);
+ 
+ 	if (mode == SPD_MODE_THREADED) {
+@@ -609,12 +610,18 @@
+ 	pthread_mutex_lock(&connection->ssip_mutex);
+ 
+ 	if (connection->mode == SPD_MODE_THREADED) {
++#ifndef __OHOS__	
+ 		pthread_cancel(connection->td->events_thread);
++#endif
+ 		pthread_mutex_destroy(&connection->td->mutex_reply_ready);
+ 		pthread_mutex_destroy(&connection->td->mutex_reply_ack);
+ 		pthread_cond_destroy(&connection->td->cond_reply_ready);
+ 		pthread_cond_destroy(&connection->td->cond_reply_ack);
++#ifndef __OHOS__
+ 		pthread_join(connection->td->events_thread, NULL);
++#else
++		pthread_detach(connection->td->events_thread);
++#endif
+ 		connection->mode = SPD_MODE_SINGLE;
+ 		free(connection->td);
+ 	}
+diff -Naur speech-dispatcher-0.11.5/src/audio/nas.c speech-dispatcher-0.11.5_ohos/src/audio/nas.c
+--- speech-dispatcher-0.11.5/src/audio/nas.c	2023-06-05 15:03:00.000000000 -0700
++++ speech-dispatcher-0.11.5_ohos/src/audio/nas.c	2023-11-12 23:15:50.034386598 -0800
+@@ -55,8 +55,9 @@
+ static void *_nas_handle_events(void *par)
+ {
+ 	spd_nas_id_t *nas_id = (spd_nas_id_t *) par;
++#ifndef __OHOS__
+ 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+-
++#endif
+ 	while (1)
+ 		AuHandleEvents(nas_id->aud);
+ 
+@@ -213,10 +214,12 @@
+ 
+ 	if (nas_id == NULL)
+ 		return -2;
+-
++#ifndef __OHOS__
+ 	pthread_cancel(nas_id->nas_event_handler);
+ 	pthread_join(nas_id->nas_event_handler, NULL);
+-
++#else
++	pthread_detach(nas_id->nas_event_handler);
++#endif
+ 	pthread_mutex_destroy(&nas_id->pt_mutex);
+ 	pthread_mutex_destroy(&nas_id->flow_mutex);
+ 
+diff -Naur speech-dispatcher-0.11.5/src/common/common.c speech-dispatcher-0.11.5_ohos/src/common/common.c
+--- speech-dispatcher-0.11.5/src/common/common.c	2023-06-05 15:03:00.000000000 -0700
++++ speech-dispatcher-0.11.5_ohos/src/common/common.c	2023-11-12 23:16:18.814544565 -0800
+@@ -49,6 +49,8 @@
+ 
+ void set_speaking_thread_parameters(void)
+ {
++#ifndef __OHOS__
+ 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+ 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
++#endif
+ }
+diff -Naur speech-dispatcher-0.11.5/src/common/i18n.c speech-dispatcher-0.11.5_ohos/src/common/i18n.c
+--- speech-dispatcher-0.11.5/src/common/i18n.c	2023-06-05 15:03:00.000000000 -0700
++++ speech-dispatcher-0.11.5_ohos/src/common/i18n.c	2023-11-12 23:19:08.151691291 -0800
+@@ -27,13 +27,22 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
++
++#ifdef __OHOS__
++# undef textdomain
++# define textdomain(Domainname) ((const char *) (Domainname))
++# undef bindtextdomain
++# define bindtextdomain(Domainname, Dirname) \
++    ((void) (Domainname), (const char *) (Dirname))
++#endif
++
++
+ void i18n_init(void)
+ {
+ 	if (setlocale(LC_ALL, "") == NULL) {
+ 		perror("setlocale");
+ 		exit(1);
+ 	}
+-
+ 	if (bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR) == NULL) {
+ 		perror("bindtextdomain");
+ 		exit(1);
+diff -Naur speech-dispatcher-0.11.5/src/modules/module_utils.c speech-dispatcher-0.11.5_ohos/src/modules/module_utils.c
+--- speech-dispatcher-0.11.5/src/modules/module_utils.c	2023-06-05 15:03:00.000000000 -0700
++++ speech-dispatcher-0.11.5_ohos/src/modules/module_utils.c	2023-11-12 23:20:37.356419452 -0800
+@@ -585,7 +585,7 @@
+ int module_terminate_thread(pthread_t thread)
+ {
+ 	int ret;
+-
++#ifndef __OHOS__
+ 	ret = pthread_cancel(thread);
+ 	if (ret != 0) {
+ 		DBG("Cancellation of speak thread failed");
+@@ -596,7 +596,9 @@
+ 		DBG("join failed!\n");
+ 		return 1;
+ 	}
+-
++#else
++	ret = pthread_detach(thread);
++#endif
+ 	return 0;
+ }
+ 
+diff -Naur speech-dispatcher-0.11.5/src/server/module.c speech-dispatcher-0.11.5_ohos/src/server/module.c
+--- speech-dispatcher-0.11.5/src/server/module.c	2023-08-06 09:25:17.000000000 -0700
++++ speech-dispatcher-0.11.5_ohos/src/server/module.c	2023-11-12 23:10:48.052505520 -0800
+@@ -499,10 +499,11 @@
+ 		FATAL("Can't create a stream for socket, fdopen() failed.");
+ 
+ 	/* Switch to line buffering mode */
++#ifndef __OHOS__
+ 	ret = setvbuf(module->stream_out, NULL, _IONBF, 4096);
+ 	if (ret)
+ 		FATAL("Can't set line buffering, setvbuf failed.");
+-
++#endif
+ 	MSG(4, "Trying to initialize %s.", module->name);
+ 	if (output_send_data("INIT\n", module, 0) != 0) {
+ 		MSG(1, "ERROR: Something wrong with %s, can't initialize",
+diff -Naur speech-dispatcher-0.11.5/src/server/output.c speech-dispatcher-0.11.5_ohos/src/server/output.c
+--- speech-dispatcher-0.11.5/src/server/output.c	2023-08-06 09:26:22.000000000 -0700
++++ speech-dispatcher-0.11.5_ohos/src/server/output.c	2023-11-12 23:23:20.673921097 -0800
+@@ -224,8 +224,10 @@
+ void
+ static output_lock(void)
+ {
++#ifndef __OHOS__
+ 	if (pthread_self() == speak_thread)
+ 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldstate);
++#endif
+ 	pthread_mutex_lock(&output_layer_mutex);
+ }
+ 
+@@ -233,8 +235,10 @@
+ static output_unlock(void)
+ {
+ 	pthread_mutex_unlock(&output_layer_mutex);
++#ifndef __OHOS__
+ 	if (pthread_self() == speak_thread)
+ 		pthread_setcancelstate(oldstate, NULL);
++#endif
+ }
+ 
+ #define OL_RET(value) \
+diff -Naur speech-dispatcher-0.11.5/src/server/speechd.c speech-dispatcher-0.11.5_ohos/src/server/speechd.c
+--- speech-dispatcher-0.11.5/src/server/speechd.c	2023-08-06 10:47:57.000000000 -0700
++++ speech-dispatcher-0.11.5_ohos/src/server/speechd.c	2023-11-12 23:24:07.146381145 -0800
+@@ -1353,6 +1353,7 @@
+ 	g_hash_table_destroy(fd_settings);
+ 
+ 	MSG(4, "Closing speak() thread...");
++#ifndef __OHOS__
+ 	ret = pthread_cancel(speak_thread);
+ 	if (ret != 0)
+ 		FATAL("Speak thread failed to cancel!\n");
+@@ -1360,7 +1361,9 @@
+ 	ret = pthread_join(speak_thread, NULL);
+ 	if (ret != 0)
+ 		FATAL("Speak thread failed to join!\n");
+-
++#else
++	ret = pthread_detach(speak_thread);
++#endif
+ 	MSG(4, "Closing play() thread...");
+ 	module_speak_queue_terminate();
+ 

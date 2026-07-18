@@ -1,0 +1,46 @@
+#Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: lyc <614222069@qq.com>
+# Maintainer: lyc <614222069@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $LYCIUM_THIRDPARTY_ROOT/$pkgname/$pkgname-$pkgver/$ARCH-build
+    # 该export是必选项，因为要链接本地bin文件
+    export LD_LIBRARY_PATH=$LYCIUM_THIRDPARTY_ROOT/$pkgname/$pkgname-$pkgver/$ARCH-build/bin/:$LD_LIBRARY_PATH
+    # 由于没有/usr/bin目录，将测试用例使用的cmake路径修改为/data/CIusr/bin下的cmake
+    find . -name CTestTestfile.cmake -exec sed -i 's#/usr/bin/cmake#/data/CIusr/bin/cmake#' {} +
+    # 由于没有/usr/bin目录，将测试用例使用的/usr/bin下面的bash改为直接使用bash
+    sed -i 's#/usr/bin/bash#bash#' test/CTestTestfile.cmake
+    # 由于不能在/tmp目录下写入，将测试脚本中的/tmp目录修改为/data/local/tmp
+    sed -i 's#=/tmp/#=/data/local/tmp/#' test/H5TEST/test_use_cases.sh
+    sed -i 's#=/tmp/#=/data/local/tmp/#' ../bin/output_filter.sh
+
+    ignore_test="H5TEST-dt_arith|H5TEST-dtransform|H5DUMP-tfloatsattrs|H5DUMP-tldouble|H5DUMP-tldouble_scalar"
+    
+    ctest -E $ignore_test > ${logfile} 2>&1
+    res=$?
+    if [ $res != 0 ]
+    then
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp Testing/Temporary/LastTest.log ${LYCIUM_FAULT_PATH}/${pkgname}/
+    fi
+    unset LD_LIBRARY_PATH
+    rm -r /usr/local
+    cd $OLDPWD
+    return $res
+}

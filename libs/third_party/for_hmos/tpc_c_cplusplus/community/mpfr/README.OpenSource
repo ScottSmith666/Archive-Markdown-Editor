@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "mpfr",
+        "License": "GPL-3.0",
+        "License File": "https://www.gnu.org/licenses/lgpl-3.0.html",
+        "Version Number": "4.2.1",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://www.mpfr.org",
+        "Description": "The mpfr library is a C library for multiple-precision floating-point computations with correct rounding."
+    },
+    {
+        "Name": "gmp",
+        "License": "gplv2 and gplv3"",
+        "License File": ["https://www.gnu.org/licenses/old-licenses/gpl-2.0.html","https://www.gnu.org/licenses/lgpl-3.0.html"],
+        "Version Number": "v1.0.12",
+        "Owner": "chenbaodi@huawei.com",
+        "Upstream URL": "https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz",
+        "Description": "GMP is a free library for arbitrary precision arithmetic, operating on signed integers, rational numbers, and floating-point numbers."
+    }
+]

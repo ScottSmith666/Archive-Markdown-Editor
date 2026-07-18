@@ -1,0 +1,12 @@
+diff -Naur json-schema-validator-2.2.0/CMakeLists.txt json-schema-validator-2.2.0-patch/CMakeLists.txt
+--- json-schema-validator-2.2.0/CMakeLists.txt	2022-11-27 01:06:09.000000000 +0800
++++ json-schema-validator-2.2.0-patch/CMakeLists.txt	2023-04-24 12:57:33.663268956 +0800
+@@ -21,6 +21,8 @@
+     hunter_add_package(nlohmann_json)
+ endif()
+ 
++list(APPEND CMAKE_CXX_FLAGS "-fsigned-char")
++string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+ # the library
+ add_library(nlohmann_json_schema_validator
+     src/smtp-address-validator.cpp

@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "lpeg",
+        "License": "MIT",
+        "License File": "https://www.inf.puc-rio.br/~roberto/lpeg/#license",
+        "Version Number": "master",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/luvit/lpeg/archive/refs/heads/master.zip",
+        "Description": "LPeg is a new pattern-matching library for Lua, based on Parsing Expression Grammars (PEGs)"
+    },
+    {
+        "Name": "LuaJIT",
+        "License": "MIT",
+        "License File": "https://github.com/LuaJIT/LuaJIT/blob/v2.1/COPYRIGHT",
+        "Version Number": "2.1.0-beta3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://luajit.org/download/LuaJIT-2.1.0-beta3.tar.gz",
+        "Description": "A Just-In-Time Compiler for Lua."
+    }
+]

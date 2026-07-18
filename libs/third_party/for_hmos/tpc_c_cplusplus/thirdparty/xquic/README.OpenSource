@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "xquic",
+        "License": "Apache-2.0 license",
+        "License File": "https://github.com/alibaba/xquic/blob/main/LICENSE",
+        "Version Number": "v1.9.1",
+        "Owner": "panjinling@huawei.com",
+        "Upstream URL": "https://github.com/alibaba/xquic",
+        "Description": "XQUIC is Alibaba's IETF QUIC standard transmission protocol library, specifically designed to
+            optimize mobile network experience and significantly enhance transmission performance in weak network environments."
+    }
+]

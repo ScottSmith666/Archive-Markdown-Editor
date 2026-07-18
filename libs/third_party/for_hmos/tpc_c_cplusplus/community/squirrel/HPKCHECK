@@ -1,0 +1,49 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: wangjialun <2271411@stu.neu.edu.cn>, zhangqian<2371418@stu.neu.edu.cn>, wangyihao<2942375747@qq.com> , wangying<wangying@swc.neu.edu.cn>
+# Maintainer: wangyihao<2471389@stu.neu.edu.cn>, wangjialun<2271411@stu.neu.edu.cn>, zhangqian<2371418@stu.neu.edu.cn>, wangying<wangying@swc.neu.edu.cn>
+
+source HPKBUILD > /dev/null 2>&1    # 导入HPKBUILD文件
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+# 在OH环境执行测试的接口
+openharmonycheck() {
+    res=0                               
+    cd ${builddir}/${ARCH}-build/bin  # 进入到对应架构目录下的/bin目录，里面放置了sq二进制文件
+    # 该库没有测试用例，因此执行一个demo：该库根目录下sample文件夹里放有符合squirrel语法的.nut文件，执行一个名为hello的.nut文件，输出结果为：Hello World!  
+    ./sq ../../samples/hello.nut > $logfile 2>&1
+    res=$?      
+    # 检查是否有输出
+    if [ -s $logfile ]; then
+        # 检查日志文件中是否包含 "Hello World!"
+        if grep -q "Hello World!" $logfile; then
+            echo "Test passed: 'Hello World!' found in the log." >> $logfile
+        else
+            echo "Test failed: 'Hello World!' not found in the log." >> $logfile
+            res=1 
+        fi
+    else
+        # 若无输出，则测试失败
+        echo "Test failed: No output from the test." >> $logfile
+        res=1
+    fi
+
+    #保存测试失败日志
+    if [ $res -ne 0 ]; then
+        mkdir -p ${LYCIUM_FAULT_PATH}/${pkgname}
+	cp Testing/Temporary/LastTest.log ${LYCIUM_FAULT_PATH}/${pkgname}/test_failed.log
+    fi
+    cd $OLDPWD
+    return $res                       
+}

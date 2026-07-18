@@ -1,0 +1,86 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=hunspell
+pkgver=v1.7.2
+pkgrel=0
+pkgdesc=""
+url=""
+archs=("armeabi-v7a" "arm64-v8a")
+license="LGPL-2.1 GPL-2.0"
+depends=()
+#没安装libtool这个库会编译失败
+makedepends=("autopoint")
+install=
+source="https://github.com/hunspell/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+prepare() {
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == ${archs[0]} ]
+    then
+        setarm32ENV
+        host=arm-linux
+        export LDFLAGS="${OHOS_SDK}/native/llvm/lib/clang/${CLANG_VERSION}/lib/arm-linux-ohos/a7_hard_neon-vfpv4/libclang_rt.builtins.a ${LDFLAGS}"
+    fi
+    if [ $ARCH == ${archs[1]} ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+        export LDFLAGS="${OHOS_SDK}/native/llvm/lib/clang/${CLANG_VERSION}/lib/aarch64-linux-ohos/libclang_rt.builtins.a ${LDFLAGS}"
+    fi
+    cd $builddir-$ARCH-build
+    autoreconf -ifv > $buildlog 2>&1
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host >> $buildlog 2>&1
+    # 修改/bin/bash和/usr/bin/sed
+    find . -name Makefile -exec sed -i 's#/bin/bash#bash#' {} +
+    find . -name Makefile -exec sed -i 's#/usr/bin/sed#/bin/sed#' {} +
+    find . -name Makefile -exec sed -i 's#mawk#awk#' {} +
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    sed -i 's#/bin/bash#/bin/env bash#' libtool src/tools/hunspell src/tools/analyze tests/test.sh
+    sed -i 's#/usr/bin/sed#/bin/sed#' libtool src/tools/hunspell src/tools/analyze
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == ${archs[0]} ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == ${archs[1]} ]
+    then
+        unsetarm64ENV
+    fi
+
+    unset host
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+
+    ## real test CMD
+    ## 进入到编译目录执行
+    ## make check-TESTS -C tests
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build #${PWD}/$packagename
+}

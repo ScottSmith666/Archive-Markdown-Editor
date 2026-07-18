@@ -1,0 +1,67 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+
+pkgname=json
+pkgver=v3.11.2
+pkgrel=0
+pkgdesc="JSON for Modern C++"
+url="https://github.com/nlohmann/json"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=()
+makedepends=()
+
+source="https://gitee.com/mirrors/nlohmann-json/repository/archive/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+builddir=nlohmann-$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cd $builddir/$ARCH-build
+    ctest -R download_test_data  # 执行下载测试资源
+    cd $OLDPWD
+    # 在OpenHarmony开发板中执行用例
+    # ctest -E download_test_data  # 排除资源下载任务
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}
+

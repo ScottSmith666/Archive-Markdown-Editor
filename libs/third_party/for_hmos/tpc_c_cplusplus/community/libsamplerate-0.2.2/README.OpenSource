@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libsamplerate-0.2.2",
+        "License": "BSD-2-Clause license",
+        "License File": "https://github.com/libsndfile/libsamplerate/blob/master/COPYING",
+        "Version Number": "0.2.2",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/libsndfile/libsamplerate",
+        "Description": "libsamplerate is a library for performing sample rate conversion of audio data."
+    }
+]

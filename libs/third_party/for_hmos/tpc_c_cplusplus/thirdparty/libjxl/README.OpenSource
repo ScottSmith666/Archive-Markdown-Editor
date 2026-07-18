@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libjxl",
+        "License": "BSD-3-Clause",
+        "License File": ["https://github.com/libjxl/libjxl/blob/main/LICENSE"],
+        "Version Number": "v0.11.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libjxl/libjxl.git",
+        "Description": "JPEG XL image format reference implementation"
+    }
+]

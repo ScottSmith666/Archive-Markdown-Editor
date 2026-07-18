@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "JRTPLIB",
+        "License": "MIT License",
+        "License File": "LICENSE",
+        "Version Number": "v3.11.2",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/j0r1/JRTPLIB",
+        "Description": "The library offers support for the Real-time Transport Protocol (RTP), defined in RFC 3550."
+    }
+]

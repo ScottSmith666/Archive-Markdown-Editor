@@ -1,0 +1,65 @@
+# Contributor: liucheng <CHENGLIUQ@isoftstone.com>
+# Maintainer: liucheng  <CHENGLIUQ@isoftstone.com>
+
+pkgname=fmt
+pkgver=10.0.0
+pkgrel=0
+pkgdesc="{fmt} is an open-source formatting library providing a fast and safe alternative to C stdio and C++ iostreams."
+url="https://fmt.dev/latest/index.html"
+archs=("armeabi-v7a" "arm64-v8a"  "x86_64")
+license=("MIT")
+depends=()
+makedepends=()
+source="https://github.com/fmtlib/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools="cmake"
+patchflag=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+
+prepare()  {
+    if $patchflag
+    then
+        cd $builddir
+        # 删除不符合posix规范且不影响功能验证的测试用例
+        patch -p1 < $PKGBUILD_ROOT/fmt_oh_test.patch > $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L  > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build  >> $buildlog 2>&1 
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 打包安装
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install
+    cd $OLDPWD
+}
+
+# 进行测试的准备和说明
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 测试方法如下:
+    # 进入目录: cd lycium/main/fmt/fmt-10.0.0/armeabi-v7a-build
+    # 执行    : ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir  #${PWD}/$packagename
+}

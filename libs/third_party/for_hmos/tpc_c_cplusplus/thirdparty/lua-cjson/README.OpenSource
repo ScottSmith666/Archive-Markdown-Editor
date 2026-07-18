@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "lua-cjson",
+        "License": "MIT",
+        "License File": "https://github.com/mpx/lua-cjson/blob/2.1.0/LICENSE",
+        "Version Number": "v2.1.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/mpx/lua-cjson/archive/refs/tags/2.1.0.zip",
+        "Description": "Lua CJSON is a fast JSON encoding/parsing module for Lua."
+    },
+    {
+        "Name": "lua",
+        "License": "MIT",
+        "License File": "https://www.lua.org/license.html",
+        "Version Number": "v5.4.6",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.lua.org/ftp/lua-5.4.6.tar.gz",
+        "Description": "Lua is a powerful, efficient, lightweight, embeddable scripting language."
+    }
+]

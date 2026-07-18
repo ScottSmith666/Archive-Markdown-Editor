@@ -1,0 +1,65 @@
+[
+    {
+        "Name": "libkml",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/libkml/libkml/blob/master/LICENSE",
+        "Version Number": "",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/libkml/libkml",
+        "Description": "Libkml is an open-source C++library used for parsing and generating KML (Keyhole Markup Language) files. KML is an XML based file format used to represent geospatial data and is widely used in geographic information systems such as Google Earth and Google Maps."
+    },
+    {
+        "Name": "boost",
+        "License": "BSL-1.0",
+        "License File": "https://www.boost.org/LICENSE_1_0.txt",
+        "Version Number": "1.81.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz",
+        "Description": "Boost provides free peer-reviewed portable C++ source libraries."
+    },
+    {
+        "Name": "googletest",
+        "License": "BSD-3-Clause license",
+        "License File": "https://github.com/google/googletest/blob/main/LICENSE",
+        "Version Number": "v1.13.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz",
+        "Description": "Google Testing and Mocking Framework"
+    },
+    {
+        "Name": "uriparser",
+        "License": "BSD 3-Clause License",
+        "License File": "https://github.com/uriparser/uriparser/blob/master/COPYING",
+        "Version Number": "uriparser-0.9.8",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/uriparser/uriparser",
+        "Description": "uriparser is a strictly RFC 3986 compliant URI parsing and handling library written in C89."
+    },
+    {
+        "Name": "libexpat",
+        "License": "MIT",
+        "License File": "COPYING",
+        "Version Number": "R_2_5_0",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://github.com/libexpat/libexpat/archive/refs/tags/R_2_5_0.tar.gz",
+        "Description": "Fast streaming XML parser written in C99."
+    },
+    {
+        "Name": "zlib",
+        "License": "zlib License",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.2.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz",
+        "Description": "A massively spiffy yet delicately unobtrusive compression library."
+    },
+    {
+        "Name": "minizip-ng",
+        "License": "zlib",
+        "License File": "https://github.com/zlib-ng/minizip-ng/blob/develop/LICENSE",
+        "Version Number": "8658af7e0a73d6ac4d94e81dde0e9fa95b1aff47",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/zlib-ng/minizip-ng/tree/1.2",
+        "Description": "minizip-ng is a zip manipulation library written in C that is supported on Windows, macOS, and Linux."
+    }
+]

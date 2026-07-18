@@ -1,0 +1,94 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=exiv2
+pkgver=v0.27.6
+pkgrel=0
+pkgdesc="Exiv2 is a C++ library and a command-line utility to read, write, delete and modify Exif, IPTC, XMP and ICC image metadata."
+url="https://github.com/Exiv2/exiv2"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL2.0")
+depends=("libexpat")
+makedepends=()
+install=
+source="https://github.com/Exiv2/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd ${builddir}
+        # 修复realpath接口第二个参数长度判断报错问题
+        patch -p1 < ../exiv2_oh_pkg.patch
+        cd $OLDPWD
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+    fi
+
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd ${builddir}
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=${ARCH} -B`pwd`/$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C `pwd`/$ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    save_path="$LYCIUM_ROOT/../thirdparty/$pkgname/exiv2.jpg"
+    curl -o $save_path -L http://clanmills.com/Stonehenge.jpg
+    cp $LYCIUM_ROOT/../thirdparty/$pkgname/$builddir/test/data/large.icc  $LYCIUM_ROOT/../thirdparty/$pkgname/exiv2.icc
+
+    # 在OpenHarmony开发板中执行用例
+    # 由于ctest测试使用到了python无法在开发板中正常测试，因此使用sample测试
+    # 读取iptc
+    # ./exiv2 -pi exiv2.jpg
+    # 添加iptc
+    # ./exiv2 -M "add Iptc.Application2.Credit String mee too!" exiv2.jpg
+    # 修改iptc
+    # ./exiv2 -M "set Iptc.Application2.Credit String mee test!" exiv2.jpg
+    # 删除iptc
+    # ./exiv2 -M "del Iptc.Application2.Credit" exiv2.jpg
+    # 读取xmp
+    # ./exiv2 -px exiv2.jpg
+    # 添加xmp
+    # ./exiv2 -M "add Xmp.dc.format XmpText image/jpeg" exiv2.jpg
+    # 修改xmp
+    # ./exiv2 -M "set Xmp.dc.format XmpText image/png" exiv2.jpg
+    # 删除xmp
+    # ./exiv2 -M "del Xmp.dc.format" exiv2.jpg   
+    # 读取exif
+    # ./exiv2 -pe exiv2.jpg
+    # 添加exif
+    # ./exiv2 -M "add Exif.Image.WhitePoint Short 32 12 4 5 6" exiv2.jpg
+    # 修改exif
+    # ./exiv2 -M "set Exif.Image.WhitePoint Short 10" exiv2.jpg
+    # 删除exif
+    # ./exiv2 -M "del Exif.Image.WhitePoint"  
+    # 读取icc
+    # ./exiv2 -b -pC exiv2.jpg
+    # 添加或修改icc(添加或修改icc文件时，注意icc文件名要和当前的图片的名字保持一致,.icc文件放在和图片文件同目录下)
+    # ./exiv2 -iC exiv2.jpg
+    # 删除icc
+    # ./exiv2 -dC exiv2.jpg  
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

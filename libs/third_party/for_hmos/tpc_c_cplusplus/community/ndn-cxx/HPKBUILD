@@ -1,0 +1,103 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: <1321018403@qq.com>
+# Maintainer: <1321018403@qq.com>
+
+pkgname=ndn-cxx
+pkgver=v0.9.0
+pkgrel=0
+pkgdesc="ndn-cxx is a C++17 library implementing Named Data Networking (NDN) primitives that can be used to write various NDN applications. "
+url="https://github.com/named-data/ndn-cxx"
+archs=("arm64-v8a" "armeabi-v7a" "x86_64")
+license=("GPL-3.0")
+depends=("boost" "openssl" "sqlite")
+makedepends=()
+source="https://github.com/named-data/$pkgname/archive/refs/tags/$pkgname-${pkgver:1}.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools=waf
+
+builddir=$pkgname-$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+source envset.sh
+prepare() {
+    echo "prepare"
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" 
+    ./waf configure --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH --host=$host \
+    --with-sqlite3=$LYCIUM_ROOT/usr/sqlite/$ARCH \
+    --with-openssl=$LYCIUM_ROOT/usr/openssl/$ARCH \
+    --boost-includes=$LYCIUM_ROOT/usr/boost/$ARCH/include \
+    --boost-libs=$LYCIUM_ROOT/usr/boost/$ARCH/lib > $buildlog 2>&1
+
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        return $ret
+    fi
+
+    ./waf -v >> $buildlog 2>&1
+    
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    ./waf install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

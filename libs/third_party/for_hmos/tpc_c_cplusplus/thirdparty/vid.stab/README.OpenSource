@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "vid.stab",
+        "License": "GPL",
+        "License File": "https://github.com/georgmartius/vid.stab/blob/master/LICENSE",
+        "Version Number": "v1.1.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/georgmartius/vid.stab/archive/refs/tags/v1.1.1.tar.gz",
+        "Description": "Vidstab is a video stabilization library which can be plugged-in with Ffmpeg and Transcode."
+    },
+    {
+        "Name": "openmp",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/llvm/llvm-project/blob/main/openmp/LICENSE.TXT",
+        "Version Number": "9.0.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/openmp-9.0.1.src.tar.xz",
+        "Description": "openmp is a compoment of llvm-project."
+    }
+]

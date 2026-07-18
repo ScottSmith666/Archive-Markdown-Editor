@@ -1,0 +1,87 @@
+#Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=hdf5
+pkgver=hdf5-1_14_1-2
+pkgrel=0
+pkgdesc="This repository contains a high-performance library's source code and a file format specification that implement the HDF5® data model."
+url="https://github.com/HDFGroup/hdf5"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("hdf5 license")
+depends=()
+makedepends=()
+source="https://github.com/HDFGroup/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+
+buildhost=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    mkdir -p $builddir/host-build
+    
+    if [ $buildhost == true ];then
+        cd $builddir
+        cmake -Bhost-build -S./ -L > `pwd`/host-build/build.log 2>&1
+        make VERBOSE=1 -j4 -C host-build H5detect H5make_libsettings >> `pwd`/host-build/build.log 2>&1
+        cd $OLDPWD
+        buildhost=false
+    fi
+}
+
+build() {
+    cd $builddir
+    # 该库直接交叉编译会报错，错误会提示我们将某些变量配置为"advanced"
+    cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -DH5_LONG_TO_LDOUBLE_SPECIAL_RUN="advanced" -DH5_LONG_TO_LDOUBLE_SPECIAL_RUN__TRYRUN_OUTPUT="advanced" \
+    -DH5_LDOUBLE_TO_LONG_SPECIAL_RUN="advanced" -DH5_LDOUBLE_TO_LONG_SPECIAL_RUN__TRYRUN_OUTPUT="advanced" -DH5_LDOUBLE_TO_LLONG_ACCURATE_RUN="advanced" \
+    -DH5_LDOUBLE_TO_LLONG_ACCURATE_RUN__TRYRUN_OUTPUT="advanced" -DH5_LLONG_TO_LDOUBLE_CORRECT_RUN="advanced" -DH5_LLONG_TO_LDOUBLE_CORRECT_RUN__TRYRUN_OUTPUT="advanced" \
+    -DH5_DISABLE_SOME_LDOUBLE_CONV_RUN="advanced" -DH5_DISABLE_SOME_LDOUBLE_CONV_RUN__TRYRUN_OUTPUT="advanced"  -DHDF5_BUILD_CPP_LIB=ON -DCMAKE_PLATFORM_NO_VERSIONED_SONAME=FALSE \
+    -DCMAKE_C_FLAGS="-s" -DCMAKE_CXX_FLAGS="-s" \
+    -DCMAKE_SHARED_LIBRARY_SONAME_C_FLAG="-Wl,-soname," -DCMAKE_SHARED_LIBRARY_SONAME_CXX_FLAG="-Wl,-soname," -L > `pwd`/$ARCH-build/build.log 2>&1
+    
+    # 第一次编译会报错终止，因为需要生成并运行能在本地环境上执行的文件
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    
+    # 拷贝ubuntu上生成得可执行文件
+    cp host-build/bin/* $ARCH-build/bin
+    
+    # 继续编译
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make VERBOSE=1 -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # ctest
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir # ${PWD}/$packagename
+}

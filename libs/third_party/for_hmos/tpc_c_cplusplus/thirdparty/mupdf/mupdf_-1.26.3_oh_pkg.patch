@@ -1,0 +1,16 @@
+--- mupdf-1.26.3-source/Makerules	2025-07-03 11:09:11.552864320 +0800
++++ mupdf-1.26.3-source/Makerules_copy	2025-07-03 11:08:58.301011869 +0800
+@@ -354,6 +354,13 @@
+ # This does rely on the generated directory being populated with the font files.
+ # Run 'make generate' before doing the cross compile.
+ 
++ifeq "$(OS)" "ohos"
++  build_prefix += ohos/
++  HAVE_GLUT=no
++  HAVE_X11=no
++  CFLAGS += -pthread
++endif
++
+ ifeq "$(OS)" "wasm"
+   build_prefix += wasm/
+   CC = emcc

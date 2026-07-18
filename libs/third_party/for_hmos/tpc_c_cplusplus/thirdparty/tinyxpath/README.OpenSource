@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "tinyxpath",
+        "License": "zlib/libpng License",
+        "License File": "notes.txt",
+        "Version Number": "1.3.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/tinyxpath/files/TinyXPath%20%28Linux%20-%20tar.gz%29/TinyXPath%201.3.1/tinyxpath_1_3_1.tgz",
+        "Description": "Small footprint C++ library to extract an XPath 1.0 expression from an XML tree"
+    }
+]

@@ -1,0 +1,130 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=ffmpeg-kit
+pkgver=react.native.v6.0.2
+pkgrel=0
+pkgdesc="FFmpeg Kit for applications. Supports Android, Flutter, iOS, Linux, macOS, React Native and tvOS. Supersedes MobileFFmpeg, flutter_ffmpeg and react-native-ffmpeg."
+url="https://arthenica.github.io/ffmpeg-kit/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("LGPL-3.0")
+depends=("FFmpeg-n6.1.2" "rapidjson")
+makedepends=()
+
+source="https://github.com/arthenica/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+patchflag=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+PROJECT_ROOT=
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ "$SCRIPT_DIR" == *"thirdparty/ffmpeg-kit"* ]]; then
+    export PROJECT_ROOT="$(dirname "$(dirname "$(dirname "$SCRIPT_DIR")")")"
+else
+    export PROJECT_ROOT="$(pwd)"
+fi
+
+source envset.sh
+host=
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < $PKGBUILD_ROOT/ffmpeg-kit_oh_pkg_react.native.v6.0.2.patch > $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+        # 指定 ffmpeg版本目录 FFmpeg-ohos-n6.1.2
+        export CFLAGS="-I $PROJECT_ROOT/tpc_c_cplusplus/community/FFmpeg-n6.1.2/FFmpeg-ohos-n6.1.2-$ARCH-build -I$LYCIUM_ROOT/usr/FFmpeg/$ARCH/include -I$LYCIUM_ROOT/usr/rapidjson/$ARCH/include -L$LYCIUM_ROOT/usr/FFmpeg/$ARCH/lib/ -DFFMPEG_KIT_BUILD_DATE=$(date +%Y%m%d) $CFLAGS"
+        export CXXFLAGS="-I $PROJECT_ROOT/tpc_c_cplusplus/community/FFmpeg-n6.1.2/FFmpeg-ohos-n6.1.2-$ARCH-build -I$LYCIUM_ROOT/usr/FFmpeg/$ARCH/include/ -I$LYCIUM_ROOT/usr/rapidjson/$ARCH/include/ -L$LYCIUM_ROOT/usr/FFmpeg/$ARCH/lib/ -DFFMPEG_KIT_BUILD_DATE=$(date +%Y%m%d) -std=c++11 $CXXFLAGS"
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+        # 指定 ffmpeg版本目录 FFmpeg-ohos-n6.1.2
+        export CFLAGS="-I $PROJECT_ROOT/tpc_c_cplusplus/community/FFmpeg-n6.1.2/FFmpeg-ohos-n6.1.2-$ARCH-build -I$LYCIUM_ROOT/usr/FFmpeg/$ARCH/include -I$LYCIUM_ROOT/usr/rapidjson/$ARCH/include -L$LYCIUM_ROOT/usr/FFmpeg/$ARCH/lib/ -DFFMPEG_KIT_BUILD_DATE=$(date +%Y%m%d) $CFLAGS"
+        export CXXFLAGS="-I $PROJECT_ROOT/tpc_c_cplusplus/community/FFmpeg-n6.1.2/FFmpeg-ohos-n6.1.2-$ARCH-build -I$LYCIUM_ROOT/usr/FFmpeg/$ARCH/include/ -I$LYCIUM_ROOT/usr/rapidjson/$ARCH/include/ -L$LYCIUM_ROOT/usr/FFmpeg/$ARCH/lib/ -DFFMPEG_KIT_BUILD_DATE=$(date +%Y%m%d) -std=c++11 $CXXFLAGS"
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+        # 指定 ffmpeg版本目录 FFmpeg-ohos-n6.1.2
+        export CFLAGS="-I $PROJECT_ROOT/tpc_c_cplusplus/community/FFmpeg-n6.1.2/FFmpeg-ohos-n6.1.2-$ARCH-build -I$LYCIUM_ROOT/usr/FFmpeg/$ARCH/include -I$LYCIUM_ROOT/usr/rapidjson/$ARCH/include -L$LYCIUM_ROOT/usr/FFmpeg/$ARCH/lib/ -DFFMPEG_KIT_BUILD_DATE=$(date +%Y%m%d) $CFLAGS"
+        export CXXFLAGS="-I $PROJECT_ROOT/tpc_c_cplusplus/community/FFmpeg-n6.1.2/FFmpeg-ohos-n6.1.2-$ARCH-build -I$LYCIUM_ROOT/usr/FFmpeg/$ARCH/include/ -I$LYCIUM_ROOT/usr/rapidjson/$ARCH/include/ -L$LYCIUM_ROOT/usr/FFmpeg/$ARCH/lib/ -DFFMPEG_KIT_BUILD_DATE=$(date +%Y%m%d) -std=c++11 $CXXFLAGS"
+
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    cd $builddir-$ARCH-build/linux
+    ./autogen.sh > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+build() {
+    cd $builddir-$ARCH-build/linux
+    ./configure "$@" --host=$host -enable-shared --enable-static --with-pic >> $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build/linux
+    $MAKE install >> $buildlog 2>&1
+    # install FFmpeg-n6.1.2 config.h libavutil/thread.h
+    # 指定 ffmpeg版本目录 FFmpeg-ohos-n6.1.2
+    cp $PROJECT_ROOT/tpc_c_cplusplus/community/FFmpeg-n6.1.2/FFmpeg-ohos-n6.1.2-$ARCH-build/libavutil/thread.h $LYCIUM_ROOT/usr/FFmpeg/$ARCH/include/libavutil/
+    cp $PROJECT_ROOT/tpc_c_cplusplus/community/FFmpeg-n6.1.2/FFmpeg-ohos-n6.1.2-$ARCH-build/config.h $LYCIUM_ROOT/usr/ffmpeg-kit/$ARCH/include
+    cd $OLDPWD
+    if [ $ARCH == ${archs[0]} ]
+    then
+        unsetarm32ENV 
+    elif [ $ARCH == ${archs[1]} ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == ${archs[2]} ]
+    then
+        unsetx86_64ENV    
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    unset host
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build #${PWD}/$packagename
+}

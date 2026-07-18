@@ -1,0 +1,15 @@
+# Contributor: xucaiming <719260170@qq.com>
+# Maintainer: xucaiming <719260170@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir/$ARCH-build/BCUnit/Sources/Test
+    ./test_bcunit > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+
+    return $res
+}

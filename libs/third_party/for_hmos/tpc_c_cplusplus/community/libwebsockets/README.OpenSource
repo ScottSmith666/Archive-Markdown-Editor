@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libwebsockets",
+        "License": "MIT License",
+        "License File": "https://github.com/warmcat/libwebsockets/blob/main/LICENSE",
+        "Version Number": "v4.3.3",
+        "Owner": "jia_jiahao@runkaihong.com.cn",
+        "Upstream URL": "https://libwebsockets.org/",
+        "Description": "Libwebsockets (LWS) is a lightweight and pure C library that allows you to implement various network protocols easily with a nonblocking event loop"
+    }
+]

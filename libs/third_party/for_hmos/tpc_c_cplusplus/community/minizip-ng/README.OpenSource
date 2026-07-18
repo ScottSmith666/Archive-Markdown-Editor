@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "minizip-ng",
+        "License": "zlib",
+        "License File": "COPYRIGHT",
+        "Version Number": "4.0.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/zlib-ng/minizip-ng",
+        "Description": "minizip-ng is a zip manipulation library written in C that is supported on Windows, macOS, and Linux."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "nmealib",
+        "License": "GNU Lesser General Public License v2.1",
+        "License File": "LICENSE.TXT",
+        "Version Number": "v0.6.5",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/Paulxia/nmealib",
+        "Description": "Nmealib is an open-source C++library used to parse data from the NMEA 0183 protocol. NMEA 0183 is a standard data exchange protocol used for Global Positioning System (GPS) navigation devices. By using nmealib, developers can easily process data from GPS receivers or other NMEA devices to obtain the required location, speed, and other navigation information. This is very useful for developing navigation applications, location tracking systems, or other geolocation related applications."
+    }
+]

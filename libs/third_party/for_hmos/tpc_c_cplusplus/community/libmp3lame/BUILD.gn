@@ -1,0 +1,107 @@
+# Copyright (C) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+declare_args() {
+  enable_mp3lame_test = false
+}
+
+config("lame_config") {
+  defines = [ "HAVE_CONFIG_H=1" ]
+  cflags = [
+    "-O3",
+    "-Wall",
+    "-Wno-unused-variable",
+    "-Wno-absolute-value",
+    "-Wno-unused-function",
+    "-Wno-unused-const-variable",
+    "-Wno-shift-negative-value",
+    "-Wno-tautological-pointer-compare",
+    "-MT",
+    "-MP",
+    "-pipe",
+    "-ffast-math",
+  ]
+  include_dirs = [
+    "//third_party/libmp3lame/libmp3lame",
+    "//third_party/libmp3lame/libmp3lame/libmp3lame/vector",
+    "//third_party/libmp3lame/libmp3lame/mpglib/",
+    "//third_party/libmp3lame/libmp3lame/libmp3lame",
+    "//third_party/libmp3lame/libmp3lame/include",
+    "adapted",
+  ]
+}
+
+LIBMP3LAME_SOURCES = [
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/bitstream.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/encoder.c",
+  "//third_party/libmp3lame/libmp3lame/frontend/amiga_mpega.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/fft.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/gain_analysis.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/id3tag.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/lame.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/newmdct.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/psymodel.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/quantize.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/quantize_pvt.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/set_get.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/vbrquantize.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/reservoir.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/tables.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/takehiro.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/util.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/mpglib_interface.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/VbrTag.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/version.c",
+  "//third_party/libmp3lame/libmp3lame/libmp3lame/presets.c",
+  "//third_party/libmp3lame/libmp3lame/mpglib/common.c",
+  "//third_party/libmp3lame/libmp3lame/mpglib/dct64_i386.c",
+  "//third_party/libmp3lame/libmp3lame/mpglib/decode_i386.c",
+  "//third_party/libmp3lame/libmp3lame/mpglib/layer1.c",
+  "//third_party/libmp3lame/libmp3lame/mpglib/layer2.c",
+  "//third_party/libmp3lame/libmp3lame/mpglib/layer3.c",
+  "//third_party/libmp3lame/libmp3lame/mpglib/tabinit.c",
+  "//third_party/libmp3lame/libmp3lame/mpglib/interface.c",
+]
+
+ohos_static_library("libmp3lame") {
+  sources = LIBMP3LAME_SOURCES
+  configs = [ ":lame_config" ]
+  subsystem_name = "thirdparty"
+  part_name = "libmp3lame"
+}
+
+ohos_executable("lame") {
+  sources = [
+    "//third_party/libmp3lame/libmp3lame/frontend/brhist.c",
+    "//third_party/libmp3lame/libmp3lame/frontend/console.c",
+    "//third_party/libmp3lame/libmp3lame/frontend/get_audio.c",
+    "//third_party/libmp3lame/libmp3lame/frontend/lame_main.c",
+    "//third_party/libmp3lame/libmp3lame/frontend/lametime.c",
+    "//third_party/libmp3lame/libmp3lame/frontend/main.c",
+    "//third_party/libmp3lame/libmp3lame/frontend/parse.c",
+    "//third_party/libmp3lame/libmp3lame/frontend/timestatus.c",
+  ]
+  configs = [ ":lame_config" ]
+  deps = [ ":libmp3lame" ]
+  subsystem_name = "thirdparty"
+  part_name = "libmp3lame"
+}
+
+group("mp3lame_targets") {
+  deps = [ ":libmp3lame" ]
+  if (enable_mp3lame_test) {
+    deps += [ ":lame" ]
+  }
+}

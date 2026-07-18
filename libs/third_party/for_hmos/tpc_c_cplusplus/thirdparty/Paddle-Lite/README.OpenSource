@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "Paddle-Lite",
+        "License": "Apache-2.0 license",
+        "License File": "https://github.com/PaddlePaddle/Paddle/blob/develop/LICENSE",
+        "Version Number": "v2.12",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/PaddlePaddle/Paddle-Lite/archive/refs/tags/v2.12.tar.gz",
+        "Description": "PaddlePaddle High Performance Deep Learning Inference Engine for Mobile and Edge."
+    },
+    {
+        "Name": "protobuf",
+        "License": "BSD 3-Clause license",
+        "License File": "https://github.com/protocolbuffers/protobuf/blob/main/LICENSE",
+        "Version Number": "v3.6.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/protocolbuffers/protobuf.git",
+        "Description": "Protocol Buffers (a.k.a., protobuf) are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data."
+    },
+    {
+        "Name": "glog",
+        "License": "BSD-3-Clause license",
+        "License File": "https://github.com/google/glog/blob/master/LICENSE.md",
+        "Version Number": "v0.6.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/glog/archive/refs/tags/v0.6.0.tar.gz",
+        "Description": "Google Logging (glog) is a C++14 library that implements application-level logging. The library provides logging APIs based on C++-style streams and various helper macros."
+    },
+    {
+        "Name": "gflags",
+        "License": "BSD 3-Clause license",
+        "License File": "https://github.com/gflags/gflags/blob/master/COPYING.txt",
+        "Version Number": "v2.2.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/gflags/gflags/archive/refs/tags/v2.2.2.tar.gz",
+        "Description": "The gflags package contains a C++ library that implements commandline flags processing."
+    }
+]

@@ -1,0 +1,105 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: Jeff Han <hanjinfei@foxmail.com>,chenxiong <chenxiong44@h-partners.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=libxslt
+pkgver=1.1.38
+pkgrel=0
+pkgdesc="libxslt itself is a an XML language to define transformation for XML"
+url="https://gitlab.gnome.org/GNOME/libxslt/-/wikis/home"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT license")
+depends=("libxml2")
+makedepends=()
+
+source="https://download.gnome.org/sources/$pkgname/1.1/$pkgname-$pkgver.tar.xz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.xz
+
+source envset.sh
+host=
+
+prepare() {
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]; then
+        setarm32ENV        
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]; then
+        setarm64ENV        
+        host=aarch64-linux
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi 
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR=$pkgconfigpath ./configure "$@" --enable-static --without-python --host=$host >> `pwd`/build.log 2>&1
+    find . -name Makefile -exec sed -i 's#/bin/bash#bash#' {} +
+    find . -name Makefile -exec sed -i 's#/usr/bin/sed#/bin/sed#' {} +    
+    sed -i 's#/usr/bin/sed#/bin/sed#' libtool
+    make -j4 >> `pwd`/build.log 2>&1
+
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    unset host
+
+    if [ $ARCH == "armeabi-v7a" ]; then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        unsetarm64ENV
+    else
+        echo "$ARCH not support!"      
+    fi    
+}
+
+check() {
+    cd $builddir-$ARCH-build
+    # 增加check_test目标用来执行测试程序,禁止make check阶段运行测试程序
+    sed -i 's/\t$(MAKE) $(AM_MAKEFLAGS) check-local/check_test: $(MAKE) $(AM_MAKEFLAGS) check-local/g' ./tests/Makefile
+    sed -i 's/\t$(MAKE) $(AM_MAKEFLAGS) check-local/check_test: $(MAKE) $(AM_MAKEFLAGS) check-local/g' ./tests/xmlspec/Makefile
+    sed -i 's/\t$(MAKE) $(AM_MAKEFLAGS) check-local/check_test: $(MAKE) $(AM_MAKEFLAGS) check-local/g' ./tests/XSLTMark/Makefile
+    sed -i 's/\t$(MAKE) $(AM_MAKEFLAGS) check-local/check_test: $(MAKE) $(AM_MAKEFLAGS) check-local/g' ./tests/fuzz/Makefile
+    sed -i 's/\t$(MAKE) $(AM_MAKEFLAGS) check-local/check_test: $(MAKE) $(AM_MAKEFLAGS) check-local/g' ./tests/multiple/Makefile
+    sed -i 's/\t$(MAKE) $(AM_MAKEFLAGS) check-local/check_test: $(MAKE) $(AM_MAKEFLAGS) check-local/g' ./tests/xinclude/Makefile
+    sed -i 's/\t$(MAKE) $(AM_MAKEFLAGS) check-local/check_test: $(MAKE) $(AM_MAKEFLAGS) check-local/g' ./tests/docbook/Makefile    
+
+    # 编译测试程序
+    make check >> `pwd`/build.log 2>&1
+    find . -type f -exec sed -i 's/\/usr\/bin\/sed/\/bin\/sed/g' {} +                                                           
+    sed -i 's/\/bin\/bash/\/data\/CIusr\/bin\/bash/g' tests/runtest
+    cd $OLDPWD
+    
+    echo "The test must be on an OpenHarmony device!"
+    ## real test CMD
+    ## 进入到编译目录下的tests目录执行
+    ## make check_test
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build #${PWD}/$packagename
+}

@@ -1,0 +1,12 @@
+diff -Naur libkml-916a801ed3143ab82c07ec108bad271aa441da16/src/kml/base/file_posix.cc libkml-916a801ed3143ab82c07ec108bad271aa441da16_new/src/kml/base/file_posix.cc
+--- libkml-916a801ed3143ab82c07ec108bad271aa441da16/src/kml/base/file_posix.cc	2024-08-08 15:14:26.322291262 +0800
++++ libkml-916a801ed3143ab82c07ec108bad271aa441da16_new/src/kml/base/file_posix.cc	2024-08-08 15:15:00.022291117 +0800
+@@ -64,7 +64,7 @@
+     return false;
+   }
+   mode_t temp_umask = umask(S_IXUSR | S_IRWXG | S_IRWXO);
+-  char temp_path[] = "/tmp/libkmlXXXXXX";
++  char temp_path[] = "/data/storage/el2/base/temp/libkmlXXXXXX";
+   int fd = mkstemp(temp_path);
+   umask(temp_umask);
+   if (fd == -1) {

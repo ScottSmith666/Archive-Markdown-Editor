@@ -1,0 +1,109 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+
+pkgname=iproute2
+pkgver=v6.4.0
+pkgrel=0
+pkgdesc="iproute2 is a Linux utility package that can be used to configure, monitor and manage networking stack components. It provides a set of command line tools and an API to process data package routing, network equipment, network address, and protocol. The iproute2 library is part of iproute2, and it provides a set of functions and data structures for creating and managing network devices."
+url="https://mirrors.edge.kernel.org/pub/linux/utils/net/iproute2/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0 license")
+depends=("libmnl" "libelf")
+makedepends=("bison")
+
+# 官方下载地址source="https://mirrors.edge.kernel.org/pub/linux/utils/net/$pkgname/$pkgname-$pkgver.tar.gz"受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/iproute2/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+source envset.sh
+host=
+firstflag=true
+prepare() {
+    if $firstflag
+    then
+        cd $builddir
+        # patch只需要打一次,关闭打patch
+        patch -p1 < ../iproute2_oh_pkg.patch
+        cd $OLDPWD
+        firstflag=false
+    fi
+
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]; then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]; then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "Not support ${ARCH} yet"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host >> `pwd`/build.log 2>&1
+    make CFLAGS="-Wno-int-conversion -I$LYCIUM_ROOT/usr/libmnl/$ARCH/include -I`pwd`/include -I`pwd`/include/uapi -I`pwd`/rdma/include/uapi \
+        -I`pwd`/vdpa/include/uapi -D_GNU_SOURCE -DHAVE_LIBMNL -DHAVE_SETNS -DHAVE_HANDLE_AT $CFLAGS" LDFLAGS="-L$LYCIUM_ROOT/usr/libelf/$ARCH/lib \
+        -L$LYCIUM_ROOT/usr/libmnl/$ARCH/lib -lmnl ${LDFLAGS}" V=1 -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install DESTDIR=$LYCIUM_ROOT/usr/$pkgname/$ARCH LIBDIR=/usr/lib >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir-$ARCH-build
+    # 编译测试用例,将测试部分分离出来
+    sed -i 's/alltests:\ generate_nlmsg\ $(TESTS)/alltests:\ generate_nlmsg\ #$(TESTS)/g' ./testsuite/Makefile
+    sed -i '43 itest:$(TESTS)' ./testsuite/Makefile
+    sed -i 's/PREFIX\ :=\ sudo\ -E\ unshare\ -n/PREFIX\ :=\ unshare/g' ./testsuite/Makefile
+    sed -i 's/sudo\ dmesg\ >/dmesg\ >/g' ./testsuite/Makefile
+    make CC=$CC CFLAGS="-I$LYCIUM_ROOT/usr/libmnl/$ARCH/include -I`pwd`/include -I`pwd`/include/uapi -I`pwd`/rdma/include/uapi \
+        -I`pwd`/vdpa/include/uapi -D_GNU_SOURCE -DHAVE_LIBMNL -L$LYCIUM_ROOT/usr/libelf/$ARCH/lib/ -L$LYCIUM_ROOT/usr/libmnl/$ARCH/lib/ \
+        $CFLAGS" check >> `pwd`/build.log
+    cd $OLDPWD
+
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]; then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        unsetarm64ENV
+    else
+        echo "Not support ${ARCH} yet"
+        return -1
+    fi
+
+    echo "The test must be on an OpenHarmony device!"
+    # 编译生成目录$builddir-$ARCH-build/testsuite下执行make test
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build #${PWD}/$packagename
+}

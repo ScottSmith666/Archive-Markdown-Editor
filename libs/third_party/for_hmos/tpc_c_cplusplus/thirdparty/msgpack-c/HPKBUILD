@@ -1,0 +1,85 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, DongZhengDong <dzhengdong10@gmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=msgpack-c
+pkgver=cpp-6.1.1
+pkgrel=0
+pkgdesc="msgpack-c is an efficient and lightweight binary serialization format that allows you to exchange data in a high-performance manner between multiple programming languages."
+url="https://github.com/msgpack/msgpack-c"
+archs=("arm64-v8a" "armeabi-v7a")
+license=("BSL-1.0")
+depends=(boost)
+makedepends=()
+source="https://codeload.github.com/msgpack/$pkgname/zip/refs/tags/$pkgver"
+autounpack=ture
+downloadpackage=ture
+buildtools="cmake"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+source envset.sh
+
+prepare() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DBoost_INCLUDE_DIR="${LYCIUM_ROOT}/usr/boost/$ARCH/include" -DBoost_LIBRARY_DIR="${LYCIUM_ROOT}/usr/boost/$ARCH/lib" \
+    -DMSGPACK_BUILD_TESTS=ON -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    cd $builddir
+    sed -i.bak "s|`pwd`|/data/tpc_c_cplusplus/thirdparty/msgpack-c/msgpack-c-cpp-6.1.1|g" $ARCH-build/DartConfiguration.tcl
+    sed -i.bak "s|`pwd`|/data/tpc_c_cplusplus/thirdparty/msgpack-c/msgpack-c-cpp-6.1.1|g" $ARCH-build/test/CTestTestfile.cmake
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+    echo "Test MUST on OpenHarmony device!"
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir
+}

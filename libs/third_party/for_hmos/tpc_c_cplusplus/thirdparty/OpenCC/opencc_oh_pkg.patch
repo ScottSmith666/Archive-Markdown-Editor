@@ -1,0 +1,14 @@
+diff -upN OpenCC-ver.1.1.9/CMakeLists.txt OpenCC-ver.1.1.9-arm64-v8a-build/CMakeLists.txt
+--- OpenCC-ver.1.1.9/CMakeLists.txt	2024-08-03 11:45:16.000000000 +0800
++++ OpenCC-ver.1.1.9-arm64-v8a-build/CMakeLists.txt	2025-02-19 09:50:40.904744320 +0800
+@@ -221,8 +221,8 @@ endif()
+ ######## Subdirectories
+ 
+ add_subdirectory(src)
+-add_subdirectory(doc)
+-add_subdirectory(data)
++# add_subdirectory(doc)
++# add_subdirectory(data)
+ add_subdirectory(test)
+ 
+ ######## Testing

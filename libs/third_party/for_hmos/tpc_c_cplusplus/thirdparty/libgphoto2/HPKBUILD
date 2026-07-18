@@ -1,0 +1,169 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: luozhu <luozhu2@h-partners.com>
+# Maintainer: luozhu <luozhu2@h-partners.com>
+
+pkgname=libgphoto2
+pkgver=v2.5.31
+pkgrel=0
+pkgdesc="libgphoto2 is a library that can be used by applications to access various digital cameras."
+url="https://github.com/gphoto/libgphoto2"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL-2.1")
+depends=("libtool" "jpeg" "libxml2")
+makedepends=("automake" "makeinfo") # makeinfo需要安装的是texinfo
+source="https://github.com/gphoto/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+buildtools="configure"
+
+autounpack=true
+downloadpackage=true
+genconfigure=true
+autoconfbuild=true
+prefixpath=
+
+builddir=$pkgname-${pkgver:1}
+packagename=$pkgname-$pkgver.tar.gz
+
+source envset.sh
+host=
+
+ # 编译gnu工具
+buildgnutool() {
+    toolname=$1
+    toolver=$2
+    toolpath=$toolname-$toolver
+    prefixpath=`pwd`/$toolpath/install
+    down=0
+    rm -rf $toolpath $publicbuildlog
+    if [ ! -f  $toolname-$toolver.tar.xz ];then
+        wget -O $toolname-$toolver.tar.gz -c http://ftp.gnu.org/gnu/$toolname/$toolname-$toolver.tar.xz >> $publicbuildlog 2>&1
+        down=$?
+    fi
+    if [ $down -ne 0 ];then
+        echo "Download gnu failed"
+        return -1
+    fi
+    tar -xf $toolname-$toolver.tar.gz
+    if [ $? -ne 0 ];then
+        return -2
+    fi
+    cd $toolpath
+    ./configure --prefix=$prefixpath >> `pwd`/build.log 2>&1
+    $MAKE install >> `pwd`/build.log 2>&1
+    if [ $? -ne 0 ];then
+        echo "Install gnu failed"
+        return -3
+    fi
+    cd $OLDPWD
+}
+
+prepare() {
+    if [ $autoconfbuild == true ];then
+        buildgnutool autoconf 2.71 >> $publicbuildlog 2>&1
+        if [ $? -ne 0 ];then
+            echo "Build autoconf failed"
+            return -1
+        fi
+        export AUTOCONF=$prefixpath/bin/autoconf
+        export AUTORECONF=$prefixpath/bin/autoreconf
+        autoconfbuild=false
+    fi
+
+    if [ $genconfigure == true ];then
+        cd $builddir
+        $AUTORECONF -v -i >> `pwd`/build.log 2>&1
+        if [ $? -ne 0 ];then
+            echo "autoreconf failed"
+            return -2
+        fi
+        cd $OLDPWD
+        genconfigure=false
+    fi
+    if [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "$ARCH not support"
+        return -3
+    fi
+    cp $builddir $builddir-$ARCH-build -r
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host \
+        CPPFLAGS="-I${LYCIUM_ROOT}/usr/libtool/${ARCH}/include -I${LYCIUM_ROOT}/usr/jpeg/${ARCH}/include \
+            -I${LYCIUM_ROOT}/usr/libxml2/${ARCH}/include" \
+        LDFLAGS="-L${LYCIUM_ROOT}/usr/libtool/${ARCH}/lib -L${LYCIUM_ROOT}/usr/jpeg/${ARCH}/lib \
+            -L${LYCIUM_ROOT}/usr/libxml2/${ARCH}/lib" > $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir-$ARCH-build/tests
+    #注释掉Makefile一些部分，使得测使用例编译和测试分开
+    sed -i '/\($(srcdir)\/Makefile.in:\)/,/\($(am__aclocal_m4_deps):\)/{s/^/#/}' Makefile
+    sed -i 's/\.log:/& #/' Makefile
+    sed -i 's/\(check-TESTS:\)/\1 #/' Makefile
+    sed -i '/$(MAKE) $(AM_MAKEFLAGS) check-TESTS/s/^/#/' Makefile
+    $MAKE check-am >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # 修改测试目录下的工具路径:/usr/bin/sed -> /data/CIusr/bin/sed ; /bin/bash -> /data/CIusr/bin/bash
+    cd $builddir-$ARCH-build/tests    
+    sed -i "s#/usr/bin/sed#/data/CIusr/bin/sed#g" `grep -rn "/usr/bin/sed" | awk -F ':' '{print $1}'  | sort -u`
+    sed -i "s#/bin/bash#/data/CIusr/bin/bash#g" `grep -rn "/bin/bash" | awk -F ':' '{print $1}' | sort -u`
+    cd $OLDPWD
+    # real test CMD
+    # make check-TESTS
+}
+
+recoverpkgbuildenv() {
+    unset host prefixpath AUTOCONF AUTORECONF
+    if [ $ARCH == "armeabi-v7a" ];then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ];then
+        unsetarm64ENV
+    else
+        echo "$ARCH not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build #${PWD}/$packagename
+}

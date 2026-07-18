@@ -1,0 +1,21 @@
+diff -Naur avro-release-1.11.1_old/lang/c/examples/CMakeLists.txt avro-release-1.11.1/lang/c/examples/CMakeLists.txt
+--- avro-release-1.11.1_old/lang/c/examples/CMakeLists.txt	2023-06-08 10:46:03.120338183 +0800
++++ avro-release-1.11.1/lang/c/examples/CMakeLists.txt	2023-06-08 10:52:34.003978909 +0800
+@@ -27,6 +27,5 @@
+ endif (WIN32)
+ 
+ add_test(quickstop
+-    ${CMAKE_COMMAND} -E chdir ${AvroC_SOURCE_DIR}/examples
+     ${exec_name}
+ )
+diff -Naur avro-release-1.11.1_old/lang/c/tests/CMakeLists.txt avro-release-1.11.1/lang/c/tests/CMakeLists.txt
+--- avro-release-1.11.1_old/lang/c/tests/CMakeLists.txt	2023-06-08 10:46:03.124338242 +0800
++++ avro-release-1.11.1/lang/c/tests/CMakeLists.txt	2023-06-08 10:52:23.643924713 +0800
+@@ -35,7 +35,6 @@
+     endif (WIN32)
+ 
+     add_test(${name}
+-        ${CMAKE_COMMAND} -E chdir ${AvroC_SOURCE_DIR}/tests
+         ${exec_name}
+     )
+ endmacro(add_avro_test)

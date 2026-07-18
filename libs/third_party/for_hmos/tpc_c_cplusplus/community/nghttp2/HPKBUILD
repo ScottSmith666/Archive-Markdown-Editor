@@ -1,0 +1,82 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=nghttp2
+pkgver=v1.65.0
+pkgrel=0
+pkgdesc=""
+url=""
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=("openssl_quic" "CUnit" "nghttp3" "libxml2") # libev/libcares/libngtcp2/libngtcp2_crypto_openssl/systemd/jansson/libevent/jemalloc/
+makedepends=()
+
+# 官网地址：https://github.com/nghttp2/$pkgname/archive/refs/tags/$pkgver.tar.gz，因网络原因采用gitee mirrors
+source=https://gitee.com/mirrors/$pkgname/repository/archive/$pkgver.zip
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DENABLE_STATIC_CRT=ON -DENABLE_STATIC_LIB=ON \
+    -DOHOS_ARCH=$ARCH \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_FLAGS="${CFLAGS:-} -O3 -flto=thin " \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS:-} -O3 -flto=thin " \
+    -DCMAKE_SHARED_LINKER_FLAGS="-flto=thin" \
+    -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    make -f lib/CMakeFiles/nghttp2_static.dir/build.make lib/CMakeFiles/nghttp2_static.dir/depend >> `pwd`/build.log 2>&1 && \
+    make -f lib/CMakeFiles/nghttp2_static.dir/build.make lib/CMakeFiles/nghttp2_static.dir/build >> `pwd`/build.log 2>&1 && \
+    make -f tests/CMakeFiles/failmalloc.dir/build.make tests/CMakeFiles/failmalloc.dir/depend >> `pwd`/build.log 2>&1 && \
+    make -f tests/CMakeFiles/failmalloc.dir/build.make tests/CMakeFiles/failmalloc.dir/build >> `pwd`/build.log 2>&1 && \
+    make -f tests/CMakeFiles/main.dir/build.make tests/CMakeFiles/main.dir/depend >> `pwd`/build.log 2>&1 && \
+    make -f tests/CMakeFiles/main.dir/build.make tests/CMakeFiles/main.dir/build >> `pwd`/build.log 2>&1 && \
+    make -f CMakeFiles/check.dir/build.make CMakeFiles/check.dir/depend >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

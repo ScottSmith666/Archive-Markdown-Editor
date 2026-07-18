@@ -1,0 +1,33 @@
+{
+    "name": "@ohos/lzma",
+    "description": "LZMA utils is a traditional data compression software with high compression ratio. LZMA utils uses the LZMA format.",
+    "version": "3.2",
+    "license": "GNU LGPLv2+",
+    "publishAs": "code-segment",
+    "segment": {
+        "destPath": "third_party/lzma"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "lzma",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/lzma:lzma_shared","//third_party/lzma:samples"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

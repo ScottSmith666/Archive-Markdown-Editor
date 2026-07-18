@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libvpx",
+        "License": "BSD-3-Clause license",
+        "License File": "https://github.com/webmproject/libvpx/blob/main/LICENSE",
+        "Version Number": "1.13.0",
+        "Owner": "cmxud@isoftstone.com",
+        "Upstream URL": "https://github.com/webmproject/libvpx/archive/refs/tags/v1.13.0.tar.gz",
+        "Description": "Libvpx is an open-source software released by Google that supports vp8 and vp9 encoding and decoding"
+    }
+]

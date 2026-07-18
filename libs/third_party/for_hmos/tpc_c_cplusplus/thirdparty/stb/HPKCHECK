@@ -1,0 +1,25 @@
+# Contributor: Chen Xu <chenxu.unix@gmail.com>
+# Maintainer: Chen Xu <chenxu.unix@gmail.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir-$ARCH-build
+    ./tests/image_write_test > ${logfile} 2>&1
+    res=$?
+    if [ $res -eq 0 ]
+    then
+        # 与x86平台输出文件对比
+        res=`diff output ../output | wc -l`
+    fi
+    # 将输出文件copy到指定目录
+    if [ $res -eq 0 ]
+    then
+        mkdir ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}
+        cp -rf output/* ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}/
+    fi
+    cd $OLDPWD
+    return $res
+}

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "GmSSL",
+        "License": "Apache License 2.0",
+        "License File": "https://github.com/guanzhi/GmSSL/blob/v3.1.0/LICENSE",
+        "Version Number": "v3.1.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/guanzhi/GmSSL/archive/refs/tags/v3.1.0.zip",
+        "Description": "支持国密SM2/SM3/SM4/SM9/SSL的密码工具箱"
+    }
+]

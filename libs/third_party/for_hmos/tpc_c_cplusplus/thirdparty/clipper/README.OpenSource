@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "clipper",
+        "License": "BSL-1.0 license",
+        "License File": "http://www.angusj.com/delphi/clipper/documentation/Docs/Overview/License.htm",
+        "Version Number": "ver6.4.2",
+        "Owner": "llh_01129@163.com",
+        "Upstream URL": "https://sourceforge.net/projects/polyclipping/files/clipper_ver6.4.2.zip",
+        "Description": "The Clipper library performs clipping and offsetting for both lines and polygons."
+    }
+]

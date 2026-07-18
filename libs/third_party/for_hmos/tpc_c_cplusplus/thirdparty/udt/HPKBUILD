@@ -1,0 +1,102 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+pkgname=udt
+pkgver=4.12
+pkgrel=1
+pkgdesc="DP-based Data Transfer (UDT) Library"
+url="https://github.com/whtghst1/udt"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("MIT")
+depends=()
+makedepends=()
+
+source="https://codeload.github.com/whtghst1/udt/zip/refs/tags/v4.12"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+buildtools="make"
+
+builddir=${pkgname}-${pkgver}
+packagename=$builddir.zip
+
+
+cc=
+ar=
+ranlib=
+# udt 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为三份,各自编译互不干扰
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 使用patch的原因：
+        # 1. 源库写死的编译工具链需要修改成交叉编译工具链，源库未写install安装目录，增加指定安装目录
+        # 2. 鸿蒙系统编译错误修改, bind 在系统库和STL中都有定义，需要指定调用哪一个
+        patch -p1 < `pwd`/../udt_test.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        cxx=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang++
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+        ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        cxx=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang++
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+        ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    fi
+
+    if [ $ARCH == "x86_64" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/x86_64-linux-ohos-clang
+        cxx=${OHOS_SDK}/native/llvm/bin/x86_64-linux-ohos-clang++
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+        ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    fi
+    cd $OLDPWD # 1> /dev/null
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 CXX=${cxx} CC=${cc} AR=${ar} RANLIB=${ranlib} arch=$ARCH -C src all > $buildlog 2>&1
+    $MAKE VERBOSE=1 CXX=${cxx} CC=${cc} AR=${ar} RANLIB=${ranlib} arch=$ARCH -C app all > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 -C src install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    $MAKE VERBOSE=1 -C app install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    cd $OLDPWD
+    unset cc ar ranlib
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # make check
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build $builddir-x86_64-build
+}

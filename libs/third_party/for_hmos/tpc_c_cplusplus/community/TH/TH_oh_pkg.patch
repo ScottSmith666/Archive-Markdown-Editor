@@ -1,0 +1,72 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -102,8 +102,18 @@
+   THLogAdd.c THRandom.c THFile.c THDiskFile.c THMemoryFile.c THAtomic.c)
+ 
+ SET(src ${src} ${hdr})
+ ADD_LIBRARY(TH SHARED ${src})
++
++IF(CMAKE_CROSSCOMPILING)
++  MESSAGE(STATUS "TH: cross-compiling — fixed atomics (GCC __sync_*) and TH_INLINE")
++  SET(HAS_C11_ATOMICS 0)
++  SET(HAS_MSC_ATOMICS 0)
++  SET(HAS_GCC_ATOMICS 1)
++  SET(C_INLINE TRUE)
++  SET(TH_INLINE "__inline__")
++ENDIF()
+ 
++IF(NOT CMAKE_CROSSCOMPILING)
+ CHECK_C_SOURCE_RUNS("
+ #include <stdatomic.h>
+ int main()
+@@ -145,6 +155,7 @@
+ }
+ " HAS_GCC_ATOMICS)
+ ENDIF()
++ENDIF()
+ 
+ IF(HAS_C11_ATOMICS)
+   ADD_DEFINITIONS(-DUSE_C11_ATOMICS=1)
+@@ -182,6 +193,7 @@
+ ENDIF()
+ 
+ SET(CMAKE_REQUIRED_FLAGS_SAVE ${CMAKE_REQUIRED_FLAGS})
++IF(NOT CMAKE_CROSSCOMPILING)
+ FOREACH(KEYWORD "inline" "__inline__" "__inline")
+   IF(NOT DEFINED C_INLINE)
+ 
+@@ -207,6 +219,7 @@
+     ENDIF(C_HAS_${KEYWORD})
+   ENDIF(NOT DEFINED C_INLINE)
+ ENDFOREACH(KEYWORD)
++ENDIF()
+ SET(CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS_SAVE})
+ 
+ IF(NOT DEFINED C_INLINE)
+
+diff --git a/cmake/FindBLAS.cmake b/cmake/FindBLAS.cmake
+--- a/cmake/FindBLAS.cmake
++++ b/cmake/FindBLAS.cmake
+@@ -242,6 +242,13 @@
+ # Determine if blas was compiled with the f2c conventions
+ IF (BLAS_LIBRARIES)
+   SET(CMAKE_REQUIRED_LIBRARIES ${BLAS_LIBRARIES})
++  IF(CMAKE_CROSSCOMPILING)
++    # CHECK_C_SOURCE_RUNS 在交叉编译下会 try_run 目标程序导致 CMake Error
++    SET(BLAS_F2C_DOUBLE_WORKS FALSE)
++    SET(BLAS_F2C_FLOAT_WORKS TRUE)
++    SET(BLAS_F2C FALSE)
++    MESSAGE(STATUS "TH FindBLAS: cross-build, skip sdot f2c probe (BLAS_F2C=OFF, OpenBLAS-style)")
++  ELSE(CMAKE_CROSSCOMPILING)
+   CHECK_C_SOURCE_RUNS("
+ #include <stdio.h>
+ float x[4] = { 1, 2, 3, 4 };
+@@ -272,6 +279,7 @@
+   ELSE (BLAS_F2C_DOUBLE_WORKS AND NOT BLAS_F2C_FLOAT_WORKS)
+     SET(BLAS_F2C FALSE)
+   ENDIF (BLAS_F2C_DOUBLE_WORKS AND NOT BLAS_F2C_FLOAT_WORKS)
++  ENDIF(CMAKE_CROSSCOMPILING)
+ ENDIF(BLAS_LIBRARIES)
+ 
+ # epilogue

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "zopfli",
+        "License": "Apache-2.0 license",
+        "License File": "https://github.com/google/zopfli/blob/master/COPYING",
+        "Version Number": "zopfli-1.0.3",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/google/zopfli",
+        "Description": "Zopfli Compression Algorithm is a compression library programmed in C."
+    }
+]

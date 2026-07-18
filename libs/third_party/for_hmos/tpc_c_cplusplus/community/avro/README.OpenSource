@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "avro",
+        "License": "Apache-2.0 license",
+        "License File": "LICENSES",
+        "Version Number": "1.11.1",
+        "Owner": "chenbaodi@huawei.com",
+        "Upstream URL": "https://github.com/apache/avro/archive/refs/tags/release-1.11.1.tar.gz",
+        "Description": "Apache Avro is a data serialization system."
+    }
+]

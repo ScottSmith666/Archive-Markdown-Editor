@@ -1,0 +1,95 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhaobaiyi <zhaobaiyi3@h-partners.com>
+# Maintainer:  zhaobaiyi <zhaobaiyi3@h-partners.com>
+
+pkgname=libgp
+pkgver=0.3.0
+pkgrel=0
+pkgdesc="."
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+url="https://github.com/mblum/libgp"
+license=("permissive license")
+depends=("eigen" "googletest")
+makedepends=()
+source="https://github.com/mblum/libgp/archive/refs/tags/v0.3.0.zip"
+
+downloadpackage=true
+autounpack=true
+buildtools="cmake"
+source envset.sh
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    # 设置环境变量
+    if [ "$ARCH" == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    elif [ "$ARCH" == "arm64-v8a" ]
+    then
+        setarm64ENV
+    elif [ "$ARCH" == "x86_64" ]
+    then
+        setx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return 1
+    fi
+    
+    # 等待自动解压完成
+    echo "等待解压完成..."
+    sleep 1
+    
+    # 检查解压后的目录
+    if [ ! -d "$builddir" ]; then
+        echo "错误: 解压后目录不存在: $builddir"
+        echo "尝试手动解压..."
+        unzip -o "$packagename" || return 1
+    fi
+    
+    # 创建构建目录
+    mkdir -p "$builddir/$ARCH-build"
+    
+    # 应用 Eigen 补丁
+    local EIGEN_DIR="${PWD}/../../lycium/usr/eigen/${ARCH}/include/eigen3"
+    if [ -f "$EIGEN_DIR/Eigen/src/Core/util/Macros.h" ]; then
+        sed -i 's/"+g,w"/"+r"/g' "$EIGEN_DIR/Eigen/src/Core/util/Macros.h"
+        echo "Applied Eigen patch for OpenHarmony compatibility"
+    fi
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DCMAKE_BUILD_TYPE=Release  -DBUILD_SHARED_LIBS=ON -DLIBGP_BUILD_TESTS=ON -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf "${PWD}/$builddir"
+}

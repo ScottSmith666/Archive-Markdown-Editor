@@ -1,0 +1,1 @@
+CKEDITOR.plugins.setLang("formatnew","zh-cn",{label:"格式",panelTitle:"格式",tag_h1:"标题一",tag_h2:"标题二",tag_h3:"标题三",tag_h4:"标题四",tag_h5:"标题五",tag_h6:"标题六",tag_p:"正文"});

@@ -1,0 +1,92 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: wangwenju <wangwenju7@h-partners.com>
+# Maintainer: wangwenju <wangwenju7@h-partners.com>
+
+source HPKBUILD > /dev/null 2>&1    # 导入HPKBUILD文件
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    # 自动测试用例
+    local old_ld_path="$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="${LYCIUM_ROOT}/usr/curl/${ARCH}/lib:${LYCIUM_ROOT}/usr/nghttp2/${ARCH}/lib:${LYCIUM_ROOT}/usr/zstd_1_5_6/${ARCH}/lib:${old_ld_path}"
+    cd $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin/
+    chmod +x redsocks
+    ./redsocks -h > ${logfile} 2>&1 || return -1
+    echo "base {
+        log_debug = on;
+        log_info = on;
+        log = \"stderr\";
+        daemon = off;
+        redirector = iptables;
+    }
+    redsocks {
+            local_ip = 127.0.0.1;
+            local_port = 12345;
+            ip = 127.0.0.1;
+            port = 1080;
+            type = socks5;
+    }" > test.conf
+    chmod +x test.conf
+    ./redsocks -c test.conf & >> ${logfile} 2>&1 || return -1
+    netstat -tulpn | grep 12345 >> ${logfile} 2>&1 || return -1
+
+    export LD_LIBRARY_PATH="$old_ld_path"
+    pkill redsocks >> ${logfile} 2>&1 || return -1
+    cd ${OLDPWD}
+    return 0
+
+    # 手动测试用例1: 代理服务验证
+    # 测试环境：测试需要依赖curl程序，请先把编译好的curl程序推到测试设备的/bin/下并配置可执行权限
+    # 1.在Linux主机上安装danted代理服务：sudo apt update; sudo apt install -y dante-server
+    # 2.配置danted代理配置文件：sudo vi /etc/danted.conf
+    #   参考配置信息如下：
+    #   logoutput: syslog
+    #   internal: 0.0.0.0 port = 1080
+    #   external: eth0 # 当前主机网卡，根据实际情况修改为其他网卡
+    #   socksmethod: none
+    #   client pass {
+    #       from: 0.0.0.0/0 to: 0.0.0.0/0
+    #   }
+    #   socks pass {
+    #       from: 0.0.0.0/0 to: 0.0.0.0/0
+    #   }
+    # 3.启动danted代理服务并检查是否启动成功：
+    #   sudo systemctl start danted
+    #   sudo systemctl enable danted
+    #   sudo systemctl status danted
+    # 4.测试设备添加 iptables 重定向规则
+    #   在测试设备上执行以下命令，将测试设备发出的 HTTP 流量（目标端口 80）重定向到 redsocks 的监听端口
+    #   iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-ports 12345
+    #   如果需要代理 HTTPS（端口 443），可再加一条：
+    #   iptables -t nat -A OUTPUT -p tcp --dport 443 -j REDIRECT --to-ports 12345
+    # 5.测试设备启动redsocks
+    #   配置文件修改：test.conf中ip和port修改为Linux主机的IP地址和端口
+    #   命令：redsocks -c test.conf
+    #   预期结果：redsocks服务正常启动，输出包含redsocks started, conn_max=4096信息
+    # 6.测试redsocks代理命令：curl http://httpbin.org/ip
+    #   预期结果：成功输出地址信息表示成功，成功如下：
+    #   {"origin": "xxx.xxx.xxx.xxx"}
+    #   预期结果：redsocks服务输出日志包含accepted、data relaying started、 connection closed等信息
+    # 7.关闭danted代理服务
+    #   命令：sudo systemctl stop danted; sudo systemctl status danted
+    # 8.danted代理服务关闭后，测试设备再次执行curl命令
+    #   命令：curl http://httpbin.org/ip
+    #   预期结果：输出curl: (52) Empty reply from server
+    #   预期结果：redsocks服务输出日志包含connect: Connection refused等信息
+    # 手动测试用例2: 服务停止验证
+    # 命令：测试设备上redsocks运行窗口执行Ctrl+C
+    # 预期结果：redsocks服务正常停止，输出包含redsocks goes down信息且无报错信息
+    # ===测试完成===
+}

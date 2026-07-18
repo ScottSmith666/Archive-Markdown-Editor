@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "libharu",
+        "License": "zlib License",
+        "License File": "https://github.com/libharu/libharu/blob/master/LICENSE",
+        "Version Number": "2.4.4",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libharu/libharu/archive/refs/tags/v2.4.4.tar.gz",
+        "Description": "Haru is a free, cross platform, open-sourced software library for generating PDF."
+    },
+    {
+        "Name": "libpng",
+        "License": "libpng-2.0",
+        "License File": "https://sourceforge.net/p/libpng/code/ci/master/tree/LICENSE",
+        "Version Number": "1.6.39",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/libpng/files/libpng16/1.6.39/libpng-1.6.39.tar.xz",
+        "Description": "LIBPNG: Portable Network Graphics support, official libpng repository"
+    },
+    {
+        "Name": "zlib",
+        "License": "zlib License",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.2.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz",
+        "Description": "A massively spiffy yet delicately unobtrusive compression library."
+    }
+]

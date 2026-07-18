@@ -1,0 +1,15 @@
+--- openmp-release_90_old/runtime/src/kmp.h	2023-06-29 15:51:08.981663082 +0800
++++ openmp-release_90/runtime/src/kmp.h	2023-06-29 15:48:14.436548232 +0800
+@@ -54,9 +54,9 @@
+ #define KMP_CANCEL_THREADS
+ #define KMP_THREAD_ATTR
+ 
+-// Android does not have pthread_cancel.  Undefine KMP_CANCEL_THREADS if being
+-// built on Android
+-#if defined(__ANDROID__)
++// Android and OHOS does not have pthread_cancel.  Undefine KMP_CANCEL_THREADS if being
++// built on Android or OHOS
++#if defined(__ANDROID__) || defined(__OHOS__)
+ #undef KMP_CANCEL_THREADS
+ #endif
+ 

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "djvulibre",
+        "License": "GPL-2.0-only",
+        "License File": "https://github.com/barak/djvulibre/blob/master/COPYING",
+        "Version Number": "3.5.27.1-7",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/barak/djvulibre/archive/refs/tags/debian/3.5.27.1-7+deb9u1.tar.gz",
+        "Description": "DjVu (pronounced \"déjà vu\") a set of compression technologies, a file format,and a software platform for the delivery over the Web of digital documents,scanned documents, and high resolution images."
+    }
+]

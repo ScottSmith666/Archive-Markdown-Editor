@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "cups",
+        "License": "Apache License",
+        "License File": "LICENSE",
+        "Version Number": "cups-2.3.6",
+        "Owner": "zhangxin546@h-partners.com",
+        "Upstream URL": "https://github.com/apple/cups/releases/tag/v2.3.6",
+        "Description": "CUPS is a standards-based, open source printing system developed by Apple Inc.for macOS® and other UNIX®-like operating systems."
+    }
+]

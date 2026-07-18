@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libSilkCodec",
+        "License": "MIT license",
+        "License File": "https://github.com/LagrangeDev/libSilkCodec/blob/main/LICENSE",
+        "Version Number": "bc8e724",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/LagrangeDev/libSilkCodec",
+        "Description": "Cross-platform silk codec wrap library depends on ploverlake/silk."
+    }
+]

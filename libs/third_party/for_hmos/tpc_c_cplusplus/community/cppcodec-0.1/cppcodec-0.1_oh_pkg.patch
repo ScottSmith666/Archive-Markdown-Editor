@@ -1,0 +1,32 @@
+--- cppcodec-0.1/test/test_cppcodec.cpp	2018-03-12 00:22:50.000000000 +0800
++++ cppcodec-0.1/test_cppcodec.cpp	2024-09-12 20:56:07.530455363 +0800
+@@ -22,7 +22,7 @@
+  */
+ 
+ #define CATCH_CONFIG_MAIN
+-#include <catch.hpp>
++
+ 
+ #include <cppcodec/base32_crockford.hpp>
+ #include <cppcodec/base32_hex.hpp>
+@@ -36,6 +36,15 @@
+ #include <string.h> // for memcmp()
+ #include <vector>
+ 
++
++#if !defined(__OHOS__)
++#include<catch.hpp>
++#endif
++int main() {
++    return 0;
++}
++
++#if !defined(__OHOS__)
+ TEST_CASE("Douglas Crockford's base32", "[base32][crockford]") {
+     using base32 = cppcodec::base32_crockford;
+ 
+@@ -986,3 +995,4 @@
+         REQUIRE_THROWS_AS(hex::decode("66-6F"), cppcodec::symbol_error); // no dashes
+     }
+ }
++#endif

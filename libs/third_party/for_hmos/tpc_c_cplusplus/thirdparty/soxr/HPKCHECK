@@ -1,0 +1,118 @@
+# Contributor: tangshaoteng <tangshaoteng@163.com>
+# Maintainer: tangshaoteng <tangshaoteng@163.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir/$ARCH-build/examples
+    mkdir ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}
+
+    # 测试项1
+    ./1-single-block 44100 48000 > ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "1-single-block test failed" >> ${logfile} 2>&1
+        cd $OLDPWD
+        return $res
+    fi
+
+    # 测试项2
+    ./1a-lsr 44100 48000 >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "1a-lsr test failed" >> ${logfile} 2>&1
+        cd $OLDPWD
+        return $res
+    fi
+
+    # 测试项3
+    test_file="../../../bootsound_1ch.raw"
+    if [ ! -f $test_file ]
+    then
+        echo "the file $test_file does not exist" >> ${logfile} 2>&1
+        cd $OLDPWD
+	return -1;
+    fi
+    cat $test_file | ./2-stream 44100 48000 1> test2_dst.raw 2>> ${logfile}
+    return_codes=(${PIPESTATUS[*]})
+    if [ "${return_codes[0]}" -ne 0 ]; then
+        echo "read or write file filed in 2-stream test" >> ${logfile} 2>&1
+        res=${return_codes[0]}
+        cd $OLDPWD
+        return $res
+    fi
+    if [ "${return_codes[1]}" -ne 0 ]; then
+        echo "2-stream test filed" >> ${logfile} 2>&1
+        res=${return_codes[1]}
+        cd $OLDPWD
+        return $res
+    fi
+    cp test2_dst.raw ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}/
+
+    # 测试项4
+    test_file="../../../bootsound_2ch.raw"
+    if [ ! -f $test_file ]
+    then
+        echo "the file $test_file does not exist" >> ${logfile} 2>&1
+        cd $OLDPWD
+	return -1;
+    fi
+    cat $test_file | ./3-options-input-fn 44100 48000 2 1>> test3_dst.raw 2>> ${logfile}
+    return_codes=(${PIPESTATUS[*]})
+    if [ "${return_codes[0]}" -ne 0 ]; then
+        echo "read or write file filed in 3-options-input-fn test" >> ${logfile} 2>&1
+        res=${return_codes[0]}
+        cd $OLDPWD
+        return $res
+    fi
+    if [ "${return_codes[1]}" -ne 0 ]; then
+        echo "3-options-input-fn test filed" >> ${logfile} 2>&1
+        res=${return_codes[1]}
+        cd $OLDPWD
+        return $res
+    fi
+    cp test3_dst.raw ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}/
+
+    # 测试项5
+    test_file="../../../bootsound_2ch.raw"
+    if [ ! -f $test_file ]
+    then
+        echo "the file $test_file does not exist" >> ${logfile} 2>&1
+        cd $OLDPWD
+	return -1;
+    fi
+    cat $test_file | ./4-split-channels 44100 48000 2 0 4 1> test4_dst.raw 2>> ${logfile}
+    return_codes=(${PIPESTATUS[*]})
+    if [ "${return_codes[0]}" -ne 0 ]; then
+        echo "read or write file filed in 4-split-channels test" >> ${logfile} 2>&1
+        res=${return_codes[0]}
+        cd $OLDPWD
+        return $res
+    fi
+    if [ "${return_codes[1]}" -ne 0 ]; then
+        echo "4-split-channels test filed" >> ${logfile} 2>&1
+        res=${return_codes[1]}
+        cd $OLDPWD
+        return $res
+    fi
+    cp test4_dst.raw ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}/
+
+    # 测试项6
+    ./5-variable-rate 0 1> test5_dst.raw 2>> ${logfile}
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "5-variable-rate test failed" >> ${logfile} 2>&1
+        cd $OLDPWD
+        return $res
+    fi
+    cp test5_dst.raw ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}/
+
+    cd $OLDPWD
+
+    return $res
+}

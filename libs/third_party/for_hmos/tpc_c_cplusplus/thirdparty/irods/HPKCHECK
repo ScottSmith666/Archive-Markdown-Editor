@@ -1,0 +1,132 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    # 设置用例所需json配置文件
+    cp -f ./test_source/server_config.json $LYCIUM_ROOT/usr/$pkgname/$ARCH/etc/irods/
+    cd $builddir/$ARCH-build/unit_tests
+    
+    ctest > ${logfile} 2>&1             
+    res=$?      
+    if [ $res -ne 0 ];then
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp Testing/Temporary/LastTest.log ${LYCIUM_FAULT_PATH}/${pkgname}/     
+    fi
+    
+    rm -f $LYCIUM_ROOT/usr/$pkgname/$ARCH/etc/irods/server_config.json
+    cd $OLDPWD                         
+    return $res  
+}
+
+# 手动测试演示(部分用例依赖irods服务，需搭建测试环境)：
+# 测试环境拓扑结构
+#         +-----------------------------------+  
+#         |   Linux服务器（安装irods和psql）  |  
+#         +-----------------------------------+  
+#                        |  
+#                        | Network  
+#                        |  
+#                   +-----+-----+  
+#                   | Router/GW |  
+#                   +-----+-----+  
+#                        |  
+#                        | Network  
+#                        |  
+#         +--------------------------------------------------+  
+#         |    OHOS设备（tpc_c_cplusplus编译后传入设备）     |  
+#         +--------------------------------------------------+
+#
+# 一、准备工作，准备irods服务器（安装irods服务和psql服务），Ubuntu22.04搭建步骤如下
+# 1)安装psql
+# sudo apt-get install postgresql postgresql-contrib
+# 
+# 2)创建数据库用户
+# sudo -u postgres psql
+# CREATE USER myuser WITH PASSWORD '123456';
+# CREATE DATABASE mydb OWNER myuser;
+# GRANT ALL PRIVILEGES ON DATABASE mydb TO myuser;
+# \q #退出
+# 
+# 3)安装irods Linux服务依赖环境
+# apt-get update -qq
+# apt-get install -qq dnsutils apt-transport-https ca-certificates
+# apt-get install -qq build-essential wget curl g++ make python3-dev unixodbc libcurl4-gnutls-dev libbz2-dev zlib1g-dev libpam0g-dev libssl-dev libxml2-dev unixodbc-dev python3-psutil odbc-postgresql libkrb5-dev python3-distro flex bison
+# apt install python3-pip
+# pip3 install pyodbc
+# pip install jsonschema
+# 
+# wget -qO - https://unstable.irods.org/irods-unstable-signing-key.asc | apt-key add -
+# echo "deb [arch=amd64] https://unstable.irods.org/apt/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/renci-irods-unstable.list
+# apt-get update -qq
+# apt-get install -qq \
+# 	irods-externals-avro1.11.0-3 \
+# 	irods-externals-boost1.81.0-1 \
+# 	irods-externals-catch22.13.8-0 \
+# 	irods-externals-clang13.0.1-0 \
+# 	irods-externals-cmake3.21.4-0 \
+# 	irods-externals-cppzmq4.8.1-1 \
+# 	irods-externals-fmt8.1.1-1 \
+# 	irods-externals-json3.10.4-0 \
+# 	irods-externals-libarchive3.5.2-0 \
+# 	irods-externals-nanodbc2.13.0-2 \
+# 	irods-externals-spdlog1.9.2-2 \
+# 	irods-externals-zeromq4-14.1.8-1
+# 
+# 4)通过源码安装irods服务（也可通过apt安装）
+# 拉包解压 https://github.com/irods/irods/archive/refs/tags/4.3.2.tar.gz
+# 或者 git clone https://github.com/irods/irods.git;git checkout 4.3.2
+# 
+# 进入build目录
+# cmake ../ -DCMAKE_BUILD_TYPE=Debug \
+# -DIRODS_DISABLE_COMPILER_OPTIMIZATIONS=ON -DIRODS_UNIT_TESTS_BUILD=ON
+# 
+# make -j8
+# make -j8 install
+# 
+# 如果是拉包解压，需要执行修改version.json步骤
+# 修改/var/lib/irods/version.json.dist
+# 修改/var/lib/irods/version.json
+# 这两个文件的commit_id字段修改为5ba6de8627802ef994f9b6fa600ef1103bfc4ea7
+# 
+# 5)配置irods服务密码等信息（这里密码设置为123456）
+# python3 /var/lib/irods/scripts/setup_irods.py
+# 以下参数需要设置，其它参数默认即可
+# Database name [ICAT]: mydb
+# Database username [irods]: myuser
+# Database password:123456
+# Salt for passwords stored in the database:123456
+# iRODS server's zone key:123456
+# iRODS server's negotiation key (32 characters):B219F0CA1574D23F7896ABCE5D406789
+# Control Plane key (32 characters):B219F0CA1574D23F7896ABCE5D406789
+# iRODS server's administrator password:123456
+#
+# 6)启动irods服务
+# /etc/init.d/irods start
+# 
+# 7)查看服务是否已经启动成功
+# ps aux | grep irods
+#
+# 二、手动测试用例
+# 1)将编译好的tpc_c_cplusplus打包传到测试设备/data目录
+# 2)进入已经传到鸿蒙后台的irods编译目录
+# cd /data/tpc_c_cplusplus/thirdparty/irods/irods-4.3.2/arm64-v8a-build/unit_test
+# 3)配置环境变量LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=/data/:/data/tpc_c_cplusplus/lycium/usr/avrocpp/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/boost/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/libzmq/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/Catch2/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/cppzmq/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/fmt-8.1.1/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/json/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/spdlog/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/libarchive/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/openssl_1_1_1w/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/curl_8_9_0/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/nanodbc/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/unixODBC/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/linux-pam/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/nghttp2/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/nghttp3/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/zstd/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/CUnit/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/jansson/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/sqlite/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/tcl/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/libevent/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/xz/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/libxml2/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/zlib/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/snappy/arm64-v8a/lib/:/data/tpc_c_cplusplus/lycium/usr/irods/arm64-v8a/lib/
+# 4)cp /data/tpc_c_cplusplus/thirdparty/irods/irods_environment.json /data/tpc_c_cplusplus/lycium/usr/irods/arm64-v8a/etc/irods/
+# 5)./用例名

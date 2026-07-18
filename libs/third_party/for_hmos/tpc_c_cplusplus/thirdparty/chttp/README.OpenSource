@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "chttp",
+        "License": "MIT License",
+        "License File": "LICENSE",
+        "Version Number": "master",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/noxue/chttp",
+        "Description": "A simple HTTP/HTTPS library"
+    }
+]

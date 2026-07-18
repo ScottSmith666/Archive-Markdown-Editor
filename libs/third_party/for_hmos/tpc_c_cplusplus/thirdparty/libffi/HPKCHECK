@@ -1,0 +1,59 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: luozhu <1393302983@qq.com>
+# Maintainer: luozhu <1393302983@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir/${ARCH}-build/testsuite
+    testsuitedir=$(pwd)
+    for filedir in $(ls)
+    do
+        if [ -d $testsuitedir/$filedir ];then
+            cd $testsuitedir/$filedir
+            testcasedir=$(pwd)
+            for testcasefiledir in $(ls)
+            do
+                if [ -d $testcasedir/$testcasefiledir ];then
+                    cd $testcasedir/$testcasefiledir
+                    for file in $(ls) 
+                    do
+                        echo "testcase:"$file >> ${logfile} 2>&1
+                        ./"$file" >> ${logfile} 2>&1
+                        res=$?
+                        if [ $res == 0 ];then 
+                            echo "$file pass" >> ${logfile} 2>&1
+                        else
+                            echo "$file failed" >> ${logfile} 2>&1
+                            break
+                        fi  
+                    done
+                    cd $testcasedir
+                fi
+                if [ $res == 1 ];then 
+                    break
+                fi 
+            done    
+        fi
+        if [ $res == 1 ];then 
+            return $res
+        fi          
+    done       
+    rm -rf ${logfile}
+    cd ${LYCIUM_THIRDPARTY_ROOT}/${pkgname}
+    return $res
+}

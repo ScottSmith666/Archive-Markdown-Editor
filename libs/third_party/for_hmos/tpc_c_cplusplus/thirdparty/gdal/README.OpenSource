@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "gdal",
+        "License": "MIT",
+        "License File": "https://github.com/OSGeo/gdal/blob/master/LICENSE.TXT",
+        "Version Number": "v3.9.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/OSGeo/gdal/archive/refs/tags/v3.9.1.tar.gz",
+        "Description": "GDAL is an open source MIT licensed translator library for raster and vector geospatial data formats."
+    },
+    {
+        "Name": "PROJ",
+        "License": "MIT License",
+        "License File": "https://github.com/OSGeo/PROJ/blob/master/COPYING",
+        "Version Number": "9.4.1",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://github.com/OSGeo/PROJ",
+        "Description": "PROJ is the most famous map projection library of open source GIS, which provides the function of coordinate conversion between multiple coordinate systems. "
+    },
+    {
+        "Name": "geos",
+        "License": "LGPL v2.1",
+        "License File": "https://github.com/libgeos/geos/blob/3.11.2/COPYING",
+        "Version Number": "3.11.2",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://github.com/libgeos/geos/archive/refs/tags/3.11.2.tar.gz",
+        "Description": "GEOS is a C++ library for performing operations on two-dimensional vector geometries. It is primarily a port of the JTS Topology Suite Java library. It provides many of the algorithms used by PostGIS, the Shapely package for Python, the sf package for R, and others."
+    }
+]

@@ -1,0 +1,17 @@
+diff -Naur libdash-2.2/libdash/CMakeLists.txt libdash-2.2-patch/libdash/CMakeLists.txt
+--- libdash-2.2/libdash/CMakeLists.txt	2013-04-03 17:40:41.000000000 +0800
++++ libdash-2.2-patch/libdash/CMakeLists.txt	2023-04-20 19:53:54.739473466 +0800
+@@ -5,10 +5,10 @@
+ include_directories(sdl/include)
+ include_directories(zlib/include)
+ include_directories(iconv/include)
+-
++include_directories(libcurl/include)
+ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+ 
+ add_subdirectory(libdash)
+-add_subdirectory(libdash_networkpart_test)
+\ No newline at end of file
++add_subdirectory(libdash_networkpart_test)

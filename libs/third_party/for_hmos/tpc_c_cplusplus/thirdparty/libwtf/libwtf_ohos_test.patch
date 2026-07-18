@@ -1,0 +1,12 @@
+diff -Nura WebKit-webkitgtk-2.41.90/Source/ThirdParty/gtest/src/gtest-port.cc WebKit-webkitgtk-2.41.90_patchdir/Source/ThirdParty/gtest/src/gtest-port.cc
+--- WebKit-webkitgtk-2.41.90/Source/ThirdParty/gtest/src/gtest-port.cc  2023-08-10 13:57:48.000000000 +0800
++++ WebKit-webkitgtk-2.41.90_patchdir/Source/ThirdParty/gtest/src/gtest-port.cc 2024-08-14 20:00:55.750636944 +0800
+@@ -1112,7 +1112,7 @@
+     // guaranteed to be mounted, or may have a delay in mounting.
+     char name_template[] = "/data/local/tmp/gtest_captured_stream.XXXXXX";
+ #  else
+-    char name_template[] = "/tmp/captured_stream.XXXXXX";
++    char name_template[] = "/data/local/tmp/captured_stream.XXXXXX";
+ #  endif  // GTEST_OS_LINUX_ANDROID
+     const int captured_fd = mkstemp(name_template);
+     if (captured_fd == -1) {

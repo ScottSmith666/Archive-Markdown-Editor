@@ -1,0 +1,158 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: fujiadong05@chinasoftinc.com
+# Maintainer: fujiadong05@chinasoftinc.com
+
+pkgname=libblur
+pkgver=0.23.1
+pkgrel=0
+pkgdesc="libblur is a high-performance image blurring library written in pure Rust with SIMD optimizations"
+url="https://github.com/awxkee/libblur"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("Apache-2.0" "BSD-3-Clause")
+depends=()
+makedepends=()
+
+downloadpackage=false
+autounpack=false
+builddir=${pkgname}-${pkgver}
+
+FINAL_OUTPUT_ROOT="${LYCIUM_ROOT}/usr"
+FINAL_OUTPUT_DIR="${FINAL_OUTPUT_ROOT}/${pkgname}"
+
+prepare() {
+    export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
+    export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
+    export PATH="$HOME/.cargo/bin:$PATH:${OHOS_SDK}/native/llvm/bin"
+    
+    if ! command -v cargo &>/dev/null; then
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        source "$HOME/.cargo/env"
+    fi
+
+    rustup target add aarch64-unknown-linux-ohos
+    rustup target add armv7-unknown-linux-ohos
+    rustup target add x86_64-unknown-linux-ohos
+    rustup install nightly
+    rustup default nightly
+    
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BUILD_DIR="$SCRIPT_DIR/$builddir"
+    
+    if [ ! -d "$BUILD_DIR" ]; then
+        git clone https://github.jobcher.com/gh/https://github.com/awxkee/libblur.git "$BUILD_DIR"
+    fi
+    cd "$BUILD_DIR"
+    git checkout "$pkgver" 2>/dev/null || true
+    cd "$SCRIPT_DIR"
+}
+
+setup_environment() {
+    local envset_path="${LYCIUM_ROOT}/script/envset.sh"
+    if [ ! -f "$envset_path" ]; then
+        echo "Error: $envset_path not found"
+        return 1
+    fi
+    source "$envset_path"
+
+    case "${ARCH}" in
+        "arm64-v8a")
+            setarm64ENV
+            export RUSTFLAGS="-C linker=$CC -C link-arg=--target=aarch64-unknown-linux-ohos -C strip=symbols"
+            export TARGET="aarch64-unknown-linux-ohos"
+            ;;
+        "armeabi-v7a")
+            setarm32ENV
+            export RUSTFLAGS="-C linker=$CC -C link-arg=--target=armv7-unknown-linux-ohos -C strip=symbols"
+            export TARGET="armv7-unknown-linux-ohos"
+            ;;
+        "x86_64")
+            setx86_64ENV
+            export RUSTFLAGS="-C linker=$CC -C link-arg=--target=x86_64-unknown-linux-ohos -C strip=symbols"
+            export TARGET="x86_64-unknown-linux-ohos"
+            ;;
+        *)
+            echo "error: Unsupported ARCH: ${ARCH}"
+            return 1
+            ;;
+    esac
+}
+
+build() {
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BUILD_DIR="$SCRIPT_DIR/$builddir"
+    
+    cd "$BUILD_DIR"
+    
+    if [ -z "$ARCH" ]; then
+        return 1
+    fi
+    
+    setup_environment || return 1
+
+    if ! grep -q 'crate-type.*cdylib' Cargo.toml; then
+        if grep -q '^\[lib\]' Cargo.toml; then
+            if ! grep -A5 '^\[lib\]' Cargo.toml | grep -q 'crate-type'; then
+                sed -i '/^\[lib\]/a crate-type = ["cdylib", "rlib"]' Cargo.toml
+            fi
+        else
+            echo -e '\n[lib]\ncrate-type = ["cdylib", "rlib"]\n' >> Cargo.toml
+        fi
+    fi
+
+    cargo build --release --target "$TARGET"
+
+    cargo test --release --target "$TARGET" --no-run 2>/dev/null || true
+    
+    return 0
+}
+
+package() {
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BUILD_DIR="$SCRIPT_DIR/$builddir"
+    cd "$BUILD_DIR"
+
+    case "${ARCH}" in
+        "arm64-v8a") target="aarch64-unknown-linux-ohos" ;;
+        "armeabi-v7a") target="armv7-unknown-linux-ohos" ;;
+        "x86_64") target="x86_64-unknown-linux-ohos" ;;
+        *) 
+            return 1
+            ;;
+    esac
+    
+    mkdir -p "${FINAL_OUTPUT_DIR}/${ARCH}/lib"
+
+    if ls "target/${target}/release/"*.so 1>/dev/null 2>&1; then
+        cp "target/${target}/release/"*.so "${FINAL_OUTPUT_DIR}/${ARCH}/lib/"
+    fi
+}
+
+check() {
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    BUILD_DIR="$SCRIPT_DIR/$builddir"
+    cd "$BUILD_DIR" || return 1
+    if ! command -v cargo &>/dev/null; then
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        source "$HOME/.cargo/env"
+    fi
+    rustup install nightly
+    rustup override set nightly
+    cargo test > /dev/null 2>&1 || true
+    return 0
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

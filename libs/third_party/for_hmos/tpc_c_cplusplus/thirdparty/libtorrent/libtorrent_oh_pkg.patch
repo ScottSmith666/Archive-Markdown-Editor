@@ -1,0 +1,54 @@
+diff -Naur old/src/copy_file.cpp new/src/copy_file.cpp
+--- old/src/copy_file.cpp	2024-07-11 18:30:26.862570692 +0800
++++ new/src/copy_file.cpp	2024-07-11 18:30:26.870570585 +0800
+@@ -36,6 +36,9 @@
+ #include "libtorrent/aux_/path.hpp"
+ #include "libtorrent/aux_/storage_utils.hpp"
+ 
++#define SEEK_DATA 3
++#define SEEK_HOLE 4
++
+ #ifdef TORRENT_WINDOWS
+ // windows part
+ #include "libtorrent/aux_/windows.hpp"
+diff -Naur old/test/CMakeLists.txt new/test/CMakeLists.txt
+--- old/test/CMakeLists.txt	2024-07-15 11:17:32.456613079 +0800
++++ new/test/CMakeLists.txt	2024-07-15 11:18:25.068486575 +0800
+@@ -11,6 +11,22 @@
+ file(GLOB tests "${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp")
+ list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_natpmp.cpp") # doesn't build at time of writing
+ list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_utils.cpp") # helper file, not a test
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_http_connection.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_privacy.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_tracker.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_transfer.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_upnp.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_url_seed.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed_ban.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed_chunked.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed_http.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed_http_pw.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed_redirect.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed_socks4.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed_socks5.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed_socks5_no_peers.cpp")
++list(REMOVE_ITEM tests "${CMAKE_CURRENT_SOURCE_DIR}/test_web_seed_socks5_pw.cpp")
+ 
+ add_library(test_common
+ 	STATIC
+diff -Naur old/test/test_copy_file.cpp new/test/test_copy_file.cpp
+--- old/test/test_copy_file.cpp	2024-07-11 18:30:26.850570853 +0800
++++ new/test/test_copy_file.cpp	2024-07-12 12:59:04.495704426 +0800
+@@ -118,9 +118,10 @@
+ #ifdef TORRENT_LINUX
+ 	using fsword_t = decltype(statfs::f_type);
+ 	static fsword_t const ufs = 0x00011954;
++	static fsword_t const ohos_filesystem = 0xf2f52010;
+ 	static const std::set<fsword_t> sparse_filesystems{
+ 		EXT4_SUPER_MAGIC, EXT3_SUPER_MAGIC, XFS_SUPER_MAGIC, fsword_t(BTRFS_SUPER_MAGIC)
+-			, ufs, REISERFS_SUPER_MAGIC, TMPFS_MAGIC
++			, ufs, REISERFS_SUPER_MAGIC, TMPFS_MAGIC, ohos_filesystem
+ 	};
+ 	printf("filesystem: %ld\n", long(st.f_type));
+ 	return sparse_filesystems.count(st.f_type);

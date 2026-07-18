@@ -1,0 +1,245 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e256bf0..007bb79 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -20,13 +20,15 @@ project("RHVoice")
+ set(customCMakeModulesDir "${CMAKE_SOURCE_DIR}/cmake")
+ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${customCMakeModulesDir}" "${customCMakeModulesDir}/thirdparty/sanitizers/cmake")
+ 
++set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
++
+ include(FindPkgConfig)
+ include(GNUInstallDirs)
+ include(CPackComponent)
+ include(Hardening)
+ include(VersionFromGit)
+ find_package(Sanitizers)
+-getVersionFromGit("RHVOICE" "1.2.2")
+ 
+ if(${CMAKE_VERSION} VERSION_GREATER "3.12")
+ 	set(CMAKE_CXX_STANDARD 20)
+diff --git a/cmake/Hardening.cmake b/cmake/Hardening.cmake
+index 623277f..83c650a 100644
+--- a/cmake/Hardening.cmake
++++ b/cmake/Hardening.cmake
+@@ -101,7 +101,6 @@ function(setupPIC target)
+ 				message(STATUS "Working around Clang bug https://bugs.llvm.org/show_bug.cgi?id=44594 ...")
+ 				if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 11)
+ 					list(APPEND HARDENING_PIC_LINKER_FLAGS
+-						"--ld-path=\"${CLANG_WORKAROUND_SCRIPT}\""
+ 					)
+ 				else()
+ 					list(APPEND HARDENING_PIC_LINKER_FLAGS
+diff --git a/data/CMakeLists.txt b/data/CMakeLists.txt
+index eade587..47a90a9 100644
+--- a/data/CMakeLists.txt
++++ b/data/CMakeLists.txt
+@@ -29,6 +29,8 @@ set("ISO639_1_NAME2CODE_Macedonian" "mk")
+ set("ISO639_1_NAME2CODE_Albanian" "sq")
+ set("ISO639_1_NAME2CODE_Tatar" "tt")
+ 
++set("ISO639_1_NAME2CODE_Polish" "pl")
++
+ function(createLangCodeToNameMapping)
+ 	get_cmake_property(varsHere VARIABLES)
+ 	foreach(varName ${varsHere})
+@@ -83,6 +85,10 @@ set("VOICE_hana_LANG" "sq")
+ 
+ set("VOICE_talgat_LANG" "tt")
+ 
++set("VOICE_magda_LANG" "pl")
++set("VOICE_natan_LANG" "ka")
++set("VOICE_suze_LANG" "mk")
++
+ cpack_add_component_group("data"
+ 	DISPLAY_NAME "Data files"
+ 	DESCRIPTION "Various data required for synthesis"
+diff --git a/src/core/CMakeLists.txt b/src/core/CMakeLists.txt
+index a6447f8..c5183c9 100644
+--- a/src/core/CMakeLists.txt
++++ b/src/core/CMakeLists.txt
+@@ -14,7 +14,6 @@
+ # You should have received a copy of the GNU General Public License
+ # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ 
+-
+ file(GLOB_RECURSE SRCFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.c" "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+ 
+ # database files, included into needed places
+@@ -32,10 +31,24 @@ else()
+ 	list(REMOVE_ITEM SRCFILES "${CMAKE_CURRENT_SOURCE_DIR}/mage_hts_engine_impl.cpp")
+ endif()
+ 
+-add_library(RHVoice_core SHARED "${SRCFILES}")
+-set_target_properties(RHVoice_core PROPERTIES VERSION "${RHVOICE_VERSION}" SOVERSION "${RHVOICE_VERSION_MAJOR}")
++add_library(RHVoice_core STATIC "${SRCFILES}")
++set_target_properties(RHVoice_core PROPERTIES OUTPUT_NAME "RHVoice_core" CLEAN_DIRECT_OUTPUT 1)
+ set(libs2link "libhts_engine")
+-target_include_directories(RHVoice_core PUBLIC "${INCLUDE_DIR}" PRIVATE "${HTS_LABELS_KIT_INCLUDES}")
++
++file(GLOB BOOST_MODULE_DIRS "${CMAKE_SOURCE_DIR}/external/libs/boost/libs/*")
++set(BOOST_MODULE_PATHS "")
++
++foreach(module_dir ${BOOST_MODULE_DIRS})
++    if(IS_DIRECTORY "${module_dir}")
++        set(include_dir "${module_dir}/include")
++        if(EXISTS "${include_dir}")
++            list(APPEND BOOST_MODULE_PATHS "${include_dir}")
++            message(STATUS "Adding Boost module: ${include_dir}")
++        endif()
++    endif()
++endforeach()
++
++target_include_directories(RHVoice_core PUBLIC "${INCLUDE_DIR}" PRIVATE "${HTS_LABELS_KIT_INCLUDES}" PRIVATE ${BOOST_MODULE_PATHS})
+ 
+ set(package_name "RHVoice_core")
+ 
+diff --git a/src/core/document.cpp b/src/core/document.cpp
+index a8814de..2dcba8d 100644
+--- a/src/core/document.cpp
++++ b/src/core/document.cpp
+@@ -129,7 +129,7 @@ namespace RHVoice
+       return true;
+     if(prev_token.type==content_key)
+       return false;
+-    std::vector<utf8::uint32_t>::const_iterator final_punctuation_start=std::find_if(prev_token.text.rbegin(),prev_token.text.rend(),std::not1(str::is_punct())).base();
++    std::vector<utf8::uint32_t>::const_iterator final_punctuation_start=std::find_if(prev_token.text.rbegin(),prev_token.text.rend(),std::not_fn(str::is_punct())).base();
+     if(final_punctuation_start==prev_token.text.end())
+       return false;
+     if(prev_token.text.back()=='.')
+diff --git a/src/core/userdict.cpp b/src/core/userdict.cpp
+index 56e9fea..e56496e 100644
+--- a/src/core/userdict.cpp
++++ b/src/core/userdict.cpp
+@@ -307,7 +307,7 @@ namespace RHVoice
+               if(start!=input.end())
+                 {
+                   sym=*start;
+-                  end=std::find_if(start,input.end(),std::not1(str::is_adigit()));
++                  end=std::find_if(start,input.end(),std::not_fn(str::is_adigit()));
+                   if(start==end)
+                     ++end;
+                   else
+diff --git a/src/include/core/document.hpp b/src/include/core/document.hpp
+index 1d33ddf..ba56929 100644
+--- a/src/include/core/document.hpp
++++ b/src/include/core/document.hpp
+@@ -495,7 +495,7 @@ namespace RHVoice
+   {
+     if(markup_info.say_as!=content_text)
+       return text_start;
+-    text_iterator whitespace_end=std::find_if(text_start,text_end,std::not1(str::is_space()));
++    text_iterator whitespace_end=std::find_if(text_start,text_end,std::not_fn(str::is_space()));
+     if(whitespace_end!=text_start)
+       prev_token.whitespace.insert(prev_token.whitespace.end(),text_start,whitespace_end);
+     return whitespace_end;
+diff --git a/src/include/core/engine.hpp b/src/include/core/engine.hpp
+index ec00131..a5cede8 100644
+--- a/src/include/core/engine.hpp
++++ b/src/include/core/engine.hpp
+@@ -50,6 +50,7 @@ namespace RHVoice
+     struct init_params
+     {
+       init_params();
++      init_params(const std::string& custom_data_path, const std::string& custom_config_path);
+       std::string data_path, config_path, pkg_path;
+       std::vector<std::string> resource_paths;
+       std::shared_ptr<event_logger> logger;
+diff --git a/src/include/core/str.hpp b/src/include/core/str.hpp
+index 00a7976..f64466d 100644
+--- a/src/include/core/str.hpp
++++ b/src/include/core/str.hpp
+@@ -416,7 +416,7 @@ namespace RHVoice
+ 
+         iterator& operator++()
+         {
+-          first=std::find_if(last,end,std::not1(is_delimiter));
++          first=std::find_if(last,end,std::not_fn(is_delimiter));
+           last=std::find_if(first,end,is_delimiter);
+           value.assign(first.base(),last.base());
+           return *this;
+diff --git a/src/third-party/hts_engine/CMakeLists.txt b/src/third-party/hts_engine/CMakeLists.txt
+index cbb2476..7625bf2 100644
+--- a/src/third-party/hts_engine/CMakeLists.txt
++++ b/src/third-party/hts_engine/CMakeLists.txt
+@@ -23,7 +23,7 @@ else()
+ 	set(SRCFILES2 "")
+ endif()
+ 
+-add_library(libhts_engine SHARED "${SRCFILES1}" "${SRCFILES2}")
++add_library(libhts_engine STATIC "${SRCFILES1}" "${SRCFILES2}")
+ target_compile_definitions(libhts_engine PRIVATE "-DAUDIO_PLAY_NONE")
+ 
+ set(LIBHTS_VERSION_MAJOR 1)
+@@ -37,6 +37,7 @@ set(CPACK_COMPONENT_LIBHTS_ENGINE_VERSION_MINOR "${LIBHTS_VERSION_MINOR}")
+ set(CPACK_COMPONENT_LIBHTS_ENGINE_VERSION_PATCH "${LIBHTS_VERSION_PATCH}")
+ set(CPACK_COMPONENT_LIBHTS_ENGINE_VERSION "${LIBHTS_VERSION}")
+ 
++target_link_libraries(libhts_engine PRIVATE RHVoice_core)
+ target_include_directories(libhts_engine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}")
+ if(NOT MSVC)
+ 	target_link_libraries(libhts_engine PUBLIC m)
+diff --git a/src/third-party/mage/CMakeLists.txt b/src/third-party/mage/CMakeLists.txt
+index 9643d81..cbcec0a 100644
+--- a/src/third-party/mage/CMakeLists.txt
++++ b/src/third-party/mage/CMakeLists.txt
+@@ -15,7 +15,7 @@
+ # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ 
+ file(GLOB_RECURSE SRCFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+-add_library(libmage SHARED "${SRCFILES}")
++add_library(libmage STATIC "${SRCFILES}")
+ 
+ set(LIBMAGE_VERSION_MAJOR "2")
+ set(LIBMAGE_VERSION_MINOR "0")
+@@ -29,7 +29,7 @@ set(CPACK_COMPONENT_LIBMAGE_VERSION_PATCH "${LIBMAGE_VERSION_PATCH}")
+ set(CPACK_COMPONENT_LIBMAGE_VERSION "${LIBMAGE_VERSION}")
+ 
+ target_include_directories(libmage PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+-target_link_libraries(libmage "libhts_engine" "RHVoice_question_match")
++target_link_libraries(libmage "libhts_engine")
+ harden(libmage)
+ add_sanitizers(libmage)
+ set_target_properties("libmage" PROPERTIES PREFIX "")
+diff --git a/src/audio/CMakeLists.txt b/src/audio/CMakeLists.txt
+index 8087b3d..405219a 100644
+--- a/src/audio/CMakeLists.txt
++++ b/src/audio/CMakeLists.txt
+@@ -24,6 +24,7 @@ pkg_check_modules(LIBPULSESIMPLE "libpulse-simple")
+ option(WITH_LIBAO "Support libao" "${LIBAO_FOUND}")
+ option(WITH_PULSE "Support pulseaudio" "${LIBPULSESIMPLE_FOUND}")
+ option(WITH_PORTAUDIO "Support portaudio" "${LIBPORTAUDIO_FOUND}")
++set(WITH_PORTAUDIO ON)
+ 
+ if(WITH_LIBAO)
+ 	list(APPEND SOURCES "libao.cpp")
+@@ -51,10 +52,25 @@ if(WITH_PULSE)
+ 	target_link_libraries(RHVoice_audio "${LIBPULSESIMPLE_LIBRARIES}")
+ 	target_include_directories(RHVoice_audio PRIVATE "${LIBPULSESIMPLE_INCLUDE_DIRS}")
+ endif()
++
++if(TARGET RHVoice_core)
++    target_link_libraries(RHVoice_audio PRIVATE RHVoice_core)
++    message(STATUS "Linking RHVoice_audio with RHVoice_core")
++else()
++    message(WARNING "RHVoice_core target not found")
++endif()
+ if(WITH_PORTAUDIO)
+-	target_compile_definitions(RHVoice_audio PUBLIC WITH_PORTAUDIO)
+-	target_link_libraries(RHVoice_audio "${LIBPORTAUDIO_LIBRARIES}")
+-	target_include_directories(RHVoice_audio PRIVATE "${LIBPORTAUDIO_INCLUDE_DIRS}")
++    target_compile_definitions(RHVoice_audio PUBLIC WITH_PORTAUDIO)
++    set(PORTAUDIO_LIB_DIR "${CMAKE_SOURCE_DIR}/../../../lycium/usr/portaudio/${OHOS_ARCH}/lib")
++    set(PORTAUDIO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../../../lycium/usr/portaudio/${OHOS_ARCH}/include")
++    
++    if(EXISTS "${PORTAUDIO_LIB_DIR}/libportaudio.so")
++        target_link_libraries(RHVoice_audio PRIVATE "${PORTAUDIO_LIB_DIR}/libportaudio.so")
++        target_include_directories(RHVoice_audio PRIVATE "${PORTAUDIO_INCLUDE_DIR}")
++        message(STATUS "Linking with PortAudio: ${PORTAUDIO_LIB_DIR}/libportaudio.so")
++    else()
++        message(WARNING "PortAudio library not found at ${PORTAUDIO_LIB_DIR}/libportaudio.so")
++    endif()
+ endif()
+ 
+ cpack_add_component(audio

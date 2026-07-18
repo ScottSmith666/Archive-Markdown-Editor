@@ -1,0 +1,15 @@
+# Contributor: dingqian <1052888395@qq.com>
+# Maintainer: dingqian <1052888395@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+openharmonycheck() {
+    res=0
+    cd $builddir/$ARCH-build
+    # 测试用例使用方法参照README
+    ./uavs3dec -i ../test.avs3 -o $CHECK_RESULT_PATH/output.yuv -t 8 -l 2 -s 1 > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+
+    return $res
+}

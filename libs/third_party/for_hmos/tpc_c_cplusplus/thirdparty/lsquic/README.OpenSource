@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "lsquic",
+        "License": "MIT license",
+        "License File": "https://github.com/litespeedtech/lsquic/blob/v4.4.1/LICENSE",
+        "Version Number": "4.4.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/litespeedtech/lsquic",
+        "Description":"LiteSpeed QUIC (LSQUIC) Library is an open-source implementation of QUIC and HTTP/3 functionality for servers and clients."
+        "Dependencies":["zlib", "boringssl-fips-20251031", "libevent"]
+    }
+]

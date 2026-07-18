@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libproxy",
+        "License": "LGPL-2.1",
+        "License File": "https://github.com/libproxy/libproxy/blob/0.4.18/COPYING",
+        "Version Number": "0.4.18",
+        "Owner": "panjinling@huawei.com",
+        "Upstream URL": "https://github.com/libproxy/libproxy",
+        "Description": "A library that provides automatic proxy configuration management."
+    }
+]

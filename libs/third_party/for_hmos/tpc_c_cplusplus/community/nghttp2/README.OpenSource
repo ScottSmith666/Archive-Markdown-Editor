@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "nghttp2",
+        "License": "MIT",
+        "License File": "LICENSE",
+        "Version Number": "v1.52.0",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": https://github.com/nghttp2/nghttp2/archive/refs/tags/v1.52.0.tar.gz",
+        "Description": "This is an implementation of the Hypertext Transfer Protocol version 2 in C."
+    }
+]

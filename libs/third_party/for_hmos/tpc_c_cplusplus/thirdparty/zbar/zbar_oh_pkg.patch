@@ -1,0 +1,12 @@
+diff -Naur zbar-0.10/examples/scan_image.c zbar-0.10-patch/examples/scan_image.c
+--- zbar-0.10/examples/scan_image.c	2009-10-24 02:16:44.000000000 +0800
++++ zbar-0.10-patch/examples/scan_image.c	2023-04-25 09:35:19.209035532 +0800
+@@ -30,7 +30,7 @@
+     if(color & PNG_COLOR_TYPE_PALETTE)
+         png_set_palette_to_rgb(png);
+     if(color == PNG_COLOR_TYPE_GRAY && bits < 8)
+-        png_set_gray_1_2_4_to_8(png);
++        png_set_expand_gray_1_2_4_to_8(png);
+     if(bits == 16)
+         png_set_strip_16(png);
+     if(color & PNG_COLOR_MASK_ALPHA)

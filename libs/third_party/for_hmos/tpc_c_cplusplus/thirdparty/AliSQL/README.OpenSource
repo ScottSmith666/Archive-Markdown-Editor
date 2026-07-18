@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "AliSQL",
+        "License": "GPLv2",
+        "License File": "https://raw.githubusercontent.com/alibaba/AliSQL/refs/heads/master/LICENSE",
+        "Version Number": "v5.6.32-9",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/alibaba/AliSQL/archive/refs/tags/AliSQL-5.6.32-9.tar.gz",
+        "Description": "AliSQL is a MySQL branch originated from Alibaba Group. It is based on the MySQL official release and has many feature and performance enhancements."
+    }
+]

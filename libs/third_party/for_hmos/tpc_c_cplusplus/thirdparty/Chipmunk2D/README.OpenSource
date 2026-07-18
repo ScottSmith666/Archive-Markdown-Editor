@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "Chipmunk2D",
+        "License": "MIT",
+        "License File": "https://github.com/slembcke/Chipmunk2D/blob/master/LICENSE.txt",
+        "Version Number": "7.0.3",
+        "Owner": "sttangc@isoftstone.com",
+        "Upstream URL": "https://github.com/slembcke/Chipmunk2D/archive/refs/tags/Chipmunk-7.0.3.zip",
+        "Description": "A fast and lightweight 2D game physics library."
+    }
+]

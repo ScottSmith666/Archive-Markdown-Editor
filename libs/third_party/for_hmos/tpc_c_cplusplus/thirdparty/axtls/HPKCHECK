@@ -1,0 +1,24 @@
+# Contributor: <1596268623@qq.com>
+# Maintainer: <1596268623@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    ret=0
+    cd $builddir-$ARCH-build/_stage
+    LD_LIBRARY_PATH=./:$LD_LIBRARY_PATH ./axhttpd > ${logfile} &
+    busybox wget "http://127.0.0.1/" -O openharmony_result.html
+    res=`diff  ../../ubuntu_result.html openharmony_result.html`
+    if [ -z "$res" ]
+    then
+        ret=0;
+    else
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp openharmony_result.html ${LYCIUM_FAULT_PATH}/${pkgname}/
+        ret=-1;
+    fi
+    cd $OLDPWD
+    return $ret
+}
+

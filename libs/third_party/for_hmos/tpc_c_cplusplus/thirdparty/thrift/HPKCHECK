@@ -1,0 +1,30 @@
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+openharmonycheck() {
+    res=0
+    ## checkNetWork
+    # 防止ctest 没有开始时，测试日志没有更新
+    echo "test start" > ${logfile}
+    ping www.baidu.com -c3 >> /dev/null
+    if [ $? -ne 0 ]
+    then
+        echo "the network not ready, the test depends the network! make sure the network is OK!!" >> ${logfile}
+        return 1
+    fi
+    cd ${builddir}/${ARCH}-build
+    # 把需要python的用例排除
+    ignore_test="StalenessCheckTest"
+    ctest -E $ignore_test >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        mkdir -p ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp Testing/Temporary/LastTest.log ${LYCIUM_FAULT_PATH}/${pkgname}/
+    fi
+    cd $OLDPWD
+
+    return $res
+}

@@ -1,0 +1,47 @@
+[
+    {
+        "Name": "fontconfig",
+        "License": "HPND and Public Domain and MIT-Modern-Variant and MIT",
+        "License File": "https://gitlab.freedesktop.org/fontconfig/fontconfig/-/blob/main/COPYING",
+        "Version Number": "2.14.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitlab.freedesktop.org/fontconfig/fontconfig/-/archive/2.14.2/fontconfig-2.14.2.tar.gz",
+        "Description": "Font configuration and customization library"
+    },
+    {
+        "Name": "freetype",
+        "License": "GPL-2-only or FTL",
+        "License File": "https://github.com/freetype/freetype/blob/master/docs/FTL.TXT",
+        "Version Number": "2.13.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/freetype/files/freetype2/2.13.0/freetype-2.13.0.tar.xz",
+        "Description": "FreeType is written in C. It is designed to be small, efficient, and highly customizable while capable of producing high-quality output (glyph images) of most vector and bitmap font formats for digital typography. FreeType is a freely available and portable software library to render fonts."
+    },
+    {
+        "Name": "libxml",
+        "License": " MIT",
+        "License File": "https://github.com/GNOME/libxml2/blob/master/Copyright",
+        "Version Number": "v2.11.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/GNOME/libxml2/archive/refs/tags/v2.11.3.tar.gz",
+        "Description": "libxml2 is an XML toolkit implemented in C, originally developed for the GNOME Project."
+    },
+    {
+        "Name": "libpng",
+        "License": "libpng-2.0",
+        "License File": "https://sourceforge.net/p/libpng/code/ci/master/tree/LICENSE",
+        "Version Number": "1.6.39",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/libpng/files/libpng16/1.6.39/libpng-1.6.39.tar.xz",
+        "Description": "LIBPNG: Portable Network Graphics support, official libpng repository"
+    },
+    {
+        "Name": "json-c",
+        "License": "MIT",
+        "License File": "https://github.com/json-c/json-c/blob/master/COPYING",
+        "Version Number": "0.16-20220414",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/json-c/json-c/archive/refs/tags/json-c-0.16-20220414.tar.gz",
+        "Description": "JSON-C implements a reference counting object model that allows you to easily construct JSON objects in C"
+    }
+]

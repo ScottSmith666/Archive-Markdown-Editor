@@ -1,0 +1,99 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=openssl_quic
+pkgver=OpenSSL_1_1_1t-quic1
+pkgrel=0
+pkgdesc="TLS/SSL and crypto library with QUIC APIs"
+url="https://github.com/quictls/openssl"
+archs=("armeabi-v7a" "arm64-v8a")
+license="Apache License 2.0"
+depends=()
+makedepends=()
+
+# 官方下载地址https://github.com/quictls/${pkgname:0:7}/archive/refs/tags/$pkgver.tar.gz受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=${pkgname}-${pkgver}
+packagename=$builddir.zip
+
+source envset.sh
+
+host=
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=linux-generic32
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=linux-aarch64
+    fi
+}
+
+#参数1
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ../Configure "$@" $host \
+        -O3 -flto=thin \
+        -Wl,--gc-sections \
+        > $buildlog 2>&1
+
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    $MAKE depend >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # 将编译目录加到 LD_LIBRARY_PATH 环境变量
+    # make test
+    # 32 个用例错误判定为误报, 不同系统错误描述不同(实际为正常)
+    # 8 个 dlopen 用例错误, 进程退出时 signal 11. 可能是资源释放问题待 GDB 就位后定位
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

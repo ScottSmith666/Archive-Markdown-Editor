@@ -1,0 +1,52 @@
+# Contributor: xuzhao <xuzhaor@isoftstone.com>
+# Maintainer: xuzhao <xuzhaor@isoftstone.com>
+pkgname=check
+pkgver=0.15.2
+pkgrel=0
+pkgdesc="Check is a unit testing framework for C. It features a simple interface for defining unit tests, putting little in the way of the developer. Tests are run in a separate address space, so both assertion failures and code errors that cause segmentation faults or other signals can be caught. Test results are reportable in the following: Subunit, TAP, XML, and a generic logging format."
+url="https://github.com/libcheck/check"
+archs=("armeabi-v7a" "arm64-v8a")
+license="LGPLv2.1"
+depends=()
+makedepends=()
+# 官方下载地址https://github.com/libcheck/$pkgname/releases/download/$pkgver/$pkgname-${pkgver}.tar.gz受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+buildhostthrift=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    	-DOHOS_ARCH=$ARCH  -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

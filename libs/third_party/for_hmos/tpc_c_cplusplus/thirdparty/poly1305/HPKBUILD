@@ -1,0 +1,72 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>,Tao Han <hantao_ya@163.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=poly1305
+pkgver=e6ad6e091d30d7f4ec2d4f978be1fcfcbce72781
+pkgrel=0
+pkgdesc="Poly1305 is a widely used MAC algorithm that is particularly well suited to the encryption suite in modern cryptography."
+url="https://github.com/floodyberry/poly1305-donna"
+archs=( "armeabi-v7a" "arm64-v8a")
+license=("MIT or PUBLIC DOMAIN")
+depends=()
+makedepends=(cmake)
+
+source="https://github.com/floodyberry/$pkgname-donna/archive/$pkgver.zip"
+downloadpackage=true
+autounpack=true
+builddir=$pkgname-donna-$pkgver
+packagename=$builddir.zip
+
+source envset.sh
+patchflag=true
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../poly1305_oh_pkg.patch >> $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        # 此patch是因为原库没有编译脚本 自己写了cmake加了进去
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

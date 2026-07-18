@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "tinyhttpd",
+        "License": "BSD-2-Clause",
+        "License File": "https://github.com/larryhe/tinyhttpd/blob/master/Makefile.in",
+        "Version Number": "b35e7daf10426f9be1e22ddc0ba8c6d23225c817",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/larryhe/tinyhttpd",
+        "Description": "thttpd is a simple, small, portable, fast, and secure HTTP server."
+    }
+]

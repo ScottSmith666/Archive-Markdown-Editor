@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "resiprocate",
+        "License": "Vovida Software License",
+        "License File": "COPYING",
+        "Version Number": "1.12.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/resiprocate/resiprocate",
+        "Description": "C++ implementation of SIP, ICE, TURN and related protocols."
+    }
+]

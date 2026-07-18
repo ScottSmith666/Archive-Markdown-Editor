@@ -1,0 +1,26 @@
+diff -Nura zlib-v1.2.13/configure zlib-v1.2.13patch/configure
+--- zlib-v1.2.13/configure	2022-10-13 13:06:55.000000000 +0800
++++ zlib-v1.2.13patch/configure	2023-11-29 11:29:52.000000000 +0800
+@@ -255,17 +255,11 @@
+   AIX*)
+         LDFLAGS="${LDFLAGS} -Wl,-brtl" ;;
+   Darwin* | darwin* | *-darwin*)
+-        shared_ext='.dylib'
+-        SHAREDLIB=libz$shared_ext
+-        SHAREDLIBV=libz.$VER$shared_ext
+-        SHAREDLIBM=libz.$VER1$shared_ext
+-        LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
+-        if libtool -V 2>&1 | grep Apple > /dev/null; then
+-            AR="libtool"
+-        else
+-            AR="/usr/bin/libtool"
+-        fi
+-        ARFLAGS="-o" ;;
++        case "$mname" in
++        *sparc*)
++            LDFLAGS="${LDFLAGS} -Wl,--no-warn-rwx-segments" ;;
++        esac
++        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,${SRCDIR}zlib.map"} ;;
+   *)
+         LDSHARED=${LDSHARED-"$cc -shared"} ;;
+   esac

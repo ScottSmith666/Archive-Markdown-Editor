@@ -1,0 +1,11 @@
+diff -Nura ceres-solver-2.1.0/internal/ceres/gmock_gtest_all.cc ceres-solver-2.1.0_patchdir/internal/ceres/gmock_gtest_all.cc
+--- ceres-solver-2.1.0/internal/ceres/gmock_gtest_all.cc        2022-03-28 22:06:15.000000000 +0800
++++ ceres-solver-2.1.0_patchdir/internal/ceres/gmock_gtest_all.cc       2024-08-17 11:08:56.968922165 +0800
+@@ -11461,7 +11461,7 @@
+     if (name_template.back() != GTEST_PATH_SEP_[0])
+       name_template.push_back(GTEST_PATH_SEP_[0]);
+ #  else
+-    name_template = "/tmp/";
++    name_template = "/data/local/tmp/";
+ #  endif
+     name_template.append("gtest_captured_stream.XXXXXX");

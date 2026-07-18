@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "miniini",
+        "License": "MIT",
+        "License File": "LICENSE.txt",
+        "Version Number": "0.9",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://launchpadlibrarian.net/51884621/miniini-0.9.tar.gz",
+        "Description": "MiniINI 是一个用来解析 INI 配置文件的 C++ 库"
+    }
+]

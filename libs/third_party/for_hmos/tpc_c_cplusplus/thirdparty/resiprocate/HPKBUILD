@@ -1,0 +1,127 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhanghanyong <zhang_hanyong@h-partners.com>
+# Maintainer: zhanghanyong <zhang_hanyong@h-partners.com>
+
+pkgname=resiprocate
+pkgver=1.12.0
+pkgrel=0
+pkgdesc="About C++ implementation of SIP, ICE, TURN and related protocols."
+url="https://github.com/resiprocate/resiprocate"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Vovida Software License")
+depends=()
+source="https://github.com/resiprocate/$pkgname/archive/refs/tags/$pkgname-$pkgver.tar.gz"
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+builddir=${pkgname}-${pkgname}-${pkgver}
+packagename=$builddir.tar.gz
+source envset.sh
+host=
+
+prepare() {
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    cd $builddir-$ARCH-build
+    autoreconf -ifv > $publicbuildlog 2>&1
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@"  --host=$host > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    ${MAKE} install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    $MAKE -C $builddir-$ARCH-build/rutil/test/ testCompat testCoders testConfigParse \
+         testCountStream testData testDataPerformance testDataStream testDnsUtil testFifo \
+         testFileSystem testInserter testIntrusiveList testLogger testMD5Stream testNetNs \
+         testParseBuffer testRandomHex testRandomThread testSHA1Stream testThreadIf testXMLCursor >> $buildlog 2>&1
+    sed -i '/\($(srcdir)\/Makefile.in:\)/,/\($(am__aclocal_m4_deps):\)/{s/^/#/}' $builddir-$ARCH-build/rutil/test/Makefile
+    sed -i 's/\([a-zA-Z_]\.log:\)/\1 #/' $builddir-$ARCH-build/rutil/test/Makefile
+    sed -i 's/\(check-TESTS:\)/\1 #/' $builddir-$ARCH-build/rutil/test/Makefile
+    $MAKE -C $builddir-$ARCH-build/resip/stack/test UAS testEmptyHfv RFC4475TortureTests \
+         limpc test503Generator testAppTimer testApplicationSip testClient testConnectionBase \
+         testCorruption testDialogInfoContents testDigestAuthentication testDtlsTransport testDns \
+         testEmbedded testEmptyHeader testExternalLogger testGenericPidfContents testIM testLockStep \
+         testMessageWaiting testMultipartMixedContents testMultipartRelated testParserCategories testPidf \
+         testPksc7 testPlainContents testResponses testRlmi testDtmfPayload testSdp testSelect testSelectInterruptor\
+         testServer testSipFrag testSipMessage testSipMessageEncode testSipMessageMemory \
+         testSipStack1 testSipStackNetNs testStack testTcp testTime testTimer testTransactionFSM \
+         testTuple testTypedef testUdp testUri testWsCookieContext >> $buildlog 2>&1
+    sed -i '/\($(srcdir)\/Makefile.in:\)/,/\($(am__aclocal_m4_deps):\)/{s/^/#/}' $builddir-$ARCH-build/resip/stack/test/Makefile
+    sed -i 's/\([a-zA-Z_]\.log:\)/\1 #/' $builddir-$ARCH-build/resip/stack/test/Makefile
+    sed -i 's/\(check-TESTS:\)/\1 #/' $builddir-$ARCH-build/resip/stack/test/Makefile
+    $MAKE -C $builddir-$ARCH-build/resip/dum/test basicRegister BasicCall basicMessage basicClient \
+        testContactInstanceRecord testPubDocument testRequestValidationHandler >> $buildlog 2>&1
+    sed -i '/\($(srcdir)\/Makefile.in:\)/,/\($(am__aclocal_m4_deps):\)/{s/^/#/}' $builddir-$ARCH-build/resip/dum/test/Makefile
+    sed -i 's/\([a-zA-Z_]\.log:\)/\1 #/' $builddir-$ARCH-build/resip/dum/test/Makefile
+    sed -i 's/\(check-TESTS:\)/\1 #/' $builddir-$ARCH-build/resip/dum/test/Makefile
+    cp replace_sed.sh $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    ./replace_sed.sh >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+recoverpkgbuildenv(){
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build
+}

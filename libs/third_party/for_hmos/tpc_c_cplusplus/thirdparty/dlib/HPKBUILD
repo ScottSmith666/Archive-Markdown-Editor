@@ -1,0 +1,79 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: wangxuanbo4 <wangxuanbo4@h-partners.com>
+# Maintainer: wangxuanbo4 <wangxuanbo4@h-partners.com>
+
+pkgname=dlib
+pkgver=v20.0
+pkgrel=0
+pkgdesc="Dlib is a modern C++ toolkit containing machine learning algorithms and tools for creating complex software in C++ to solve real world problems."
+url="https://gitee.com/mirrors/dlib.git"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSL-1.0")
+depends=()
+makedepends=()
+
+#下载缓慢，使用gitee镜像
+# source="https://github.com/davisking/dlib/archive/refs/tags/v20.0.tar.gz" 
+source="https://gitee.com/mirrors/dlib/repository/archive/v20.0.zip"
+
+buildtools="cmake"
+autounpack=true
+downloadpackage=true
+builddir=${pkgname}-${pkgver}
+packagename=$builddir.zip
+patchflag=true
+
+prepare() {
+    mkdir -p $builddir/examples/$ARCH-build
+    mkdir -p $builddir/dlib/test/$ARCH-build
+    if $patchflag; then
+        cd "$builddir"
+        patch -p1 < ../dlib.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DCMAKE_BUILD_TYPE=Release -B$ARCH-build -S./ -L  > $publicbuildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $publicbuildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install VERBOSE=1 >> $publicbuildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cd $builddir/dlib/test
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake -DCMAKE_TOOLCHAIN_FILE=${OHOS_SDK}/native/build/cmake/ohos.toolchain.cmake -DCMAKE_BUILD_TYPE=Release -B$ARCH-build -S./ -L  > $publicbuildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $publicbuildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+    return 0
+}

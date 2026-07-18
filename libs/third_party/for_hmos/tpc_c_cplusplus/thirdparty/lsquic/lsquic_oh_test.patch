@@ -1,0 +1,32 @@
+diff --git a/src/liblsquic/lsquic_rechist.c b/src/liblsquic/lsquic_rechist.c
+index fa3e48e..0faf7f0 100644
+--- a/src/liblsquic/lsquic_rechist.c
++++ b/src/liblsquic/lsquic_rechist.c
+@@ -236,7 +236,11 @@ rechist_test_sanity (const struct lsquic_rechist *rechist)
+ {
+     const struct rechist_elem *el;
+     ptrdiff_t idx;
+-    uint64_t *masks;
++#if defined(__OHOS__)
++    uintptr_t *masks;
++#else
++    uint64_t *masks;
++#endif
+     unsigned n_elems;
+ 
+     masks = calloc(rechist->rh_n_masks, sizeof(masks[0]));
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 27eb262..f47fd5c 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -82,7 +82,9 @@ IF (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+     # No regexes on Windows
+     SET(TESTS ${TESTS} ack_merge)
+     # No open_memstream() on Windows
+-    SET(TESTS ${TESTS} hcsi_reader)
++    IF (NOT CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++      SET(TESTS ${TESTS} hcsi_reader)
++    ENDIF()
+     # h3_framing test is split into subsets for parallel execution
+     # The main test is not added to TESTS list, but handled separately below
+ ENDIF()

@@ -1,0 +1,72 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=libtommath
+pkgver=1.2.0
+pkgrel=0
+pkgdesc="This is the git repository for LibTomMath, a free open source portable number theoretic multiple-precision integer (MPI) library written entirely in C."
+url="https://github.com/libtom/libtommath"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("public domain")
+depends=()
+makedepends=()
+install=
+source="https://github.com/libtom/$pkgname/archive/refs/tags/v$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+cc=
+ar=
+ranlib=
+
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+    fi
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE CC=${cc} AR=${ar} RANLIB=${ranlib} VERBOSE=1 > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    # 生成测试可执行文件
+    cd $builddir-$ARCH-build
+    $MAKE CC=${cc} test_standalone >> $buildlog 2>&1
+    ret=$?
+    unset cc ar ranlib
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # ./test
+    return $ret
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

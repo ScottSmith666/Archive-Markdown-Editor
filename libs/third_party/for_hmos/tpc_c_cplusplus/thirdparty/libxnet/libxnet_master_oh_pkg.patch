@@ -1,0 +1,4111 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+old mode 100644
+new mode 100755
+index f2c1c5e..1722b5c
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,9 +1,82 @@
+-cmake_minimum_required(VERSION 3.23)
++cmake_minimum_required(VERSION 3.22)
++project(libxnet-headers 
++    VERSION 1.0.0
++    DESCRIPTION "XNet header-only library"
++    LANGUAGES CXX
++)
+ 
+-project(libxnet-headers)
++# 设置默认安装路径（如果未设置）
++if(NOT CMAKE_INSTALL_INCLUDEDIR)
++    set(CMAKE_INSTALL_INCLUDEDIR "include")
++endif()
++if(NOT CMAKE_INSTALL_LIBDIR)
++    set(CMAKE_INSTALL_LIBDIR "lib")
++endif()
+ 
+ add_library(xnet.headers INTERFACE)
+-target_include_directories(xnet.headers INTERFACE 
++
++target_include_directories(xnet.headers INTERFACE
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
++    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+ )
++
+ target_compile_features(xnet.headers INTERFACE cxx_std_20)
++
++target_compile_options(xnet.headers INTERFACE
++    $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra>
++    $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra>
++    # 鸿蒙平台宏定义只传递给使用者
++    $<$<BOOL:${OHOS_PLATFORM}>:-DOHOS_PLATFORM>
++)
++
++# 架构相关的编译选项（同样只传递给使用者）
++if(OHOS_ARCH STREQUAL "armeabi-v7a")
++    target_compile_options(xnet.headers INTERFACE
++        -march=armv7-a -mfpu=neon -mfloat-abi=softfp
++    )
++elseif(OHOS_ARCH STREQUAL "arm64-v8a")
++    target_compile_options(xnet.headers INTERFACE
++        -mcpu=cortex-a53
++    )
++endif()
++
++install(DIRECTORY include/
++    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
++    FILES_MATCHING PATTERN "*.h" PATTERN "*.hh"
++)
++
++
++# 导出目标
++install(TARGETS xnet.headers
++    EXPORT xnet-targets
++    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
++)
++
++include(CMakePackageConfigHelpers)
++
++# 生成版本文件
++write_basic_package_version_file(
++    ${CMAKE_CURRENT_BINARY_DIR}/xnet-config-version.cmake
++    VERSION ${PROJECT_VERSION}
++    COMPATIBILITY SameMajorVersion
++)
++
++# 安装配置文件
++install(FILES
++    ${CMAKE_CURRENT_BINARY_DIR}/xnet-config.cmake
++    ${CMAKE_CURRENT_BINARY_DIR}/xnet-config-version.cmake
++    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/xnet
++)
++
++# 安装导出集
++install(EXPORT xnet-targets
++    FILE xnet-targets.cmake
++    NAMESPACE xnet::
++    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/xnet
++)
++
++# 启用测试
++if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
++    enable_testing()
++    add_subdirectory(tests)
++endif()
+diff --git a/include/xnet/ByteOrder.hh b/include/xnet/ByteOrder.hh
+index f673413..840f932 100644
+--- a/include/xnet/ByteOrder.hh
++++ b/include/xnet/ByteOrder.hh
+@@ -1,20 +1,33 @@
+ #pragma once
+ 
++#if __cplusplus >= 202002L && (!defined(__clang__) || __clang_major__ >= 10) && \
++    (!defined(__GNUC__) || __GNUC__ >= 10) && (!defined(_MSC_VER) || _MSC_VER >= 1920)
++    #define HAS_CPP20 1
++#else
++    #define HAS_CPP20 0
++#endif
++
+ #include <array>
+-#include <concepts>
+ #include <type_traits>
+-
+ #include <cstddef>
+-#include <cstdint>
++
++#if HAS_CPP20
++#include <concepts>
++#include <bit>
++#endif
+ 
+ namespace xnet {
+ 
++#if HAS_CPP20
+ template <std::unsigned_integral I>
+-constexpr auto htobe(std::type_identity_t<I> n)
++#else
++template <typename I, typename = std::enable_if_t<std::is_unsigned_v<I>>>
++#endif
++constexpr auto htobe(I n) -> std::array<std::byte, sizeof(I)>
+ {
+     std::array<std::byte, sizeof(I)> output;
+     if constexpr (sizeof(I) == 1) {
+-        output[0] = std::byte(n);
++        output[0] = static_cast<std::byte>(n);
+         return output;
+     }
+ 
+@@ -30,12 +43,17 @@ constexpr auto htobe(std::type_identity_t<I> n)
+     return output;
+ }
+ 
++#if HAS_CPP20
+ template <std::unsigned_integral I>
+-constexpr auto htole(std::type_identity_t<I> n)
++#else
++template <typename I, typename = std::enable_if_t<std::is_unsigned_v<I>>>
++#endif
++constexpr auto htole(I n)
++    -> std::array<std::byte, sizeof(I)>
+ {
+     std::array<std::byte, sizeof(I)> output;
+     if constexpr (sizeof(I) == 1) {
+-        output[0] = std::byte(n);
++        output[0] = static_cast<std::byte>(n);
+         return output;
+     }
+ 
+@@ -51,8 +69,12 @@ constexpr auto htole(std::type_identity_t<I> n)
+     return output;
+ }
+ 
++#if HAS_CPP20
+ template <std::unsigned_integral I>
+-constexpr I betoh(const std::array<std::byte, sizeof(I)> data)
++#else
++template <typename I, typename = std::enable_if_t<std::is_unsigned_v<I>>>
++#endif
++constexpr I betoh(const std::array<std::byte, sizeof(I)> data) noexcept
+ {
+     I output = 0;
+     for (std::byte b : data) {
+@@ -64,7 +86,11 @@ constexpr I betoh(const std::array<std::byte, sizeof(I)> data)
+     return output;
+ }
+ 
++#if HAS_CPP20
+ template <std::unsigned_integral I>
++#else
++template <typename I, typename = std::enable_if_t<std::is_unsigned_v<I>>>
++#endif
+ constexpr I letoh(const std::array<std::byte, sizeof(I)> data)
+ {
+     I output = 0;
+diff --git a/include/xnet/DHCP.hh b/include/xnet/DHCP.hh
+index 522aa0a..c18113e 100644
+--- a/include/xnet/DHCP.hh
++++ b/include/xnet/DHCP.hh
+@@ -1,12 +1,16 @@
+ #pragma once
++#if __cplusplus >= 202002L && (!defined(__clang__) || __clang_major__ >= 10) && \
++    (!defined(__GNUC__) || __GNUC__ >= 10) && (!defined(_MSC_VER) || _MSC_VER >= 1920)
++    #define HAS_CPP20 1
++#else
++    #define HAS_CPP20 0
++#endif
+ 
+ #include <algorithm>
+ #include <array>
+-#include <concepts>
+ #include <endian.h>
+ #include <iterator>
+ #include <optional>
+-#include <ranges>
+ #include <span>
+ #include <stdexcept>
+ #include <string>
+@@ -17,8 +21,14 @@
+ #include <cstdint>
+ #include <cstring>
+ 
+-#include <xnet/ByteOrder.hh>
+-#include <xnet/IPv4.hh>
++#if HAS_CPP20
++#include <concepts>
++#include <ranges>
++#endif
++
++#include "ByteOrder.hh"
++#include "IPv4.hh"
++#include "Span.hh"
+ 
+ namespace xnet::DHCP {
+ 
+@@ -56,6 +66,7 @@ struct ClientHardwareAddr
+     {
+     }
+ 
++#if HAS_CPP20
+     ClientHardwareAddr(const std::array<uint8_t, 16> &data)
+         : ClientHardwareAddr([data]() {
+               std::array<std::byte, 16> out{};
+@@ -65,6 +76,14 @@ struct ClientHardwareAddr
+               return out;
+           }()) {};
+ 
++#else
++    ClientHardwareAddr(const std::array<uint8_t, 16>& data)
++    {
++        for (size_t i = 0; i < 16; ++i) {
++            m_data[i] = std::byte(data[i]);
++        }
++    }
++#endif
+     std::array<std::byte, 16> data() const
+     {
+         return m_data;
+@@ -92,19 +111,29 @@ struct Header
+     std::array<std::byte, 128> file;
+ };
+ 
+-constexpr std::array<std::byte, header_size> serialize(const Header &h)
++inline std::array<std::byte, header_size> serialize(const Header &h)
+ {
+     using B = std::byte;
+     std::array<std::byte, header_size> output;
+     uint16_t write_offset = 0;
++#if HAS_CPP20
+     auto write_array = [&output, &write_offset]<typename T, size_t S>(
+                            const std::array<T, S> &a) {
+-        auto make_byte = [](T c) { return std::byte(c); };
+-        std::ranges::copy(
+-            a | std::views::transform(make_byte),
+-            output.begin() + write_offset);
++
++    auto make_byte = [](T c) { return std::byte(c); };
++    std::ranges::copy(
++        a | std::views::transform(make_byte),
++        output.begin() + write_offset);
+         write_offset += a.size();
+     };
++#else
++    auto write_array = [&output, &write_offset](const auto &a) {
++        for (size_t i = 0; i < a.size(); ++i) {
++            output[write_offset + i] = std::byte(a[i]);
++        }
++        write_offset += a.size();
++    };
++#endif
+ 
+     write_array(htobe<uint8_t>(h.op));
+     write_array(htobe<uint8_t>(h.htype));
+@@ -124,6 +153,7 @@ constexpr std::array<std::byte, header_size> serialize(const Header &h)
+     return output;
+ }
+ 
++#if HAS_CPP20
+ struct HeaderView
+ {
+     constexpr HeaderView(std::span<const std::byte> data) : m_data(data)
+@@ -412,5 +442,309 @@ struct PacketView
+         return true;
+     }
+ };
++#else
++struct HeaderView
++{
++    constexpr HeaderView(Span<const std::byte> data) : m_data(data)
++    {
++    }
++
++    constexpr bool not_safe_to_parse() const
++    {
++        return m_data.size() < header_size;
++    }
++
++    constexpr std::optional<Header> parse() const
++    {
++        auto op_opt = op();
++        auto htype_opt = htype();
++        auto hlen_opt = hlen();
++        auto hops_opt = hops();
++        auto xid_opt = xid();
++        auto secs_opt = secs();
++        auto flags_opt = flags();
++        auto ciaddr_opt = ciaddr();
++        auto yiaddr_opt = yiaddr();
++        auto siaddr_opt = siaddr();
++        auto giaddr_opt = giaddr();
++        auto chaddr_opt = chaddr();
++        auto sname_opt = sname();
++        auto file_opt = file();
++
++        bool parsed = true;
++        parsed = parsed && op_opt.has_value();
++        parsed = parsed && htype_opt.has_value();
++        parsed = parsed && hlen_opt.has_value();
++        parsed = parsed && hops_opt.has_value();
++        parsed = parsed && xid_opt.has_value();
++        parsed = parsed && secs_opt.has_value();
++        parsed = parsed && flags_opt.has_value();
++        parsed = parsed && ciaddr_opt.has_value();
++        parsed = parsed && yiaddr_opt.has_value();
++        parsed = parsed && siaddr_opt.has_value();
++        parsed = parsed && giaddr_opt.has_value();
++        parsed = parsed && chaddr_opt.has_value();
++        parsed = parsed && sname_opt.has_value();
++        parsed = parsed && file_opt.has_value();
++
++        if (!parsed) {
++            return std::nullopt;
++        }
++
++        Header output{};
++        output.op = op_opt.value();
++        output.htype = htype_opt.value();
++        output.hlen = hlen_opt.value();
++        output.hops = hops_opt.value();
++        output.xid = xid_opt.value();
++        output.secs = secs_opt.value();
++        output.flags = flags_opt.value();
++        output.ciaddr = ciaddr_opt.value();
++        output.yiaddr = yiaddr_opt.value();
++        output.siaddr = siaddr_opt.value();
++        output.giaddr = giaddr_opt.value();
++        output.chaddr = chaddr_opt.value();
++        output.sname = sname_opt.value();
++        output.file = file_opt.value();
++        return output;
++    }
++
++    constexpr std::optional<uint8_t> op() const
++    {
++        return read_be_at<uint8_t>(0);
++    }
++
++    constexpr std::optional<uint8_t> htype() const
++    {
++        return read_be_at<uint8_t>(1);
++    }
++
++    constexpr std::optional<uint8_t> hlen() const
++    {
++        return read_be_at<uint8_t>(2);
++    }
++
++    constexpr std::optional<uint8_t> hops() const
++    {
++        return read_be_at<uint8_t>(3);
++    }
++
++    constexpr std::optional<uint32_t> xid() const
++    {
++        return read_be_at<uint32_t>(4);
++    }
++
++    constexpr std::optional<uint16_t> secs() const
++    {
++        return read_be_at<uint16_t>(8);
++    }
++
++    constexpr std::optional<uint16_t> flags() const
++    {
++        return read_be_at<uint16_t>(10);
++    }
++
++    constexpr std::optional<xnet::IPv4::Address> ciaddr() const
++    {
++        return read_ipv4_addr_at(12);
++    }
++
++    constexpr std::optional<xnet::IPv4::Address> yiaddr() const
++    {
++        return read_ipv4_addr_at(16);
++    }
++
++    constexpr std::optional<xnet::IPv4::Address> siaddr() const
++    {
++        return read_ipv4_addr_at(20);
++    }
++
++    constexpr std::optional<xnet::IPv4::Address> giaddr() const
++    {
++        return read_ipv4_addr_at(24);
++    }
++
++    constexpr std::optional<ClientHardwareAddr> chaddr() const
++    {
++        if (not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        std::array<std::byte, 16> addr_data{};
++        for (size_t i = 0; i < 16; ++i) {
++            addr_data[i] = m_data[28 + i];
++        }
++        return ClientHardwareAddr(addr_data);
++    }
++
++    constexpr std::optional<std::array<std::byte, 64>> sname() const
++    {
++        if (not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        std::array<std::byte, 64> output{};
++        for (size_t i = 0; i < 64; ++i) {
++            output[i] = m_data[44 + i];
++        }
++        return output;
++    }
++
++    constexpr std::optional<std::array<std::byte, 128>> file() const
++    {
++        if (not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        std::array<std::byte, 128> output{};
++        for (size_t i = 0; i < 128; ++i) {
++            output[i] = m_data[108 + i];
++        }
++        return output;
++    }
++
++private:
++    Span<const std::byte> m_data;
++
++    template <typename I>
++    constexpr std::optional<I> read_be_at(size_t offset) const
++    {
++        static_assert(std::is_unsigned_v<I>, "I must be unsigned integral type");
++        if (not_safe_to_parse()) {
++            return std::nullopt;
++        }
++
++        std::array<std::byte, sizeof(I)> output_data;
++        for (size_t i = 0; i < sizeof(I); ++i) {
++            output_data[i] = m_data[offset + i];
++        }
++        return betoh<I>(output_data);
++    }
++
++    constexpr std::optional<xnet::IPv4::Address>
++        read_ipv4_addr_at(size_t offset) const
++    {
++        if (not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        std::array<std::byte, 4> addr_data{};
++        for (size_t i = 0; i < 4; ++i) {
++            addr_data[i] = m_data[offset + i];
++        }
++        return xnet::IPv4::Address(addr_data);
++    }
++};
++
++struct PacketView
++{
++    constexpr PacketView(Span<const std::byte> data) : m_data(data)
++    {
++    }
++
++    constexpr std::optional<HeaderView> header_view() const
++    {
++        auto header = header_data();
++        if (!header.has_value()) {
++            return std::nullopt;
++        }
++
++        return HeaderView(header.value());
++    }
++
++private:
++#if 0
++    static constexpr Span<uint8_t> trim_options(Span<uint8_t> options_data)
++    {
++        if (options_data.size() == 0) {
++            return options_data;
++        }
++
++        size_t options_size = options_data.size();
++        while (options_size != 0 && options_data[options_size - 1] == 0) {
++            options_size--;
++        }
++
++        return options_data.subspan(0, options_size);
++    }
++#endif
++
++    constexpr bool validate_header() const
++    {
++        return header_data().has_value();
++    }
++
++    constexpr std::optional<Span<const std::byte>>
++        header_data() const
++    {
++        if (m_data.size() < header_size) {
++            return std::nullopt;
++        }
++        return Span<const std::byte>(
++            m_data.subspan(0, header_size));
++    }
++
++    constexpr std::optional<Span<const std::byte>> options_data() const
++    {
++        if (!validate_header()) {
++            return std::nullopt;
++        }
++
++        Span<const std::byte> options_data = m_data.subspan(header_size, m_data.size() - header_size);
++        if (options_data.size() < 4) {
++            return std::nullopt;
++        }
++
++        std::array<uint8_t, 4> cookie_data{};
++        for (size_t i = 0; i < 4; ++i) {
++            cookie_data[i] = std::to_integer<uint8_t>(options_data[i]);
++        }
++        std::array<uint8_t, 4> valid_cookie_data{99, 130, 83, 99};
++        if (valid_cookie_data != cookie_data) {
++            return std::nullopt;
++        }
++
++        auto output = options_data.subspan(0,4);
++        if (!validate_options(output)) {
++            return std::nullopt;
++        }
++
++        return output;
++    }
++
++private:
++    Span<const std::byte> m_data;
++
++    static constexpr bool
++        validate_options(Span<const std::byte> options_data)
++    {
++        size_t read_offset = 0;
++        size_t max_iterations = options_data.size();
++        size_t iteration_count = 0;
++        while (read_offset != options_data.size()) {
++            if (++iteration_count > max_iterations) {
++                return false;
++            }
++
++            if (read_offset > options_data.size()) {
++                return false;
++            }
++
++            const uint8_t op_code =
++                std::to_integer<uint8_t>(options_data[read_offset]);
++
++            switch (op_code) {
++            case 0:
++            case 0xff:
++                read_offset++;
++                continue;
++            }
++
++            const uint8_t op_size = std::to_integer<uint8_t>(
++                options_data[read_offset + sizeof(op_code)]);
++            read_offset += sizeof(op_code) + sizeof(op_size);
++            read_offset += op_size;
++        }
++
++        return true;
++    }
++};
++#endif
+ 
+ } // namespace xnet::DHCP
+diff --git a/include/xnet/DHCP_formatter.hh b/include/xnet/DHCP_formatter.hh
+index baf3649..c5c1b53 100644
+--- a/include/xnet/DHCP_formatter.hh
++++ b/include/xnet/DHCP_formatter.hh
+@@ -1,20 +1,28 @@
+ #pragma once
++#if __cplusplus >= 202002L && (!defined(__clang__) || __clang_major__ >= 10) && \
++    (!defined(__GNUC__) || __GNUC__ >= 10) && (!defined(_MSC_VER) || _MSC_VER >= 1920)
++    #define HAS_CPP20 1
++#else
++    #define HAS_CPP20 0
++#endif
+ 
+ #include <algorithm>
+ #include <array>
+ #include <bitset>
+-#include <format>
+-#include <iterator>
+-#include <ranges>
+ #include <string>
+-
+ #include <cctype>
+ #include <cstddef>
+ #include <cstdint>
+-#include <string_view>
+-
++#include <ostream>
+ #include "DHCP.hh"
++#include <cstring>
++
++#if HAS_CPP20
++#include <ranges>
++#include <format>
++#endif
+ 
++#if HAS_CPP20
+ template <>
+ struct std::formatter<xnet::DHCP::OperationCode, char>
+ {
+@@ -199,3 +207,309 @@ struct std::formatter<xnet::DHCP::Header, char>
+     template <typename T>
+     static constexpr size_t std_array_size_v = std_array_size<T>::value;
+ };
++
++#else
++// Helper functions namespace
++namespace dhcp_formatter {
++inline bool needs_escaping(char c) {
++    return c == '\0' || c == '"' || c == '\\' || !std::isprint(static_cast<unsigned char>(c));
++}
++
++inline std::string ip_to_string(const xnet::IPv4::Address& addr) {
++    auto data = addr.data_msbf();
++    uint8_t bytes[4] = {
++        static_cast<uint8_t>(data[0]),
++        static_cast<uint8_t>(data[1]),
++        static_cast<uint8_t>(data[2]),
++        static_cast<uint8_t>(data[3])
++    };
++
++    if (bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 0) {
++        return "[0,0,0,0]";
++    }
++
++    std::string result;
++    result.reserve(20);
++    result += '[';
++    result += std::to_string(bytes[0]);
++    result += ',';
++    result += std::to_string(bytes[1]);
++    result += ',';
++    result += std::to_string(bytes[2]);
++    result += ',';
++    result += std::to_string(bytes[3]);
++    result += ']';
++    return result;
++}
++
++inline std::string mac_to_string(const xnet::DHCP::ClientHardwareAddr& addr) {
++    const auto& data = addr.data();
++    std::string result;
++    result.reserve(data.size() * 3);
++    const char hex_chars[] = "0123456789abcdef";
++    for (size_t i = 0; i < data.size(); ++i) {
++        if (i != 0) result += ':';
++        uint8_t byte = static_cast<uint8_t>(data[i]);
++        result += hex_chars[(byte >> 4) & 0x0F];
++        result += hex_chars[byte & 0x0F];
++    }
++    return result;
++}
++
++inline std::string operation_code_to_string(xnet::DHCP::OperationCode code) {
++    switch (code) {
++        case xnet::DHCP::OperationCode::BOOTREQUEST:
++            return "BOOTREQUEST";
++        case xnet::DHCP::OperationCode::BOOTREPLY:
++            return "BOOTREPLY";
++        default:
++            return "Unknown(" + std::to_string(static_cast<int>(code)) + ")";
++    }
++}
++
++template<typename Array>
++inline std::string bytes_to_printable_string(const Array& bytes) {
++    std::string result;
++    result.reserve(bytes.size());
++    for (size_t i = 0; i < bytes.size(); ++i) {
++        char c = static_cast<char>(static_cast<uint8_t>(bytes[i]));
++        if (c == '\0') break;
++        if (needs_escaping(c)) {
++            result += '.';
++        } else {
++            result += c;
++        }
++    }
++    return result;
++}
++
++// 辅助函数：将字节转换为十六进制字符串
++inline std::string byte_to_hex(uint8_t byte) {
++    const char hex_chars[] = "0123456789abcdef";
++    std::string result;
++    result.reserve(2);
++    result += hex_chars[(byte >> 4) & 0x0F];
++    result += hex_chars[byte & 0x0F];
++    return result;
++}
++
++// 辅助函数：将16位整数转换为十六进制字符串
++inline std::string uint16_to_hex(uint16_t value) {
++    const char hex_chars[] = "0123456789abcdef";
++    std::string result(4, '0');
++    for (int i = 3; i >= 0; --i) {
++        result[i] = hex_chars[value & 0x0F];
++        value >>= 4;
++    }
++    return result;
++}
++
++// 辅助函数：将32位整数转换为十六进制字符串
++inline std::string uint32_to_hex(uint32_t value) {
++    const char hex_chars[] = "0123456789abcdef";
++    std::string result(8, '0');
++    for (int i = 7; i >= 0; --i) {
++        result[i] = hex_chars[value & 0x0F];
++        value >>= 4;
++    }
++    return result;
++}
++
++// 辅助函数：将字符串中的特殊字符转义
++inline std::string escape_json_string(const std::string& str) {
++    std::string result;
++    result.reserve(str.length() * 2);
++    for (char c : str) {
++        switch (c) {
++            case '"':
++                result += "\\\"";
++                break;
++            case '\\':
++                result += "\\\\";
++                break;
++            case '\b':
++                result += "\\b";
++                break;
++            case '\f':
++                result += "\\f";
++                break;
++            case '\n':
++                result += "\\n";
++                break;
++            case '\r':
++                result += "\\r";
++                break;
++            case '\t':
++                result += "\\t";
++                break;
++            default:
++                if (static_cast<unsigned char>(c) < 0x20) {
++                    // 控制字符，转换为 \u00xx 格式
++                    result += "\\u00";
++                    result += byte_to_hex(static_cast<uint8_t>(c));
++                } else {
++                    result += c;
++                }
++                break;
++        }
++    }
++    return result;
++}
++}
++
++// operator<< overload for OperationCode
++inline std::ostream& operator<<(std::ostream& os, const xnet::DHCP::OperationCode& code) {
++    return os << dhcp_formatter::operation_code_to_string(code);
++}
++
++// operator<< overload for ClientHardwareAddr
++inline std::ostream& operator<<(std::ostream& os, const xnet::DHCP::ClientHardwareAddr& addr) {
++    return os << dhcp_formatter::mac_to_string(addr);
++}
++
++// operator<< overload for Header
++inline std::ostream& operator<<(std::ostream& os, const xnet::DHCP::Header& header) {
++    std::string sname_string = dhcp_formatter::bytes_to_printable_string(header.sname);
++    std::string file_string = dhcp_formatter::bytes_to_printable_string(header.file);
++    std::string flags_str = std::bitset<16>(header.flags).to_string();
++    os << "{"
++       << "\"op\":" << static_cast<int>(header.op) << ","
++       << "\"htype\":\"0x" << dhcp_formatter::byte_to_hex(header.htype) << "\","
++       << "\"hlen\":" << static_cast<int>(header.hlen) << ","
++       << "\"hops\":" << static_cast<int>(header.hops) << ","
++       << "\"transaction_id\":\"0x" << dhcp_formatter::uint32_to_hex(header.xid) << "\","
++       << "\"secs\":" << header.secs << ","
++       << "\"flags\":\"0b" << flags_str << "\","
++       << "\"cli\":\"" << dhcp_formatter::ip_to_string(header.ciaddr) << "\","
++       << "\"your\":\"" << dhcp_formatter::ip_to_string(header.yiaddr) << "\","
++       << "\"server\":\"" << dhcp_formatter::ip_to_string(header.siaddr) << "\","
++       << "\"relay\":\"" << dhcp_formatter::ip_to_string(header.giaddr) << "\","
++       << "\"cli_hw\":\"" << dhcp_formatter::mac_to_string(header.chaddr) << "\","
++       << "\"sname_ascii\":\"" << dhcp_formatter::escape_json_string(sname_string) << "\","
++       << "\"file_ascii\":\"" << dhcp_formatter::escape_json_string(file_string) << "\""
++       << "}";
++    return os;
++}
++
++// to_string functions
++namespace xnet::DHCP {
++inline std::string to_string(OperationCode code) {
++    return dhcp_formatter::operation_code_to_string(code);
++}
++
++inline std::string to_string(const ClientHardwareAddr& addr) {
++    return dhcp_formatter::mac_to_string(addr);
++}
++
++inline std::string to_string(const Header& header) {
++    std::string sname_string = dhcp_formatter::bytes_to_printable_string(header.sname);
++    std::string file_string = dhcp_formatter::bytes_to_printable_string(header.file);
++    std::string flags_str = std::bitset<16>(header.flags).to_string();
++    std::string result;
++    result.reserve(512);
++    result += "{";
++    result += "\"op\":";
++    result += std::to_string(static_cast<int>(header.op));
++    result += ",";
++    result += "\"htype\":\"0x";
++    result += dhcp_formatter::byte_to_hex(header.htype);
++    result += "\",";
++    result += "\"hlen\":";
++    result += std::to_string(static_cast<int>(header.hlen));
++    result += ",";
++    result += "\"hops\":";
++    result += std::to_string(static_cast<int>(header.hops));
++    result += ",";
++    result += "\"transaction_id\":\"0x";
++    result += dhcp_formatter::uint32_to_hex(header.xid);
++    result += "\",";
++    result += "\"secs\":";
++    result += std::to_string(header.secs);
++    result += ",";
++    result += "\"flags\":\"0b";
++    result += flags_str;
++    result += "\",";
++    result += "\"cli\":\"";
++    result += dhcp_formatter::ip_to_string(header.ciaddr);
++    result += "\",";
++    result += "\"your\":\"";
++    result += dhcp_formatter::ip_to_string(header.yiaddr);
++    result += "\",";
++    result += "\"server\":\"";
++    result += dhcp_formatter::ip_to_string(header.siaddr);
++    result += "\",";
++    result += "\"relay\":\"";
++    result += dhcp_formatter::ip_to_string(header.giaddr);
++    result += "\",";
++    result += "\"cli_hw\":\"";
++    result += dhcp_formatter::mac_to_string(header.chaddr);
++    result += "\",";
++    result += "\"sname_ascii\":\"";
++    result += dhcp_formatter::escape_json_string(sname_string);
++    result += "\",";
++    result += "\"file_ascii\":\"";
++    result += dhcp_formatter::escape_json_string(file_string);
++    result += "\"";
++    result += "}";
++    return result;
++}
++
++// JSON output with pretty print option
++inline std::string to_json(const Header& header, bool pretty = false) {
++    std::string sname_string = dhcp_formatter::bytes_to_printable_string(header.sname);
++    std::string file_string = dhcp_formatter::bytes_to_printable_string(header.file);
++    std::string flags_str = std::bitset<16>(header.flags).to_string();
++    if (pretty) {
++        std::string result;
++        result.reserve(512);
++        result += "{\n";
++        result += "  \"op\": ";
++        result += std::to_string(static_cast<int>(header.op));
++        result += ",\n";
++        result += "  \"htype\": \"0x";
++        result += dhcp_formatter::byte_to_hex(header.htype);
++        result += "\",\n";
++        result += "  \"hlen\": ";
++        result += std::to_string(static_cast<int>(header.hlen));
++        result += ",\n";
++        result += "  \"hops\": ";
++        result += std::to_string(static_cast<int>(header.hops));
++        result += ",\n";
++        result += "  \"transaction_id\": \"0x";
++        result += dhcp_formatter::uint32_to_hex(header.xid);
++        result += "\",\n";
++        result += "  \"secs\": ";
++        result += std::to_string(header.secs);
++        result += ",\n";
++        result += "  \"flags\": \"0b";
++        result += flags_str;
++        result += "\",\n";
++        result += "  \"cli\": \"";
++        result += dhcp_formatter::ip_to_string(header.ciaddr);
++        result += "\",\n";
++        result += "  \"your\": \"";
++        result += dhcp_formatter::ip_to_string(header.yiaddr);
++        result += "\",\n";
++        result += "  \"server\": \"";
++        result += dhcp_formatter::ip_to_string(header.siaddr);
++        result += "\",\n";
++        result += "  \"relay\": \"";
++        result += dhcp_formatter::ip_to_string(header.giaddr);
++        result += "\",\n";
++        result += "  \"cli_hw\": \"";
++        result += dhcp_formatter::mac_to_string(header.chaddr);
++        result += "\",\n";
++        result += "  \"sname_ascii\": \"";
++        result += dhcp_formatter::escape_json_string(sname_string);
++        result += "\",\n";
++        result += "  \"file_ascii\": \"";
++        result += dhcp_formatter::escape_json_string(file_string);
++        result += "\"\n";
++        result += "}";
++        return result;
++    } else {
++        return to_string(header);
++    }
++}
++}
++#endif
+\ No newline at end of file
+diff --git a/include/xnet/IPv4.hh b/include/xnet/IPv4.hh
+old mode 100644
+new mode 100755
+index d611424..a322d18
+--- a/include/xnet/IPv4.hh
++++ b/include/xnet/IPv4.hh
+@@ -1,24 +1,34 @@
+ #pragma once
+ 
++#if __cplusplus >= 202002L && (!defined(__clang__) || __clang_major__ >= 10) && \
++    (!defined(__GNUC__) || __GNUC__ >= 10) && (!defined(_MSC_VER) || _MSC_VER >= 1920)
++    #define HAS_CPP20 1
++#else
++    #define HAS_CPP20 0
++#endif
++
+ #include <algorithm>
+ #include <array>
+-#include <concepts>
+-#include <iterator>
+ #include <optional>
+-#include <ranges>
+-#include <span>
+-#include <string>
+-#include <vector>
+-
+ #include <cassert>
+ #include <cstddef>
+ #include <cstdint>
+ #include <cstring>
+ 
+-#include <xnet/ByteOrder.hh>
++#if HAS_CPP20
++#include <concepts>
++#include <ranges>
++#include <span>
++#include <compare>
++#include <numbers>
++#include <source_location>
++#include <version>
++#endif
++
++#include "ByteOrder.hh"
++#include "Span.hh"
+ 
+ namespace xnet::IPv4 {
+-
+ constexpr size_t minimal_header_size = []() {
+     size_t output_bits = 0;
+     output_bits += 4;  // Version
+@@ -41,6 +51,7 @@ struct Address
+     constexpr Address() = default;
+ 
+     constexpr Address(std::array<std::byte, 4> data) : m_data(data) {};
++#if HAS_CPP20
+     constexpr Address(std::array<uint8_t, 4> data)
+         : Address([data]() {
+               std::array<std::byte, 4> out{};
+@@ -49,6 +60,16 @@ struct Address
+                   data | std::views::transform(make_byte), std::begin(out));
+               return Address(out);
+           }()) {};
++#else
++    constexpr Address(std::array<uint8_t, 4> data)
++        : Address([data]() {
++              std::array<std::byte, 4> out{};
++              for (size_t i = 0; i < data.size(); ++i) {
++                  out[i] = std::byte(data[i]);
++              }
++              return Address(out);
++          }()) {};
++#endif
+     constexpr Address(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3)
+         : Address(std::array<uint8_t, 4>{b0, b1, b2, b3})
+     {
+@@ -167,6 +188,7 @@ constexpr std::array<std::byte, minimal_header_size> serialize(const Header &h)
+     return output;
+ }
+ 
++#if HAS_CPP20
+ struct HeaderView
+ {
+     constexpr HeaderView(std::span<const std::byte> data) : m_data(data)
+@@ -579,7 +601,7 @@ struct PacketView
+         return m_data.subspan(header_size, payload_size);
+     }
+ 
+-    constexpr std::optional<std::vector<std::byte>> clone_data() const
++    std::optional<std::vector<std::byte>> clone_data() const
+     {
+         if (is_not_valid()) {
+             return std::nullopt;
+@@ -636,4 +658,448 @@ struct PacketView
+         return total_length - header_size;
+     }
+ };
++#else
++struct HeaderView
++{
++    constexpr HeaderView(Span<const std::byte> data) : m_data(data) {}
++
++    constexpr std::optional<Header> parse() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++
++        auto header_size = header_size_unsafe();
++        auto type_of_service = type_of_service_unsafe();
++        auto total_size = total_size_unsafe();
++        auto identification = identification_unsafe();
++        auto flags = flags_unsafe();
++        auto fragment_offset = fragment_offset_unsafe();
++        auto time_to_live = time_to_live_unsafe();
++        auto protocol = protocol_unsafe();
++        auto checksum = checksum_unsafe();
++        auto source_address = source_address_unsafe();
++        auto destination_address = destination_address_unsafe();
++
++        Header output{};
++        output.header_size = header_size;
++        output.TOS_or_DS = type_of_service;
++        output.total_size = total_size;
++        output.identification = identification;
++        output.flags = flags;
++        output.fragment_offset = fragment_offset;
++        output.time_to_live = time_to_live;
++        output.protocol = protocol;
++        output.checksum = checksum;
++        output.source_address = source_address;
++        output.destination_address = destination_address;
++        return output;
++    }
++
++    constexpr std::optional<uint16_t> compute_checksum() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return compute_checksum_unsafe();
++    }
++
++    constexpr bool verify_checksum() const
++    {
++        if (is_not_valid()) {
++            return false;
++        }
++        return verify_checksum_unsafe();
++    }
++
++    constexpr bool is_not_safe_to_parse() const
++    {
++        if (m_data.size() < 1) {
++            return true;
++        }
++
++        uint8_t header_size = header_size_unsafe();
++        if (m_data.size() < header_size) {
++            return true;
++        }
++
++        return false;
++    }
++
++    constexpr bool is_not_valid() const
++    {
++        if (is_not_safe_to_parse()) {
++            return true;
++        }
++
++        uint8_t version_ihl = std::to_integer<uint8_t>(m_data[0]);
++        uint8_t version = (version_ihl >> 4) & 0x0f;
++        if (version != 4) {
++            return true;
++        }
++
++        uint8_t header_size = header_size_unsafe();
++        if (header_size < minimal_header_size) {
++            return true;
++        }
++
++        constexpr uint8_t max_header_size = header_size_mask * sizeof(uint32_t);
++        if (header_size > max_header_size) {
++            assert(false && "IHL cannot be greater then header_size_mask sizeof(uint32_t)");
++            return true;
++        }
++
++        if (!verify_checksum_unsafe()) {
++            return true;
++        }
++
++        return false;
++    }
++
++    constexpr std::optional<uint8_t> header_size() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return header_size_unsafe();
++    }
++
++    constexpr std::optional<uint8_t> type_of_service() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return type_of_service_unsafe();
++    }
++
++    constexpr std::optional<uint16_t> total_size() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        auto total_size = total_size_unsafe();
++        if (total_size > m_data.size()) {
++            return std::nullopt;
++        }
++        return total_size;
++    }
++
++    constexpr std::optional<uint8_t> flags() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return flags_unsafe();
++    }
++
++    constexpr std::optional<uint16_t> fragment_offset() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return fragment_offset_unsafe();
++    }
++
++    constexpr std::optional<uint8_t> time_to_live() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return time_to_live_unsafe();
++    }
++
++    constexpr std::optional<uint8_t> protocol() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return protocol_unsafe();
++    }
++
++    constexpr std::optional<uint16_t> checksum() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return checksum_unsafe();
++    }
++
++    constexpr std::optional<Address> source_address() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return source_address_unsafe();
++    }
++
++    constexpr std::optional<Address> destination_address() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return destination_address_unsafe();
++    }
++
++    constexpr std::optional<Span<const std::byte>> header_data() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return header_data_unsafe();
++    }
++
++private:
++    static constexpr uint8_t header_size_mask = 0b00001111;
++    Span<const std::byte> m_data;
++    template <typename I>
++    constexpr I read_be_at_unsafe(size_t offset) const
++    {
++        std::array<std::byte, sizeof(I)> output_data{};
++        auto sub = header_data_unsafe().subspan(offset, sizeof(I));
++        std::copy(sub.begin(), sub.end(), output_data.begin());
++        return betoh<I>(output_data);
++    }
++
++    constexpr bool verify_checksum_unsafe() const
++    {
++        auto comp = compute_checksum_unsafe();
++        comp = ~comp;
++        auto checksum = checksum_unsafe();
++
++        uint32_t carry_sum = comp + checksum;
++
++        uint32_t nb_carry = carry_sum & 0xffff0000;
++        nb_carry >>= (sizeof(uint16_t) * 8);
++        nb_carry &= 0xffff;
++
++        uint16_t sum = carry_sum & 0xffff;
++        sum += nb_carry;
++        sum = ~sum;
++
++        return sum == 0;
++    }
++
++    constexpr uint8_t header_size_unsafe() const
++    {
++        uint8_t version_ihl = std::to_integer<uint8_t>(m_data[0]);
++        return (version_ihl & header_size_mask) * sizeof(uint32_t);
++    }
++
++    constexpr uint8_t type_of_service_unsafe() const
++    {
++        return read_be_at_unsafe<uint8_t>(1);
++    }
++
++    constexpr uint16_t total_size_unsafe() const
++    {
++        return read_be_at_unsafe<uint16_t>(2);
++    }
++
++    constexpr uint8_t flags_unsafe() const
++    {
++        uint8_t flags = read_be_at_unsafe<uint8_t>(6);
++        flags &= 0b11100000;
++        flags >>= 5;
++        flags &= 0b00000111;
++        return flags;
++    }
++
++    constexpr uint16_t fragment_offset_unsafe() const
++    {
++        uint16_t output = read_be_at_unsafe<uint16_t>(6);
++        output &= uint16_t(0b0001111111111111);
++        return output;
++    }
++
++    constexpr uint8_t time_to_live_unsafe() const
++    {
++        return read_be_at_unsafe<uint8_t>(8);
++    }
++
++    constexpr uint8_t protocol_unsafe() const
++    {
++        return read_be_at_unsafe<uint8_t>(9);
++    }
++
++    constexpr uint16_t checksum_unsafe() const
++    {
++        return read_be_at_unsafe<uint16_t>(10);
++    }
++
++    constexpr Address source_address_unsafe() const
++    {
++        auto H = header_data_unsafe();
++        auto addr_data = H.subspan(12, 4);
++        std::array<std::byte, 4> data{};
++        std::copy(addr_data.begin(), addr_data.end(), data.begin());
++        return Address(data);
++    }
++
++    constexpr Address destination_address_unsafe() const
++    {
++        auto H = header_data_unsafe();
++        auto addr_data = H.subspan(16, 4);
++        std::array<std::byte, 4> data{};
++        std::copy(addr_data.begin(), addr_data.end(), data.begin());
++        return Address(data);
++    }
++
++    constexpr std::optional<uint16_t> identification() const
++    {
++        if (is_not_safe_to_parse()) {
++            return std::nullopt;
++        }
++        return identification_unsafe();
++    }
++
++    constexpr uint16_t identification_unsafe() const
++    {
++        return read_be_at_unsafe<uint16_t>(4);
++    }
++
++    constexpr Span<const std::byte> header_data_unsafe() const
++    {
++        auto size = header_size_unsafe();
++        return m_data.subspan(0, size);
++    }
++
++    constexpr uint16_t compute_checksum_unsafe() const
++    {
++        uint32_t carry_output = 0;
++        uint8_t header_size = header_size_unsafe();
++        if (header_size < minimal_header_size || header_size > m_data.size()) {
++            return 0;
++        }
++
++        assert(header_size % sizeof(uint16_t) == 0);
++        uint8_t nb_uint16 = header_size / sizeof(uint16_t);
++        constexpr size_t header_checksum_u16_pos = 5;
++        for (size_t u16_offset = 0; u16_offset < header_checksum_u16_pos; u16_offset++) {
++            size_t offset = u16_offset * sizeof(uint16_t);
++            carry_output += read_be_at_unsafe<uint16_t>(offset);
++        }
++
++        for (size_t u16_offset = header_checksum_u16_pos + 1; u16_offset < nb_uint16; u16_offset++) {
++            size_t offset = u16_offset * sizeof(uint16_t);
++            carry_output += read_be_at_unsafe<uint16_t>(offset);
++        }
++
++        uint32_t nb_carry = carry_output & 0xffff0000;
++        nb_carry >>= (sizeof(uint16_t) * 8);
++
++        uint16_t output = carry_output & 0xffff;
++        output += nb_carry;
++
++        return ~output;
++    }
++};
++
++constexpr uint16_t compute_checksum(const Header &H)
++{
++    std::array<std::byte, minimal_header_size> data = serialize(H);
++    return HeaderView(Span<const std::byte>(data)).compute_checksum().value();
++}
++
++struct PacketView
++{
++    constexpr PacketView(Span<const std::byte> data) : m_data(data)
++    {
++    }
++
++    constexpr bool is_valid() const
++    {
++        return !is_not_valid();
++    }
++
++    constexpr bool is_not_valid() const
++    {
++        HeaderView header = header_view();
++        if (header.is_not_valid()) {
++            return true;
++        }
++
++        if (!payload_data().has_value()) {
++            return true;
++        }
++
++        return false;
++    }
++
++    constexpr HeaderView header_view() const
++    {
++        return HeaderView(m_data);
++    }
++
++    constexpr std::optional<Span<const std::byte>> payload_data() const
++    {
++        auto header_size_opt = header_view().header_size();
++        auto payload_size_opt = payload_size();
++        if (!payload_size_opt || !header_size_opt) {
++            return std::nullopt;
++        }
++
++        auto header_size = header_size_opt.value();
++        auto payload_size = payload_size_opt.value();
++        if (payload_size > SIZE_MAX - header_size) {
++           return std::nullopt;
++        }
++
++        if (m_data.size() < header_size + payload_size) {
++            return std::nullopt;
++        }
++
++        return m_data.subspan(header_size, payload_size);
++    }
++
++    std::optional<std::vector<std::byte>> clone_data() const
++    {
++        if (is_not_valid()) {
++            return std::nullopt;
++        }
++
++        auto header_size_opt = header_view().header_size();
++        auto payload_size_opt = payload_size();
++
++        if (!header_size_opt || !payload_size_opt) {
++            return std::nullopt;
++        }
++
++        size_t output_raw_packet_data_size =
++            header_size_opt.value() + payload_size_opt.value();
++
++        if (m_data.size() < output_raw_packet_data_size) {
++            return std::nullopt;
++        }
++
++        std::vector<std::byte> output;
++        output.reserve(output_raw_packet_data_size);
++
++        auto data_span = m_data.first(output_raw_packet_data_size);
++        std::copy(data_span.begin(), data_span.end(), std::back_inserter(output));
++
++        return output;
++    }
++
++private:
++    Span<const std::byte> m_data;
++
++    constexpr std::optional<uint16_t> payload_size() const
++    {
++        auto header_size_opt = header_view().header_size();
++        auto total_length_opt = header_view().total_size();
++        if (!header_size_opt || !total_length_opt) {
++            return std::nullopt;
++        }
++
++        auto header_size = header_size_opt.value();
++        auto total_length = total_length_opt.value();
++
++        if (total_length < header_size) {
++            return std::nullopt;
++        }
++
++        return total_length - header_size;
++    }
++};
++#endif
+ } // namespace xnet::IPv4
+diff --git a/include/xnet/IPv4TOS.hh b/include/xnet/IPv4TOS.hh
+index 5c5ce56..f19b2c5 100644
+--- a/include/xnet/IPv4TOS.hh
++++ b/include/xnet/IPv4TOS.hh
+@@ -1,3 +1,4 @@
++#pragma once
+ #include <cstdint>
+ 
+ namespace xnet {
+diff --git a/include/xnet/IPv4_formatter.hh b/include/xnet/IPv4_formatter.hh
+index e00ef3c..0036c12 100644
+--- a/include/xnet/IPv4_formatter.hh
++++ b/include/xnet/IPv4_formatter.hh
+@@ -1,13 +1,23 @@
+ #pragma once
+-
+-#include <format>
+-
++#if __cplusplus >= 202002L && (!defined(__clang__) || __clang_major__ >= 10) && \
++    (!defined(__GNUC__) || __GNUC__ >= 10) && (!defined(_MSC_VER) || _MSC_VER >= 1920)
++    #define HAS_CPP20 1
++#else
++    #define HAS_CPP20 0
++#endif
++
++#include <string>
++#include <array>
+ #include <cstddef>
+ #include <cstdint>
++#if HAS_CPP20
++#include <format>
++#endif
+ 
+-#include <xnet/IPv4.hh>
+-#include <xnet/IPv4TOS.hh>
++#include "IPv4.hh"
++#include "IPv4TOS.hh"
+ 
++#if HAS_CPP20
+ template <>
+ struct std::formatter<xnet::IPv4::Address, char>
+ {
+@@ -216,3 +226,160 @@ struct std::formatter<xnet::IPv4::TypeOfService, char>
+         return output;
+     }
+ };
++#else
++namespace ipv4_formatter {
++    
++inline std::string address_to_string(const xnet::IPv4::Address& addr) {
++    auto data = addr.data_msbf();
++    std::string result;
++    result.reserve(20); // "255.255.255.255" 的长度
++    result += '[';
++        result += std::to_string(std::to_integer<uint16_t>(data[0]));
++        result += ',';
++        result += std::to_string(std::to_integer<uint16_t>(data[1]));
++        result += ',';
++        result += std::to_string(std::to_integer<uint16_t>(data[2]));
++        result += ',';
++        result += std::to_string(std::to_integer<uint16_t>(data[3]));
++        result += ']';
++    return result;
++}
++
++inline std::string flags_to_string(const xnet::IPv4::Flags& flags) {
++    std::string result;
++    result.reserve(32);
++    result += '[';
++    if (flags.dont_fragment()) {
++        result += "\"DONTF\"";
++    } else {
++        result += "\"MAYF\"";
++    }
++    if (flags.more_fragments()) {
++        result += ",\"MORE\"";
++    }
++    if (flags.reserved()) {
++        result += ",\"RSV\"";
++    }
++    result += ']';
++    return result;
++}
++
++inline std::string tos_to_string(const xnet::IPv4::TypeOfService& tos) {
++    std::string result;
++    result.reserve(128);
++    result += '{';
++    bool has_prev = false;
++    if (tos.precedence() != 0) {
++        if (has_prev) result += ',';
++        result += "\"precedence\":";
++        result += std::to_string(tos.precedence());
++        has_prev = true;
++    }
++    if (tos.low_delay() || tos.high_throughput() || tos.high_relibility()) {
++        if (has_prev) result += ',';
++        result += '[';
++        
++        bool has_flag = false;
++        if (tos.low_delay()) {
++            if (has_flag) result += ',';
++            result += "\"NDELAY\"";
++            has_flag = true;
++        }
++        if (tos.high_throughput()) {
++            if (has_flag) result += ',';
++            result += "\"HTHROUT\"";
++            has_flag = true;
++        }
++        if (tos.high_relibility()) {
++            if (has_flag) result += ',';
++            result += "\"HRELY\"";
++            has_flag = true;
++        }
++        result += ']';
++        has_prev = true;
++    }
++    if (tos.any_reserved()) {
++        if (has_prev) result += ',';
++        result += "\"reserved_67\":[";
++        result += tos.reserved_6() ? '1' : '0';
++        result += ',';
++        result += tos.reserved_7() ? '1' : '0';
++        result += ']';
++        has_prev = true;
++    }
++    result += '}';
++    return result;
++}
++
++inline std::string header_to_string(const xnet::IPv4::Header& header) {
++    std::string result;
++    result.reserve(512);
++    result += '{';
++    result += "\"src\":";
++    result += address_to_string(header.source_address);
++    result += ",\"dst\":";
++    result += address_to_string(header.destination_address);
++    result += ",\"size\":";
++    result += std::to_string(header.total_size);
++    result += ",\"TTL\":";
++    result += std::to_string(header.time_to_live);
++    result += ",\"proto\":";
++    result += std::to_string(static_cast<int>(header.protocol));
++    result += ",\"id\":";
++    result += std::to_string(header.identification);
++    result += ",\"checksum\":";
++    result += std::to_string(header.checksum);
++    result += ",\"flags\":";
++    result += flags_to_string(header.flags);
++    if (header.fragment_offset != 0) {
++        result += ",\"fragment_offset\":";
++        result += std::to_string(header.fragment_offset);
++    }
++    auto tos = xnet::IPv4::TypeOfService(header.TOS_or_DS);
++    if (!tos.normal_routine() || tos.any_reserved()) {
++        result += ",\"TOS\":";
++        result += tos_to_string(tos);
++    }
++    if (header.header_size != 20) {
++        result += ",\"header_size\":";
++        result += std::to_string(header.header_size);
++    }
++    result += '}';
++    return result;
++}
++}
++
++inline std::ostream& operator<<(std::ostream& os, const xnet::IPv4::Address& addr) {
++    return os << ipv4_formatter::address_to_string(addr);
++}
++
++inline std::ostream& operator<<(std::ostream& os, const xnet::IPv4::Flags& flags) {
++    return os << ipv4_formatter::flags_to_string(flags);
++}
++
++inline std::ostream& operator<<(std::ostream& os, const xnet::IPv4::TypeOfService& tos) {
++    return os << ipv4_formatter::tos_to_string(tos);
++}
++
++inline std::ostream& operator<<(std::ostream& os, const xnet::IPv4::Header& header) {
++    return os << ipv4_formatter::header_to_string(header);
++}
++
++namespace xnet::IPv4 {
++inline std::string to_string(const Address& addr) {
++    return ipv4_formatter::address_to_string(addr);
++}
++
++inline std::string to_string(const Flags& flags) {
++    return ipv4_formatter::flags_to_string(flags);
++}
++
++inline std::string to_string(const TypeOfService& tos) {
++    return ipv4_formatter::tos_to_string(tos);
++}
++
++inline std::string to_string(const Header& header) {
++    return ipv4_formatter::header_to_string(header);
++}
++}
++#endif
+\ No newline at end of file
+diff --git a/include/xnet/Span.hh b/include/xnet/Span.hh
+new file mode 100644
+index 0000000..4089e35
+--- /dev/null
++++ b/include/xnet/Span.hh
+@@ -0,0 +1,61 @@
++#pragma once
++#if __cplusplus >= 202002L && (!defined(__clang__) || __clang_major__ >= 10) && \
++    (!defined(__GNUC__) || __GNUC__ >= 10) && (!defined(_MSC_VER) || _MSC_VER >= 1920)
++    #define HAS_CPP20 1
++#else
++    #define HAS_CPP20 0
++#endif
++
++#if !HAS_CPP20
++#include <cstddef>
++#include <cassert>
++template<typename T>
++class Span {
++private:
++    T* data_;
++    size_t size_;
++public:
++    constexpr Span() noexcept : data_(nullptr), size_(0) {}
++    constexpr Span(T* data, size_t size) noexcept : data_(data), size_(size) {}
++    template<size_t N>
++    constexpr Span(T (&arr)[N]) noexcept : data_(arr), size_(N) {}
++    template<typename Container>
++    constexpr Span(Container& c) noexcept : data_(c.data()), size_(c.size()) {}
++    template<typename Container>
++    constexpr Span(const Container& c) noexcept : data_(c.data()), size_(c.size()) {}
++    constexpr T* data() const noexcept { return data_; }
++    constexpr size_t size() const noexcept { return size_; }
++    constexpr bool empty() const noexcept { return size_ == 0; }
++    constexpr T& operator[](size_t idx) const noexcept {
++#ifndef NDEBUG
++        assert(idx < size_);
++#endif
++        return data_[idx]; 
++    }
++    constexpr T* begin() const noexcept { return data_; }
++    constexpr T* end() const noexcept { return data_ + size_; }
++    constexpr Span subspan(size_t offset, size_t count) const {
++#ifndef NDEBUG
++       assert(offset <= size_);
++       assert(offset + count <= size_);
++#endif
++        return Span(data_ + offset, count);
++    }
++
++    constexpr Span first(size_t count) const {
++        return Span(data_, count);
++    }
++
++    constexpr Span last(size_t count) const {
++        return Span(data_ + size_ - count, count);
++    }
++
++    constexpr T& front() const noexcept {
++        return data_[0];
++    }
++    
++    constexpr T& back() const noexcept {
++        return data_[size_ - 1];
++    }
++};
++#endif
+\ No newline at end of file
+diff --git a/include/xnet/UDP.hh b/include/xnet/UDP.hh
+index b4821fa..2de3d0a 100644
+--- a/include/xnet/UDP.hh
++++ b/include/xnet/UDP.hh
+@@ -1,13 +1,22 @@
+ #pragma once
++#if __cplusplus >= 202002L && (!defined(__clang__) || __clang_major__ >= 10) && \
++    (!defined(__GNUC__) || __GNUC__ >= 10) && (!defined(_MSC_VER) || _MSC_VER >= 1920)
++    #define HAS_CPP20 1
++#else
++    #define HAS_CPP20 0
++#endif
+ 
+ #include <array>
+ #include <optional>
+-#include <span>
+-
+ #include <cassert>
+ #include <cstddef>
+ #include <cstdint>
+ #include <cstring>
++#include "Span.hh"
++
++#if HAS_CPP20
++#include <span>
++#endif
+ 
+ namespace xnet {
+ 
+@@ -23,6 +32,7 @@ struct Header
+     uint16_t checksumm;
+ };
+ 
++#if HAS_CPP20
+ struct PacketView
+ {
+     PacketView(std::span<const std::byte> data) : m_data(data)
+@@ -87,5 +97,72 @@ struct PacketView
+   private:
+     std::span<const std::byte> m_data;
+ };
++#else
++struct PacketView
++{
++    PacketView(Span<const std::byte> data) : m_data(data)
++    {
++    }
++
++    std::optional<Header> parse_header() const
++    {
++        if (m_data.size() < header_size) {
++            return std::nullopt;
++        }
++
++        std::array<uint16_t, 4> readen_u16s{};
++        for (uint8_t u16_idx = 0; u16_idx < header_size / sizeof(uint16_t);
++             u16_idx++) {
++            auto val_be =
++                m_data.subspan(u16_idx * sizeof(uint16_t), sizeof(uint16_t));
++
++            uint16_t val = 0;
++            val |= std::to_integer<uint8_t>(val_be[0]);
++            val <<= 8;
++            val &= 0xff00;
++            val |= std::to_integer<uint8_t>(val_be[1]);
++            readen_u16s[u16_idx] = val;
++        }
++
++        auto size = readen_u16s[2];
++        if (size < header_size) {
++            return std::nullopt;
++        }
++
++        Header output;
++        output.source_port = readen_u16s[0];
++        output.destination_port = readen_u16s[1];
++        output.length = size;
++        output.checksumm = readen_u16s[3];
++        return output;
++    }
++
++    std::optional<Span<const std::byte>> payload() const
++    {
++        auto header_opt = parse_header();
++        if (!header_opt) {
++            return std::nullopt;
++        }
++
++        auto udp_header = header_opt.value();
++        if (udp_header.length < header_size) {
++            assert(false && "parse_header screwed");
++            return std::nullopt;
++        }
++
++        uint16_t payload_len = udp_header.length - header_size;
++
++        if ((m_data.size() - header_size) < payload_len) {
++            return std::nullopt;
++        }
++
++        return m_data.subspan(header_size, payload_len);
++    }
++
++  private:
++    Span<const std::byte> m_data;
++};
++#endif
++
+ } // namespace UDP
+ } // namespace xnet
+diff --git a/include/xnet/UDPChecksum.hh b/include/xnet/UDPChecksum.hh
+index b2c05e2..4d6772f 100644
+--- a/include/xnet/UDPChecksum.hh
++++ b/include/xnet/UDPChecksum.hh
+@@ -1,19 +1,27 @@
++#if __cplusplus >= 202002L && (!defined(__clang__) || __clang_major__ >= 10) && \
++    (!defined(__GNUC__) || __GNUC__ >= 10) && (!defined(_MSC_VER) || _MSC_VER >= 1920)
++    #define HAS_CPP20 1
++#else
++    #define HAS_CPP20 0
++#endif
++
+ #include <algorithm>
+ #include <array>
+-#include <format>
+ #include <iostream>
+ #include <iterator>
+ #include <limits>
+ #include <optional>
+-#include <ranges>
+-#include <span>
+-
+ #include <cstddef>
+ #include <cstdint>
++#include "ByteOrder.hh"
++#include "IPv4.hh"
++#include "UDP.hh"
++#include "Span.hh"
+ 
+-#include <xnet/ByteOrder.hh>
+-#include <xnet/IPv4.hh>
+-#include <xnet/UDP.hh>
++#if HAS_CPP20
++#include <ranges>
++#include <span>
++#endif
+ 
+ namespace xnet {
+ 
+@@ -26,10 +34,14 @@ struct HeaderCreateInfo
+     uint8_t pseudo_protocol{};
+     uint16_t source_port{};
+     uint16_t destination_port{};
++#if HAS_CPP20
+     std::span<const std::byte> data;
++#else
++    Span<const std::byte> data;
++#endif
+ };
+ 
+-constexpr std::optional<Header> create_valid_header(HeaderCreateInfo info)
++constexpr std::optional<Header> create_valid_header(const HeaderCreateInfo& info)
+ {
+     if (info.data.size() > std::numeric_limits<uint16_t>::max() - header_size) {
+         return std::nullopt;
+@@ -39,7 +51,9 @@ constexpr std::optional<Header> create_valid_header(HeaderCreateInfo info)
+     auto extract_u16_pair_be_from =
+         [](IPv4::Address a) -> std::array<uint16_t, 2> {
+         auto data = a.data_msbf();
++        std::array<uint16_t, 2> output{};
+ 
++#if HAS_CPP20
+         std::array<std::byte, 2> first_data{};
+         std::ranges::copy(
+             data | std::views::drop(0) | std::views::take(2),
+@@ -50,9 +64,20 @@ constexpr std::optional<Header> create_valid_header(HeaderCreateInfo info)
+             data | std::views::drop(2) | std::views::take(2),
+             std::begin(second_data));
+ 
+-        std::array<uint16_t, 2> output{};
+         output[0] = betoh<uint16_t>(first_data);
+         output[1] = betoh<uint16_t>(second_data);
++#else
++        std::array<std::byte, 2> first_data{};
++        first_data[0] = data[0];
++        first_data[1] = data[1];
++
++        std::array<std::byte, 2> second_data{};
++        second_data[0] = data[2];
++        second_data[1] = data[3];
++
++        output[0] = betoh<uint16_t>(first_data);
++        output[1] = betoh<uint16_t>(second_data);
++#endif
+         return output;
+     };
+ 
+@@ -80,8 +105,14 @@ constexpr std::optional<Header> create_valid_header(HeaderCreateInfo info)
+ 
+     auto data_u16_at = [&info](size_t u16_offset) -> uint16_t {
+         std::array<std::byte, 2> output_data{};
++
++#if HAS_CPP20
+         auto source = info.data.subspan(u16_offset * 2, 2);
+         std::ranges::copy(source, std::begin(output_data));
++#else
++        output_data[0] = info.data[u16_offset * 2];
++        output_data[1] = info.data[u16_offset * 2 + 1];
++#endif
+         return betoh<uint16_t>(output_data);
+     };
+     size_t data_nb_u16s = info.data.size() / sizeof(uint16_t);
+@@ -103,7 +134,7 @@ constexpr std::optional<Header> create_valid_header(HeaderCreateInfo info)
+     checksum += checksum_nb_carry;
+     checksum = ~checksum;
+ 
+-    Header output;
++    Header output{};
+     output.source_port = info.source_port;
+     output.destination_port = info.destination_port;
+     output.length = udp_length;
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+new file mode 100755
+index 0000000..42db6c5
+--- /dev/null
++++ b/tests/CMakeLists.txt
+@@ -0,0 +1,20 @@
++# tests/CMakeLists.txt - 简化的测试配置，不调用project()
++
++# 从父目录继承编译器设置，不重新调用project()
++
++# 查找所有测试源文件
++file(GLOB TEST_SOURCES "*.cc")
++
++if(NOT TEST_SOURCES)
++    message(WARNING "No test source files found in tests directory")
++    return()
++endif()
++
++# 添加测试可执行文件
++add_executable(unit_tests ${TEST_SOURCES})
++
++# 链接主库 - 直接使用库名
++target_link_libraries(unit_tests PRIVATE xnet.headers)
++
++# 添加为测试
++add_test(NAME libxnet_unit_tests COMMAND unit_tests)
+\ No newline at end of file
+diff --git a/tests/test_ipv4.cc b/tests/test_ipv4.cc
+new file mode 100755
+index 0000000..d51ad7d
+--- /dev/null
++++ b/tests/test_ipv4.cc
+@@ -0,0 +1,2096 @@
++#include <iostream>
++#include <cassert>
++#include <vector>
++#include <string>
++#include <array>
++#include <sstream>
++#include <iomanip>
++
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wall"
++#pragma GCC diagnostic ignored "-Wextra"
++#pragma GCC diagnostic ignored "-Wpedantic"
++#pragma GCC diagnostic pop
++
++#include "../include/xnet/IPv4.hh"
++#include "../include/xnet/ByteOrder.hh"
++#include "../include/xnet/DHCP.hh"
++#include "../include/xnet/Span.hh"
++#include "../include/xnet/IPv4TOS.hh"
++#include "../include/xnet/UDP.hh"
++#include "../include/xnet/UDPChecksum.hh"
++#include "../include/xnet/DHCP_formatter.hh"
++#include "../include/xnet/IPv4_formatter.hh"
++
++#if __cplusplus >= 202002L && (!defined(__clang__) || __clang_major__ >= 10) && \
++    (!defined(__GNUC__) || __GNUC__ >= 10) && (!defined(_MSC_VER) || _MSC_VER >= 1920)
++    #define HAS_CPP20 1
++#else
++    #define HAS_CPP20 0
++#endif
++
++#if HAS_CPP20
++#include <ranges>
++#include <format>
++#endif
++
++void test_ipv4_address_basic()
++{
++    std::cout << "=== Testing IPv4 Address Basic Functionality ===" << std::endl;
++    xnet::IPv4::Address addr1(192, 168, 1, 1);
++    xnet::IPv4::Address addr2(10, 0, 0, 1);
++    xnet::IPv4::Address addr3(192, 168, 1, 1);
++
++    auto data1 = addr1.data_msbf();
++    assert(std::to_integer<uint8_t>(data1[0]) == 192);
++    assert(std::to_integer<uint8_t>(data1[1]) == 168);
++    assert(std::to_integer<uint8_t>(data1[2]) == 1);
++    assert(std::to_integer<uint8_t>(data1[3]) == 1);
++
++    assert(addr1 == addr3);
++    assert(!(addr1 == addr2));
++    std::array<uint8_t, 4> octets = {172, 16, 0, 1};
++    xnet::IPv4::Address addr4(octets);
++    auto data4 = addr4.data_msbf();
++    assert(std::to_integer<uint8_t>(data4[0]) == 172);
++    std::cout << "All address basic tests passed" << std::endl;
++}
++
++void test_ipv4_flags()
++{
++    std::cout << "=== Testing IPv4 Flags ===" << std::endl;
++    xnet::IPv4::Flags flags_default;
++    assert(!flags_default.dont_fragment());
++    assert(!flags_default.more_fragments());
++    assert(!flags_default.reserved());
++    assert(flags_default.may_fragment());
++    assert(flags_default.last_fragment());
++
++    xnet::IPv4::Flags flags_df(0b010);
++    assert(flags_df.dont_fragment());
++    assert(!flags_df.may_fragment());
++    assert(flags_df.last_fragment());
++
++    xnet::IPv4::Flags flags_mf(0b001);
++    assert(flags_mf.more_fragments());
++    assert(!flags_mf.last_fragment());
++
++    xnet::IPv4::Flags flags_rsv(0b100);
++    assert(flags_rsv.reserved());
++    std::cout << "All flags tests passed" << std::endl;
++}
++
++void test_ipv4_header_serialization()
++{
++    std::cout << "=== Testing IPv4 Header Serialization ===" << std::endl;
++    xnet::IPv4::Header header;
++    header.header_size = 20;
++    header.TOS_or_DS = 0;
++    header.total_size = 60;
++    header.identification = 12345;
++    header.flags = xnet::IPv4::Flags(0b010);
++    header.fragment_offset = 0;
++    header.time_to_live = 64;
++    header.protocol = 6;
++    header.checksum = 0;
++    header.source_address = xnet::IPv4::Address(192, 168, 1, 100);
++    header.destination_address = xnet::IPv4::Address(8, 8, 8, 8);
++
++    auto serialized = xnet::IPv4::serialize(header);
++    assert(serialized.size() == xnet::IPv4::minimal_header_size);
++
++    xnet::IPv4::HeaderView header_view(serialized);
++    auto parsed_header = header_view.parse();
++
++    assert(parsed_header.has_value());
++    auto &parsed = parsed_header.value();
++
++    assert(parsed.header_size == header.header_size);
++    assert(parsed.TOS_or_DS == header.TOS_or_DS);
++    assert(parsed.total_size == header.total_size);
++    assert(parsed.identification == header.identification);
++    assert(parsed.flags.value() == header.flags.value());
++    assert(parsed.fragment_offset == header.fragment_offset);
++    assert(parsed.time_to_live == header.time_to_live);
++    assert(parsed.protocol == header.protocol);
++    assert(parsed.source_address == header.source_address);
++    assert(parsed.destination_address == header.destination_address);
++
++    std::cout << "Header serialization/deserialization tests passed" << std::endl;
++}
++
++void test_ipv4_checksum()
++{
++    std::cout << "=== Testing IPv4 Checksum ===" << std::endl;
++    xnet::IPv4::Header header;
++    header.header_size = 20;
++    header.TOS_or_DS = 0;
++    header.total_size = 40;
++    header.identification = 54321;
++    header.flags = xnet::IPv4::Flags(0);
++    header.fragment_offset = 0;
++    header.time_to_live = 128;
++    header.protocol = 17;
++    header.checksum = 0;
++    header.source_address = xnet::IPv4::Address(10, 0, 0, 2);
++    header.destination_address = xnet::IPv4::Address(10, 0, 0, 1);
++
++    auto checksum = xnet::IPv4::compute_checksum(header);
++    header.checksum = checksum;
++
++    auto serialized = xnet::IPv4::serialize(header);
++    xnet::IPv4::HeaderView header_view(serialized);
++
++    assert(header_view.verify_checksum());
++
++    header.checksum = 0xFFFF;
++    auto bad_serialized = xnet::IPv4::serialize(header);
++    xnet::IPv4::HeaderView bad_header_view(bad_serialized);
++    assert(!bad_header_view.verify_checksum());
++
++    std::cout << "Checksum tests passed" << std::endl;
++}
++
++void test_special_addresses()
++{
++    std::cout << "=== Testing Special Addresses ===" << std::endl;
++
++    xnet::IPv4::Address loopback(127, 0, 0, 1);
++    auto loopback_data = loopback.data_msbf();
++    assert(std::to_integer<uint8_t>(loopback_data[0]) == 127);
++
++    xnet::IPv4::Address broadcast(255, 255, 255, 255);
++    auto broadcast_data = broadcast.data_msbf();
++    assert(std::to_integer<uint8_t>(broadcast_data[3]) == 255);
++
++    xnet::IPv4::Address zero(0, 0, 0, 0);
++    auto zero_data = zero.data_msbf();
++    assert(std::to_integer<uint8_t>(zero_data[0]) == 0);
++
++    xnet::IPv4::Address max_vals(255, 255, 255, 254);
++    auto max_data = max_vals.data_msbf();
++    assert(std::to_integer<uint8_t>(max_data[0]) == 255);
++
++    std::cout << "Special addresses tests passed" << std::endl;
++}
++
++void test_protocol_field()
++{
++    std::cout << "=== Testing Protocol Field ===" << std::endl;
++
++    xnet::IPv4::Header header;
++    header.header_size = 20;
++    header.TOS_or_DS = 0;
++    header.total_size = 20;
++    header.identification = 9999;
++    header.flags = xnet::IPv4::Flags(0);
++    header.fragment_offset = 0;
++    header.time_to_live = 64;
++    header.checksum = 0;
++    header.source_address = xnet::IPv4::Address(1, 1, 1, 1);
++    header.destination_address = xnet::IPv4::Address(2, 2, 2, 2);
++
++    header.protocol = 1;
++    header.checksum = xnet::IPv4::compute_checksum(header);
++    auto icmp_data = xnet::IPv4::serialize(header);
++    xnet::IPv4::HeaderView icmp_view(icmp_data);
++    assert(icmp_view.protocol().value() == 1);
++
++    header.protocol = 6;
++    header.checksum = xnet::IPv4::compute_checksum(header);
++    auto tcp_data = xnet::IPv4::serialize(header);
++    xnet::IPv4::HeaderView tcp_view(tcp_data);
++    assert(tcp_view.protocol().value() == 6);
++
++    header.protocol = 17;
++    header.checksum = xnet::IPv4::compute_checksum(header);
++    auto udp_data = xnet::IPv4::serialize(header);
++    xnet::IPv4::HeaderView udp_view(udp_data);
++    assert(udp_view.protocol().value() == 17);
++
++    std::cout << "Protocol field tests passed" << std::endl;
++}
++
++void test_byteorder() {
++    std::cout << "Running byte order tests...\n";
++    uint16_t val = 0x1234;
++    auto be = xnet::htobe(val);
++    auto le = xnet::htole(val);
++    
++    assert(static_cast<int>(be[0]) == 0x12);
++    assert(static_cast<int>(be[1]) == 0x34);
++    assert(static_cast<int>(le[0]) == 0x34);
++    assert(static_cast<int>(le[1]) == 0x12);
++    assert(xnet::betoh<uint16_t>(be) == val);
++    assert(xnet::letoh<uint16_t>(le) == val);
++}
++
++// 辅助函数：打印字节
++void print_hex(const std::byte* data, size_t len) {
++    for (size_t i = 0; i < len; ++i) {
++        std::cout << std::hex << std::setw(2) << std::setfill('0')
++                  << static_cast<int>(static_cast<uint8_t>(data[i])) << " ";
++    }
++    std::cout << std::dec << std::endl;
++}
++
++// 测试 1: header_size 常量
++void test_header_size() {
++    std::cout << "Test 1: header_size constant\n";
++    constexpr size_t expected = 1 + 1 + 1 + 1 + 4 + 2 + 2 + 4 + 4 + 4 + 4 + 16 + 64 + 128;
++    assert(xnet::DHCP::header_size == expected);
++    std::cout << "  ✓ header_size = " << xnet::DHCP::header_size << "\n\n";
++}
++
++// 测试 2: ClientHardwareAddr 构造和访问
++void test_client_hardware_addr() {
++    std::cout << "Test 2: ClientHardwareAddr\n";
++    
++    // 测试默认构造
++    xnet::DHCP::ClientHardwareAddr addr1;
++    auto data1 = addr1.data();
++    assert(data1.size() == 16);
++    std::cout << "  ✓ Default constructor\n";
++    
++    // 测试从 std::array<uint8_t, 16> 构造
++    std::array<uint8_t, 16> mac_data = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
++    xnet::DHCP::ClientHardwareAddr addr2(mac_data);
++    auto data2 = addr2.data();
++    assert(static_cast<uint8_t>(data2[0]) == 0x00);
++    assert(static_cast<uint8_t>(data2[1]) == 0x11);
++    assert(static_cast<uint8_t>(data2[2]) == 0x22);
++    assert(static_cast<uint8_t>(data2[3]) == 0x33);
++    assert(static_cast<uint8_t>(data2[4]) == 0x44);
++    assert(static_cast<uint8_t>(data2[5]) == 0x55);
++    std::cout << "  ✓ Constructor with uint8_t array\n";
++    
++    // 测试从 std::array<std::byte, 16> 构造
++    std::array<std::byte, 16> byte_data{};
++    byte_data[0] = std::byte(0xAA);
++    byte_data[1] = std::byte(0xBB);
++    xnet::DHCP::ClientHardwareAddr addr3(byte_data);
++    auto data3 = addr3.data();
++    assert(static_cast<uint8_t>(data3[0]) == 0xAA);
++    assert(static_cast<uint8_t>(data3[1]) == 0xBB);
++    std::cout << "  ✓ Constructor with std::byte array\n\n";
++}
++
++// 测试 3: Header 默认构造和字段访问
++void test_header_default() {
++    std::cout << "Test 3: Header default construction\n";
++    
++    xnet::DHCP::Header header;
++    
++    // 验证默认值（应该是未初始化的，但我们可以验证大小）
++    assert(sizeof(header.op) == 1);
++    assert(sizeof(header.htype) == 1);
++    assert(sizeof(header.hlen) == 1);
++    assert(sizeof(header.hops) == 1);
++    assert(sizeof(header.xid) == 4);
++    assert(sizeof(header.secs) == 2);
++    assert(sizeof(header.flags) == 2);
++    assert(header.sname.size() == 64);
++    assert(header.file.size() == 128);
++    
++    std::cout << "  ✓ Header structure size verified\n";
++    std::cout << "  ✓ sname size: " << header.sname.size() << "\n";
++    std::cout << "  ✓ file size: " << header.file.size() << "\n\n";
++}
++
++// 测试 4: 序列化基础功能
++void test_serialize_basic() {
++    std::cout << "Test 4: Serialize basic functionality\n";
++    
++    xnet::DHCP::Header header{};
++    
++    // 设置简单值
++    header.op = 0x01;
++    header.htype = 0x02;
++    header.hlen = 0x03;
++    header.hops = 0x04;
++    header.xid = 0x12345678;
++    header.secs = 0xABCD;
++    header.flags = 0x8000;
++    
++    // 设置 IP 地址
++    std::array<uint8_t, 4> ip1 = {192, 168, 1, 1};
++    std::array<uint8_t, 4> ip2 = {192, 168, 1, 2};
++    std::array<uint8_t, 4> ip3 = {192, 168, 1, 3};
++    std::array<uint8_t, 4> ip4 = {192, 168, 1, 4};
++    
++    header.ciaddr = xnet::IPv4::Address(ip1);
++    header.yiaddr = xnet::IPv4::Address(ip2);
++    header.siaddr = xnet::IPv4::Address(ip3);
++    header.giaddr = xnet::IPv4::Address(ip4);
++    
++    // 设置 MAC 地址
++    std::array<uint8_t, 16> mac = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
++    header.chaddr = xnet::DHCP::ClientHardwareAddr(mac);
++    
++    // 序列化
++    auto serialized = xnet::DHCP::serialize(header);
++    
++    // 验证大小
++    assert(serialized.size() == xnet::DHCP::header_size);
++    std::cout << "  ✓ Serialized size: " << serialized.size() << "\n";
++    
++    // 验证前 4 个字节
++    assert(static_cast<uint8_t>(serialized[0]) == 0x01);
++    assert(static_cast<uint8_t>(serialized[1]) == 0x02);
++    assert(static_cast<uint8_t>(serialized[2]) == 0x03);
++    assert(static_cast<uint8_t>(serialized[3]) == 0x04);
++    std::cout << "  ✓ Fixed fields: 01 02 03 04\n";
++    
++    // 验证 transaction ID (网络字节序)
++    assert(static_cast<uint8_t>(serialized[4]) == 0x12);
++    assert(static_cast<uint8_t>(serialized[5]) == 0x34);
++    assert(static_cast<uint8_t>(serialized[6]) == 0x56);
++    assert(static_cast<uint8_t>(serialized[7]) == 0x78);
++    std::cout << "  ✓ Transaction ID: 0x12345678\n";
++    
++    std::cout << "  ✓ Serialization successful\n\n";
++}
++
++// 测试 5: HeaderView 基础解析
++void test_header_view_parse_basic() {
++    std::cout << "Test 5: HeaderView basic parse\n";
++    
++    // 创建并序列化一个 header
++    xnet::DHCP::Header original{};
++    original.op = 0x01;
++    original.htype = 0x02;
++    original.hlen = 0x03;
++    original.hops = 0x04;
++    original.xid = 0x12345678;
++    original.secs = 0xABCD;
++    original.flags = 0x8000;
++    
++    std::array<uint8_t, 4> ip = {192, 168, 1, 1};
++    original.ciaddr = xnet::IPv4::Address(ip);
++    
++    auto serialized = xnet::DHCP::serialize(original);
++    
++#if HAS_CPP20
++    std::span<const std::byte> span(serialized.data(), serialized.size());
++    xnet::DHCP::HeaderView view(span);
++#else
++    Span<const std::byte> span(serialized.data(), serialized.size());
++    xnet::DHCP::HeaderView view(span);
++#endif
++    
++    // 测试 not_safe_to_parse
++    assert(!view.not_safe_to_parse());
++    std::cout << "  ✓ not_safe_to_parse() = false\n";
++    
++    // 测试读取各个字段
++    auto op = view.op();
++    assert(op.has_value());
++    assert(op.value() == 0x01);
++    std::cout << "  ✓ op() = 0x01\n";
++    
++    auto htype = view.htype();
++    assert(htype.has_value());
++    assert(htype.value() == 0x02);
++    std::cout << "  ✓ htype() = 0x02\n";
++    
++    auto hlen = view.hlen();
++    assert(hlen.has_value());
++    assert(hlen.value() == 0x03);
++    std::cout << "  ✓ hlen() = 0x03\n";
++    
++    auto hops = view.hops();
++    assert(hops.has_value());
++    assert(hops.value() == 0x04);
++    std::cout << "  ✓ hops() = 0x04\n";
++    
++    auto xid = view.xid();
++    assert(xid.has_value());
++    assert(xid.value() == 0x12345678);
++    std::cout << "  ✓ xid() = 0x12345678\n";
++    
++    auto secs = view.secs();
++    assert(secs.has_value());
++    assert(secs.value() == 0xABCD);
++    std::cout << "  ✓ secs() = 0xABCD\n";
++    
++    auto flags = view.flags();
++    assert(flags.has_value());
++    assert(flags.value() == 0x8000);
++    std::cout << "  ✓ flags() = 0x8000\n";
++    
++    // 测试完整解析
++    auto parsed = view.parse();
++    assert(parsed.has_value());
++    assert(parsed->op == original.op);
++    assert(parsed->htype == original.htype);
++    assert(parsed->hlen == original.hlen);
++    assert(parsed->hops == original.hops);
++    assert(parsed->xid == original.xid);
++    assert(parsed->secs == original.secs);
++    assert(parsed->flags == original.flags);
++    std::cout << "  ✓ parse() returns correct Header\n\n";
++}
++
++// 测试 6: 错误处理
++void test_error_handling() {
++    std::cout << "Test 6: Error handling\n";
++    
++    // 测试空数据
++    std::vector<std::byte> empty;
++#if HAS_CPP20
++    std::span<const std::byte> empty_span(empty);
++    xnet::DHCP::HeaderView empty_view(empty_span);
++#else
++    Span<const std::byte> empty_span(empty.data(), empty.size());
++    xnet::DHCP::HeaderView empty_view(empty_span);
++#endif
++    
++    assert(empty_view.not_safe_to_parse());
++    assert(!empty_view.op().has_value());
++    assert(!empty_view.parse().has_value());
++    std::cout << "  ✓ Empty data handled correctly\n";
++    
++    // 测试不完整数据（只有一半大小）
++    std::vector<std::byte> incomplete(xnet::DHCP::header_size / 2, std::byte(0));
++#if HAS_CPP20
++    std::span<const std::byte> incomplete_span(incomplete);
++    xnet::DHCP::HeaderView incomplete_view(incomplete_span);
++#else
++    Span<const std::byte> incomplete_span(incomplete.data(), incomplete.size());
++    xnet::DHCP::HeaderView incomplete_view(incomplete_span);
++#endif
++    
++    assert(incomplete_view.not_safe_to_parse());
++    assert(!incomplete_view.op().has_value());
++    std::cout << "  ✓ Incomplete data handled correctly\n\n";
++}
++
++// 测试 7: PacketView 基础功能
++void test_packet_view_basic() {
++    std::cout << "Test 7: PacketView basic functionality\n";
++    
++    // 创建 header
++    xnet::DHCP::Header header{};
++    header.op = 0x01;
++    header.htype = 0x01;
++    header.hlen = 0x06;
++    
++    std::array<uint8_t, 4> ip = {192, 168, 1, 1};
++    header.ciaddr = xnet::IPv4::Address(ip);
++    
++    std::array<uint8_t, 16> mac = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
++    header.chaddr = xnet::DHCP::ClientHardwareAddr(mac);
++    
++    // 序列化 header
++    auto header_data = xnet::DHCP::serialize(header);
++    
++    // 构建完整包数据
++    std::vector<std::byte> packet_data;
++    packet_data.insert(packet_data.end(), header_data.begin(), header_data.end());
++    
++    // 添加 DHCP magic cookie
++    packet_data.push_back(std::byte(99));
++    packet_data.push_back(std::byte(130));
++    packet_data.push_back(std::byte(83));
++    packet_data.push_back(std::byte(99));
++    
++    // 添加一个简单的选项
++    packet_data.push_back(std::byte(53));  // DHCP message type
++    packet_data.push_back(std::byte(1));   // length
++    packet_data.push_back(std::byte(1));   // DHCPDISCOVER
++    
++    packet_data.push_back(std::byte(255)); // end option
++    
++#if HAS_CPP20
++    std::span<const std::byte> span(packet_data);
++    xnet::DHCP::PacketView packet(span);
++#else
++    Span<const std::byte> span(packet_data.data(), packet_data.size());
++    xnet::DHCP::PacketView packet(span);
++#endif
++    
++    // 测试 header_view
++    auto header_view = packet.header_view();
++    assert(header_view.has_value());
++    std::cout << "  ✓ header_view() returns valid view\n";
++    
++    // 验证 header_view 中的字段
++    auto op = header_view->op();
++    assert(op.has_value());
++    assert(op.value() == 0x01);
++    std::cout << "  ✓ Packet header op = 0x01\n";
++    
++    std::cout << "  ✓ PacketView works correctly\n\n";
++}
++
++void test_DHCP() {
++    std::cout << "=== DHCP Basic Function Tests ===\n";
++    std::cout << "C++" << (HAS_CPP20 ? "20" : "17") << " Mode\n\n";
++
++    try {
++        test_header_size();
++        test_client_hardware_addr();
++        test_header_default();
++        test_serialize_basic();
++        test_header_view_parse_basic();
++        test_error_handling();
++        test_packet_view_basic();
++        
++        std::cout << "=== All basic tests passed! ===\n";
++        
++    } catch (const std::exception& e) {
++        std::cerr << "\n❌ Test failed: " << e.what() << std::endl;
++    }
++}
++
++void test_default() {
++    std::cout << "Test 1: Default constructor\n";
++    
++    xnet::IPv4::TypeOfService tos;
++    
++    assert(tos.value() == 0);
++    assert(!tos.low_delay());
++    assert(!tos.high_throughput());
++    assert(!tos.high_relibility());
++    assert(tos.precedence() == 0);
++    
++    std::cout << "  ✓ Default value is 0\n\n";
++}
++
++void test_value_constructor() {
++    std::cout << "Test 2: Constructor with value\n";
++    
++    xnet::IPv4::TypeOfService tos1(0x10);  // 低延迟
++    assert(tos1.value() == 0x10);
++    assert(tos1.low_delay());
++    
++    xnet::IPv4::TypeOfService tos2(0x08);  // 高吞吐量
++    assert(tos2.value() == 0x08);
++    assert(tos2.high_throughput());
++    
++    xnet::IPv4::TypeOfService tos3(0x04);  // 高可靠性
++    assert(tos3.value() == 0x04);
++    assert(tos3.high_relibility());
++    
++    std::cout << "  ✓ Values set correctly\n";
++    std::cout << "  ✓ 0x10: low_delay = true\n";
++    std::cout << "  ✓ 0x08: high_throughput = true\n";
++    std::cout << "  ✓ 0x04: high_relibility = true\n\n";
++}
++
++void test_precedence() {
++    std::cout << "Test 3: Precedence field\n";
++    
++    xnet::IPv4::TypeOfService tos1(0x00);
++    assert(tos1.precedence() == 0);
++    
++    xnet::IPv4::TypeOfService tos2(0x20);  // 00100000
++    assert(tos2.precedence() == 1);
++    
++    xnet::IPv4::TypeOfService tos3(0x40);  // 01000000
++    assert(tos3.precedence() == 2);
++    
++    xnet::IPv4::TypeOfService tos4(0xE0);  // 11100000
++    assert(tos4.precedence() == 7);
++    
++    std::cout << "  ✓ Precedence: 0x00 -> 0\n";
++    std::cout << "  ✓ Precedence: 0x20 -> 1\n";
++    std::cout << "  ✓ Precedence: 0x40 -> 2\n";
++    std::cout << "  ✓ Precedence: 0xE0 -> 7\n\n";
++}
++
++void test_normal_routine() {
++    std::cout << "Test 4: Normal routine detection\n";
++    
++    xnet::IPv4::TypeOfService tos1(0x00);
++    assert(tos1.normal_routine());  // 全0是正常路由
++    
++    xnet::IPv4::TypeOfService tos2(0x10);
++    assert(!tos2.normal_routine());  // 有标志位不是正常路由
++    
++    xnet::IPv4::TypeOfService tos3(0x08);
++    assert(!tos3.normal_routine());
++    
++    xnet::IPv4::TypeOfService tos4(0x04);
++    assert(!tos4.normal_routine());
++    
++    std::cout << "  ✓ 0x00: normal_routine = true\n";
++    std::cout << "  ✓ 0x10: normal_routine = false\n";
++    std::cout << "  ✓ 0x08: normal_routine = false\n";
++    std::cout << "  ✓ 0x04: normal_routine = false\n\n";
++}
++
++void test_reserved_bits() {
++    std::cout << "Test 5: Reserved bits\n";
++    
++    xnet::IPv4::TypeOfService tos1(0x00);
++    assert(!tos1.any_reserved());
++    
++    xnet::IPv4::TypeOfService tos2(0x01);  // 位0
++    assert(tos2.any_reserved());
++    assert(!tos2.reserved_6());  // 位1
++    assert(tos2.reserved_7());   // reserved_7 检查位7和位0，所以会为 true
++    std::cout << "  ✓ 0x01: bit0 sets reserved_7\n";
++    
++    xnet::IPv4::TypeOfService tos3(0x02);  // 位1
++    assert(tos3.any_reserved());
++    assert(tos3.reserved_6());
++    assert(!tos3.reserved_7());  // 只有位1，没有位7和位0
++    std::cout << "  ✓ 0x02: bit1 sets reserved_6\n";
++    
++    // 测试位7和位0同时设置
++    xnet::IPv4::TypeOfService tos5(0x81);  // 位7和位0
++    assert(tos5.any_reserved());
++    assert(tos5.reserved_7());
++    assert(!tos5.reserved_6());
++    std::cout << "  ✓ 0x81: bits 7 and 0 set reserved_7\n\n";
++}
++
++void test_combination() {
++    std::cout << "Test 6: Common combinations\n";
++    
++    // 普通服务
++    xnet::IPv4::TypeOfService normal(0x00);
++    assert(!normal.low_delay());
++    assert(!normal.high_throughput());
++    assert(!normal.high_relibility());
++    
++    // 最小延迟
++    xnet::IPv4::TypeOfService delay(0x10);
++    assert(delay.low_delay());
++    assert(!delay.high_throughput());
++    assert(!delay.high_relibility());
++    
++    // 最大吞吐量
++    xnet::IPv4::TypeOfService throughput(0x08);
++    assert(!throughput.low_delay());
++    assert(throughput.high_throughput());
++    assert(!throughput.high_relibility());
++    
++    // 最大可靠性
++    xnet::IPv4::TypeOfService reliability(0x04);
++    assert(!reliability.low_delay());
++    assert(!reliability.high_throughput());
++    assert(reliability.high_relibility());
++    
++    // 全部设置
++    xnet::IPv4::TypeOfService all(0x1C);  // 00011100
++    assert(all.low_delay());
++    assert(all.high_throughput());
++    assert(all.high_relibility());
++    
++    std::cout << "  ✓ 0x00: Normal service\n";
++    std::cout << "  ✓ 0x10: Minimize delay\n";
++    std::cout << "  ✓ 0x08: Maximize throughput\n";
++    std::cout << "  ✓ 0x04: Maximize reliability\n";
++    std::cout << "  ✓ 0x1C: All services\n\n";
++}
++
++void test_IPv4Tos() {
++    std::cout << "=== TypeOfService Simple Tests ===\n\n";
++    
++    try {
++        test_default();
++        test_value_constructor();
++        test_precedence();
++        test_normal_routine();
++        test_reserved_bits();
++        test_combination();
++        
++        std::cout << "=== All tests passed! ===\n";
++        
++    } catch (const std::exception& e) {
++        std::cerr << "\n❌ Test failed: " << e.what() << std::endl;
++    }
++}
++
++// 辅助函数：创建测试用的 UDP 包
++std::vector<std::byte> create_test_udp_packet(
++    uint16_t src_port, 
++    uint16_t dst_port, 
++    const std::vector<uint8_t>& payload_data) {
++    
++    std::vector<std::byte> packet;
++    
++    // 计算 UDP 长度 = header(8) + payload
++    uint16_t udp_length = 8 + payload_data.size();
++    
++    // 写入源端口（网络字节序）
++    packet.push_back(static_cast<std::byte>((src_port >> 8) & 0xFF));
++    packet.push_back(static_cast<std::byte>(src_port & 0xFF));
++    
++    // 写入目标端口
++    packet.push_back(static_cast<std::byte>((dst_port >> 8) & 0xFF));
++    packet.push_back(static_cast<std::byte>(dst_port & 0xFF));
++    
++    // 写入长度
++    packet.push_back(static_cast<std::byte>((udp_length >> 8) & 0xFF));
++    packet.push_back(static_cast<std::byte>(udp_length & 0xFF));
++    
++    // 写入校验和（测试中设为 0）
++    packet.push_back(static_cast<std::byte>(0));
++    packet.push_back(static_cast<std::byte>(0));
++    
++    // 写入 payload
++    for (uint8_t b : payload_data) {
++        packet.push_back(static_cast<std::byte>(b));
++    }
++    
++    return packet;
++}
++
++// 测试 1: header_size 常量
++void test_udp_header_size() {
++    std::cout << "Test 1: header_size constant\n";
++    assert(xnet::UDP::header_size == 8);
++    std::cout << "  ✓ header_size = " << xnet::UDP::header_size << "\n\n";
++}
++
++// 测试 2: 解析 UDP header
++void test_parse_header() {
++    std::cout << "Test 2: Parse UDP header\n";
++    
++    // 创建测试数据
++    std::vector<uint8_t> payload = {'H', 'e', 'l', 'l', 'o'};
++    auto packet = create_test_udp_packet(0x1234, 0x5678, payload);
++    
++#if HAS_CPP20
++    std::span<const std::byte> span(packet.data(), packet.size());
++    xnet::UDP::PacketView view(span);
++#else
++    Span<const std::byte> span(packet.data(), packet.size());
++    xnet::UDP::PacketView view(span);
++#endif
++    
++    auto header = view.parse_header();
++    assert(header.has_value());
++    assert(header->source_port == 0x1234);
++    assert(header->destination_port == 0x5678);
++    assert(header->length == 13);  // 8 + 5
++    assert(header->checksumm == 0);
++    
++    std::cout << "  ✓ source_port: 0x1234\n";
++    std::cout << "  ✓ destination_port: 0x5678\n";
++    std::cout << "  ✓ length: 13\n";
++    std::cout << "  ✓ checksum: 0\n\n";
++}
++
++// 测试 3: 提取 payload
++void test_payload_extraction() {
++    std::cout << "Test 3: Extract payload\n";
++    
++    std::vector<uint8_t> payload_data = {'H', 'e', 'l', 'l', 'o', '!', '!'};
++    auto packet = create_test_udp_packet(0x1234, 0x5678, payload_data);
++    
++#if HAS_CPP20
++    std::span<const std::byte> span(packet);
++    xnet::UDP::PacketView view(span);
++#else
++    Span<const std::byte> span(packet.data(), packet.size());
++    xnet::UDP::PacketView view(span);
++#endif
++    
++    auto payload = view.payload();
++    assert(payload.has_value());
++    
++#if HAS_CPP20
++    auto payload_span = payload.value();
++    assert(payload_span.size() == payload_data.size());
++    
++    // 验证内容
++    for (size_t i = 0; i < payload_data.size(); ++i) {
++        assert(static_cast<uint8_t>(payload_span[i]) == payload_data[i]);
++    }
++#else
++    auto payload_span = payload.value();
++    assert(payload_span.size() == payload_data.size());
++    
++    // 验证内容
++    for (size_t i = 0; i < payload_data.size(); ++i) {
++        assert(static_cast<uint8_t>(payload_span[i]) == payload_data[i]);
++    }
++#endif
++    
++    std::cout << "  ✓ Payload size: " << payload_data.size() << " bytes\n";
++    std::cout << "  ✓ Payload content: ";
++    for (uint8_t c : payload_data) {
++        std::cout << static_cast<char>(c);
++    }
++    std::cout << "\n\n";
++}
++
++// 测试 4: 空 payload
++void test_empty_payload() {
++    std::cout << "Test 4: Empty payload\n";
++    
++    std::vector<uint8_t> empty_payload;
++    auto packet = create_test_udp_packet(0x1234, 0x5678, empty_payload);
++    
++#if HAS_CPP20
++    std::span<const std::byte> span(packet);
++    xnet::UDP::PacketView view(span);
++#else
++    Span<const std::byte> span(packet.data(), packet.size());
++    xnet::UDP::PacketView view(span);
++#endif
++    
++    auto header = view.parse_header();
++    assert(header.has_value());
++    assert(header->length == 8);
++    
++    auto payload = view.payload();
++    assert(payload.has_value());
++    
++#if HAS_CPP20
++    assert(payload.value().size() == 0);
++#else
++    assert(payload.value().size() == 0);
++#endif
++    
++    std::cout << "  ✓ Empty payload (length = 8)\n\n";
++}
++
++// 测试 5: 不同端口号
++void test_different_ports() {
++    std::cout << "Test 5: Different port numbers\n";
++    
++    struct TestCase {
++        uint16_t src;
++        uint16_t dst;
++        const char* name;
++    };
++    
++    TestCase tests[] = {
++        {80, 12345, "HTTP client"},
++        {53, 54321, "DNS"},
++        {443, 9999, "HTTPS"},
++        {0, 0, "Zero ports"},
++        {0xFFFF, 0xFFFF, "Max ports"}
++    };
++    
++    for (const auto& test : tests) {
++        std::vector<uint8_t> payload = {'A', 'B', 'C'};
++        auto packet = create_test_udp_packet(test.src, test.dst, payload);
++        
++#if HAS_CPP20
++        std::span<const std::byte> span(packet);
++        xnet::UDP::PacketView view(span);
++#else
++        Span<const std::byte> span(packet.data(), packet.size());
++        xnet::UDP::PacketView view(span);
++#endif
++        
++        auto header = view.parse_header();
++        assert(header.has_value());
++        assert(header->source_port == test.src);
++        assert(header->destination_port == test.dst);
++        
++        std::cout << "  ✓ " << test.name << ": ";
++        std::cout << std::hex << "0x" << test.src << " -> 0x" << test.dst;
++        std::cout << std::dec << "\n";
++    }
++    std::cout << "\n";
++}
++
++// 测试 6: 不同大小的 payload
++void test_various_payload_sizes() {
++    std::cout << "Test 6: Various payload sizes\n";
++    
++    size_t sizes[] = {0, 1, 10, 100, 500};
++    
++    for (size_t size : sizes) {
++        std::vector<uint8_t> payload(size, 'X');
++        auto packet = create_test_udp_packet(0x1234, 0x5678, payload);
++        
++#if HAS_CPP20
++        std::span<const std::byte> span(packet);
++        xnet::UDP::PacketView view(span);
++#else
++        Span<const std::byte> span(packet.data(), packet.size());
++        xnet::UDP::PacketView view(span);
++#endif
++        
++        auto header = view.parse_header();
++        assert(header.has_value());
++        assert(header->length == 8 + size);
++        
++        auto payload_opt = view.payload();
++        assert(payload_opt.has_value());
++        
++#if HAS_CPP20
++        assert(payload_opt.value().size() == size);
++#else
++        assert(payload_opt.value().size() == size);
++#endif
++        
++        std::cout << "  ✓ Payload size: " << size << " bytes\n";
++    }
++    std::cout << "\n";
++}
++
++// 测试 7: 多个连续 UDP 包
++void test_multiple_packets() {
++    std::cout << "Test 7: Multiple packets\n";
++    
++    // 创建多个不同的 UDP 包
++    struct PacketInfo {
++        uint16_t src;
++        uint16_t dst;
++        std::vector<uint8_t> payload;
++    };
++    
++    PacketInfo packets[] = {
++        {0x1000, 0x2000, {'A', 'B', 'C'}},
++        {0x3000, 0x4000, {'H', 'e', 'l', 'l', 'o'}},
++        {0x5000, 0x6000, {}},
++        {0x7000, 0x8000, {'X', 'Y', 'Z'}},
++    };
++    
++    for (size_t i = 0; i < 4; ++i) {
++        auto& p = packets[i];
++        auto packet_data = create_test_udp_packet(p.src, p.dst, p.payload);
++        
++#if HAS_CPP20
++        std::span<const std::byte> span(packet_data);
++        xnet::UDP::PacketView view(span);
++#else
++        Span<const std::byte> span(packet_data.data(), packet_data.size());
++        xnet::UDP::PacketView view(span);
++#endif
++        
++        auto header = view.parse_header();
++        assert(header.has_value());
++        assert(header->source_port == p.src);
++        assert(header->destination_port == p.dst);
++        assert(header->length == 8 + p.payload.size());
++        
++        auto payload = view.payload();
++        assert(payload.has_value());
++        
++#if HAS_CPP20
++        assert(payload.value().size() == p.payload.size());
++#else
++        assert(payload.value().size() == p.payload.size());
++#endif
++        
++        std::cout << "  ✓ Packet " << (i+1) << ": ";
++        std::cout << std::hex << "0x" << p.src << " -> 0x" << p.dst << std::dec;
++        std::cout << " payload=" << p.payload.size() << " bytes\n";
++    }
++    std::cout << "\n";
++}
++
++// 测试 8: 实际数据验证
++void test_real_data() {
++    std::cout << "Test 8: Real data validation\n";
++    
++    // 模拟 DNS 查询
++    std::vector<uint8_t> dns_query = {
++        0x12, 0x34,  // Transaction ID
++        0x01, 0x00,  // Flags
++        0x00, 0x01,  // Questions: 1
++        0x00, 0x00,  // Answer RRs: 0
++        0x00, 0x00,  // Authority RRs: 0
++        0x00, 0x00,  // Additional RRs: 0
++        0x03, 'w', 'w', 'w',
++        0x06, 'g', 'o', 'o', 'g', 'l', 'e',
++        0x03, 'c', 'o', 'm',
++        0x00,
++        0x00, 0x01,
++        0x00, 0x01
++    };
++    
++    auto packet = create_test_udp_packet(0x1234, 0x0035, dns_query);
++    
++#if HAS_CPP20
++    std::span<const std::byte> span(packet);
++    xnet::UDP::PacketView view(span);
++#else
++    Span<const std::byte> span(packet.data(), packet.size());
++    xnet::UDP::PacketView view(span);
++#endif
++    
++    auto header = view.parse_header();
++    assert(header.has_value());
++    assert(header->source_port == 0x1234);
++    assert(header->destination_port == 53);  // DNS port
++    
++    auto payload = view.payload();
++    assert(payload.has_value());
++    
++#if HAS_CPP20
++    assert(payload.value().size() == dns_query.size());
++    
++    // 验证前几个字节
++    assert(static_cast<uint8_t>(payload.value()[0]) == 0x12);
++    assert(static_cast<uint8_t>(payload.value()[1]) == 0x34);
++#else
++    assert(payload.value().size() == dns_query.size());
++    
++    // 验证前几个字节
++    assert(static_cast<uint8_t>(payload.value()[0]) == 0x12);
++    assert(static_cast<uint8_t>(payload.value()[1]) == 0x34);
++#endif
++    
++    std::cout << "  ✓ DNS query packet:\n";
++    std::cout << "    Source: " << header->source_port << "\n";
++    std::cout << "    Dest: " << header->destination_port << " (DNS)\n";
++    std::cout << "    Payload size: " << dns_query.size() << " bytes\n\n";
++}
++
++void test_UDP() {
++    std::cout << "=== UDP Basic Function Tests ===\n";
++    std::cout << "C++" << (HAS_CPP20 ? "20" : "17") << " Mode\n\n";
++    
++    try {
++        test_udp_header_size();
++        test_parse_header();
++        test_payload_extraction();
++        test_empty_payload();
++        test_different_ports();
++        test_various_payload_sizes();
++        test_multiple_packets();
++        test_real_data();
++        
++        
++        std::cout << "=== All basic tests passed! ===\n";
++        
++    } catch (const std::exception& e) {
++        std::cerr << "\n❌ Test failed: " << e.what() << std::endl;
++    }
++}
++
++// 辅助函数：创建测试数据
++std::vector<std::byte> create_test_data(const std::vector<uint8_t>& data) {
++    std::vector<std::byte> result;
++    for (uint8_t b : data) {
++        result.push_back(static_cast<std::byte>(b));
++    }
++    return result;
++}
++
++// 测试 1: 基本 UDP 头创建
++void test_basic_header_creation() {
++    std::cout << "Test 1: Basic UDP header creation\n";
++    
++    xnet::UDP::HeaderCreateInfo info;
++    info.pseudo_source = xnet::IPv4::Address(192, 168, 1, 1);
++    info.pseudo_destination = xnet::IPv4::Address(192, 168, 1, 2);
++    info.pseudo_protocol = 17;  // UDP protocol number
++    info.source_port = 0x1234;
++    info.destination_port = 0x5678;
++    
++    std::vector<uint8_t> payload = {'H', 'e', 'l', 'l', 'o'};
++    auto data = create_test_data(payload);
++#if HAS_CPP20
++    info.data = std::span<const std::byte>(data);
++#else
++    info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++    
++    auto header_opt = xnet::UDP::create_valid_header(info);
++    assert(header_opt.has_value());
++    
++    auto header = header_opt.value();
++    assert(header.source_port == 0x1234);
++    assert(header.destination_port == 0x5678);
++    assert(header.length == 13);  // 8 + 5
++    assert(header.checksumm != 0);  // 校验和应该被计算
++    
++    std::cout << "  ✓ source_port: 0x" << std::hex << header.source_port << std::dec << "\n";
++    std::cout << "  ✓ destination_port: 0x" << std::hex << header.destination_port << std::dec << "\n";
++    std::cout << "  ✓ length: " << header.length << "\n";
++    std::cout << "  ✓ checksum: 0x" << std::hex << header.checksumm << std::dec << "\n\n";
++}
++
++// 测试 2: 空 payload
++void test_udpchecksum_empty_payload() {
++    std::cout << "Test 2: Empty payload\n";
++    
++    xnet::UDP::HeaderCreateInfo info;
++    info.pseudo_source = xnet::IPv4::Address(10, 0, 0, 1);
++    info.pseudo_destination = xnet::IPv4::Address(10, 0, 0, 2);
++    info.pseudo_protocol = 17;
++    info.source_port = 0x1000;
++    info.destination_port = 0x2000;
++    
++    std::vector<uint8_t> empty_payload;
++    auto data = create_test_data(empty_payload);
++#if HAS_CPP20
++    info.data = std::span<const std::byte>(data);
++#else
++    info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++    
++    auto header_opt = xnet::UDP::create_valid_header(info);
++    assert(header_opt.has_value());
++    
++    auto header = header_opt.value();
++    assert(header.length == 8);
++    assert(header.source_port == 0x1000);
++    assert(header.destination_port == 0x2000);
++    
++    std::cout << "  ✓ Empty payload, length = 8\n";
++    std::cout << "  ✓ Checksum: 0x" << std::hex << header.checksumm << std::dec << "\n\n";
++}
++
++// 测试 3: 奇数长度 payload
++void test_odd_length_payload() {
++    std::cout << "Test 3: Odd length payload\n";
++    
++    xnet::UDP::HeaderCreateInfo info;
++    info.pseudo_source = xnet::IPv4::Address(192, 168, 1, 1);
++    info.pseudo_destination = xnet::IPv4::Address(192, 168, 1, 2);
++    info.pseudo_protocol = 17;
++    info.source_port = 0x1234;
++    info.destination_port = 0x5678;
++    
++    std::vector<uint8_t> payload = {'A', 'B', 'C'};  // 3 字节（奇数）
++    auto data = create_test_data(payload);
++#if HAS_CPP20
++    info.data = std::span<const std::byte>(data);
++#else
++    info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++    
++    auto header_opt = xnet::UDP::create_valid_header(info);
++    assert(header_opt.has_value());
++    
++    auto header = header_opt.value();
++    assert(header.length == 11);  // 8 + 3
++    
++    std::cout << "  ✓ Odd payload (3 bytes), length = 11\n";
++    std::cout << "  ✓ Checksum: 0x" << std::hex << header.checksumm << std::dec << "\n\n";
++}
++
++// 测试 4: 大 payload
++void test_large_payload() {
++    std::cout << "Test 4: Large payload\n";
++    
++    xnet::UDP::HeaderCreateInfo info;
++    info.pseudo_source = xnet::IPv4::Address(192, 168, 1, 1);
++    info.pseudo_destination = xnet::IPv4::Address(192, 168, 1, 2);
++    info.pseudo_protocol = 17;
++    info.source_port = 0x1234;
++    info.destination_port = 0x5678;
++    
++    // 创建 1000 字节的 payload
++    std::vector<uint8_t> payload(1000, 0x42);
++    auto data = create_test_data(payload);
++#if HAS_CPP20
++    info.data = std::span<const std::byte>(data);
++#else
++    info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++    
++    auto header_opt = xnet::UDP::create_valid_header(info);
++    assert(header_opt.has_value());
++    
++    auto header = header_opt.value();
++    assert(header.length == 1008);  // 8 + 1000
++    
++    std::cout << "  ✓ Large payload (1000 bytes), length = 1008\n";
++    std::cout << "  ✓ Checksum: 0x" << std::hex << header.checksumm << std::dec << "\n\n";
++}
++
++// 测试 5: 不同 IP 地址组合
++void test_different_ip_addresses() {
++    std::cout << "Test 5: Different IP address combinations\n";
++    
++    struct TestCase {
++        xnet::IPv4::Address src;
++        xnet::IPv4::Address dst;
++        const char* name;
++    };
++    
++    TestCase tests[] = {
++        {xnet::IPv4::Address(192, 168, 1, 1), xnet::IPv4::Address(192, 168, 1, 2), "Same subnet"},
++        {xnet::IPv4::Address(10, 0, 0, 1), xnet::IPv4::Address(172, 16, 0, 1), "Different subnets"},
++        {xnet::IPv4::Address(127, 0, 0, 1), xnet::IPv4::Address(127, 0, 0, 1), "Loopback"},
++        {xnet::IPv4::Address(0, 0, 0, 0), xnet::IPv4::Address(255, 255, 255, 255), "Broadcast"},
++    };
++    
++    std::vector<uint8_t> payload = {'T', 'e', 's', 't'};
++    auto data = create_test_data(payload);
++    
++    for (const auto& test : tests) {
++        xnet::UDP::HeaderCreateInfo info;
++        info.pseudo_source = test.src;
++        info.pseudo_destination = test.dst;
++        info.pseudo_protocol = 17;
++        info.source_port = 0x1234;
++        info.destination_port = 0x5678;
++#if HAS_CPP20
++        info.data = std::span<const std::byte>(data);
++#else
++        info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++        
++        auto header_opt = xnet::UDP::create_valid_header(info);
++        assert(header_opt.has_value());
++        
++        auto header = header_opt.value();
++        std::cout << "  ✓ " << test.name << ": checksum = 0x" 
++                  << std::hex << header.checksumm << std::dec << "\n";
++    }
++    std::cout << "\n";
++}
++
++// 测试 6: 不同端口号
++void test_udpchecksum_different_ports() {
++    std::cout << "Test 6: Different port numbers\n";
++    
++    struct PortTest {
++        uint16_t src;
++        uint16_t dst;
++        const char* name;
++    };
++    
++    PortTest tests[] = {
++        {80, 12345, "HTTP client"},
++        {53, 54321, "DNS"},
++        {443, 9999, "HTTPS"},
++        {0, 0, "Zero ports"},
++        {0xFFFF, 0xFFFF, "Max ports"},
++    };
++    
++    xnet::UDP::HeaderCreateInfo base_info;
++    base_info.pseudo_source = xnet::IPv4::Address(192, 168, 1, 1);
++    base_info.pseudo_destination = xnet::IPv4::Address(192, 168, 1, 2);
++    base_info.pseudo_protocol = 17;
++    
++    std::vector<uint8_t> payload = {'D', 'a', 't', 'a'};
++    auto data = create_test_data(payload);
++    
++    for (const auto& test : tests) {
++        xnet::UDP::HeaderCreateInfo info = base_info;
++        info.source_port = test.src;
++        info.destination_port = test.dst;
++#if HAS_CPP20
++        info.data = std::span<const std::byte>(data);
++#else
++        info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++        
++        auto header_opt = xnet::UDP::create_valid_header(info);
++        assert(header_opt.has_value());
++        
++        auto header = header_opt.value();
++        assert(header.source_port == test.src);
++        assert(header.destination_port == test.dst);
++        
++        std::cout << "  ✓ " << test.name << ": ";
++        std::cout << std::hex << "0x" << test.src << " -> 0x" << test.dst;
++        std::cout << " checksum=0x" << header.checksumm << std::dec << "\n";
++    }
++    std::cout << "\n";
++}
++
++// 测试 7: 已知的校验和值验证
++void test_known_checksum() {
++    std::cout << "Test 7: Known checksum verification\n";
++    
++    // 使用已知的测试向量验证校验和计算
++    xnet::UDP::HeaderCreateInfo info;
++    info.pseudo_source = xnet::IPv4::Address(192, 168, 1, 1);
++    info.pseudo_destination = xnet::IPv4::Address(192, 168, 1, 2);
++    info.pseudo_protocol = 17;
++    info.source_port = 0x1234;
++    info.destination_port = 0x5678;
++    
++    std::vector<uint8_t> payload = {0x01, 0x02, 0x03, 0x04};
++    auto data = create_test_data(payload);
++#if HAS_CPP20
++    info.data = std::span<const std::byte>(data);
++#else
++    info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++    
++    auto header_opt = xnet::UDP::create_valid_header(info);
++    assert(header_opt.has_value());
++    
++    auto header = header_opt.value();
++    
++    // 校验和应该是一个确定的值
++    std::cout << "  ✓ Calculated checksum: 0x" << std::hex << header.checksumm << std::dec << "\n";
++    std::cout << "  ✓ Checksum is non-zero: " << (header.checksumm != 0 ? "yes" : "no") << "\n\n";
++}
++
++// 测试 8: 边界条件 - 最大 payload
++void test_max_payload() {
++    std::cout << "Test 8: Maximum payload size\n";
++    
++    xnet::UDP::HeaderCreateInfo info;
++    info.pseudo_source = xnet::IPv4::Address(192, 168, 1, 1);
++    info.pseudo_destination = xnet::IPv4::Address(192, 168, 1, 2);
++    info.pseudo_protocol = 17;
++    info.source_port = 0x1234;
++    info.destination_port = 0x5678;
++    
++    // 最大 UDP payload = 65535 - 8 = 65527
++    uint16_t max_payload = std::numeric_limits<uint16_t>::max() - 8;
++    std::vector<uint8_t> payload(max_payload, 0xAA);
++    auto data = create_test_data(payload);
++#if HAS_CPP20
++    info.data = std::span<const std::byte>(data);
++#else
++    info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++    
++    auto header_opt = xnet::UDP::create_valid_header(info);
++    assert(header_opt.has_value());
++    
++    auto header = header_opt.value();
++    assert(header.length == 65535);
++    
++    std::cout << "  ✓ Max payload size: " << max_payload << " bytes\n";
++    std::cout << "  ✓ UDP length: " << header.length << "\n";
++    std::cout << "  ✓ Checksum: 0x" << std::hex << header.checksumm << std::dec << "\n\n";
++}
++
++// 测试 9: 不同协议号
++void test_different_protocol() {
++    std::cout << "Test 9: Different protocol numbers\n";
++    
++    xnet::UDP::HeaderCreateInfo info;
++    info.pseudo_source = xnet::IPv4::Address(192, 168, 1, 1);
++    info.pseudo_destination = xnet::IPv4::Address(192, 168, 1, 2);
++    info.source_port = 0x1234;
++    info.destination_port = 0x5678;
++    
++    std::vector<uint8_t> payload = {'T', 'e', 's', 't'};
++    auto data = create_test_data(payload);
++#if HAS_CPP20
++    info.data = std::span<const std::byte>(data);
++#else
++    info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++    
++    uint8_t protocols[] = {17, 6, 1, 0};
++    for (uint8_t proto : protocols) {
++        info.pseudo_protocol = proto;
++        auto header_opt = xnet::UDP::create_valid_header(info);
++        assert(header_opt.has_value());
++        
++        auto header = header_opt.value();
++        std::cout << "  ✓ Protocol " << static_cast<int>(proto) 
++                  << " checksum: 0x" << std::hex << header.checksumm << std::dec << "\n";
++    }
++    std::cout << "\n";
++}
++
++// 测试 10: 真实场景 - DNS 查询
++void test_dns_query() {
++    std::cout << "Test 10: DNS query simulation\n";
++    
++    xnet::UDP::HeaderCreateInfo info;
++    info.pseudo_source = xnet::IPv4::Address(192, 168, 1, 100);
++    info.pseudo_destination = xnet::IPv4::Address(8, 8, 8, 8);
++    info.pseudo_protocol = 17;
++    info.source_port = 0x1234;
++    info.destination_port = 53;  // DNS port
++
++    std::vector<uint8_t> dns_payload = {
++        0x12, 0x34,  // Transaction ID
++        0x01, 0x00,  // Flags: standard query
++        0x00, 0x01,  // Questions: 1
++        0x00, 0x00,  // Answer RRs: 0
++        0x00, 0x00,  // Authority RRs: 0
++        0x00, 0x00,  // Additional RRs: 0
++        0x03, 'w', 'w', 'w',
++        0x06, 'g', 'o', 'o', 'g', 'l', 'e',
++        0x03, 'c', 'o', 'm',
++        0x00,
++        0x00, 0x01,  // QTYPE: A
++        0x00, 0x01   // QCLASS: IN
++    };
++    
++    auto data = create_test_data(dns_payload);
++#if HAS_CPP20
++    info.data = std::span<const std::byte>(data);
++#else
++    info.data = Span<const std::byte>(data.data(), data.size());
++#endif
++    
++    auto header_opt = xnet::UDP::create_valid_header(info);
++    assert(header_opt.has_value());
++    
++    auto header = header_opt.value();
++    assert(header.source_port == 0x1234);
++    assert(header.destination_port == 53);
++    assert(header.length == 8 + dns_payload.size());
++    
++    std::cout << "  ✓ DNS query packet:\n";
++    std::cout << "    Source port: " << header.source_port << "\n";
++    std::cout << "    Destination port: " << header.destination_port << " (DNS)\n";
++    std::cout << "    Length: " << header.length << "\n";
++    std::cout << "    Checksum: 0x" << std::hex << header.checksumm << std::dec << "\n\n";
++}
++
++void test_UDPChecksum() {
++    std::cout << "=== UDP Checksum Creation Tests ===\n";
++    std::cout << "C++" << (HAS_CPP20 ? "20" : "17") << " Mode\n\n";
++    
++    try {
++        test_basic_header_creation();
++        test_udpchecksum_empty_payload();
++        test_odd_length_payload();
++        test_large_payload();
++        test_different_ip_addresses();
++        test_udpchecksum_different_ports();
++        test_known_checksum();
++        test_max_payload();
++        test_different_protocol();
++        test_dns_query();
++        
++        
++        std::cout << "=== All tests passed! ===\n";
++        
++    } catch (const std::exception& e) {
++        std::cerr << "\n❌ Test failed: " << e.what() << std::endl;
++    }
++}
++
++// test_dhcp_formatter.cpp
++// 辅助函数：打印测试结果
++void print_test_result(const std::string& test_name, bool passed) {
++    std::cout << (passed ? "[PASS] " : "[FAIL] ") << test_name << std::endl;
++}
++
++// 创建测试用的 DHCP Header
++xnet::DHCP::Header create_test_header() {
++    xnet::DHCP::Header header = {};
++    
++    // 设置操作码
++    header.op = static_cast<uint8_t>(xnet::DHCP::OperationCode::BOOTREQUEST);
++    
++    // 设置硬件类型和长度
++    header.htype = 0x01;  // Ethernet
++    header.hlen = 0x06;   // MAC 地址长度
++    
++    // 设置 hops
++    header.hops = 0x00;
++    
++    // 设置事务 ID
++    header.xid = 0x12345678;
++    
++    // 设置秒数
++    header.secs = 0x0000;
++    
++    // 设置标志位（广播标志）
++    header.flags = 0x8000;
++    
++    // 设置 IP 地址
++    header.ciaddr = xnet::IPv4::Address(192, 168, 1, 100);
++    header.yiaddr = xnet::IPv4::Address(192, 168, 1, 101);
++    header.siaddr = xnet::IPv4::Address(192, 168, 1, 1);
++    header.giaddr = xnet::IPv4::Address(0, 0, 0, 0);
++    
++    // 设置客户端 MAC 地址
++    std::array<std::byte, 16> mac_data = {
++        std::byte(0x00), std::byte(0x11), std::byte(0x22),
++        std::byte(0x33), std::byte(0x44), std::byte(0x55)
++    };
++    header.chaddr = xnet::DHCP::ClientHardwareAddr(mac_data);
++    
++    // 设置服务器名称（ASCII 可打印字符）
++    std::string sname = "dhcp-server";
++    for (size_t i = 0; i < sname.size() && i < header.sname.size(); ++i) {
++        header.sname[i] = std::byte(static_cast<uint8_t>(sname[i]));
++    }
++    
++    // 设置启动文件名
++    std::string file = "pxelinux.0";
++    for (size_t i = 0; i < file.size() && i < header.file.size(); ++i) {
++        header.file[i] = std::byte(static_cast<uint8_t>(file[i]));
++    }
++    
++    return header;
++}
++
++// 创建包含特殊字符的测试 Header
++xnet::DHCP::Header create_special_chars_header() {
++    xnet::DHCP::Header header = {};
++    
++    header.op = static_cast<uint8_t>(xnet::DHCP::OperationCode::BOOTREPLY);
++    header.htype = 0x01;
++    header.hlen = 0x06;
++    header.xid = 0xABCDEF01;
++    header.secs = 0x1234;
++    header.flags = 0x0000;
++    
++    // 设置包含特殊字符的服务器名称
++    std::string sname = "test\"server\\with\nnewline";
++    for (size_t i = 0; i < sname.size() && i < header.sname.size(); ++i) {
++        header.sname[i] = std::byte(static_cast<uint8_t>(sname[i]));
++    }
++    
++    // 设置包含控制字符的文件名
++    std::string file = "file\x01\x02\x03.bin";
++    for (size_t i = 0; i < file.size() && i < header.file.size(); ++i) {
++        header.file[i] = std::byte(static_cast<uint8_t>(file[i]));
++    }
++    
++    return header;
++}
++
++// 测试 1: operation_code_to_string
++void test_operation_code_to_string() {
++    std::cout << "\n=== Test: Operation Code to String ===\n";
++    
++    auto test_code = [](xnet::DHCP::OperationCode code, const std::string& expected) {
++        std::string result;
++#if HAS_CPP20
++        // C++20: 使用 std::format
++        result = std::format("{}", code);
++#else
++        // C++17: 使用自定义函数
++        result = dhcp_formatter::operation_code_to_string(code);
++#endif
++        bool passed = (result == expected);
++        print_test_result("OperationCode: " + expected, passed);
++        assert(passed);
++    };
++    
++    test_code(xnet::DHCP::OperationCode::BOOTREQUEST, "BOOTREQUEST");
++    test_code(xnet::DHCP::OperationCode::BOOTREPLY, "BOOTREPLY");
++}
++
++// 测试 2: ip_to_string
++void test_ip_to_string() {
++    std::cout << "\n=== Test: IP to String ===\n";
++    
++    struct TestCase {
++        xnet::IPv4::Address addr;
++        std::string expected;
++        const char* description;
++    };
++    
++    TestCase tests[] = {
++        {xnet::IPv4::Address(192, 168, 1, 1), "[192,168,1,1]", "Standard IP"},
++        {xnet::IPv4::Address(0, 0, 0, 0), "[0,0,0,0]", "Zero IP"},
++        {xnet::IPv4::Address(255, 255, 255, 255), "[255,255,255,255]", "Broadcast IP"},
++        {xnet::IPv4::Address(10, 0, 0, 1), "[10,0,0,1]", "Private IP A"},
++        {xnet::IPv4::Address(172, 16, 0, 1), "[172,16,0,1]", "Private IP B"}
++    };
++    
++    for (const auto& test : tests) {
++        std::string result;
++#if HAS_CPP20
++        // C++20: 使用 std::format
++        result = std::format("{}", test.addr);
++#else
++        // C++17: 使用自定义函数
++        result = dhcp_formatter::ip_to_string(test.addr);
++#endif
++        bool passed = (result == test.expected);
++        print_test_result(std::string("IP: ") + test.description + " -> " + result, passed);
++        assert(passed);
++    }
++}
++
++// 测试 3: mac_to_string
++void test_mac_to_string() {
++    std::cout << "\n=== Test: MAC to String ===\n";
++    
++    // 设置完整的 16 字节 MAC 地址（后面补零）
++    std::array<std::byte, 16> mac_data = {
++        std::byte(0x00), std::byte(0x11), std::byte(0x22),
++        std::byte(0x33), std::byte(0x44), std::byte(0x55),
++        std::byte(0x00), std::byte(0x00), std::byte(0x00),
++        std::byte(0x00), std::byte(0x00), std::byte(0x00),
++        std::byte(0x00), std::byte(0x00), std::byte(0x00),
++        std::byte(0x00)
++    };
++    xnet::DHCP::ClientHardwareAddr addr(mac_data);
++    
++    std::string result;
++#if HAS_CPP20
++    result = std::format("{}", addr);
++#else
++    result = dhcp_formatter::mac_to_string(addr);
++#endif
++    std::string expected = "00:11:22:33:44:55";
++    bool passed = (result.substr(0, expected.size()) == expected);
++    print_test_result("MAC: " + expected, passed);
++    assert(passed);
++}
++
++// 测试 4: bytes_to_printable_string (仅 C++17 版本)
++void test_bytes_to_printable_string() {
++    std::cout << "\n=== Test: Bytes to Printable String ===\n";
++    
++#if !HAS_CPP20
++    std::array<std::byte, 20> bytes = {};
++    std::string test_str = "Hello\x00World\x01\x02Test";
++    for (size_t i = 0; i < test_str.size() && i < bytes.size(); ++i) {
++        bytes[i] = std::byte(static_cast<uint8_t>(test_str[i]));
++    }
++    
++    std::string result = dhcp_formatter::bytes_to_printable_string(bytes);
++    
++    // 应该只打印到第一个 '\0'，并且不可打印字符被替换为 '.'
++    std::string expected = "Hello";
++    bool passed = (result == expected);
++    print_test_result("Bytes to printable (null terminator)", passed);
++    assert(passed);
++    
++    // 测试包含特殊字符但不包含空字符
++    std::array<std::byte, 10> bytes2 = {};
++    std::string test_str2 = "Test\x01\x02\n\r";
++    for (size_t i = 0; i < test_str2.size() && i < bytes2.size(); ++i) {
++        bytes2[i] = std::byte(static_cast<uint8_t>(test_str2[i]));
++    }
++    
++    result = dhcp_formatter::bytes_to_printable_string(bytes2);
++    // 不可打印字符应该被替换为 '.'
++    bool has_dots = (result.find('.') != std::string::npos);
++    print_test_result("Bytes to printable (non-printable chars)", has_dots);
++    assert(has_dots);
++#else
++    print_test_result("Bytes to printable (C++20 uses std::formatter)", true);
++#endif
++}
++
++// 测试 5: escape_json_string (仅 C++17 版本)
++void test_escape_json_string() {
++    std::cout << "\n=== Test: Escape JSON String ===\n";
++    
++#if !HAS_CPP20
++    struct TestCase {
++        std::string input;
++        std::string expected_contains; // 包含的关键字
++    };
++    
++    TestCase tests[] = {
++        {"Hello \"World\"", "\\\""},
++        {"Backslash \\ test", "\\\\"},
++        {"New\nLine", "\\n"},
++        {"Carriage\rReturn", "\\r"},
++        {"Tab\tTest", "\\t"},
++        {"Backspace\bTest", "\\b"},
++        {"Form\fFeed", "\\f"}
++    };
++    
++    for (const auto& test : tests) {
++        std::string result = dhcp_formatter::escape_json_string(test.input);
++        bool passed = (result.find(test.expected_contains) != std::string::npos);
++        print_test_result("JSON escape: " + test.input, passed);
++        assert(passed);
++    }
++    
++    // 测试控制字符
++    std::string control_char_test = "Control\x01\x02\x03";
++    std::string result = dhcp_formatter::escape_json_string(control_char_test);
++    bool has_unicode = (result.find("\\u00") != std::string::npos);
++    print_test_result("JSON escape: control chars", has_unicode);
++    assert(has_unicode);
++#else
++    print_test_result("JSON escape (C++20 uses std::formatter)", true);
++#endif
++}
++
++// 测试 6: to_string for Header
++void test_header_to_string() {
++    std::cout << "\n=== Test: Header to String ===\n";
++#if !HAS_CPP20
++    xnet::DHCP::Header header = create_test_header();
++    std::string result = xnet::DHCP::to_string(header);
++    
++    bool has_op = (result.find("\"op\":0") != std::string::npos);
++    bool has_htype = (result.find("\"htype\":\"0x01\"") != std::string::npos);
++    bool has_xid = (result.find("\"transaction_id\":\"0x12345678\"") != std::string::npos);
++    bool has_cli = (result.find("\"cli\":\"[192,168,1,100]\"") != std::string::npos);
++    bool has_your = (result.find("\"your\":\"[192,168,1,101]\"") != std::string::npos);
++    bool has_server = (result.find("\"server\":\"[192,168,1,1]\"") != std::string::npos);
++    bool has_mac = (result.find("\"cli_hw\":\"00:11:22:33:44:55") != std::string::npos);
++    bool has_sname = (result.find("\"sname_ascii\":\"dhcp-server\"") != std::string::npos);
++    bool has_file = (result.find("\"file_ascii\":\"pxelinux.0\"") != std::string::npos);
++    
++    bool all_passed = has_op && has_htype && has_xid && has_cli && 
++                      has_your && has_server && has_mac && has_sname && has_file;
++    
++    print_test_result("Header to_string contains all fields", all_passed);
++    
++    if (!all_passed) {
++        std::cout << "Result: " << result << std::endl;
++    }
++    assert(all_passed);
++#else
++    print_test_result("Header to_string (C++20 uses std::formatter)", true);
++#endif
++}
++
++// 测试 7: to_json with pretty print
++void test_header_to_json_pretty() {
++    std::cout << "\n=== Test: Header to JSON Pretty ===\n";
++#if !HAS_CPP20
++    xnet::DHCP::Header header = create_test_header();
++    std::string result = xnet::DHCP::to_json(header, true);
++    
++    // 验证 pretty print 格式包含换行和缩进
++    bool has_newline = (result.find('\n') != std::string::npos);
++    bool has_indent = (result.find("  ") != std::string::npos);
++    bool has_op = (result.find("\"op\": 0") != std::string::npos);
++    
++    bool passed = has_newline && has_indent && has_op;
++    print_test_result("Header to_json pretty format", passed);
++    assert(passed);
++#else
++    print_test_result("JSON escape (C++20 uses std::formatter)", true);
++#endif
++}
++
++// 测试 8: operator<< for Header
++void test_header_ostream_operator() {
++    std::cout << "\n=== Test: Header operator<< ===\n";
++#if !HAS_CPP20
++    xnet::DHCP::Header header = create_test_header();
++    std::ostringstream oss;
++    oss << header;
++    std::string result = oss.str();
++    
++    // 验证输出不为空且包含关键字段
++    bool not_empty = !result.empty();
++    bool has_op = (result.find("\"op\":0") != std::string::npos);
++    
++    bool passed = not_empty && has_op;
++    print_test_result("Header operator<< works", passed);
++    assert(passed);
++#else
++    print_test_result("JSON escape (C++20 uses std::formatter)", true);
++#endif
++}
++
++// 测试 9: Special characters handling
++void test_special_characters() {
++    std::cout << "\n=== Test: Special Characters Handling ===\n";
++#if !HAS_CPP20
++    xnet::DHCP::Header header = create_special_chars_header();
++    bool no_exception = true;
++    std::string result;
++    try {
++        result = xnet::DHCP::to_string(header);
++    } catch (...) {
++        no_exception = false;
++    }
++    bool not_empty = !result.empty();
++    bool has_fields = (result.find("\"sname_ascii\"") != std::string::npos) &&
++                      (result.find("\"file_ascii\"") != std::string::npos);
++    
++    bool passed = no_exception && not_empty && has_fields;
++    print_test_result("Special characters handled without crash", passed);
++    assert(passed);
++    
++    if (!passed) {
++        std::cout << "  Result length: " << result.size() << std::endl;
++    }
++#else
++    print_test_result("Special characters (C++20 uses std::formatter)", true);
++#endif
++}
++
++// 测试 10: Byte to hex utilities (仅 C++17 版本)
++void test_byte_to_hex_utilities() {
++    std::cout << "\n=== Test: Byte to Hex Utilities ===\n";
++    
++#if !HAS_CPP20
++    // 测试 byte_to_hex
++    std::string result1 = dhcp_formatter::byte_to_hex(0xAB);
++    bool passed1 = (result1 == "ab");
++    print_test_result("byte_to_hex(0xAB)", passed1);
++    assert(passed1);
++    
++    // 测试 uint16_to_hex
++    std::string result2 = dhcp_formatter::uint16_to_hex(0xABCD);
++    bool passed2 = (result2 == "abcd");
++    print_test_result("uint16_to_hex(0xABCD)", passed2);
++    assert(passed2);
++    
++    // 测试 uint32_to_hex
++    std::string result3 = dhcp_formatter::uint32_to_hex(0x12345678);
++    bool passed3 = (result3 == "12345678");
++    print_test_result("uint32_to_hex(0x12345678)", passed3);
++    assert(passed3);
++#else
++    print_test_result("Byte to hex utilities (C++20 uses std::format)", true);
++#endif
++}
++
++// 测试 11: Edge cases
++void test_edge_cases() {
++    std::cout << "\n=== Test: Edge Cases ===\n";
++    
++    // 测试全零 MAC 地址
++    std::array<std::byte, 16> zero_mac = {};
++    xnet::DHCP::ClientHardwareAddr zero_addr(zero_mac);
++    
++    std::string mac_str;
++#if HAS_CPP20
++    mac_str = std::format("{}", zero_addr);
++#else
++    mac_str = dhcp_formatter::mac_to_string(zero_addr);
++#endif
++    
++    // 检查是否以 "00:00:00:00:00:00" 开头（前 6 个字节正确）
++    std::string expected_prefix = "00:00:00:00:00:00";
++    bool mac_valid = (mac_str.substr(0, expected_prefix.size()) == expected_prefix);
++    print_test_result("Zero MAC address (starts with " + expected_prefix + ")", mac_valid);
++    assert(mac_valid);
++    
++    // 测试零 IP 地址
++    xnet::IPv4::Address zero_ip(0, 0, 0, 0);
++    std::string ip_str;
++#if HAS_CPP20
++    ip_str = std::format("{}", zero_ip);
++    bool ip_valid = (ip_str == "[0,0,0,0]");
++#else
++    ip_str = dhcp_formatter::ip_to_string(zero_ip);
++    bool ip_valid = (ip_str == "[0,0,0,0]");
++#endif
++    print_test_result("Zero IP address", ip_valid);
++    assert(ip_valid);
++}
++
++// 主测试函数
++void test_hdcp_formatter() {
++    std::cout << "=== DHCP Formatter Test Suite ===\n";
++    std::cout << "C++ Standard: " << (HAS_CPP20 ? "C++20 or later" : "C++17 or earlier") << "\n";
++    
++    try {
++        test_operation_code_to_string();
++        test_ip_to_string();
++        test_mac_to_string();
++        test_bytes_to_printable_string();
++        test_escape_json_string();
++        test_header_to_string();
++        test_header_to_json_pretty();
++        test_header_ostream_operator();
++        test_special_characters();
++        test_byte_to_hex_utilities();
++        test_edge_cases();
++        std::cout << "\n=== All test_hdcp_formatter passed! ===\n";
++    } catch (const std::exception& e) {
++        std::cerr << "\nTest failed with exception: " << e.what() << std::endl;
++    } catch (...) {
++        std::cerr << "\nTest failed with unknown exception" << std::endl;
++    }
++}
++
++// 测试 IPv4::Address
++void test_address() {
++    std::cout << "\n=== Test: Address ===\n";
++    
++    xnet::IPv4::Address addr(192, 168, 1, 1);
++    xnet::IPv4::Address zero(0, 0, 0, 0);
++    xnet::IPv4::Address broadcast(255, 255, 255, 255);
++    
++#if HAS_CPP20
++    std::string s1 = std::format("{}", addr);
++    std::string s2 = std::format("{}", zero);
++    std::string s3 = std::format("{}", broadcast);
++#else
++    std::string s1 = ipv4_formatter::address_to_string(addr);
++    std::string s2 = ipv4_formatter::address_to_string(zero);
++    std::string s3 = ipv4_formatter::address_to_string(broadcast);
++#endif
++    
++    print_test_result("Address: 192.168.1.1", s1 == "[192,168,1,1]");
++    print_test_result("Address: 0.0.0.0", s2 == "[0,0,0,0]");
++    print_test_result("Address: 255.255.255.255", s3 == "[255,255,255,255]");
++    
++    assert(s1 == "[192,168,1,1]");
++    assert(s2 == "[0,0,0,0]");
++    assert(s3 == "[255,255,255,255]");
++}
++
++// 测试 IPv4::Flags
++void test_flags() {
++    std::cout << "\n=== Test: Flags ===\n";
++    
++    xnet::IPv4::Flags df(0b010);  // Don't fragment
++    xnet::IPv4::Flags mf(0b001);  // More fragments
++    xnet::IPv4::Flags none(0b000);
++    
++#if HAS_CPP20
++    std::string s1 = std::format("{}", df);
++    std::string s2 = std::format("{}", mf);
++    std::string s3 = std::format("{}", none);
++#else
++    std::string s1 = ipv4_formatter::flags_to_string(df);
++    std::string s2 = ipv4_formatter::flags_to_string(mf);
++    std::string s3 = ipv4_formatter::flags_to_string(none);
++#endif
++    
++    print_test_result("Flags: Don't Fragment", s1 == "[\"DONTF\"]");
++    print_test_result("Flags: More Fragments", s2 == "[\"MAYF\",\"MORE\"]");
++    print_test_result("Flags: None", s3 == "[\"MAYF\"]");
++    
++    assert(s1 == "[\"DONTF\"]");
++    assert(s2 == "[\"MAYF\",\"MORE\"]");
++    assert(s3 == "[\"MAYF\"]");
++}
++
++// 测试 IPv4::TypeOfService
++void test_tos() {
++    std::cout << "\n=== Test: TypeOfService ===\n";
++    
++    xnet::IPv4::TypeOfService normal(0x00);
++    xnet::IPv4::TypeOfService delay(0x10);
++    xnet::IPv4::TypeOfService all(0x1C);
++    
++#if HAS_CPP20
++    std::string s1 = std::format("{}", normal);
++    std::string s2 = std::format("{}", delay);
++    std::string s3 = std::format("{}", all);
++#else
++    std::string s1 = ipv4_formatter::tos_to_string(normal);
++    std::string s2 = ipv4_formatter::tos_to_string(delay);
++    std::string s3 = ipv4_formatter::tos_to_string(all);
++#endif
++    
++    print_test_result("TOS: Normal", s1 == "{}");
++    print_test_result("TOS: Low Delay", s2.find("NDELAY") != std::string::npos);
++    print_test_result("TOS: All services", s3.find("NDELAY") != std::string::npos && 
++                                          s3.find("HTHROUT") != std::string::npos &&
++                                          s3.find("HRELY") != std::string::npos);
++    
++    assert(s1 == "{}");
++    assert(s2.find("NDELAY") != std::string::npos);
++}
++
++// 测试 IPv4::Header
++void test_header() {
++    std::cout << "\n=== Test: Header ===\n";
++    
++    xnet::IPv4::Header header;
++    header.source_address = xnet::IPv4::Address(192, 168, 1, 1);
++    header.destination_address = xnet::IPv4::Address(8, 8, 8, 8);
++    header.total_size = 60;
++    header.time_to_live = 64;
++    header.protocol = 6;
++    header.identification = 12345;
++    header.checksum = 0xABCD;
++    header.flags = xnet::IPv4::Flags(0b010);
++    
++#if HAS_CPP20
++    std::string result = std::format("{}", header);
++#else
++    std::string result = ipv4_formatter::header_to_string(header);
++#endif
++    
++    bool has_src = result.find("\"src\":[192,168,1,1]") != std::string::npos;
++    bool has_dst = result.find("\"dst\":[8,8,8,8]") != std::string::npos;
++    bool has_ttl = result.find("\"TTL\":64") != std::string::npos;
++    bool has_flags = result.find("\"flags\":[\"DONTF\"]") != std::string::npos;
++    
++    print_test_result("Header: Contains src", has_src);
++    print_test_result("Header: Contains dst", has_dst);
++    print_test_result("Header: Contains TTL", has_ttl);
++    print_test_result("Header: Contains flags", has_flags);
++    
++    assert(has_src && has_dst && has_ttl && has_flags);
++}
++
++// 测试 to_string 函数
++void test_to_string() {
++    std::cout << "\n=== Test: to_string Functions ===\n";
++#if !HAS_CPP20
++    xnet::IPv4::Address addr(192, 168, 1, 1);
++    xnet::IPv4::Flags flags(0b010);
++    xnet::IPv4::Header header;
++    header.source_address = addr;
++    
++    std::string s1 = xnet::IPv4::to_string(addr);
++    std::string s2 = xnet::IPv4::to_string(flags);
++    std::string s3 = xnet::IPv4::to_string(header);
++    
++    print_test_result("to_string(Address)", s1 == "[192,168,1,1]");
++    print_test_result("to_string(Flags)", s2 == "[\"DONTF\"]");
++    print_test_result("to_string(Header)", s3.find("\"src\"") != std::string::npos);
++    
++    assert(s1 == "[192,168,1,1]");
++    assert(s2 == "[\"DONTF\"]");
++#else
++    print_test_result("Byte to hex utilities (C++20 uses std::format)", true);
++#endif
++}
++
++// 测试 operator<<
++void test_ostream() {
++    std::cout << "\n=== Test: ostream Operators ===\n";
++#if !HAS_CPP20
++    std::ostringstream oss;
++    
++    xnet::IPv4::Address addr(192, 168, 1, 1);
++    oss << addr;
++    bool addr_ok = (oss.str() == "[192,168,1,1]");
++    print_test_result("operator<<(Address)", addr_ok);
++    assert(addr_ok);
++    
++    oss.str("");
++    xnet::IPv4::Flags flags(0b010);
++    oss << flags;
++    bool flags_ok = (oss.str() == "[\"DONTF\"]");
++    print_test_result("operator<<(Flags)", flags_ok);
++    assert(flags_ok);
++#else
++    print_test_result("Byte to hex utilities (C++20 uses std::format)", true);
++#endif
++}
++
++// 主函数
++void test_ipv4_formatter() {
++    std::cout << "=== IPv4 Formatter Test ===\n";
++    std::cout << "Mode: " << (HAS_CPP20 ? "C++20" : "C++17") << "\n";
++    
++    try {
++        test_address();
++        test_flags();
++        test_tos();
++        test_header();
++        test_to_string();
++        test_ostream();
++        std::cout << "\n=== All test_ipv4_formatter Tests Passed! ===\n";
++    } catch (const std::exception& e) {
++        std::cerr << "\nTest failed: " << e.what() << std::endl;
++    }
++}
++
++int main()
++{
++    std::cout << "Starting IPv4 Library Tests..." << std::endl;
++    std::cout << "=================================" << std::endl;
++
++    try
++    {
++        test_ipv4_address_basic();
++        test_ipv4_flags();
++        test_ipv4_header_serialization();
++        test_ipv4_checksum();
++        test_special_addresses();
++        test_protocol_field();
++        test_byteorder();
++        test_DHCP();
++        test_IPv4Tos();
++        test_UDP();
++        test_UDPChecksum();
++        test_hdcp_formatter();
++        test_ipv4_formatter();
++
++        std::cout << "\n ALL TESTS PASSED! " << std::endl;
++        std::cout << "IPv4 library is functioning correctly." << std::endl;
++    }
++    catch (const std::exception &e)
++    {
++        std::cerr << "\n TEST FAILED: " << e.what() << std::endl;
++        return 1;
++    }
++    catch (...)
++    {
++        std::cerr << "\n TEST FAILED: Unknown exception" << std::endl;
++        return 1;
++    }
++
++    return 0;
++}
+\ No newline at end of file

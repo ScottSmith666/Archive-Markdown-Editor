@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "silk-v3-decoder",
+        "License": "MIT License",
+        "License File": "LICENSES",
+        "Version Number": "",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/kn007/silk-v3-decoder",
+        "Description": "Skype Silk Codec SDK Decode silk v3 audio files (like wechat amr, aud files, qq slk files) and convert to other format (like mp3). Batch conversion support."
+    },
+    {
+        "Name": "silk",
+        "License": "BSD-2-Clause license",
+        "License File": "LICENSES",
+        "Version Number": "",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/ploverlake/silk",
+        "Description": "Source codes of SILK codec"
+    }
+]

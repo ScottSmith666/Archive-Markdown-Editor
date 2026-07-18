@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "rapidxml",
+        "License": "BSL-1.0",
+        "License File": "https://github.com/dwd/rapidxml/blob/master/license.txt",
+        "Version Number": "rapidxml-9872a2fae2912697bd9f3a3f499485f3afca6cc0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/dwd/rapidxml/archive/9872a2fae2912697bd9f3a3f499485f3afca6cc0.zip",
+        "Description": "RapidXml is an attempt to create the fastest XML DOM parser possible, while retaining useability, portability and reasonable W3C compatibility."
+    }
+]

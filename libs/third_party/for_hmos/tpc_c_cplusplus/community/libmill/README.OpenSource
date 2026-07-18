@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libmill",
+        "License": "MIT license",
+        "License File": "https://github.com/sustrik/libmill?tab=MIT-1-ov-file#readme",
+        "Version Number": "1.18",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/sustrik/libmill",
+        "Description": "Libmill is a library that introduces Go-style concurrency to C."
+    }
+]

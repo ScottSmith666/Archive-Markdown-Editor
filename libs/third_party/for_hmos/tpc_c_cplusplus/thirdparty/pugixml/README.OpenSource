@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "pugixml",
+        "License": "MIT License",
+        "License File": "LICENSE.md",
+        "Version Number": "v1.13",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/zeux/pugixml",
+        "Description": "pugixml is a C++ XML processing library"
+    }
+]

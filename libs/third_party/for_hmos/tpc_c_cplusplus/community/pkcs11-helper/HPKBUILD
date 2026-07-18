@@ -1,0 +1,71 @@
+# Contributor: chengkan <kanchengc@isoftstone.com>
+# Maintainer: chengkan <kanchengc@isoftstone.com>
+pkgname=pkcs11-helper
+pkgver=1.29.0
+pkgrel=0
+pkgdesc="Library that simplifies the interaction with PKCS#11 providers for end-user applications using a simple API and optional OpenSSL engine."
+url="https://github.com/OpenSC/pkcs11-helper"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL" "BSD")
+depends=("openssl")
+makedepends=()
+
+source="https://github.com/OpenSC/$pkgname/archive/refs/tags/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+builddir=$pkgname-$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+prepare() {
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]; then
+        setarm32ENV
+        host=arm-linux        
+    elif [ $ARCH == "arm64-v8a" ]; then
+        setarm64ENV
+        host=aarch64-linux        
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi   
+    cd $builddir-$ARCH-build
+    autoreconf -ifv > `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host >> `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]; then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        unsetarm64ENV
+    else
+        echo "$ARCH not support!"      
+    fi
+    unset host
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 编译生成目录下执行make test
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build #${PWD}/$packagename
+}

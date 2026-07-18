@@ -1,0 +1,46 @@
+# Contributor: liulihong <llh_01129@163.com>
+# Maintainer: liulihong <llh_01129@163.com>
+
+pkgname=libqrencode 
+pkgver=v4.1.1
+pkgrel=0
+pkgdesc="" 
+url="" 
+archs=("armeabi-v7a" "arm64-v8a") 
+license=("LGPL-2.1-only")
+depends=("libpng") 
+makedepends=() 
+ 
+source="https://github.com/fukuchi/$pkgname/archive/refs/tags/$pkgver.tar.gz" 
+builddir=$pkgname-${pkgver:1} 
+packagename=$builddir.tar.gz 
+autounpack=true
+downloadpackage=true
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L  -DWITH_TESTS=ON > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

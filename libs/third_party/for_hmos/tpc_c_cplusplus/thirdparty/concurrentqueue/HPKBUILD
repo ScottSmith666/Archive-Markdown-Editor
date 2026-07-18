@@ -1,0 +1,80 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=concurrentqueue
+pkgver=v1.0.3
+pkgrel=0
+pkgdesc="A fast multi-producer, multi-consumer lock-free concurrent queue for C++11"
+url="https://github.com/cameron314/concurrentqueue"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-2-Clause")
+depends=()
+makedepends=()
+source="https://github.com/cameron314/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+cxx=
+cxxflags=
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 由于测试用例的makefile使用的g++无法直接传入值,因此定义变量$(CXX),另外报错error: unknown type name 'MOODYCAMEL_EXPORT',需要去除相关宏定义,因此打补丁
+        patch -p1 < `pwd`/../concurrentqueue_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang++
+        cxxflags="-march=armv7a"
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang++
+        cxxflags=""
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DCMAKE_CXX_FLAGS=$cxxflags -DOHOS_ARCH=$ARCH -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() { 
+    cd $builddir-$ARCH-build/build
+    #make -j 编译会出错
+    make VERBOSE=1 CXX=$cxx CXXFLAGS=$cxxflags tests >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    unset cxx cxxflags
+    echo "The test must be on an OpenHarmony device!"
+    # ./build/bin/unittests
+    return $ret
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-arm64-v8a-build #${PWD}/$packagename
+}

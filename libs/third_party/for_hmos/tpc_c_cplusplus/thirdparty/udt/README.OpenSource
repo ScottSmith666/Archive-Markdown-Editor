@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "udt",
+        "License": "The Happy Buny License(Modified MIT License)","MIT",
+        "License File": "LICENSES",
+        "Version Number": "4.12",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://codeload.github.com/whtghst1/udt/zip/refs/tags/v4.12",
+        "Description": "DP-based Data Transfer (UDT) Library"
+    }
+]

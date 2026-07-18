@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "libdash",
+        "License": "LGPL-2.1-or-later",
+        "License File": "README.md",
+        "Version Number": "v2.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/bitmovin/libdash/archive/refs/tags/v2.2.tar.gz",
+        "Description": "libdash is the official reference software of the ISO/IEC MPEG-DASH standard and is an open-source library that provides an object orient (OO) interface to the MPEG-DASH standard, developed by Bitmovin."
+    },
+    {
+        "Name": "libxml2",
+        "License": " MIT license",
+        "License File": "https://github.com/GNOME/libxml2/blob/master/Copyright",
+        "Version Number": "v2.11.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/GNOME/libxml2/archive/refs/tags/v2.11.3.tar.gz",
+        "Description": "libxml2 is an XML toolkit implemented in C, originally developed for the GNOME Project."
+    },
+    {
+        "Name": "curl",
+        "License": "curl",
+        "License File": "https://github.com/curl/curl/blob/master/COPYING",
+        "Version Number": "curl-8_0_1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/curl/curl/archive/refs/tags/curl-8_0_1.tar.gz",
+        "Description": "Curl is a command-line tool for transferring data specified with URL syntax. Find out how to use curl by reading the curl.1 man page or the MANUAL document. Find out how to install Curl by reading the INSTALL document."
+    }
+]

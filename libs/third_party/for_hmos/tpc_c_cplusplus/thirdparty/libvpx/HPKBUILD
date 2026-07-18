@@ -1,0 +1,141 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: xucaiming <719260170@qq.com>
+# Maintainer: xucaiming <719260170@qq.com>
+
+pkgname=libvpx
+pkgver=1.13.0
+pkgrel=0
+pkgdesc="Libvpx is an open-source software released by Google that supports vp8 and vp9 encoding and decoding"
+url="https://github.com/webmproject/$pkgname"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause license")
+depends=()
+makedepends=()
+source="https://github.com/webmproject/$pkgname/archive/refs/tags/v$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+source envset.sh
+
+downloadresourceflag=true
+libvpxtestresourcepkgver=main
+libvpxtestresourcepkgname=libvpx_test_resource
+libvpxtestresource="https://github.com/N22E114/$libvpxtestresourcepkgname/archive/refs/heads/$libvpxtestresourcepkgver.zip"
+libvpxtestresourcebuilddir=$libvpxtestresourcepkgname-$libvpxtestresourcepkgver
+libvpxtestresourcepackagename=$libvpxtestresourcebuilddir.zip
+
+host=
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 编译报错，找不到编译器
+        patch -p1 < `pwd`/../libvpx_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ../configure "$@" --target=$host --enable-unit-tests > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install VERBOSE=1 >> $buildlog 2>&1
+    cd $OLDPWD
+
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+check() {
+    # 测试资源包比较大，很容易下载失败，如果多次下载失败可以使用pc机下载copy到单板
+    if [ ! -f "$libvpxtestresourcepackagename" ];then
+        curl -L -f $libvpxtestresource > $libvpxtestresourcepackagename
+        if [ "$?" != "0" ];then
+            echo "download $libvpxtestresourcepackagename fail"
+            downloadresourceflag=false
+            return -1
+        fi
+    fi
+
+    if $downloadresourceflag
+    then
+        rm -rf $libvpxtestresourcebuilddir > $publicbuildlog 2>&1
+        unzip $libvpxtestresourcepackagename >> $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            echo "unzip the test package $libvpxtestresourcepackagename failed! the package maybe damaged!" >>  $publicbuildlog 2>&1
+            rm -f $libvpxtestresourcepackagename
+            return 1
+        fi
+
+        cd $libvpxtestresourcebuilddir
+        cat *.yuv.tar.xz0* > desktop_office1.1280_720-020.yuv.tar.xz
+        rm -rf *.yuv.tar.xz0*
+        xz -d **.tar.xz
+        for name in *.tar;  do tar -xvf $name; done
+        rm -rf *.tar
+
+        downloadresourceflag=false
+        cd $OLDPWD
+    fi
+    cp $libvpxtestresourcebuilddir/* $builddir/$ARCH-build
+
+    echo "The test must be on an OpenHarmony device!"
+    # cd $builddir/$ARCH-build
+    # ./test_libvpx
+    return 0
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

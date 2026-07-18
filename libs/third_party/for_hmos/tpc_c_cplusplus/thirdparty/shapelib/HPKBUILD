@@ -1,0 +1,74 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: chenyajie <chenyajie5@huawei-partners.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=shapelib
+pkgver=1.6.0
+pkgrel=0
+pkgdesc="Mainly used for reading, writing, and manipulating ESRI Shapefile file formats, including .shp (spatial geometry information) and .dbf (attribute information) files"
+archs=("armeabi-v7a" "arm64-v8a")
+url="https://github.com/OSGeo/shapelib"
+license=( "MIT OR LGPL-2.0-or-later")
+depends=()
+makedepends=()
+source="https://download.osgeo.org/${pkgname}/${pkgname}-${pkgver}.zip"
+
+downloadpackage=true
+autounpack=true
+buildtools="cmake"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    #官网测试test1需要手动进行测试，并且提供的stream1.out与预期结果不符，官方pr有修复，但未合入所以暂时取消对test1的测试
+    #${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DEG_DATA:PATH=${PWD}/${ARCH}-build -DOHOS_ARCH=$ARCH -S../ > $buildlog 2>&1
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -S../ > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir/tests
+    if [ ! -f stream2.out ]
+    then
+        wget https://raw.githubusercontent.com/OSGeo/shapelib/master/tests/stream2.out >> $buildlog 2>&1
+    fi
+    if [ ! -f stream3.out ]
+    then
+        wget https://raw.githubusercontent.com/OSGeo/shapelib/master/tests/stream3.out >> $buildlog 2>&1
+    fi
+    cp stream2.out ../$ARCH-build
+    cp stream3.out ../$ARCH-build
+    cd $OLDPWD
+}
+
+cleanbuild() {
+  rm -rf ${PWD}/$builddir
+}
+

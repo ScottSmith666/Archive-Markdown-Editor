@@ -1,0 +1,81 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, Sunjiamei<939650669@qq.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=iprange
+pkgver=1.0.4
+pkgrel=0
+pkgdesc="iprange is a command line tool for dealing with IP address ranges, and it supports both IPv4 and IPv6 addresses. This tool is mainly used for firewall and network administration tasks, such as generating IP address lists, checking whether IP addresses are in a specific range, and so on."
+url="https://github.com/firehol/iprange"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL 2.0")
+depends=()
+makedepends=()
+
+source="https://github.com/firehol/$pkgname/archive/refs/tags/v$pkgver.zip"
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+source envset.sh
+host=
+
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build 
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+    cd $builddir-$ARCH-build
+    ./autogen.sh > $buildlog 2>&1
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host --disable-man >> $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build
+}

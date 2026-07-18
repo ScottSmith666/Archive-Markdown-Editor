@@ -1,0 +1,69 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: xiafeng <xiafeng@huawei.com>
+# Maintainer: xiafeng <xiafeng@huawei.com>
+
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd ${builddir}/${ARCH}-build/tests
+
+    total_tests=0
+    [ -x "./checkasm" ] && ((total_tests++))
+    for test_exe in *_test; do
+        [ -x "./$test_exe" ] && ((total_tests++))
+    done
+    test_counter=0
+
+    if [ -x "./checkasm" ]; then
+        ((test_counter++))
+        ./checkasm >> ${logfile} 2>&1
+        res=$?
+        if [ $res -eq 0 ]; then
+            printf "%-35s \033[0;32m%8s\033[0m\n" "$test_counter/$total_tests dav1d:checkasm / checkasm" "OK" >> ${logfile}
+        else
+            printf "%-35s \033[0;31m%8s\033[0m\n" "$test_counter/$total_tests dav1d:checkasm / checkasm" "FAILED" >> ${logfile}
+            mkdir -p $LYCIUM_FAULT_PATH/$pkgname
+            cp Testing/Temporary/LastTest.log $LYCIUM_FAULT_PATH/$pkgname 2>&1
+        fi
+    fi
+
+    header_failed=0
+    header_test_exes=(*_test)
+    for test_exe in "${header_test_exes[@]}"; do
+        if [ -x "./$test_exe" ]; then
+            ((test_counter++))
+            ./"$test_exe" >> ${logfile} 2>&1
+            test_res=$?
+            if [ $test_res -eq 0 ]; then
+                printf "%-35s \033[0;32m%8s\033[0m\n" "$test_counter/$total_tests dav1d:headers / $test_exe" "OK" >> ${logfile}
+            else
+                printf "%-35s \033[0;31m%8s\033[0m\n" "$test_counter/$total_tests dav1d:headers / $test_exe" "FAILED" >> ${logfile}
+                header_failed=1
+                mkdir -p $LYCIUM_FAULT_PATH/$pkgname
+                cp Testing/Temporary/LastTest.log $LYCIUM_FAULT_PATH/$pkgname 2>&1
+            fi
+        fi
+    done
+
+    if [ $header_failed -ne 0 ]; then
+        res=$header_failed
+    fi
+
+    cd $OLDPWD
+    return $res
+}

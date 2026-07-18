@@ -1,0 +1,90 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>,Tao Han <hantao_ya@163.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=x264
+pkgver=stable
+pkgrel=0
+pkgdesc="x264 is a free software library for encoding H.264/MPEG-4 AVC video streams. It is one of the most popular video compression libraries in the world and is used worldwide for applications such as web video, TV broadcasting and Blu-ray authoring."
+url="https://code.videolan.org/videolan/x264"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GNU GENERAL PUBLIC LICENSE V2.0")
+depends=()
+makedepends=()
+
+source="https://code.videolan.org/videolan/$pkgname/-/archive/$pkgver/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+prepare() {
+    #拷贝两份，不污染源码目录
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    export AS=$CC
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" \
+    --host=$host --enable-shared --enable-static > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build $builddir-arm64-v8a-build #${PWD}/$packagename
+}

@@ -1,0 +1,17 @@
+diff --git a/src/include/codec.h b/src/include/codec.h
+index e68b012..cfd4226 100644
+--- a/src/include/codec.h
++++ b/src/include/codec.h
+@@ -1,6 +1,12 @@
+ #ifndef _CODEC_H_
+ #define _CODEC_H_
+ 
++#ifdef _WIN32
++#define __dllexport __declspec(dllexport)
++#else
++#define __dllexport
++#endif
++
+ // Codec callback function
+ typedef void (cb_codec)(void* userdata, unsigned char* p, int len);
+ 

@@ -1,0 +1,90 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: xucaiming <719260170@qq.com>
+# Maintainer: xucaiming <719260170@qq.com>
+
+pkgname=chrono
+pkgver=8.0.0
+pkgrel=0
+pkgdesc="High-performance C++ library for multiphysics and multibody dynamics simulations"
+url="https://github.com/projectchrono/$pkgname"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause license")
+depends=("googletest" "eigen")
+makedepends=()
+source="https://github.com/projectchrono/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+buildtools="cmake"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+cxxflags=""
+
+builddir=$pkgname-$pkgver
+packagename=$pkgname-$pkgver.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 编译报错，找不到类型定义
+        patch -p1 < `pwd`/../chrono_oh_pkg.patch
+        # 编译Test时，需要拷贝googletest源码
+        cp -rf ${LYCIUM_ROOT}/../thirdparty/googletest/googletest-*/* ${LYCIUM_ROOT}/../thirdparty/$pkgname/$builddir/src/chrono_thirdparty/googletest
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ];then
+	cxxflags="-mfloat-abi=softfp"
+    elif [ $ARCH == "arm64-v8a" ];then
+	cxxflags="-mfloat-abi=hard"
+    else
+        echo "$ARCH not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir
+    # 库默认选的-O2编译优化参数，这样会导致有部分测试用例failed，为了保证测试用例能通过，
+    # 下面选择了-O0参数不进行编译优化，但会影响库的执行效率，可以根据自己需求是否设置优化参数。
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DBUILD_TESTING=ON \
+        -DCMAKE_CXX_FLAGS="${CXXFLAGS} $cxxflags -O0" \
+        -DDETECTED_NEON_EXITCODE=OFF -DDETECTED_NEON_EXITCODE__TRYRUN_OUTPUT=OFF \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # cd  $builddir/$ARCH-build
+    # 测试时间比较久，cmake默认的是1500S，需要手动修改下超时时间
+    # 测试路径和编译代码路径需要保持一致
+    # ctest --timeout 40000
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir
+}

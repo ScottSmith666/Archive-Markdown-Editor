@@ -1,0 +1,53 @@
+diff -Nura openssl-OpenSSL_1_1_1u/util/check-malloc-errs openssl_patch/util/check-malloc-errs
+--- openssl-OpenSSL_1_1_1u/util/check-malloc-errs	2023-05-30 20:42:39.000000000 +0800
++++ openssl_patch/util/check-malloc-errs	2024-09-23 19:16:27.323995712 +0800
+@@ -9,8 +9,8 @@
+ (
+     pcregrep -rnM 'OPENSSL_.?alloc.*\n.*if.*NULL.*\n.*return'  crypto ssl
+     pcregrep -rnM 'if.*OPENSSL_.?alloc.*NULL.*\n.*.*return' crypto ssl
+-) | tee /tmp/out$$
++) | tee /data/local/tmp/out$$
+ X=0
+-test -s /tmp/out$$ && X=1
+-rm /tmp/out$$
++test -s /data/local/tmp/out$$ && X=1
++rm /data/local/tmp/out$$
+ exit $X
+diff -Nura openssl-OpenSSL_1_1_1u/util/find-doc-nits openssl_patch/util/find-doc-nits
+--- openssl-OpenSSL_1_1_1u/util/find-doc-nits	2023-05-30 20:42:39.000000000 +0800
++++ openssl_patch/util/find-doc-nits	2024-09-23 19:16:27.328995966 +0800
+@@ -42,7 +42,7 @@
+     exit;
+ }
+ 
+-my $temp = '/tmp/docnits.txt';
++my $temp = '/data/local/tmp/docnits.txt';
+ my $OUT;
+ my %public;
+ 
+diff -Nura openssl-OpenSSL_1_1_1u/util/find-unused-errs openssl_patch/util/find-unused-errs
+--- openssl-OpenSSL_1_1_1u/util/find-unused-errs	2023-05-30 20:42:39.000000000 +0800
++++ openssl_patch/util/find-unused-errs	2024-09-23 19:16:27.329996017 +0800
+@@ -10,8 +10,8 @@
+ # out of the source.  Doesn't handle line-wrapping, might have to do
+ # some manual cleanups to fix compile errors.
+ 
+-export X1=/tmp/f.1.$$
+-export X2=/tmp/f.2.$$
++export X1=/data/local/tmp/f.1.$$
++export X2=/data/local/tmp/f.2.$$
+ 
+ case "$1" in
+     -f)
+diff -Nura openssl-OpenSSL_1_1_1u/util/openssl-format-source openssl_patch/util/openssl-format-source
+--- openssl-OpenSSL_1_1_1u/util/openssl-format-source	2023-05-30 20:42:39.000000000 +0800
++++ openssl_patch/util/openssl-format-source	2024-09-23 19:16:27.317995406 +0800
+@@ -95,7 +95,7 @@
+     fi
+ 
+     if [ "$DONT" = "false" ]; then
+-      tmp=$(mktemp /tmp/indent.XXXXXX)
++      tmp=$(mktemp /data/local/tmp/indent.XXXXXX)
+       trap 'rm -f "$tmp"' HUP INT TERM EXIT
+ 
+       case `basename $j` in

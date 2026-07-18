@@ -1,0 +1,88 @@
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+pkgname=agg
+pkgver=2.6
+pkgrel=0
+pkgdesc="Anti-Grain Geometry library, written by Maxim Shemanarev in C++. It is an Open Source, 2D vector graphics library."
+url="https://github.com/ghaerr/agg-2.6"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD License")
+depends=()
+makedepends=()
+
+#source="https://github.com/ghaerr/${pkgname}-${pkgver}/archive/refs/heads/master.zip"
+source="https://gitee.com/lycium_pkg_mirror/agg-2.6.git"
+builddir=${pkgname}-${pkgver}-master
+#packagename=${builddir}.zip
+autounpack=false
+downloadpackage=false
+buildtools="make"
+cc=
+ar=
+commitid=b289c3cc11162cb4712eddc855ee8a321dfe93f0
+cloneflag=true
+source envset.sh
+
+# agg 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone $source $builddir > $publicbuildlog 2>&1 
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid > $publicbuildlog 2>&1 
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd $OLDPWD
+        cloneflag=false
+    fi
+
+    cp -rf ${builddir} $builddir-${ARCH}-build
+    if [ $ARCH == "armeabi-v7a" ]; then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+    if [ $ARCH == "arm64-v8a" ]; then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+
+    return 0
+}
+
+build() {
+    cd $builddir-${ARCH}-build/agg-src
+    ${MAKE} VERBOSE=1 C="$cc" LIB="$ar cr" CXX="$cc" > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    install_dir=${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}
+    mkdir -p ${install_dir}/lib
+    cd ${builddir}-${ARCH}-build/agg-src
+    cp -af src/libagg.a ${install_dir}/lib/
+    cp -arf include ${install_dir}/
+    cd ${OLDPWD}
+
+    unset ar
+    unset cc
+
+    return 0
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/${builddir} ${PWD}/${builddir}-armeabi-v7a-build ${PWD}/${builddir}-arm64-v8a-build #${PWD}/$packagename
+}

@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "aliyun-oss-cpp-sdk-1.10.0",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/aliyun/aliyun-oss-cpp-sdk/blob/master/LICENSE",
+        "Version Number": "1.10.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/aliyun/aliyun-oss-cpp-sdk",
+        "Description": "Alibaba Cloud Object Storage Service (OSS) is a cloud storage service provided by Alibaba Cloud, featuring massive capacity, security, a low cost, and high reliability."
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1u.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    },
+    {
+        "Name": "curl",
+        "License": "curl",
+        "License File": "https://github.com/curl/curl/blob/master/COPYING",
+        "Version Number": "curl-8_0_1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/curl/curl/archive/refs/tags/curl-8_0_1.tar.gz",
+        "Description": "Curl is a command-line tool for transferring data specified with URL syntax. Find out how to use curl by reading the curl.1 man page or the MANUAL document. Find out how to install Curl by reading the INSTALL document."
+    }
+]

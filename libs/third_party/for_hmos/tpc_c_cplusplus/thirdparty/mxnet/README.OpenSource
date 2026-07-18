@@ -1,0 +1,47 @@
+[
+    {
+        "Name": "mxnet",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/apache/incubator-mxnet/blob/master/LICENSE",
+        "Version Number": "1.9.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/apache/mxnet.git",
+        "Description": "Apache MXNet is a deep learning framework designed for both efficiency and flexibility."
+    },
+    {
+        "Name": "OpenBLAS",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/OpenMathLib/OpenBLAS/blob/develop/LICENSE",
+        "Version Number": "0.3.23",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/xianyi/OpenBLAS/releases/download/v0.3.23/OpenBLAS-0.3.23.tar.gz",
+        "Description": "OpenBLAS is an optimized BLAS (Basic Linear Algebra Subprograms) library based on GotoBLAS2 1.13 BSD version."
+    },
+    {
+        "Name": "opencv",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/opencv/opencv/blob/4.x/LICENSE",
+        "Version Number": "4.8.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/opencv/opencv/archive/refs/tags/4.8.0.tar.gz",
+        "Description": "OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library."
+    },
+    {
+        "Name": "clapack",
+        "License": "BSD-3-Clause",
+        "License File": "https://netlib.org/lapack/LICENSE.txt",
+        "Version Number": "3.2.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://netlib.org/clapack/clapack-3.2.1-CMAKE.tgz",
+        "Description": "The CLAPACK library was built using a Fortran to C conversion utility called f2c. The entire Fortran 77 LAPACK library is run through f2c to obtain C code, and then modified to improve readability. CLAPACK's goal is to provide LAPACK for someone who does not have access to a Fortran compiler."
+    },
+    {
+        "Name": "openmp",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/llvm/llvm-project/blob/main/openmp/LICENSE.TXT",
+        "Version Number": "9.0.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/openmp-9.0.1.src.tar.xz",
+        "Description": "openmp is a compoment of llvm-project."
+    }
+]

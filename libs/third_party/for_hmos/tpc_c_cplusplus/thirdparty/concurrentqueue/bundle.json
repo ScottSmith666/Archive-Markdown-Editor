@@ -1,0 +1,35 @@
+{
+    "name": "@ohos/concurrentqueue",
+    "description": "A fast multi-producer, multi-consumer lock-free concurrent queue for C++11",
+    "version": "v1.0.3",
+    "license": "BSD License",
+    "publishAs": "",
+    "segment": {
+        "destPath": "third_party/concurrentqueue"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "concurrentqueue",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": ["standard"],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": [
+                "//third_party/concurrentqueue:concurrentqueues"
+            ],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libfuse",
+        "License": "General Public License, version 2.1",
+        "License File": "LICENSE",
+        "Version Number": "fuse-3.16.2",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/libfuse/libfuse/archive/refs/tags/fuse-3.16.2.tar.gz",
+        "Description": "libfuse provides functions to mount the file system, unmount it, read requests from the kernel, and send responses back"
+    }
+]

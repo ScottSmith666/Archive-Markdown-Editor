@@ -1,0 +1,135 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: luoying50 <luoying50@h-partners.com>
+# Maintainer: huangminzhong2 <huangminzhong2@huawei.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+runtest()
+{
+    local local_res=0
+    if [ $# -eq 1 ]
+    then
+        ./$1 >> ${logfile} 2>&1
+        local_res=$?
+    elif [ $# -eq 2 ]
+    then
+        ./$1 $2 >> ${logfile} 2>&1
+        local_res=$?
+    elif [ $# -eq 3 ]
+    then
+        ./$1 $2 $3 >> ${logfile} 2>&1
+        local_res=$?
+    else
+        echo $1" call parameter error" >> ${logfile} 2>&1
+        local_res=1
+    fi
+
+    if [ $local_res -eq 0 ]
+    then
+        echo -e "##############"$1" sucess ##############\n" >> ${logfile} 2>&1
+        cp -R $1.pdf ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}/
+    
+    else
+        echo -e "##############"$1" fail ##############\n" >> ${logfile} 2>&1
+    fi
+    return $local_res
+}
+
+openharmonycheck() {
+    res=0
+    cd $builddir/${ARCH}-build/demo
+
+    # 清空日志文件
+    echo "" > ${logfile} 2>&1
+
+    if [ ! -d ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname} ]
+    then
+        mkdir -p ${LYCIUM__MANUAL_CONFIRM_PATH}/${pkgname}
+    fi
+
+    runtest arc_demo
+    res=$((res+$?))
+
+    runtest attach
+    res=$((res+$?))
+
+    runtest character_map KSCms-UHC-HW-H BatangChe
+    res=$((res+$?))
+
+    runtest encoding_list
+    res=$((res+$?))
+
+    runtest encryption
+    res=$((res+$?))
+
+    runtest ext_gstate_demo
+    res=$((res+$?))
+
+    runtest font_demo
+    res=$((res+$?))
+
+    runtest grid_sheet
+    res=$((res+$?))
+
+    runtest image_demo
+    res=$((res+$?))
+
+    runtest jpeg_demo
+    res=$((res+$?))
+
+    runtest jpfont_demo
+    res=$((res+$?))
+
+    runtest link_annotation
+    res=$((res+$?))
+
+    runtest line_demo
+    res=$((res+$?))
+
+    runtest outline_demo
+    res=$((res+$?))
+
+    runtest permission
+    res=$((res+$?))
+
+    runtest png_demo
+    res=$((res+$?))
+
+    runtest raw_image_demo
+    res=$((res+$?))
+
+    runtest slide_show_demo
+    res=$((res+$?))
+
+    runtest text_annotation
+    res=$((res+$?))
+
+    runtest text_demo
+    res=$((res+$?))
+
+    runtest text_demo2
+    res=$((res+$?))
+
+    runtest ttfont_demo ttfont/PenguinAttack.ttf
+    res=$((res+$?))
+
+    runtest ttfont_demo_jp ttfont/PenguinAttack.ttf
+    res=$((res+$?))
+
+    cd $OLDPWD
+
+    return $res
+}

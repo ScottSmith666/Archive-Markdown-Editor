@@ -1,0 +1,122 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: dingqian <1052888395@qq.com>
+# Maintainer: dingqian <1052888395@qq.com>
+
+pkgname=apr
+pkgver=1.7.5
+pkgrel=0
+pkgdesc="APR is a software library that creates and maintains a set of APIs that map to the underlying operating system"
+url="https://apr.apache.org"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache License 2.0")
+depends=("libtool")
+makedepends=("python" "autoconf")
+
+source="https://github.com/apache/apr/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+
+prepare() {
+    if $patchflag
+    then
+        cd  $builddir
+        # 三方库中线程未实现，
+        patch -p1 < `pwd`/../apr_oh_test.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    cp -rf ${builddir} $builddir-${ARCH}-build 
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+}
+
+# ac_cv_file__dev_zero：表示检测系统中是否有名为/dev/zero的文件。
+# ac_cv_func_setpgrp_void：表示检测系统中是否存在带有void类型参数的setpgrp函数。
+# apr_cv_process_shared_works：表示检测系统中是否支持进程间共享内存。
+# apr_cv_mutex_robust_shared：表示检测系统中是否支持共享互斥锁的鲁棒性。
+# apr_cv_tcp_nodelay_with_cork：表示检测系统中是否支持同时启用TCP_NODELAY和TCP_CORK的选项。
+# ap_void_ptr_lt_long：表示比较void*指针和long类型的整数时，void*是否小于long类型的整数。
+# TCP_NODELAY=0 TCP_CORK=0：禁用 TCP_NODELAY 和 TCP_CORK 选项，以避免网络传输延迟。
+# ac_cv_struct_rlimit：检查系统是否支持结构体 rlimit，用于限制进程的资源使用。
+# ap_cv_void_ptr_lt_long：表示 `void*` 指针类型是否比 `long` 类型更小
+
+build() {
+    cd $builddir-${ARCH}-build
+    ./buildconf > `pwd`/build.log
+    ./configure "$@" --host=$host CFLAGS="-Wno-error=int-conversion" --enable-so  --with-mpm=worker \
+        ac_cv_file__dev_zero=yes ac_cv_func_setpgrp_void=yes apr_cv_process_shared_works=yes apr_cv_mutex_robust_shared=yes \
+        apr_cv_tcp_nodelay_with_cork=yes ap_void_ptr_lt_long=no --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH TCP_NODELAY=0 TCP_CORK=0 \
+        ac_cv_struct_rlimit=yes ac_cv_file__dev_zero=yes ac_cv_func_setpgrp_void=yes ap_cv_void_ptr_lt_long=no \
+        apr_cv_process_shared_works=yes apr_cv_mutex_robust_shared=yes ac_cv_func_semget=no  > `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    cd $builddir-${ARCH}-build/test
+    make -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-${ARCH}-build
+    make install >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # cd $builddir-${ARCH}-build/test
+    # ./testall
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/${builddir} ${PWD}/${builddir}-armeabi-v7a-build ${PWD}/${builddir}-arm64-v8a-build #${PWD}/$packagename
+}

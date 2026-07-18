@@ -1,0 +1,81 @@
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=fftw3
+pkgver=3.3.10
+pkgrel=0
+pkgdesc="FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data."
+url="http://fftw.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0-or-later")
+depends=()
+makedepends=()
+source="http://fftw.org/fftw-${pkgver}.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=fftw-$pkgver
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+optargs=
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    optargs="--enable-single --with-slow-timer"
+   
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure "$@" $optargs \
+        --enable-threads --enable-shared --host=$host > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host optargs
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    sed -i '/.*check-local: bench$(EXEEXT)/c\check-local: #bench$(EXEEXT)' tests/Makefile
+
+    # 替换不能无法访问的/bin/bash 和/usr/bin目录
+    sed -i "s#/usr/bin/sed#sed#g" tests/bench
+    sed -i "s#/bin/bash#/data/CIusr/bin/bash#g" tests/Makefile tests/bench
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # make check-local -C tests
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packageName
+}

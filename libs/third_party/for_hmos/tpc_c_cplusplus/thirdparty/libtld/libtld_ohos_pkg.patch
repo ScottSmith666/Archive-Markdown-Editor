@@ -1,0 +1,27 @@
+diff --git a/libtld/CMakeLists.txt b/libtld/CMakeLists.txt
+index bba8a3ce..f4221a70 100644
+--- a/libtld/CMakeLists.txt
++++ b/libtld/CMakeLists.txt
+@@ -25,14 +25,14 @@
+ ##
+ ## TLD parser
+ ##
+-project(tld_parser)
+-add_executable(${PROJECT_NAME}
+-    ../tools/tldc.cpp
+-
+-    tld_compiler.cpp
+-    tld_file.cpp
+-    tld_strings.c
+-)
++#project(tld_parser)
++#add_executable(${PROJECT_NAME}
++#    ../tools/tldc.cpp
++#
++#    tld_compiler.cpp
++#    tld_file.cpp
++#    tld_strings.c
++#)
+ 
+ ##
+ ## TLD data

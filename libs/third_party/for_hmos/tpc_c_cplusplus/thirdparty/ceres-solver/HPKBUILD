@@ -1,0 +1,80 @@
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+pkgname=ceres-solver
+pkgver=2.1.0
+pkgrel=0
+pkgdesc="Ceres solver is an open source C++library developed by Google for solving optimization problems with boundary constraints and nonlinear least squares problems, as well as general unconstrained optimization problems."
+url="http://ceres-solver.org"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=("eigen" "gflags" "glog" "googletest" "METIS")
+makedepends=()
+
+source="http://ceres-solver.org/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+cxxflag=""
+patchflag=true
+prepare() {
+    if $patchflag
+    then
+       cd $builddir
+       # patch 修改不能访问的/tmp 目录为/data/local/tmp
+       # 该改动只涉及测试文件
+       patch -p1 < ../ceres-solver_ohos_test.patch
+       patchflag=false
+       cd $OLDPWD
+    fi
+
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]; then
+        cxxflag="-mfloat-abi=softfp -D__ARM_PCS_VFP=1"
+    elif [ $ARCH == "arm64-v8a" ]; then
+        cxxflag=""
+    else
+        echo "Not support ${ARCH} yet"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -DCMAKE_CXX_FLAGS="$cxxflag" -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 VERBOSE=1 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]; then
+        # 拷贝shared库到测试程序运行目录
+        cp $OHOS_SDK/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir/$ARCH-build
+    elif [ $ARCH == "arm64-v8a" ]; then
+        # 拷贝shared库到测试程序运行目录
+        cp $OHOS_SDK/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir/$ARCH-build
+    else
+        echo "Not support ${ARCH} yet"
+        return -1
+    fi
+    
+    echo "The test must be on an OpenHarmony device!"
+    # 编译生成目录$builddir/$ARCH-build下执行ctest
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

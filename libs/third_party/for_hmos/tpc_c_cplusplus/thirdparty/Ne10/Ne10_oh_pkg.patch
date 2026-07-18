@@ -1,0 +1,41 @@
+diff -Naur Ne10-1.2.1/CMakeLists.txt Ne10-1.2.1-new/CMakeLists.txt
+--- Ne10-1.2.1/CMakeLists.txt	2015-07-21 09:14:28.000000000 +0800
++++ Ne10-1.2.1-new/CMakeLists.txt	2024-05-07 16:44:47.971957060 +0800
+@@ -135,10 +135,10 @@
+     ${CMAKE_C_FLAGS}")
+ elseif(GNULINUX_PLATFORM)
+     if(${NE10_TARGET_ARCH} STREQUAL "armv7")
+-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthumb-interwork -mthumb -march=armv7-a -mfpu=vfp3 -funsafe-math-optimizations")
+-      set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -mthumb-interwork -mthumb -march=armv7-a -mfpu=neon")
++      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -mthumb -march=armv7-a -mfpu=vfp3 -funsafe-math-optimizations")
++      set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -mthumb -march=armv7-a -mfpu=neon")
+       # Turn on asm optimization for Linux on ARM v7.
+-      set(NE10_ASM_OPTIMIZATION on)
++      set(NE10_ASM_OPTIMIZATION off)
+     endif()
+ elseif(IOS_PLATFORM)
+     #set minimal target ios version.If not provided this option, Xcode
+diff -Naur Ne10-1.2.1/modules/NE10_init.c Ne10-1.2.1-new/modules/NE10_init.c
+--- Ne10-1.2.1/modules/NE10_init.c	2024-05-22 14:03:56.488372161 +0800
++++ Ne10-1.2.1-new/modules/NE10_init.c	2024-05-22 14:19:00.650730261 +0800
+@@ -31,7 +31,7 @@
+ 
+ #include "NE10.h"
+ 
+-#define CPUINFO_BUFFER_SIZE  (1024*4)
++#define CPUINFO_BUFFER_SIZE  (1024*8)
+ 
+ // This local variable indicates whether or not the running platform supports ARM NEON
+ ne10_result_t is_NEON_available = NE10_ERR;
+diff -Naur Ne10-1.2.1/test/include/seatest.h Ne10-1.2.1-new/test/include/seatest.h
+--- Ne10-1.2.1/test/include/seatest.h	2015-07-21 09:14:28.000000000 +0800
++++ Ne10-1.2.1-new/test/include/seatest.h	2024-05-06 16:17:17.112914498 +0800
+@@ -20,7 +20,7 @@
+ /*
+ Declarationsresult_size
+ */
+-void (*seatest_simple_test_result)(int passed, char* reason, const char* function, unsigned int line);
++extern void (*seatest_simple_test_result)(int passed, char* reason, const char* function, unsigned int line);
+ void seatest_test_fixture_start(char* filepath);
+ void seatest_test_fixture_end( void );
+ void seatest_simple_test_result_log(int passed, char* reason, const char* function, unsigned int line);

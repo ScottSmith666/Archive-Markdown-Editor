@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "NFD",
+        "License": "GPL-3.0",
+        "License File": "https://github.com/named-data/NFD?tab=GPL-3.0-1-ov-file",
+        "Version Number": "v24.07",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/named-data/NFD",
+        "Description": "NFD is a network forwarder that implements and evolves together with the Named Data Networking (NDN) protocol."
+    }
+]

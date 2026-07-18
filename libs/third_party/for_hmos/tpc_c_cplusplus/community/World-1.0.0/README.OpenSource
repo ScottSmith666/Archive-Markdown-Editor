@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "World-1.0.0",
+        "License": "BSD license",
+        "License File": "https://github.com/mmorise/World/blob/master/LICENSE.txt",
+        "Version Number": "v1.0.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/mmorise/World",
+        "Description": "World is a high-quality speech analysis, manipulation and synthesis system."
+    }
+]

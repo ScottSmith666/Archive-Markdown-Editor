@@ -1,0 +1,1 @@
+CKEDITOR.plugins.setLang("attachment","zh-cn",{uploadBtnText:"选择文件",noFileSelected:"未选择任何文件",uploadTitle:"上传附件",uploading:"上传中",uploaded:"上传成功",uploadFailed:"上传失败",emptyTip:"请选择文件",perfixTip:"提醒:",attachmentFormatOrSizeTip:"支持格式 %fileTypes%，大小 %fileSize%MB 以内",attachZipTip:"zip支持格式 %zipTypes%"});

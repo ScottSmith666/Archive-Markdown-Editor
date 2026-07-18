@@ -1,0 +1,234 @@
+From 36de39dbcba2566d384fe093142f7ec7bcde148f Mon Sep 17 00:00:00 2001
+From: xucaiming <719260170@qq.com>
+Date: Fri, 18 Aug 2023 15:03:11 +0800
+Subject: [PATCH] add pvmp3dec
+
+Signed-off-by: xucaiming <719260170@qq.com>
+---
+ CMakeLists.txt |  68 ++++++++++++++++++++++++
+ mp3_test.cpp   | 138 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 206 insertions(+)
+ create mode 100644 CMakeLists.txt
+ create mode 100644 mp3_test.cpp
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 0000000..138c621
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,68 @@
++# Copyright (c) 2023 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++# Contributor: xucaiming <719260170@qq.com>
++# Maintainer: xucaiming <719260170@qq.com>
++
++cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
++
++project(pvmp3dec
++        VERSION 1.0.1
++        LANGUAGES C CXX)
++
++set(SRC
++        src/pvmp3_normalize.cpp
++        src/pvmp3_alias_reduction.cpp
++        src/pvmp3_crc.cpp
++        src/pvmp3_decode_header.cpp
++        src/pvmp3_decode_huff_cw.cpp
++        src/pvmp3_getbits.cpp
++        src/pvmp3_dequantize_sample.cpp
++        src/pvmp3_framedecoder.cpp
++        src/pvmp3_get_main_data_size.cpp
++        src/pvmp3_get_side_info.cpp
++        src/pvmp3_get_scale_factors.cpp
++        src/pvmp3_mpeg2_get_scale_data.cpp
++        src/pvmp3_mpeg2_get_scale_factors.cpp
++        src/pvmp3_mpeg2_stereo_proc.cpp
++        src/pvmp3_huffman_decoding.cpp
++        src/pvmp3_huffman_parsing.cpp
++        src/pvmp3_tables.cpp
++        src/pvmp3_imdct_synth.cpp
++        src/pvmp3_mdct_6.cpp
++        src/pvmp3_dct_6.cpp
++        src/pvmp3_poly_phase_synthesis.cpp
++        src/pvmp3_equalizer.cpp
++        src/pvmp3_seek_synch.cpp
++        src/pvmp3_stereo_proc.cpp
++        src/pvmp3_reorder.cpp
++        src/pvmp3_polyphase_filter_window.cpp
++        src/pvmp3_mdct_18.cpp
++        src/pvmp3_dct_9.cpp
++        src/pvmp3_dct_16.cpp)
++
++add_library(pvmp3dec STATIC ${SRC})
++
++add_executable(mp3_test ./mp3_test.cpp)
++target_link_libraries(mp3_test pvmp3dec)
++
++
++#
++
++target_include_directories(pvmp3dec
++        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
++        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>)
++
++set_target_properties(pvmp3dec PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
++install(DIRECTORY ${CMAKE_SOURCE_DIR}/include DESTINATION ${CMAKE_INSTALL_PREFIX})
++install(FILES "${CMAKE_BINARY_DIR}/mp3_test" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
++install(TARGETS pvmp3dec DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+diff --git a/mp3_test.cpp b/mp3_test.cpp
+new file mode 100644
+index 0000000..3c7d9ae
+--- /dev/null
++++ b/mp3_test.cpp
+@@ -0,0 +1,138 @@
++/* Copyright (c) 2023 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++
++ *    http://www.apache.org/licenses/LICENSE-2.0
++
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ * Contributor: xucaiming <719260170@qq.com>
++ * Maintainer: xucaiming <719260170@qq.com>
++ */
++
++#include <stdio.h>
++#include <string.h>
++#include <stdlib.h>
++#include "pvmp3decoder_api.h"
++
++#define PVMP3DEC_OBUF_SIZE    (8 * 1024)
++
++int main(int argc, char **argv)
++{
++    FILE *fin = NULL;
++    FILE *fout = NULL;
++    tPVMP3DecoderExternal *config = NULL;
++    uint32_t msize;
++    void *in_ptr = NULL;
++    void *out_ptr = NULL;
++    void *dbuf = NULL;
++    int infile_len;
++    ERROR_CODE ecode;
++
++    if (argc != 3) {
++        printf("Usage: mp3_test [input source] [output source]\n");
++        printf("example: ./mp3_test input.mp3 output.pcm\n");
++        goto err0;
++    }
++    if ((argv[1] == NULL) || (argv[2] == NULL)) {
++        printf("input parameter error\n");
++        goto err0;
++    }
++
++    fin = fopen(argv[1], "r+");
++    if (!fin) {
++        printf("open input file failed\n");
++        goto err0;
++    }
++
++    fout = fopen(argv[2], "w+");
++    if (!fout) {
++        printf("open output file failed\n");
++
++        goto err1;
++    }
++
++    fseek(fin, 0, SEEK_END);
++    infile_len = ftell(fin);
++    fseek(fin, 0, SEEK_SET);
++    in_ptr = malloc(infile_len + 1);
++    if (!in_ptr) {
++        printf("malloc mem failed\n");
++        goto err2;
++    }
++    memset(in_ptr, 0, infile_len + 1);
++    fread(in_ptr, 1, infile_len, fin);
++
++    msize = pvmp3_decoderMemRequirements();
++    dbuf = malloc(msize);
++    if (!dbuf) {
++        printf("malloc dbuf failed\n");
++        goto err3;
++    }
++    memset(dbuf, 0, msize);
++
++    out_ptr = malloc(PVMP3DEC_OBUF_SIZE);
++    if (!out_ptr) {
++        printf("malloc out_ptr failed\n");
++        goto err4;
++    }
++    memset(out_ptr, 0, PVMP3DEC_OBUF_SIZE);
++
++    config = (tPVMP3DecoderExternal *)(intptr_t)malloc(sizeof(tPVMP3DecoderExternal));
++    if (!config) {
++        printf("malloc tPVMP3DecoderExternal failed\n");
++        goto err5;
++    }
++    memset(config, 0, sizeof(tPVMP3DecoderExternal));
++
++    /* 初始化解码器 */
++    pvmp3_InitDecoder(config, dbuf);
++    config->crcEnabled    = 0;
++    config->equalizerType = flat;
++    config->pOutputBuffer = (int16 *)(intptr_t)out_ptr;
++
++    config->inputBufferMaxLength     = 0;
++    config->inputBufferUsedLength    = 0;
++    config->pInputBuffer             = (uint8 *)(intptr_t)in_ptr;
++    config->inputBufferCurrentLength = infile_len;
++    config->outputFrameSize          = infile_len / sizeof(int16_t);
++
++    /* 因为MP3格式音频文件一帧数据不超过8K，所以源库对输入数据的长度限制到8K以内，也就是解码一帧mp3数据 */
++    while (config->inputBufferUsedLength < PVMP3DEC_OBUF_SIZE) {
++        ecode = pvmp3_framedecoder(config, dbuf);
++        if (ecode != NO_DECODING_ERROR) {
++            printf("Decoder mp3 file error\n");
++            goto err6;
++        }
++        fwrite(out_ptr, 1, config->outputFrameSize * sizeof(int16_t), fout);
++        memset(out_ptr, 0, PVMP3DEC_OBUF_SIZE);
++    }
++
++    printf("audio channels=%d\n", config->num_channels);
++    printf("audio FrameSize=%d\n", config->outputFrameSize);
++    printf("audio samplingRate=%d\n", config->samplingRate);
++    printf("audio bitRate=%d\n", config->bitRate);
++
++    printf("Decoder mp3 file success\n");
++    return 0;
++
++err6:
++    free(config);
++err5:
++    free(out_ptr);
++err4:
++    free(dbuf);
++err3:
++    free(in_ptr);
++err2:
++    fclose(fout);
++err1:
++    fclose(fin);
++err0:
++    return -1;
++}
++
+-- 
+2.25.1
+

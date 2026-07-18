@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "ggml",
+        "License": "The Happy Buny License (Modified MIT License)",
+        "License File": "LICENSES",
+        "Version Number": "0.9.4",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://codeload.github.com/ggml-org/ggml/zip/refs/tags/v0.9.4",
+        "Description": "A tensor library for machine learning, optimized for high performance and minimal dependencies"
+    }
+]

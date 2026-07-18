@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "jsoncpp",
+        "License": "MIT License",
+        "License File": "LICENSES",
+        "Version Number": "1.9.5",
+        "Owner": "chenbaodi@huawei.com",
+        "Upstream URL": "https://github.com/open-source-parsers/jsoncpp/archive/refs/tags/1.9.5.tar.gz",
+        "Description": "A C++ library for interacting with JSON."
+    }
+]

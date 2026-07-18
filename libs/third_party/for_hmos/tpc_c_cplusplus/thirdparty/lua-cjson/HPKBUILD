@@ -1,0 +1,97 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: xuxingguo <xuxingguo@h-partners.com>
+# Maintainer: xuxingguo <xuxingguo@h-partners.com>
+
+pkgname=lua-cjson
+pkgver=2.1.0
+pkgrel=0
+pkgdesc="The Lua CJSON module provides JSON support for Lua."
+url="https://github.com/mpx/lua-cjson"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT License")
+depends=("lua")
+makedepends=()
+source="https://github.com/mpx/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools="make"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+    elif [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+    else
+        echo "$ARCH not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE PREFIX=$LYCIUM_ROOT/usr/lua/$ARCH -j4 VERBOSE=1 > $buildlog 2>&1
+    ret=$?
+	cd $OLDPWD
+    return $ret
+}
+
+package() {
+    # Makefile 没有提供install，只能copy
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+
+    find ./$builddir-$ARCH-build -name '*.so' -exec cp -af {} $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/ \;
+    find ./$builddir-$ARCH-build -name '*.h' -exec cp -af {} $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/ \;
+    find ./ -name 'lua' -exec cp -af {} $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/ \;
+    find ./ -name 'tests' -exec cp -af {} $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/ \;
+
+    # lua-5.4.6版本全局的unpack函数已经被移除了，改为table.unpack
+    sed -i '192s/unpack/table.unpack/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/lua/cjson/util.lua
+    sed -i '222s/unpack/table.unpack/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/lua/cjson/util.lua
+    sed -i '229s/unpack/table.unpack/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/lua/cjson/util.lua
+    sed -i '231s/unpack/table.unpack/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/lua/cjson/util.lua
+
+    # lua-5.4.6版本已修复pcall模块导致的输出'?'问题，测试用例需要同步修改
+    sed -i '362s/?/cjson.encode_number_precision/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+    sed -i '365s/?/cjson.encode_number_precision/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+    sed -i '368s/?/cjson.encode_keep_buffer/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+    sed -i '371s/?/cjson.encode_max_depth/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+    sed -i '374s/?/cjson.decode_max_depth/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+    sed -i '377s/?/cjson.encode_invalid_numbers/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+    sed -i '380s/?/cjson.decode_invalid_numbers/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+    sed -i '383s/?/cjson.encode_sparse_array/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+    sed -i '396s/?/cjson.safe.encode/g' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+	
+    # Decode all UTF-16 escapes测试项需要执行prel脚本生成预期结果文件utf8.dat，harmonyOS不支持执行脚本导致用例报错，暂时屏蔽
+    sed -i '312d' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+    sed -i '311d' ${LYCIUM_ROOT}/../lycium/usr/${pkgname}/${ARCH}/lib/tests/test.lua
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf $builddir-$ARCH-build 
+    rm -rf $builddir # $packagename
+}

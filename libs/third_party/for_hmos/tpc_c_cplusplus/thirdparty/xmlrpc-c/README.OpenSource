@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "xmlrpc-c",
+        "License": "XML-RPC For C/C++ License and MIT and ABYSS Web Server License and Python 1.5.2 License",
+        "License File": "https://sourceforge.net/p/xmlrpc-c/code/HEAD/tree/trunk/doc/COPYING",
+        "Version Number": "1.54.06",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/xmlrpc-c/files/Xmlrpc-c%20Super%20Stable/1.54.06/xmlrpc-c-1.54.06.tgz",
+        "Description": "XML-RPC is a quick-and-easy way to make procedure calls over the Internet. It converts the procedure call into an XML document, sends it to a remote server using HTTP, and gets back the response as XML."
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.openssl.org/source/old/1.1.1/openssl-1.1.1u.tar.gz",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    },
+    {
+        "Name": "curl",
+        "License": "curl",
+        "License File": "https://curl.se/docs/copyright.html",
+        "Version Number": "8.0.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/curl/curl/archive/refs/tags/curl-8_0_1.tar.gz",
+        "Description": "Curl is a command-line tool for transferring data specified with URL syntax. Find out how to use curl by reading the curl.1 man page or the MANUAL document. Find out how to install Curl by reading the INSTALL document."
+    }
+]

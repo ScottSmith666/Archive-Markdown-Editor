@@ -1,0 +1,23 @@
+--- AES-44407f634f11992404596129ec31545e3f268ad3/CMakeLists.txt	2024-06-25 18:03:40.006155800 +0800
++++ AES-44407f634f11992404596129ec31545e3f268ad3/CMakeLists2.txt	2024-06-25 18:35:57.636155800 +0800
+@@ -0,0 +1,19 @@
++cmake_minimum_required(VERSION 3.12)
++
++project(AES)
++
++file(GLOB AES_INCLUDE_FILES "*.h") 
++file(GLOB AES_SOURCE_FILES  "*.c") 
++
++include_directories(${AES_INCLUDE_FILES})
++
++add_executable(aestest ${AES_SOURCE_FILES})
++
++add_library(aes SHARED aes.c gmult.c)
++
++set(TARGET_INSTALL_BINDIR "bin")
++set(TARGET_INSTALL_LIBDIR "lib")
++set(TARGET_INSTALL_INCLUDEDIR "include")
++
++install(TARGETS aes LIBRARY DESTINATION ${TARGET_INSTALL_LIBDIR})
++install(FILES ${AES_INCLUDE_FILES} DESTINATION ${TARGET_INSTALL_INCLUDEDIR})
++

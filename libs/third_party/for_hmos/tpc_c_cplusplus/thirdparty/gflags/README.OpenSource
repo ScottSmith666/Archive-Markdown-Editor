@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "gflags",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/gflags/gflags/blob/v2.2.2/COPYING.txt",
+        "Version Number": "v2.2.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/gflags/gflags/archive/refs/tags/v2.2.2.tar.gz",
+        "Description": "The gflags package contains a C++ library that implements commandline flags processing."
+    }
+]

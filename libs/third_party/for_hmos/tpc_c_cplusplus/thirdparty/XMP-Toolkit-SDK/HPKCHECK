@@ -1,0 +1,156 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: <1321018403@qq.com>
+# Maintainer: <1321018403@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    cd $builddir/samples/target/$ARCH-build/release
+
+    echo "---------------------------------------------" > "${logfile}" 2>&1
+    echo "CustomSchema test begin" >> ${logfile} 2>&1
+    ./CustomSchema >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "CustomSchema fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "CustomSchema test end" >> ${logfile} 2>&1
+
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "CustomSchemaNewDOM test begin" >> ${logfile} 2>&1
+    ./CustomSchemaNewDOM >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "CustomSchemaNewDOM fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "CustomSchemaNewDOM test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "DumpFile test begin" >> ${logfile} 2>&1
+    ./DumpFile -tree ../../../testfiles/Image1.jpg >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "DumpFile fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "DumpFile test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "DumpMainXMP test begin" >> ${logfile} 2>&1
+    ./DumpMainXMP ../../../testfiles/Image1.jpg >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "DumpMainXMP fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "DumpMainXMP test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "DumpScannedXMP test begin" >> ${logfile} 2>&1
+    ./DumpScannedXMP ../../../testfiles/Image1.jpg >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "DumpScannedXMP fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "DumpScannedXMP test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "ModifyingXMP test begin" >> ${logfile} 2>&1
+    ./ModifyingXMP ../../../testfiles/Image1.jpg >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "ModifyingXMP fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "ModifyingXMP test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "ModifyingXMPNewDOM test begin" >> ${logfile} 2>&1
+    ./ModifyingXMPNewDOM ../../../testfiles/Image1.jpg >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "ModifyingXMPNewDOM fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "ModifyingXMPNewDOM test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "ReadingXMP test begin" >> ${logfile} 2>&1
+    ./ReadingXMP ../../../testfiles/Image1.jpg >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "ReadingXMP fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "ReadingXMP test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "ReadingXMPNewDOM test begin" >> ${logfile} 2>&1
+    ./ReadingXMPNewDOM ../../../testfiles/Image1.jpg >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "ReadingXMPNewDOM fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "ReadingXMPNewDOM test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "XMPCommand test begin" >> ${logfile} 2>&1
+    ./XMPCommand -compact get ../../../testfiles/Image1.jpg >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "XMPCommand fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "XMPCommand test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "XMPCoreCoverage test begin" >> ${logfile} 2>&1
+    ./XMPCoreCoverage >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "XMPCoreCoverage fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "XMPCoreCoverage test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "XMPIterations test begin" >> ${logfile} 2>&1
+    ./XMPIterations >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "XMPIterations fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "XMPIterations test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+
+    echo "XMPFilesCoverage test begin" >> ${logfile} 2>&1
+    ./XMPFilesCoverage >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        echo "XMPFilesCoverage fail code: $res" >> "${logfile}" 2>&1
+        return $res
+    fi
+    echo "XMPFilesCoverage test end" >> ${logfile} 2>&1
+    echo "---------------------------------------------" >> "${logfile}" 2>&1
+    cd $OLDPWD
+    return $res
+}

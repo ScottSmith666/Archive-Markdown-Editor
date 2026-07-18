@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "zlib",
+        "License": "zlib License",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.2.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz",
+        "Description": "A massively spiffy yet delicately unobtrusive compression library."
+    }
+]

@@ -1,0 +1,64 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>,li-santian <2372581223@qq.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=minizip-ng-1.2
+#源库依赖的是minizip-ng的1.2的分支，但是这个分支没有tag包，所以用的提交号版本
+pkgvel=8658af7e0a73d6ac4d94e81dde0e9fa95b1aff47
+pkgdesc="minizip-ng is a zip manipulation library written in C that is supported on Windows, macOS, and Linux."
+url="https://github.com/zlib-ng/minizip-ng/tree/1.2"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("zlib")
+depends=("zlib")
+makedepends=()
+
+source="https://github.com/zlib-ng/minizip-ng/archive/${pkgvel}.zip"
+builddir=${pkgname:0:10}-${pkgvel}
+packagename=${pkgvel}.zip
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DBUILD_TEST=ON \
+        -DCMAKE_CXX_FLAGS="${CMAKE_C_FLAGS} -L${LYCIUM_ROOT}/usr/zlib/${ARCH}/lib -lz" \
+        -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -L${LYCIUM_ROOT}/usr/zlib/${ARCH}/lib -lz" \
+        -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/${builddir}
+}

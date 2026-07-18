@@ -1,0 +1,180 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+declare_args() {
+  enable_minizip_test = false
+}
+
+config("libminizip_config") {
+  include_dirs = [
+    "//third_party/openssl/include",
+    "//third_party/openssl/include/openssl/",
+    "//third_party/minizip-ng/minizip-ng",
+    "//third_party/bzip2",
+    "//third_party/zlib",
+    "//third_party/iconv/",
+    "//third_party/iconv/libiconv",
+    "//third_party/xz/xz/",
+    "//third_party/xz/xz/src/liblzma/api/",
+    "//third_party/zstd/zstd",
+    "//third_party/zstd/zstd/lib/",
+  ]
+
+  cflags = [
+    "-fPIC",
+    "-Wall",
+    "-Wextra",
+    "-frtti",
+    "-fexceptions",
+    "-std=gnu99",
+    "-Wno-error=missing-braces",
+    "-Wno-error=visibility",
+    "-Wno-error=unused-function",
+    "-Wno-error=unused-variable",
+    "-Wno-error=undef",
+    "-Wno-error=deprecated-declarations",
+    "-Wno-error=sign-compare",
+    "-Wno-error=parentheses-equality",
+    "-Wno-incompatible-pointer-types",
+    "-Wno-error=unused-parameter",
+    "-Wno-error=header-hygiene",
+    "-Wno-error=implicit-function-declaration",
+    "-DHAVE_BZIP2",
+    "-DHAVE_INTTYPES_H",
+    "-DHAVE_PKCRYPT",
+    "-DHAVE_STDINT_H",
+    "-DHAVE_WZAES",
+    "-DHAVE_ZLIB",
+    "-DHAVE_ZSTD",
+    "-DHAVE_LZMA",
+    "-DMZ_ZIP_SIGNING",
+    "-DHAVE_ICONV",
+    "-DLZMA_API_STATIC",
+    "-D_POSIX_C_SOURCE=200112L",
+  ]
+}
+
+ohos_shared_library("minizip_shared") {
+  sources = [
+    "//third_party/minizip-ng/minizip-ng/mz_compat.c",
+    "//third_party/minizip-ng/minizip-ng/mz_crypt.c",
+    "//third_party/minizip-ng/minizip-ng/mz_crypt_openssl.c",
+    "//third_party/minizip-ng/minizip-ng/mz_os.c",
+    "//third_party/minizip-ng/minizip-ng/mz_os_posix.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_buf.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_bzip.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_lzma.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_mem.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_os_posix.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_pkcrypt.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_split.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_wzaes.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_zlib.c",
+    "//third_party/minizip-ng/minizip-ng/mz_strm_zstd.c",
+    "//third_party/minizip-ng/minizip-ng/mz_zip.c",
+    "//third_party/minizip-ng/minizip-ng/mz_zip_rw.c",
+  ]
+
+  configs = [ ":libminizip_config" ]
+
+  deps = [
+    "//third_party/bzip2:libbz2",
+    "//third_party/iconv:iconv",
+    "//third_party/openssl:libcrypto_shared",
+    "//third_party/xz:libxz",
+    "//third_party/zlib:libz_shared",
+    "//third_party/zstd:zstd_shared",
+  ]
+
+  part_name = "minizip"
+}
+
+ohos_executable("minizip") {
+  sources = [ "./minizip-ng/minizip.c" ]
+
+  cflags = [
+    "-DHAVE_BZIP2",
+    "-DHAVE_ICONV",
+    "-DHAVE_INTTYPES_H",
+    "-DHAVE_LZMA",
+    "-DHAVE_PKCRYPT",
+    "-DHAVE_STDINT_H",
+    "-DHAVE_WZAES",
+    "-DHAVE_ZLIB",
+    "-DHAVE_ZSTD",
+    "-DLZMA_API_STATIC",
+    "-DMZ_ZIP_SIGNING",
+    "-D_POSIX_C_SOURCE=200112L",
+  ]
+
+  deps = [ "//third_party/minizip-ng:minizip_shared" ]
+
+  part_name = "minizip"
+}
+
+ohos_executable("minigzip") {
+  sources = [ "./minizip-ng/minigzip.c" ]
+
+  public_configs = [ ":libminizip_config" ]
+
+  deps = [ "//third_party/minizip-ng:minizip_shared" ]
+
+  part_name = "minizip"
+}
+
+config("minizip_config") {
+  include_dirs = [
+    "//third_party/minizip-ng/minizip-ng",
+    "//third_party/minizip-ng/minizip-ng/test",
+  ]
+
+  cflags = [
+    "-DHAVE_COMPAT",
+    "-DHAVE_BZIP2",
+    "-DHAVE_INTTYPES_H",
+    "-DHAVE_PKCRYPT",
+    "-DHAVE_STDINT_H",
+    "-DHAVE_WZAES",
+    "-DHAVE_ZLIB",
+    "-DHAVE_LZMA",
+    "-DHAVE_ZSTD",
+    "-DMZ_ZIP_SIGNING",
+    "-DZLIB_COMPAT",
+    "-D_POSIX_C_SOURCE=200112L",
+  ]
+}
+
+ohos_executable("minizip_test") {
+  sources = [ "./minizip-ng/test/test.c" ]
+
+  public_configs = [ ":minizip_config" ]
+
+  deps = [ "//third_party/minizip-ng:minizip_shared" ]
+
+  part_name = "minizip"
+}
+
+group("samples") {
+  if (enable_minizip_test) {
+    deps = [
+      ":minigzip",
+      ":minizip",
+      ":minizip_test",
+    ]
+  } else {
+    deps = []
+  }
+}

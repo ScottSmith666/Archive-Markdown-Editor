@@ -1,0 +1,26 @@
+[binaries]
+c = 'ohos_sdk/native/llvm/bin/x86_64-linux-ohos-clang'
+cpp = 'ohos_sdk/native/llvm/bin/x86_64-linux-ohos-clang++'
+ar = 'ohos_sdk/native/llvm/bin/llvm-ar'
+strip = 'ohos_sdk/native/llvm/bin/llvm-strip'
+ld = 'ohos_sdk/native/llvm/bin/ld.lld'
+pkgconfig = '/usr/bin/pkg-config'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'
+
+[properties]
+needs_exe_wrapper = true
+skip_sanity_check = true
+sys_root = ''
+platform = 'generic'
+pkg_config_libdir = ''
+
+[built-in options]
+c_args = ['-fPIC', '-D__MUSL__=1']
+cpp_args = ['-fPIC', '-D__MUSL__=1']
+c_link_args = ['-s']
+cpp_link_args = ['-s']

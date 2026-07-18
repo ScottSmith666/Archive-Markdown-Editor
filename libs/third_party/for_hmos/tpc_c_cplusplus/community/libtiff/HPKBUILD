@@ -1,0 +1,81 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, wen fan <wenfan001@chinasoftinc.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=libtiff
+pkgver=51558511bdbbcffdce534db21dbaf5d54b31638a
+pkgrel=
+pkgdesc="a small collection of tools for doingsimple manipulations of TIFF images, and documentation on the library and tools."
+url=https://gitlab.com/libtiff/libtiff
+archs=(armeabi-v7a arm64-v8a)
+license=libtiff
+depends=(zstd_1_5_6 libjpeg-turbo xz libwebp libdeflate jbigkit)
+makedepends=()
+
+source=
+autounpack=false
+downloadpackage=false
+buildtools=cmake
+clonesrcflag=true
+
+builddir=${pkgname}-${pkgver}
+packagename=
+
+prepare() {
+    if ${clonesrcflag}
+    then
+        git clone ${url}.git ${builddir} > ${publicbuildlog} 2>&1 || return -1
+        cd ${builddir}
+        git reset --hard ${pkgver} >> ${publicbuildlog} 2>&1 || return -1
+        cd ${OLDPWD}
+        clonesrcflag=false
+    fi
+
+    mkdir -p ${builddir}/${ARCH}-build
+    return 0
+}
+
+build() {
+    cd ${builddir}
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -B${ARCH}-build -S./ > ${buildlog} 2>&1 || return -1
+    ${MAKE} -C${ARCH}-build >> ${buildlog} 2>&1 || return -1
+    cd ${OLDPWD}
+    return 0
+}
+
+package() {
+    cd ${builddir}/${ARCH}-build
+    ${MAKE} install >> ${buildlog} 2>&1 || return -1
+    cd ${OLDPWD}
+    return 0
+}
+
+check() {
+    cd ${builddir}/${ARCH}-build
+
+    # 使用单板cmake程序进行测试
+    find . -name "CTestTestfile.cmake" | xargs sed -i.bak 's#".*/cmake"#"/bin/cmake"#g' || return -1
+
+    # 将测试用例使用的cmake改为CI工具的cmake
+    sed -i.bak "s/\".*\/cmake\"/\"cmake\"/g" test/CTestTestfile.cmake || return -1
+    cd ${OLDPWD}
+    echo "The test must be on an OpenHarmony device!"
+    return 0 
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/${builddir}
+    return 0 
+}

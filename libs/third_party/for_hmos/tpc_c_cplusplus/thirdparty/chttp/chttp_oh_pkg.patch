@@ -1,0 +1,28 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index aa485ab..57f6c6b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -34,6 +34,8 @@ endif(WIN32)
+ 
+ if(HTTPS)
+ 	add_definitions("-D_HTTPS")
+-	target_link_libraries(chttp ssl crypto)
++	find_package(OpenSSL REQUIRED)
++	include_directories(${OPENSSL_INCLUDE_DIR})
++   target_link_libraries(chttp ${OPENSSL_SSL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARIES})
+ endif(HTTPS)
+ add_subdirectory(test)
+\ No newline at end of file
+diff --git a/test/src/test_chttp.c b/test/src/test_chttp.c
+index f3e67d5..32ceede 100644
+--- a/test/src/test_chttp.c
++++ b/test/src/test_chttp.c
+@@ -18,7 +18,7 @@ int main(int argc, char **argv)
+ 
+ 	chttp = chttp_init();
+ 
+-	chttp_setopt(chttp, CHTTP_OPT_URL, "http://www.zixue7.com/forum.php");
++	chttp_setopt(chttp, CHTTP_OPT_URL, "https://gitcode.com/openharmony-sig/tpc_c_cplusplus");
+ 	chttp_setopt(chttp, CHTTP_OPT_POST, 1);
+ 	chttp_setopt(chttp, CHTTP_OPT_DEBUG, 0);
+ 	chttp_setopt(chttp, CHTTP_OPT_COOKIE_STR, "");

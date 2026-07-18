@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "speex",
+        "License": "Xiph.org Foundation",
+        "License File": "https://github.com/xiph/speex?tab=License-1-ov-file",
+        "Version Number": "Speex-1.2.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/xiph/speex/archive/refs/tags/Speex-1.2.1.tar.gz",
+        "Description": "Speex is an audio codec library."
+    }
+]

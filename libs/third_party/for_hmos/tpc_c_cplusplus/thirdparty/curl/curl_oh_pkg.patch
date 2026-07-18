@@ -1,0 +1,15 @@
+diff -rupN curl-curl-8_0_1/lib/CMakeLists.txt curl-curl-8_0_1_patch/lib/CMakeLists.txt
+--- curl-curl-8_0_1/lib/CMakeLists.txt	2023-03-20 21:49:10.000000000 +0800
++++ curl-curl-8_0_1_patch/lib/CMakeLists.txt	2023-05-10 14:51:49.579039952 +0800
+@@ -94,7 +94,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "AIX" OR
+   # CMake on those ancient systems
+   CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR
+ 
+-  CMAKE_SYSTEM_NAME STREQUAL "Haiku")
++  CMAKE_SYSTEM_NAME STREQUAL "Haiku" OR
++
++  # OpenHarmony
++  CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+ 
+   math(EXPR CMAKESONAME "${VERSIONCHANGE} - ${VERSIONDEL}")
+   set(CMAKEVERSION "${CMAKESONAME}.${VERSIONDEL}.${VERSIONADD}")

@@ -1,0 +1,78 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong2 <huangminzhong2@huawei.com>
+# Maintainer: huangminzhong2 <huangminzhong2@huawei.com>
+
+pkgname=sqlite3pp
+pkgver=v1.0.9
+pkgrel=0
+pkgdesc="libwmf is a library designed to parse and process Windows Media Format (WMF) files"
+url="https://github.com/iwongu/sqlite3pp"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT license")
+depends=("sqlite_3_46_0")
+makedepends=()
+
+source="https://github.com/iwongu/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+patchflag=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 因源代码未提供编译文件，sqlite3pp_oh_pkg.patch文件是CMakeLists.txt的patch文件，用于编译测试代码
+        patch -p1 < `pwd`/../sqlite3pp_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build \
+    -DCMAKE_CXX_FLAGS="-I$LYCIUM_ROOT/usr/sqlite_3_46_0/$ARCH/include" \
+    -DCMAKE_EXE_LINKER_FLAGS="-L$LYCIUM_ROOT/usr/sqlite_3_46_0/$ARCH/lib" \
+    -DBUILD_TESTS=ON \
+    -S./ -L >  $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 打包安装
+package() {
+    cd $builddir
+    make -C $ARCH-build install >>  $buildlog 2>&1
+    cd $OLDPWD
+}
+
+# 进行测试的准备和说明
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

@@ -1,0 +1,12 @@
+--- a/test/unit/tsd.c
++++ b/test/unit/tsd.c
+@@ -268,7 +268,9 @@
+ 
+ 	return test_no_reentrancy(
+ 	    test_tsd_main_thread,
++#if !(defined(__OHOS__) && defined(__aarch64__))
+ 	    test_tsd_sub_thread,
++#endif		
+ 	    test_tsd_reincarnation,
+ 	    test_tsd_global_slow);
+ }

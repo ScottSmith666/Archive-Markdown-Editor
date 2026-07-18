@@ -1,0 +1,130 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: jiajiawei <2968675576@qq.com>
+# Maintainer: jiajiawei <2968675576@qq.com>
+
+pkgname=libwebsockets
+pkgver=v4.3.3
+pkgrel=0 
+pkgdesc="Libwebsockets (LWS) is a lightweight and pure C library that allows you to implement various network protocols easily with a nonblocking event loop. "
+url="https://libwebsockets.org/" 
+archs=("armeabi-v7a" "arm64-v8a") 
+license=("MIT License" "BSD2" "BSD3" "ZLIB" "APACHE2" "CC0")
+depends=("openssl_1_0_2u" "zlib" "sqlite" "libuv" "libevent")
+makedepends=() 
+ 
+# 官方下载地址https://github.com/libwebsockets/$pkgname/archive/refs/tags/$pkgver.zip受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/${pkgname}source/repository/archive/$pkgver.zip"
+  
+downloadpackage=true 
+autounpack=true 
+builddir=${pkgname}source-${pkgver} 
+packagename=$builddir.zip 
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+# 编译armeabi-v7a添加openssl_1_0_2u依赖,编译arm64-v8a关闭openssl_1_0_2u依赖
+# -DLWS_OPENSSL_SUPPORT=1 支持openssl
+# -DLWS_WITH_ZLIB=ON 添加zlib依赖
+# -DLWS_WITH_SQLITE3=ON 添加sqlite依赖
+# -DLWS_WITH_LIBUV=ON 添加libuv依赖
+# -DLWS_WITH_LIBEVENT=ON 添加libevent依赖
+# -DLWS_ROLE_MQTT=ON 添加MQTT client注释
+# -DLWS_IPV6=ON 添加IPV6的支持
+# -DLWS_WITH_LWSWS=ON 添加Libwebsockets Webserve的支持
+# -DLWS_WITH_HTTP_PROXY=ON 添加active HTTP proxying的支持
+# -DLWS_WITH_ZIP_FOPS=ON 添加serving pre-zipped files的支持
+# -DLWS_WITH_SOCKS5=ON 允许在客户端连接中使用SOCKS5代理
+# -DLWS_ROLE_RAW_PROXY=ON 添加Raw packet proxy的支持
+# -DLWS_WITH_PEER_LIMITS=ON 追踪对等方并限制单个对等方可以分配的资源
+# -DLWS_WITH_RANGES=ON 支持http ranges (RFC7233)
+# -DLWS_WITH_THREADPOOL=ON 支持受控的工作线程池（依赖于pthread）
+# -DLWS_WITH_HTTP_STREAM_COMPRESSION=ON 支持HTTP流压缩
+# -DLWS_WITH_ALSA=ON 启用alsa音频示例
+# -DLWS_WITH_GTK=ON 启用gtk示例
+# -DLWS_WITH_FTS=ON 支持全文搜索
+# -DLWS_WITH_SYS_ASYNC_DNS=ON 支持非阻塞的内部IPv4 + IPv6 DNS解析器
+# -DLWS_WITH_SYS_DHCP_CLIENT=ON 内置的小型ntp客户端适用于TLS日期验证并通过lws_system运行
+# -DLWS_WITH_SYS_FAULT_INJECTION=ON 支持内置的小型DHCP客户端
+# -DLWS_WITH_SYS_METRICS=ON 启用故障注入支持
+# -DLWS_WITH_SECURE_STREAMS=ON 支持Lws Metrics AP
+# -DLWS_WITH_SECURE_STREAMS_PROXY_API=ON 支持 Secure Streams protocol-agnostic API
+# -DLWS_WITH_SECURE_STREAMS_AUTH_SIGV4=ON 将 Secure Streams 支持扩展到跨进程工作
+# -DLWS_WITH_SECURE_STREAMS_BUFFER_DUMP=ON 将 Secure Streams Auth 支持扩展到 AWS Sigv4
+build() {
+  cd $builddir
+  if [ $ARCH == "armeabi-v7a" ]
+  then
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DLWS_OPENSSL_SUPPORT=1 \
+        -DLWS_OPENSSL_INCLUDE_DIRS="$LYCIUM_ROOT/usr/openssl_1_0_2u/$ARCH/include" \
+        -DLWS_OPENSSL_LIBRARIES="$LYCIUM_ROOT/usr/openssl_1_0_2u/$ARCH/lib/libssl.a;$LYCIUM_ROOT/usr/openssl_1_0_2u/$ARCH/lib/libcrypto.a" \
+        -DLWS_WITH_ZLIB=ON \
+        -DLWS_ZLIB_LIBRARIES="$LYCIUM_ROOT/usr/zlib/$ARCH/lib/libz.a" \
+        -DLWS_ZLIB_INCLUDE_DIRS="$LYCIUM_ROOT/usr/zlib/$ARCH/include" \
+        -DLWS_WITH_SQLITE3=ON \
+        -DLWS_SQLITE3_LIBRARIES="$LYCIUM_ROOT/usr/sqlite/$ARCH/lib/libsqlite3.a" \
+        -DLWS_SQLITE3_INCLUDE_DIRS="$LYCIUM_ROOT/usr/sqlite/$ARCH/include" \
+        -DLWS_WITH_LIBUV=ON \
+        -DLWS_LIBUV_LIBRARIES="$LYCIUM_ROOT/usr/libuv/$ARCH/lib/libuv_a.a" \
+        -DLWS_LIBUV_INCLUDE_DIRS="$LYCIUM_ROOT/libuv/$ARCH/include" \
+        -DLWS_WITH_LIBEVENT=ON \
+        -DLIBEVENT_LIBRARIES="$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent_core.a;$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent_extra.a;$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent_openssl.a;$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent_pthreads.a;$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent.a" \
+        -DLIBEVENT_INCLUDE_DIRS="$LYCIUM_ROOT/usr/libevent/$ARCH/include" \
+        -DLWS_ROLE_MQTT=ON -DLWS_IPV6=ON -DLWS_WITH_LWSWS=ON -DLWS_WITH_HTTP_PROXY=ON -DLWS_WITH_ZIP_FOPS=ON -DLWS_WITH_SOCKS5=ON -DLWS_ROLE_RAW_PROXY=ON -DLWS_WITH_PEER_LIMITS=ON -DLWS_WITH_RANGES=ON -DLWS_WITH_THREADPOOL=ON -DLWS_WITH_HTTP_STREAM_COMPRESSION=ON -DLWS_WITH_ALSA=ON -DLWS_WITH_GTK=ON -DLWS_WITH_FTS=ON -DLWS_WITH_SYS_ASYNC_DNS=ON -DLWS_WITH_SYS_DHCP_CLIENT=ON -DLWS_WITH_SYS_FAULT_INJECTION=ON -DLWS_WITH_SYS_METRICS=ON -DLWS_WITH_SECURE_STREAMS=ON -DLWS_WITH_SECURE_STREAMS_PROXY_API=ON -DLWS_WITH_SECURE_STREAMS_AUTH_SIGV4=ON -DLWS_WITH_SECURE_STREAMS_BUFFER_DUMP=ON \
+        -DCMAKE_C_FLAGS="-Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-command-line-argument" \
+        -B$ARCH-build -S./ > $buildlog 2>&1
+  elif [ $ARCH == "arm64-v8a" ]
+    then
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DLWS_WITH_SSL=OFF \
+        -DLWS_WITH_ZLIB=ON \
+        -DLWS_ZLIB_LIBRARIES="$LYCIUM_ROOT/usr/zlib/$ARCH/lib/libz.a" \
+        -DLWS_ZLIB_INCLUDE_DIRS="$LYCIUM_ROOT/usr/zlib/$ARCH/include" \
+        -DLWS_WITH_SQLITE3=ON \
+        -DLWS_SQLITE3_LIBRARIES="$LYCIUM_ROOT/usr/sqlite/$ARCH/lib/libsqlite3.a" \
+        -DLWS_SQLITE3_INCLUDE_DIRS="$LYCIUM_ROOT/usr/sqlite/$ARCH/include" \
+        -DLWS_WITH_LIBUV=ON \
+        -DLWS_LIBUV_LIBRARIES="$LYCIUM_ROOT/usr/libuv/$ARCH/lib/libuv_a.a" \
+        -DLWS_LIBUV_INCLUDE_DIRS="$LYCIUM_ROOT/libuv/$ARCH/include" \
+        -DLWS_WITH_LIBEVENT=ON \
+        -DLIBEVENT_LIBRARIES="$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent_core.a;$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent_extra.a;$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent_openssl.a;$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent_pthreads.a;$LYCIUM_ROOT/usr/libevent/$ARCH/lib/libevent.a" \
+        -DLIBEVENT_INCLUDE_DIRS="$LYCIUM_ROOT/usr/libevent/$ARCH/include" \
+        -B$ARCH-build -S./ > $buildlog 2>&1
+  else
+    echo "${ARCH} not support"
+  fi
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1 # 此处使用$MAKE，在lycium/build.sh中定义，变量值为make -j32。日志路径使用变量build.log
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install  >> $buildlog 2>&1 # 日志路径使用变量build.log
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

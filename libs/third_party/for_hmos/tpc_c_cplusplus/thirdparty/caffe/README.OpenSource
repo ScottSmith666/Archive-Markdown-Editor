@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "caffe",
+        "License": "Copyright (c) 2014-2017 The Regents of the University of California",
+        "License File": "COPYING",
+        "Version Number": "1.0",
+        "Owner": "kanchengc@isoftstone.com",
+        "Upstream URL": "https://github.com/BVLC/caffe/archive/refs/tags/1.0.tar.gz",
+        "Description": "Caffe is a deep learning framework made with expression, speed, and modularity in mind."
+    }
+]

@@ -1,0 +1,64 @@
+--- libiscsi-1.19.0/test-tool/iscsi-support.c
++++ libiscsi-1.19.0/test-tool/iscsi-support.c
+@@ -569,6 +569,8 @@ wait_until_test_finished(struct iscsi_context *iscsi, struct iscsi_async_state *
+         }
+ }
+ 
++int (*local_iscsi_queue_pdu)(struct iscsi_context *iscsi, struct iscsi_pdu *pdu);
++
+ int
+ iscsi_queue_pdu(struct iscsi_context *iscsi, struct iscsi_pdu *pdu)
+ {
+--- libiscsi-1.19.0/test-tool/iscsi-support.h
++++ libiscsi-1.19.0/test-tool/iscsi-support.h
+@@ -50,17 +50,17 @@ extern const char *initiatorname2;
+ #define EXPECT_RESERVATION_CONFLICT SCSI_STATUS_RESERVATION_CONFLICT, 0, NULL, 0
+ #define EXPECT_COPY_ABORTED SCSI_STATUS_CHECK_CONDITION, SCSI_SENSE_COPY_ABORTED, copy_aborted_ascqs, 3
+ 
+-int no_medium_ascqs[3];
+-int lba_oob_ascqs[1];
+-int invalid_cdb_ascqs[2];
+-int param_list_len_err_ascqs[1];
+-int too_many_desc_ascqs[2];
+-int unsupp_desc_code_ascqs[2];
+-int write_protect_ascqs[3];
+-int sanitize_ascqs[1];
+-int removal_ascqs[1];
+-int miscompare_ascqs[1];
+-int copy_aborted_ascqs[3];
++extern int no_medium_ascqs[3];
++extern int lba_oob_ascqs[1];
++extern int invalid_cdb_ascqs[2];
++extern int param_list_len_err_ascqs[1];
++extern int too_many_desc_ascqs[2];
++extern int unsupp_desc_code_ascqs[2];
++extern int write_protect_ascqs[3];
++extern int sanitize_ascqs[1];
++extern int removal_ascqs[1];
++extern int miscompare_ascqs[1];
++extern int copy_aborted_ascqs[3];
+ 
+ extern int loglevel;
+ #define LOG_SILENT  0
+@@ -779,7 +779,9 @@ struct iscsi_async_state {
+ void wait_until_test_finished(struct iscsi_context *iscsi, struct iscsi_async_state *test_state);
+ 
+ struct iscsi_pdu;
+-int (*local_iscsi_queue_pdu)(struct iscsi_context *iscsi, struct iscsi_pdu *pdu);
++extern int (*local_iscsi_queue_pdu)(struct iscsi_context *iscsi, struct iscsi_pdu *pdu);
++
++extern int (*real_iscsi_queue_pdu)(struct iscsi_context *iscsi, struct iscsi_pdu *pdu);
+ 
+ struct scsi_command_descriptor *get_command_descriptor(int opcode, int sa);
+ 
+--- libiscsi-1.19.0/test-tool/iscsi-test-cu.c
++++ libiscsi-1.19.0/test-tool/iscsi-test-cu.c
+@@ -63,7 +63,7 @@ static unsigned int maxsectors;
+  * this allows us to redefine how PDU are queued, at times, for
+  * testing purposes
+  */
+-int (*real_iscsi_queue_pdu)(struct iscsi_context *iscsi, struct iscsi_pdu *pdu);
++// int (*real_iscsi_queue_pdu)(struct iscsi_context *iscsi, struct iscsi_pdu *pdu);
+ 
+ /*****************************************************************
+  *

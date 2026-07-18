@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libmobi",
+        "License": "GNU Lesser General Public License v3.0",
+        "License File": "COPYING",
+        "Version Number": "v0.11",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/bfabiszewski/libmobi",
+        "Description": "C library for handling Mobipocket/Kindle (MOBI) ebook format documents"
+    }
+]

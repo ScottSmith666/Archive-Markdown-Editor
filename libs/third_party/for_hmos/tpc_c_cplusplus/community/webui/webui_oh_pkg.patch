@@ -1,0 +1,46 @@
+--- webui-2.5.0-beta.3/tests/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
++++ webui-2.5.0-beta.3/tests/CMakeLists.txt	2025-05-09 20:36:14.704085566 +0800
+@@ -0,0 +1,14 @@
++# 设置头文件包含路径
++include_directories(${CMAKE_SOURCE_DIR}/include)
++# 指定测试文件
++set(TEST_FILE ${CMAKE_CURRENT_SOURCE_DIR}/call_c_from_js.c)
++# 获取不带扩展名的文件名
++get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
++# 打印当前测试文件路径
++message(STATUS "Testing File: ${TEST_FILE}")
++# 生成可执行文件
++add_executable(${TEST_NAME} ${TEST_FILE} ${CMAKE_SOURCE_DIR}/src/webui.c)
++# 链接 webui 库
++target_link_libraries(${TEST_NAME} webui)
++# 注册测试
++add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+--- webui-2.5.0-beta.3/CMakeLists.txt	2025-03-08 05:04:21.000000000 +0800
++++ webui-2.5.0-beta.3/CMakeLists.txt	2025-05-09 17:49:09.648478037 +0800
+@@ -22,7 +22,10 @@
+     src/civetweb/civetweb.c
+     src/webui.c
+ )
+-
++# 添加测试模块：启用 CTest
++enable_testing()
++# 设置测试目录
++add_subdirectory(tests)
+ # Library targets
+ add_library(webui ${SOURCE_FILES})
+ target_include_directories(webui PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
+--- webui-2.5.0-beta.3/src/webui.c	2025-03-08 05:04:21.000000000 +0800
++++ webui-2.5.0-beta.3/src/webui.c	2025-05-10 18:57:45.228293925 +0800
+@@ -9284,7 +9284,12 @@
+         CloseHandle(monitor_thread);
+         #else
+         if (monitor_thread) {
++            #ifdef __OHOS__
++            //pthread_cancel(monitor_thread);
++            #else
++            
+             pthread_cancel(monitor_thread);
++            #endif
+         }
+         #endif
+     }

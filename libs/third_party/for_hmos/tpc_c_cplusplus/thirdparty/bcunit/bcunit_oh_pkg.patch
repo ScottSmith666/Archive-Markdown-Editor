@@ -1,0 +1,14 @@
+--- a/BCUnit/Sources/CMakeLists.txt
++++ b/BCUnit/Sources/CMakeLists.txt
+@@ -207,6 +207,10 @@ if(ENABLE_TEST)
+ 	add_library(bcunit_test STATIC ${FRAMEWORK_SOURCE_FILES})
+ 	target_compile_definitions(bcunit_test PUBLIC MEMTRACE BCUNIT_BUILD_TESTS BCUNIT_DO_NOT_DEFINE_UNLESS_BUILDING_TESTS)
+ 	target_include_directories(bcunit_test PUBLIC Test)
+-
++	target_include_directories(bcunit_test PUBLIC
++		$<INSTALL_INTERFACE:include>
++		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/BCUnit/Headers>
++	)
++	target_link_libraries(bcunit_test bcunit)
+ 	add_subdirectory(Test)
+ endif()

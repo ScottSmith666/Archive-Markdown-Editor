@@ -1,0 +1,79 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the ImageMagick License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: chenyajie <chenyajie5@huawei-partners.com>
+# Maintainer: huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=tzdb
+pkgver=2024a
+pkgrel=0
+pkgdesc="tzdb(Time-Zone-Database) for accurate global date-time processing in software, updated regularly, universally adopted."
+url=""
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD 3-clause")
+depends=()
+makedepends=()
+
+source="https://data.iana.org/time-zones/releases/tzdb-2024a.tar.lz"
+
+autounpack=false
+downloadpackage=true
+buildtools="make"
+
+builddir=${pkgname}-${pkgver}
+packagename=${builddir}.tar
+
+cc=
+
+prepare() {
+    apt-get update  
+    apt-get install lzip
+    tar -xvf $packagename > $publicbuildlog 2>&1
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        export CFLAGS="-g -O2 -DHAVE_GETTEXT=0 -DOHOS_NDK -fPIC -D__MUSL__=1"
+    fi
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        export CFLAGS="-g -O2 -DHAVE_GETTEXT=0 -DOHOS_NDK -fPIC -march=armv7a -D__MUSL__=1"
+    fi
+    cd $OLDPWD # 1> /dev/null
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE CC="${cc}" > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # make check
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

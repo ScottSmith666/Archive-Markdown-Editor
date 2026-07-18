@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "fdk-aac",
+        "License": "LicenseRef-scancode-fraunhofer-fdk-aac-codec",
+        "License File": "https://developer.garmin.com/open-source/fraunhofer/",
+        "Version Number": "v2.0.2",
+        "Owner": "swkec@isoftstone.com",
+        "Upstream URL": "https://github.com/mstorsjo/fdk-aac/archive/refs/tags/v2.0.2.tar.gz",
+        "Description": "A standalone library of the Fraunhofer FDK AAC code from Android."
+    }
+]

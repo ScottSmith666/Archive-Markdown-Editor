@@ -1,0 +1,11 @@
+--- log4z-3.4.0_old/log4z.h	2017-09-28 01:37:48.000000000 +0800
++++ log4z-3.4.0/log4z.h	2024-08-15 23:42:44.000000000 +0800
+@@ -826,7 +826,7 @@
+     {
+         if ( fabst < 0.0001 || (!isSimple && fabst > 4503599627370495ULL) || (isSimple && fabst > 8388607))
+         {
+-            gcvt(t, isSimple ? 7 : 16, _cur);
++            //gcvt(t, isSimple ? 7 : 16, _cur);
+             size_t len = strlen(_cur);
+             if (len > count) len = count;
+             _cur += len;

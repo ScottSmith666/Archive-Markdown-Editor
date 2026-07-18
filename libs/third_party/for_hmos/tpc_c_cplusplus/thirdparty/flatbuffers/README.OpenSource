@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "FlatBuffers",
+        "License": "Apache License 2.0",
+        "License File": "https://github.com/google/flatbuffers/blob/master/LICENSE",
+        "Version Number": "v23.5.9",
+        "Owner": "614222069@qq.com",
+        "Upstream URL": "https://github.com/google/flatbuffers/archive/refs/tags/v23.5.9.tar.gz",
+        "Description": "FlatBuffers is a cross platform serialization library architected for maximum memory efficiency."
+    }
+]
+

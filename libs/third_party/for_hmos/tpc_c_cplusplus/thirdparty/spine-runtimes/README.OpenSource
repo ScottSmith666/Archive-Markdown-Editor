@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "spine-runtimes",
+        "License": "",
+        "License File": "https://github.com/EsotericSoftware/spine-runtimes/blob/4.1/LICENSE",
+        "Version Number": "4.1.00",
+        "Owner": "1596268623@qq.com",
+        "Upstream URL": "https://github.com/EsotericSoftware/spine-runtimes/archive/refs/tags/4.1.00.tar.gz",
+        "Description": "This GitHub project hosts the Spine Runtimes which are needed to use Spine 2D skeletal animation data with various game toolkits."
+    }
+]

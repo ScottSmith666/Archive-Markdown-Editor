@@ -1,0 +1,21 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f77ff7f..03636b8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,7 +1,6 @@
+ cmake_minimum_required(VERSION 3.17)
+ project(spine)
+ 
+-set(CMAKE_INSTALL_PREFIX "./")
+ set(CMAKE_VERBOSE_MAKEFILE ON)
+ set(SPINE_SFML FALSE CACHE BOOL FALSE)
+ set(SPINE_SANITIZE FALSE CACHE BOOL FALSE)
+@@ -26,6 +25,8 @@ if((${SPINE_SFML}) OR (${CMAKE_CURRENT_BINARY_DIR} MATCHES "spine-sfml"))
+ 	add_subdirectory(spine-cpp)
+ 	add_subdirectory(spine-sfml/cpp)
+ endif()
++add_subdirectory(spine-c)
++add_subdirectory(spine-cpp)
+ 
+ # add_subdirectory(spine-c/spine-c-unit-tests)
+ add_subdirectory(spine-cpp/spine-cpp-unit-tests)

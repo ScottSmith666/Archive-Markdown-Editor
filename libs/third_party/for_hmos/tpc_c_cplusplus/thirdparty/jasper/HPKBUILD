@@ -1,0 +1,59 @@
+
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+pkgname=jasper
+pkgver=version-4.0.0
+pkgrel=0
+pkgdesc=""
+url=
+archs=("armeabi-v7a" "arm64-v8a")
+license=("jasper license files")
+depends=("libjpeg-turbo")
+makedepends=()
+
+source="https://github.com/${pkgname}-software/${pkgname}/archive/refs/tags/${pkgver}.tar.gz"
+
+builddir=${pkgname}-${pkgver}
+packagename=${builddir}.tar.gz
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+
+prepare() {
+    mkdir -p ${builddir}/${ARCH}-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=${ARCH} -DJAS_ENABLE_DOC=OFF -DJAS_STDC_VERSION=199901L -B${ARCH}-build -S./ -L > `pwd`/${ARCH}-build/build.log 2>&1
+    make -j4 -C ${ARCH}-build >> `pwd`/${ARCH}-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd ${builddir}
+    make -C ${ARCH}-build install >> `pwd`/${ARCH}-build/build.log 2>&1
+    cd ${OLDPWD}
+}
+
+check() {
+    sed -i 's/\/usr\/bin/\/bin/g' $builddir/test/bin/run_test_imginfo
+    sed -i 's/\/usr\/bin/\/bin/g' $builddir/test/bin/run_test_imgcmp
+    sed -i 's/\/usr\/bin/\/bin/g' $builddir/test/bin/run_test_1
+    sed -i 's/\/usr\/bin/\/bin/g' $builddir/test/bin/run_test_2
+    sed -i 's/\/usr\/bin/\/bin/g' $builddir/test/bin/run_test_3
+    sed -i 's/\/usr\/bin/\/bin/g' $builddir/test/bin/run_test_5
+    sed -i 's/\/usr\/bin/\/bin/g' $builddir/build/sysinfo
+    sed -i 's/\/usr\/bin/\/bin/g' $builddir/test/bin/run_codec_test
+    find . -type f -exec sed -i 's/\/usr\/bin/\/data\/CIusr\/bin/g' {} +
+    sed -i 's/tmp_dir=\$(make_tmp_dir)/tmp_dir=\/data\/local\/\$(make_tmp_dir)/g' $builddir/test/bin/run_test_2
+    sed -i 's/tmp_dir=\$(make_tmp_dir)/tmp_dir=\/data\/local\/\$(make_tmp_dir)/g' $builddir/test/bin/run_test_5
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+     rm -rf ${PWD}/${builddir} #${PWD}/$packagename
+}

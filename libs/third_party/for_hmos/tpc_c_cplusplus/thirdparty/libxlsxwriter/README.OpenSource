@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libxlsxwriter",
+        "License": "FreeBSD",
+        "License File": "License.txt",
+        "Version Number": "RELEASE_1.1.5",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://github.com/jmcnamara/libxlsxwriter/archive/refs/tags/RELEASE_1.1.5.tar.gz",
+        "Description": "Libxlsxwriter is a C library that can be used to write text, numbers, formulas and hyperlinks to multiple worksheets in an Excel 2007+ XLSX file."
+    }
+]

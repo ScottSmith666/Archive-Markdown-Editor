@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "reactphysics3d-0.9.0",
+        "License": "Zlib License",
+        "License File": "https://github.com/DanielChappuis/reactphysics3d/blob/master/LICENSE",
+        "Version Number": "0.9.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/DanielChappuis/reactphysics3d",
+        "Description": "ReactPhysics3D is an open source C++ physics engine library that can be used in 3D simulations and games."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "yoga",
+        "License": "MIT License",
+        "License File": "LICENSE",
+        "Version Number": "v3.0.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/facebook/yoga",
+        "Description": "libyoga is a UI control layout engine."
+    }
+]

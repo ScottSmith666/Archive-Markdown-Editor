@@ -1,0 +1,122 @@
+diff -aurN sha/cmake/PackageConfig.cmake.in sha_patch/cmake/PackageConfig.cmake.in
+--- sha/cmake/PackageConfig.cmake.in	1969-12-31 16:00:00.000000000 -0800
++++ sha_patch/cmake/PackageConfig.cmake.in	2023-09-04 02:06:35.266667302 -0700
+@@ -0,0 +1,11 @@
++@PACKAGE_INIT@
++
++set(@PROJECT_NAME@_INCLUDE_DIRS ${PACKAGE_PREFIX_DIR}/include ${PACKAGE_PREFIX_DIR}/include/@TARGET_NAME@)
++
++set(@PROJECT_NAME@_SHARED_LIBRARIES ${PACKAGE_PREFIX_DIR}/lib/lib@TARGET_NAME@.so)
++set(@PROJECT_NAME@_STATIC_LIBRARIES ${PACKAGE_PREFIX_DIR}/lib/lib@TARGET_NAME@_static.a)
++
++include(CMakeFindDependencyMacro)
++
++include(${CMAKE_CURRENT_LIST_DIR}/@TARGET_NAME@Targets.cmake)
++check_required_components(@TARGET_NAME@)
+diff -aurN sha/CMakeLists.txt sha_patch/CMakeLists.txt
+--- sha/CMakeLists.txt	1969-12-31 16:00:00.000000000 -0800
++++ sha_patch/CMakeLists.txt	2023-09-04 02:59:30.903920444 -0700
+@@ -0,0 +1,103 @@
++cmake_minimum_required (VERSION 3.12)
++project(SHA)
++enable_language(C CXX)
++
++set(TARGET_NAME sha)
++set(TARGET_INSTALL_INCLUDEDIR include)
++set(TARGET_INSTALL_BINDIR bin)
++set(TARGET_INSTALL_LIBDIR lib)
++set(TARGET_INSTALL_ELEMENT "")
++
++include_directories(./)
++
++add_library(sha SHARED sha1.c sha2.c hmac.c)
++list(APPEND TARGET_INSTALL_ELEMENT sha)
++
++add_library(sha_static STATIC sha1.c sha2.c hmac.c)
++list(APPEND TARGET_INSTALL_ELEMENT sha_static)
++
++add_executable(hmac hmac_test.c)
++target_link_libraries(hmac PRIVATE sha)
++list(APPEND TARGET_INSTALL_ELEMENT hmac)
++
++add_executable(pwd2key pwd2key.c)
++target_link_libraries(pwd2key PRIVATE sha)
++target_compile_definitions(pwd2key PRIVATE -DTEST)
++list(APPEND TARGET_INSTALL_ELEMENT pwd2key)
++
++add_executable(sha_test sha_test.c)
++target_link_libraries(sha_test PRIVATE sha)
++if(OHOS)
++target_compile_options(sha_test PRIVATE -Wno-format-security)
++endif()
++list(APPEND TARGET_INSTALL_ELEMENT sha_test)
++
++if(WIN32)
++add_executable(sha_time sha_time.c)
++target_link_libraries(sha_time PRIVATE sha)
++list(APPEND TARGET_INSTALL_ELEMENT sha_time)
++endif()
++
++add_executable(sha256sum shasum.c)
++target_link_libraries(sha256sum PRIVATE sha)
++list(APPEND TARGET_INSTALL_ELEMENT sha256sum)
++
++enable_testing()
++add_test(NAME test_hmac COMMAND hmac)
++add_test(NAME test_pwd2key COMMAND pwd2key)
++add_test(NAME test_sha COMMAND sha_test)
++if(WIN32)
++add_test(NAME test_time COMMAND sha_time)
++endif()
++
++install(
++    TARGETS
++        ${TARGET_INSTALL_ELEMENT}
++    EXPORT
++        ${TARGET_NAME}
++    PUBLIC_HEADER DESTINATION
++        ${TARGET_INSTALL_INCLUDEDIR}
++    PRIVATE_HEADER DESTINATION
++        ${TARGET_INSTALL_INCLUDEDIR}
++    RUNTIME DESTINATION
++        ${TARGET_INSTALL_BINDIR}
++    LIBRARY DESTINATION
++        ${TARGET_INSTALL_LIBDIR}
++    ARCHIVE DESTINATION
++        ${TARGET_INSTALL_LIBDIR})
++
++file(GLOB ALL_HEAD "*.h")        
++install(
++    FILES
++        ${ALL_HEAD}
++    DESTINATION
++        ${TARGET_INSTALL_INCLUDEDIR}/${TARGET_NAME})
++install(
++    EXPORT
++        ${TARGET_NAME}
++    FILE
++        ${TARGET_NAME}Targets.cmake
++    DESTINATION
++        ${TARGET_INSTALL_LIBDIR}/cmake/${TARGET_NAME}
++)
++
++include(CMakePackageConfigHelpers)
++write_basic_package_version_file(
++    ${TARGET_NAME}ConfigVersion.cmake
++    VERSION
++        ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}
++    COMPATIBILITY SameMajorVersion
++)
++configure_package_config_file(
++    cmake/PackageConfig.cmake.in ${TARGET_NAME}Config.cmake
++    INSTALL_DESTINATION
++        ${TARGET_INSTALL_LIBDIR}/cmake/${TARGET_NAME}
++)
++install(
++    FILES
++        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}Config.cmake
++        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}ConfigVersion.cmake
++    DESTINATION
++        ${TARGET_INSTALL_LIBDIR}/cmake/${TARGET_NAME}
++)
++

@@ -1,0 +1,66 @@
+.cke_top {
+  overflow: visible;
+  display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cke_combo__fontsize .cke_combo_button {
+  border: 1px solid rgba(188, 188, 188, 1);
+  width: 70px;
+  position: relative;
+  padding: 0 0 0 1px;
+  margin-left: -1px;
+  background: white;
+}
+
+.cke_combo_input {
+  width: 45px;
+  height: 26px;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.cke_combo_input:focus {
+  outline: none;
+}
+
+.cke_combo__fontsize .cke_combo_open {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 15px;
+  height: 26px;
+  margin: 0;
+  padding-left: 8px;
+}
+
+.cke_combo_tooltip {
+  padding: 10px;
+  font-size: 12px;
+  color: white;
+  background: rgba(42, 43, 49, 0.5);
+  border-radius: 2px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateY(-100%) translateY(-7px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: opacity 0.2s;
+  opacity: 0;
+}
+
+.cke_combo_tooltip.visible {
+  opacity: 1;
+}
+
+.cke_combo_tooltip_triangle {
+  border-style: solid;
+  border-width: 5px 5px 0 5px;
+  border-color: rgba(0, 0, 0, 0.3) transparent transparent transparent;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 45%;
+  transform: translateY(100%);
+}

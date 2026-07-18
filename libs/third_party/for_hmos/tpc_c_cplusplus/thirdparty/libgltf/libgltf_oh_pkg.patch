@@ -1,0 +1,40 @@
+diff -rupN libgltf-0.1.11/CMakeLists.txt libgltf-0.1.11_patched/CMakeLists.txt
+--- libgltf-0.1.11/CMakeLists.txt	2025-08-29 15:33:01.422129134 +0800
++++ libgltf-0.1.11_patched/CMakeLists.txt	2025-08-29 15:31:19.861136767 +0800
+@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD 17)
+ # define the platform
+ set(LIBGLTF_PLATFORM_WINDOWS  FALSE)
+ set(LIBGLTF_PLATFORM_LINUX    FALSE)
++set(LIBGLTF_PLATFORM_OHOS     FALSE)
+ set(LIBGLTF_PLATFORM_MACOS    FALSE)
+ set(LIBGLTF_PLATFORM_ANDROID  FALSE)
+ set(LIBGLTF_PLATFORM_IOS      FALSE)
+@@ -44,6 +45,19 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux
+         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage -fPIC")
+         set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage -lgcov")
+     endif()
++elseif(CMAKE_SYSTEM_NAME STREQUAL "OHOS")
++    set(LIBGLTF_PLATFORM_OHOS TRUE)
++    add_definitions(-DLIBGLTF_PLATFORM_OHOS)
++    set(PLATFORM_NAME "OHOS")
++    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wconversion -Wno-long-long -pedantic")
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wextra -Wshadow -Wconversion -Wsign-conversion -Wno-long-long -pedantic")
++    set(LIBGLTF_BUILD_COVERAGE OFF CACHE BOOL "Coverage gcov (debug, Linux builds only)")
++    if(LIBGLTF_BUILD_COVERAGE)
++        add_definitions(-DLIBGLTF_BUILD_COVERAGE)
++        set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage -fPIC")
++        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage -fPIC")
++        set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage -lgcov")
++    endif()
+ elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+     set(LIBGLTF_PLATFORM_ANDROID TRUE)
+     add_definitions(-DLIBGLTF_PLATFORM_ANDROID)
+@@ -64,7 +78,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwi
+     set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra -Wshadow -Wconversion -Wsign-conversion -Wno-long-long -pedantic ${CMAKE_CXX_FLAGS}")
+ endif()
+ 
+-if((NOT ${LIBGLTF_PLATFORM_WINDOWS}) AND (NOT ${LIBGLTF_PLATFORM_LINUX}) AND (NOT ${LIBGLTF_PLATFORM_ANDROID}) AND (NOT ${LIBGLTF_PLATFORM_MACOS}) AND (NOT ${LIBGLTF_PLATFORM_IOS}))
++if((NOT ${LIBGLTF_PLATFORM_WINDOWS}) AND (NOT ${LIBGLTF_PLATFORM_LINUX}) AND (NOT ${LIBGLTF_PLATFORM_ANDROID}) AND (NOT ${LIBGLTF_PLATFORM_MACOS}) AND (NOT ${LIBGLTF_PLATFORM_IOS}) AND (NOT ${LIBGLTF_PLATFORM_OHOS}))
+     message(FATAL_ERROR "Sorry, don't support your system ${CMAKE_SYSTEM_NAME}!")
+ endif()
+ 

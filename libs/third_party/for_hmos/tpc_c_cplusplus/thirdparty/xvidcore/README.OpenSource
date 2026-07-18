@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "xvdecore",
+        "License": "GPL 2.0",
+        "License File": "https://github.com/arthenica/xvidcore/blob/release-1_3_7/xvidcore/LICENSE",
+        "Version Number": "release-1_3_7",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://codeload.github.com/arthenica/xvidcore/zip/refs/tags/release-1_3_7",
+        "Description": "xvidcore is an open-source MPEG-4 Part 2 codec that is widely used for creating and playing video content."
+    }
+]

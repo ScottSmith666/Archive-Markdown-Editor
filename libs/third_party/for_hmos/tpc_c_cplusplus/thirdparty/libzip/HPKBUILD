@@ -1,0 +1,70 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=libzip
+pkgver=v1.9.2
+pkgrel=0
+pkgdesc=""
+url=""
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license="BSD"
+depends=("xz" "zstd" "openssl" "bzip2")
+makedepends=()
+
+source="https://github.com/nih-at/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+patchflag=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../libzip_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    local LOCAL_CFLAGS="-O3 -fstack-protector-strong -fPIC"
+    local LOCAL_CXXFLAGS="-O3 -fstack-protector-strong -fPIC"
+    local LOCAL_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--disable-new-dtags -s"
+
+    cd "$builddir"
+
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DOHOS_ARCH="$ARCH" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_C_FLAGS="${LOCAL_CFLAGS}" \
+        -DCMAKE_CXX_FLAGS="${LOCAL_CXXFLAGS}" \
+        -DCMAKE_SHARED_LINKER_FLAGS="${LOCAL_LDFLAGS}" \
+        -DCMAKE_EXE_LINKER_FLAGS="${LOCAL_LDFLAGS}" \
+        -DCMAKE_SKIP_RPATH=TRUE \
+        -B"$ARCH-build" -S./ -L > `pwd`/"$ARCH-build"/build.log 2>&1
+
+    make -j4 -C "$ARCH-build" >> `pwd`/"$ARCH-build"/build.log 2>&1
+    local ret=$?
+    cd "$OLDPWD"
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

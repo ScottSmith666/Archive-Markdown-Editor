@@ -1,0 +1,33 @@
+diff -rupN FreeImage-3.19.10/CMakeLists.txt FreeImage-3.19.10_patched/CMakeLists.txt
+--- FreeImage-3.19.10/CMakeLists.txt	2024-12-31 20:44:14.000000000 +0800
++++ FreeImage-3.19.10_patched/CMakeLists.txt	2025-08-29 18:09:35.960423094 +0800
+@@ -175,7 +175,7 @@ endif()
+ 
+ if(BUILD_LIBTIFF)
+     set(FreeImage_LIBTIFF_SRCS 
+-        Source/LibTIFF4/mkg3states.c Source/LibTIFF4/tif_error.c Source/LibTIFF4/tif_aux.c
++        Source/LibTIFF4/tif_error.c Source/LibTIFF4/tif_aux.c
+         Source/LibTIFF4/tif_close.c Source/LibTIFF4/tif_codec.c Source/LibTIFF4/tif_color.c
+         Source/LibTIFF4/tif_compress.c Source/LibTIFF4/tif_config.h
+         Source/LibTIFF4/tif_config.vc.h Source/LibTIFF4/tif_config.wince.h
+@@ -407,7 +407,7 @@ include_directories(Source/OpenEXR/Half)
+ 
+ if(BUILD_OPENEXR)
+     set(FreeImage_OPENEXR_SRCS
+-        Source/OpenEXR/IexMath/IexMathFpu.cpp Source/OpenEXR/IlmImf/b44ExpLogTable.cpp
++        Source/OpenEXR/IexMath/IexMathFpu.cpp
+         Source/OpenEXR/IlmImf/ImfAcesFile.cpp Source/OpenEXR/IlmImf/ImfAttribute.cpp
+         Source/OpenEXR/IlmImf/ImfB44Compressor.cpp Source/OpenEXR/IlmImf/ImfBoxAttribute.cpp
+         Source/OpenEXR/IlmImf/ImfChannelList.cpp Source/OpenEXR/IlmImf/ImfChannelListAttribute.cpp
+diff -rupN FreeImage-3.19.10/Source/Plugin.h FreeImage-3.19.10_patched/Source/Plugin.h
+--- FreeImage-3.19.10/Source/Plugin.h	2024-12-31 20:44:14.000000000 +0800
++++ FreeImage-3.19.10_patched/Source/Plugin.h	2025-08-29 18:09:35.981423092 +0800
+@@ -131,7 +131,7 @@ void DLL_CALLCONV InitGIF(Plugin *plugin
+ void DLL_CALLCONV InitHDR(Plugin *plugin, int format_id);
+ void DLL_CALLCONV InitG3(Plugin *plugin, int format_id);
+ void DLL_CALLCONV InitSGI(Plugin *plugin, int format_id);
+-#if INCLUDE_LIB_OPEN_EXR
++#if INCLUDE_LIB_OPENEXR
+ void DLL_CALLCONV InitEXR(Plugin *plugin, int format_id);
+ #endif
+ void DLL_CALLCONV InitJ2K(Plugin *plugin, int format_id);

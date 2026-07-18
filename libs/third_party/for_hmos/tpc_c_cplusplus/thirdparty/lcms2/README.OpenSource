@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "lcms2",
+        "License": " MIT license",
+        "License File": "COPYING",
+        "Version Number": "2.15",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://sourceforge.net/projects/lcms/files/lcms/2.15/lcms2-2.15.tar.gz",
+        "Description": "Little cms is a color management library. Implements fast transforms between ICC profiles. It is focused on speed, and is portable across several platforms."
+    }
+]

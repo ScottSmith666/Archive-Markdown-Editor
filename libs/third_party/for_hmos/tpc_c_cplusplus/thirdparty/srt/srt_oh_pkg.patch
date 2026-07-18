@@ -1,0 +1,57 @@
+diff --color -Naur srt-1.5.3_old/CMakeLists.txt srt-1.5.3_new/CMakeLists.txt
+--- srt-1.5.3_old/CMakeLists.txt	2024-05-11 15:51:10.005690070 +0800
++++ srt-1.5.3_new/CMakeLists.txt	2024-05-11 17:28:52.795752852 +0800
+@@ -36,13 +36,14 @@
+ 					OR (${CMAKE_SYSTEM_NAME} MATCHES "tvOS")
+ 					OR (${CMAKE_SYSTEM_NAME} MATCHES "watchOS"))
+ set_if(LINUX       ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
++set_if(OHOS       ${SYSNAME_LC} MATCHES "ohos")
+ set_if(BSD         ${SYSNAME_LC} MATCHES "bsd$")
+ set_if(MICROSOFT   WIN32 AND (NOT MINGW AND NOT CYGWIN))
+ set_if(GNU         ${CMAKE_SYSTEM_NAME} MATCHES "GNU")
+ set_if(ANDROID     ${SYSNAME_LC} MATCHES "android")
+ set_if(SUNOS       "${SYSNAME_LC}" MATCHES "sunos")
+-set_if(POSIX       LINUX OR DARWIN OR BSD OR SUNOS OR ANDROID OR (CYGWIN AND CYGWIN_USE_POSIX))
+-set_if(SYMLINKABLE LINUX OR DARWIN OR BSD OR SUNOS OR CYGWIN OR GNU)
++set_if(POSIX       LINUX OR DARWIN OR BSD OR SUNOS OR ANDROID OR (CYGWIN AND CYGWIN_USE_POSIX) OR OHOS)
++set_if(SYMLINKABLE LINUX OR DARWIN OR BSD OR SUNOS OR CYGWIN OR GNU OR OHOS)
+ set_if(NEED_DESTINATION  ${CMAKE_VERSION} VERSION_LESS "3.14.0")
+ 
+ include(GNUInstallDirs)
+@@ -726,6 +727,8 @@
+ elseif(SUNOS)
+ 	add_definitions(-DSUNOS=1)
+ 	message(STATUS "DETECTED SYSTEM: SunOS|Solaris;  SUNOS=1" )
++elseif(OHOS)
++	message(STATUS "DETECTED SYSTEM: OHOS;  OHOS=1" )
+ else()
+ 	message(FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}")
+ endif()
+diff --color -Naur srt-1.5.3_old/scripts/googletest-download.cmake srt-1.5.3_new/scripts/googletest-download.cmake
+--- srt-1.5.3_old/scripts/googletest-download.cmake	2024-05-11 15:51:10.021690018 +0800
++++ srt-1.5.3_new/scripts/googletest-download.cmake	2024-05-11 18:11:46.970136046 +0800
+@@ -10,7 +10,7 @@
+ 	SOURCE_DIR "@GOOGLETEST_DOWNLOAD_ROOT@/googletest-src"
+ 	BINARY_DIR "@GOOGLETEST_DOWNLOAD_ROOT@/googletest-build"
+ 	GIT_REPOSITORY
+-	https://github.com/google/googletest.git
++	https://gitee.com/mirrors/googletest.git
+ 	GIT_TAG release-1.10.0
+ 	CONFIGURE_COMMAND ""
+ 	BUILD_COMMAND ""
+diff --color -Naur srt-1.5.3_old/srtcore/sync_posix.cpp srt-1.5.3_new/srtcore/sync_posix.cpp
+--- srt-1.5.3_old/srtcore/sync_posix.cpp	2024-05-11 15:51:10.033689979 +0800
++++ srt-1.5.3_new/srtcore/sync_posix.cpp	2024-05-11 18:17:04.937636897 +0800
+@@ -398,7 +398,12 @@
+         // to avoid hang ups and align with C++11 implementation.
+         // There is no pthread_cancel on Android. See #1476. This error should not normally
+         // happen, but if it happen, then detaching the thread.
++#ifndef __OHOS__
+         pthread_cancel(m_thread);
++#else
++        pthread_detach(m_thread);
++#endif
++
+ #endif // __ANDROID__
+ #else
+         join();

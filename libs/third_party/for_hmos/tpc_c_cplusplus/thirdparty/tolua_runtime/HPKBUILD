@@ -1,0 +1,117 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: kangxiangjuan <179721749@qq.com>
+# Maintainer: kangxiangjuan <179721749@qq.com>
+
+pkgname=tolua_runtime
+pkgver=1.0.8.584
+pkgrel=0
+pkgdesc="tolua_runtime is a framework feature that provides a Lua code logic hot change, rapid development library."
+url="https://github.com/topameng/tolua_runtime"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT License")
+depends=()
+makedepends=("gcc")
+source="https://github.com/topameng/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+buildtools="make"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+cxx=
+
+# 如果编译环境为x86-64, 请安装32位开发环境，否则无法编译armeabi-v7a
+# sudo apt-get install build-essential module-assistant
+# sudo apt-get install gcc-multilib g++-multilib
+
+prepare() {
+    # 为保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    # 增加使用工具链的编译脚本和测试demo
+    patch -p1 < `pwd`/../tolua_runtime_ohos_pkg.patch > $buildlog 2>&1
+    source build_ohos.sh
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang++
+        build_ohos "$ARCH" >> $buildlog 2>&1
+        $cxx -o demo_ohos demo_ohos.cpp >> $buildlog 2>&1
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang++
+        build_ohos "$ARCH" >> $buildlog 2>&1
+        $cxx -o demo_ohos demo_ohos.cpp >> $buildlog 2>&1
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    ret=$?
+    cd ${LYCIUM_ROOT}/../thirdparty/$pkgname
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/cjson
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+
+    cp ./Plugins/ohos/libs/$ARCH/libtolua.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp *.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp ./cjson/*.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/cjson
+    cp ./luasocket/buffer.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/except.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/inet.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/io.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/luasocket.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/mime.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/options.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/select.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/tcp.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/timeout.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/udp.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/usocket.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luasocket/socket.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+
+    cp ./luajit-2.1/src/luaconf.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luajit-2.1/src/luaconf.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp ./luajit-2.1/src/lua.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/luasocket
+    cp ./luajit-2.1/src/lua.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 测试方式
+}
+
+recoverpkgbuildenv() {
+    unset cxx
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir  #${PWD}/$packagename
+    rm -rf ${PWD}/builddir-$ARCH-build  #${PWD}/$packagename
+}

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "WavPack",
+        "License": "BSD",
+        "License File": "license.txt",
+        "Version Number": "5.6.0",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://github.com/dbry/WavPack/archive/refs/tags/5.6.0.tar.gz",
+        "Description": "WavPack encode/decode library, command-line programs, and several plugins"
+    }
+]

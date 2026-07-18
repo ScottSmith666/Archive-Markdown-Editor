@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "libgphoto2",
+        "License": "LGPL-2.1",
+        "License File": "https://github.com/gphoto/libgphoto2/blob/master/COPYING",
+        "Version Number": "v2.5.31",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/gphoto/libgphoto2/archive/refs/tags/v2.5.31.tar.gz",
+        "Description": "libgphoto2 is a library that can be used by applications to access various digital cameras."
+    },
+    {
+        "Name": "libtool",
+        "License": "GPL-2.0",
+        "License File": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+        "Version Number": "2.4.6",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz",
+        "Description": "GNU Libtool is a generic library support script that hides the complexity of using shared libraries behind a consistent, portable interface."
+    },
+    {
+        "Name": "jpeg",
+        "License": "Independent JPEG Group License",
+        "License File": "https://www.ijg.org/files/README",
+        "Version Number": "v9e",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "http://www.ijg.org/files/jpegsrc.v9e.tar.gz",
+        "Description": "IJG is an informal group that writes and distributes a widely used free library for JPEG image compression"
+    },
+    {
+        "Name": "libxml2",
+        "License": " MIT license",
+        "License File": "https://github.com/GNOME/libxml2/blob/master/Copyright",
+        "Version Number": "v2.11.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/GNOME/libxml2/archive/refs/tags/v2.11.3.tar.gz",
+        "Description": "libxml2 is an XML toolkit implemented in C, originally developed for the GNOME Project."
+    }
+]

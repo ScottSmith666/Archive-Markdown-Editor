@@ -1,0 +1,33 @@
+{
+    "name": "@ohos/xerces-c",
+    "description": "Apache Xerces-C validating XML parser",
+    "version": "v3.2.3",
+    "license": "Apache License V2.0",
+    "publishAs": "",
+    "segment": {
+        "destPath": "third_party/xerces-c"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "xerces",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": ["standard"],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/xerces-c:libxerces-c","//third_party/xerces-c:samples","//third_party/xerces-c:tests"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

@@ -1,0 +1,107 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=openssl_1_0_2u
+pkgver=OpenSSL_1_0_2u
+pkgrel=0
+pkgdesc="TLS/SSL and crypto library"
+url="https://www.openssl.org/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("Apache License 2.0")
+depends=()
+makedepends=()
+
+source="https://github.com/openssl/${pkgname:0:7}/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=${pkgname:0:7}-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+
+host=
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=linux-generic32
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=linux-aarch64
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=linux-x86_64
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+#参数1
+build() {
+    cd $builddir-$ARCH-build
+    export CFLAGS="$CFLAGS -O3"
+    export CXXFLAGS="$CXXFLAGS -O3"
+    PKG_CONFIG_LIBDIR=$pkgconfigpath ./Configure enable-gost "$@" -fPIC $host > $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install_sw >> $buildlog 2>&1
+    local target_prefix="$LYCIUM_ROOT/usr/$pkgname/$ARCH"
+    mkdir -p "$target_prefix/include" "$target_prefix/lib"
+    if [ -d "include/openssl" ]; then
+        cp -rfL include/openssl "$target_prefix/include/"   # -L 会跟随符号链接复制实际文件
+    fi
+    if ls *.a 1> /dev/null 2>&1; then
+        cp *.a "$target_prefix/lib/"
+    fi
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir-$ARCH-build
+    $MAKE depend >> $buildlog 2>&1
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]; then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]; then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-*-build #${PWD}/$packagename
+}
+

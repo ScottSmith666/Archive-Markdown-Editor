@@ -1,0 +1,21 @@
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+openharmonycheck() {
+    res=0    
+    # checkNetWork
+    ping www.baidu.com -c3 > /dev/null 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo "network not ready, this test depends the network! make sure the network is OK!!"
+        return 1
+    fi
+    cd ${builddir}/${ARCH}-build
+    ./bin/libdash_networkpart_test > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+
+    return $res
+}

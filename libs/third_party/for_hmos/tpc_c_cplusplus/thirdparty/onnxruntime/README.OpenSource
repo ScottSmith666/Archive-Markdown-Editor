@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "onnxruntime",
+        "License": "MIT",
+        "License File": "https://github.com/microsoft/onnxruntime/blob/main/LICENSE",
+        "Version Number": "1.23.2",
+        "Owner": "panjinling@huawei.com",
+        "Upstream URL": "https://github.com/microsoft/onnxruntime.git",
+        "Description": "ONNX Runtime is a cross-platform inference and training accelerator compatible with multiple deep learning frameworks and hardware targets."
+    }
+]

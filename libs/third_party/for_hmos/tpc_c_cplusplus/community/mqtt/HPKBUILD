@@ -1,0 +1,66 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Eclipse Public License - v 2.0
+# This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v2.0
+# and Eclipse Distribution License v1.0 which accompany this distribution.
+# The Eclipse Public License is available at
+# https://www.eclipse.org/legal/epl-2.0/
+# and the Eclipse Distribution License is available at
+# http://www.eclipse.org/org/documents/edl-v10.php.
+# For an explanation of what dual-licensing means to you, see:
+# https://www.eclipse.org/legal/eplfaq.php#DUALLIC
+
+# Contributor: WangQing <wangqing@kaihong.com>
+# Maintainer: WangQing <wangqing@kaihong.com>
+
+pkgname=mqtt
+pkgpaho=paho.mqtt.c
+pkgver=v1.3.12
+pkgrel=0
+pkgdesc="Eclipse Paho C Client Library for the MQTT Protocol"
+url="https://github.com/eclipse/paho.mqtt.c"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("EPL-2.0 & EDL-1.0")
+depends=("openssl")
+makedepends=()
+
+# 官方下载地址"https://github.com/eclipse/$pkgpaho/archive/refs/tags/$pkgver.zip"受网络影响可能存在下载失败的情况，现使用  gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/$pkgpaho/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+builddir=$pkgpaho-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DMZ_BUILD_TESTS=ON -DMZ_BUILD_UNIT_TESTS=ON  \
+    -B$ARCH-build -S./ -L >  $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >>  $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+	# 测试本库需要搭建一个MQTT broker，并且账号密码端口等需要和test下的用例使用的保持一致。
+	# 运行ctest前，需要运行python ../test/mqttsas.py &与broker建立连接。
+    # ctest
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

@@ -1,0 +1,28 @@
+From d110633f27f5b521f36e716082f3d12377b75fb2 Mon Sep 17 00:00:00 2001
+From: duanjf <605126199@qq.com>
+Date: Tue, 30 Jul 2024 09:22:13 +0800
+Subject: [PATCH 7/7] add openharmony marco
+
+Signed-off-by: duanjf <605126199@qq.com>
+---
+ lib/CMakeLists.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/CMakeLists.txt b/lib/CMakeLists.txt
+index 63e5b9139..c2863f5b3 100644
+--- a/lib/CMakeLists.txt
++++ b/lib/CMakeLists.txt
+@@ -202,7 +202,9 @@ if(BUILD_SHARED_LIBS)
+     # FreeBSD comes with the a.out and ELF flavours but a.out was supported
+     # up to v3.x and ELF from v3.x. I cannot imagine someone running CMake
+     # on those ancient systems.
+-    CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
++    CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR
++    # OpenHarmony
++    CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+     set(soversion_default TRUE)
+   else()
+     set(soversion_default FALSE)
+-- 
+2.43.0.windows.1
+

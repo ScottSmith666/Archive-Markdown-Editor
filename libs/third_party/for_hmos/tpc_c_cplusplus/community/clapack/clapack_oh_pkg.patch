@@ -1,0 +1,50 @@
+diff -rupN clapack-3.2.1-CMAKE/BLAS/TESTING/CMakeLists.txt clapack-3.2.1-CMAKE_patch/BLAS/TESTING/CMakeLists.txt
+--- clapack-3.2.1-CMAKE/BLAS/TESTING/CMakeLists.txt	2009-08-11 01:47:54.000000000 +0800
++++ clapack-3.2.1-CMAKE_patch/BLAS/TESTING/CMakeLists.txt	2023-08-24 17:52:16.252788144 +0800
+@@ -30,7 +30,7 @@ macro(add_blas_test name src)
+   get_filename_component(baseNAME ${src} NAME_WE)
+   set(TEST_INPUT "${CLAPACK_SOURCE_DIR}/BLAS/${baseNAME}.in")
+   add_executable(${name} ${src})
+-  get_target_property(TEST_LOC ${name} LOCATION)
++  # get_target_property(TEST_LOC ${name} LOCATION)
+   target_link_libraries(${name} blas)
+   if(EXISTS "${TEST_INPUT}")
+     add_test(${name} "${CMAKE_COMMAND}"
+diff -rupN clapack-3.2.1-CMAKE/CMakeLists.txt clapack-3.2.1-CMAKE_patch/CMakeLists.txt
+--- clapack-3.2.1-CMAKE/CMakeLists.txt	2009-08-11 02:46:33.000000000 +0800
++++ clapack-3.2.1-CMAKE_patch/CMakeLists.txt	2023-08-24 17:52:16.252788144 +0800
+@@ -21,7 +21,8 @@ include_directories(${CLAPACK_SOURCE_DIR
+ add_subdirectory(F2CLIBS)
+ add_subdirectory(BLAS)
+ add_subdirectory(SRC)
+-add_subdirectory(TESTING)
++# NO_BLAS_WRAP=1 test 编译会出现 函数重定义的问题
++# add_subdirectory(TESTING)
+ set(CLAPACK_VERSION 3.2.1)
+ set(CPACK_PACKAGE_VERSION_MAJOR 3)
+ set(CPACK_PACKAGE_VERSION_MINOR 2)
+diff -rupN clapack-3.2.1-CMAKE/F2CLIBS/libf2c/sysdep1.h clapack-3.2.1-CMAKE_patch/F2CLIBS/libf2c/sysdep1.h
+--- clapack-3.2.1-CMAKE/F2CLIBS/libf2c/sysdep1.h	2009-08-11 01:47:54.000000000 +0800
++++ clapack-3.2.1-CMAKE_patch/F2CLIBS/libf2c/sysdep1.h	2023-08-24 17:52:16.252788144 +0800
+@@ -3,6 +3,9 @@
+ #undef USE_LARGEFILE
+ #ifndef NO_LONG_LONG
+ 
++// 缺少类型定义
++typedef long long __off64_t;
++
+ #ifdef __sun__
+ #define USE_LARGEFILE
+ #define OFF_T off64_t
+diff -rupN clapack-3.2.1-CMAKE/F2CLIBS/libf2c/uninit.c clapack-3.2.1-CMAKE_patch/F2CLIBS/libf2c/uninit.c
+--- clapack-3.2.1-CMAKE/F2CLIBS/libf2c/uninit.c	2009-08-08 06:32:18.000000000 +0800
++++ clapack-3.2.1-CMAKE_patch/F2CLIBS/libf2c/uninit.c	2023-08-24 17:54:11.145927541 +0800
+@@ -233,7 +233,7 @@ ieee0(Void)
+ 
+ #ifdef __linux__
+ #define IEEE0_done
+-#include "fpu_control.h"
++// #include "fpu_control.h"
+ 
+ #ifdef __alpha__
+ #ifndef USE_setfpucw

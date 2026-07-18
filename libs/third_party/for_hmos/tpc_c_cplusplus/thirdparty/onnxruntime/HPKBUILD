@@ -1,0 +1,127 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: wangle <wangle80@chinasoftinc.com>
+# Maintainer: wangle <wangle80@chinasoftinc.com>
+
+pkgname=onnxruntime
+pkgver=v1.23.2
+pkgrel=0
+pkgdesc=""
+url="https://github.com/microsoft/onnxruntime"
+archs=("arm64-v8a" "armeabi-v7a" "x86_64")
+license=("MIT")
+depends=()
+makedepends=()
+
+source="https://github.com/microsoft/onnxruntime.git"
+
+downloadpackage=false
+autounpack=false
+buildtools=cmake
+
+builddir=${pkgname}-${pkgver}
+
+cloneflag=true
+patchflag=true
+
+prepare() {
+    if [ $cloneflag == true ];then
+        git clone --depth 1 --branch $pkgver --recursive $source $builddir > $publicbuildlog 2>&1
+        ret=$?
+        if [ $ret -ne 0 ]
+        then
+            echo "$pkgname git clone $source error."
+            rm -rf $builddir
+            return $ret
+        fi
+        cloneflag=false
+        echo "$pkgname git clone $source success."
+    fi
+    
+    if [ $patchflag == true ];then
+        cd $builddir
+        ## 1. python ci构建系统添加ohos平台构建
+        ## 2. cmake构建系统添加鸿蒙编译分支, 包括arm64, armeabi-v7a, x86_64三个平台
+        ## 3. cmake构建系统arm64编译分支修改march为armv8.6-a --鸿蒙的arm64平台必须要到8.6才能支持bf16指令集
+        ## 4. 添加依赖库pytorch_cpuinfo的鸿蒙构建patch,支持在鸿蒙上构建pytorch_cpuinfo库
+        ## 5. onnxruntime源码修改,取消cpu亲和性设置 --鸿蒙sdk不支持设置cpu亲和性
+        ## 6. onnxruntime源码修改,cpu检测部分添加华为cpu型号检测
+        ## 7. onnxruntime源码修改,armv7平台测试用例运行崩溃修改
+        ## 8. onnxruntime源码修改,x86_64平台不支持的内建函数修改
+        patch -p1 < ../ohos-1.23.2.patch >> $publicbuildlog 2>&1
+        ret=$?
+        cd $OLDPWD
+        if [ $ret -ne 0 ]
+        then
+            echo "$pkgname patch error."
+            return $ret
+        fi
+        patchflag=false
+        echo "$pkgname patch success."
+    fi
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}"
+    ./build.sh --config Release                 \
+               --skip_tests                     \
+               --parallel                       \
+               --allow_running_as_root          \
+               --compile_no_warning_as_error    \
+               --cmake_generator "Ninja"        \
+               --ohos                           \
+               --ohos_abi=${ARCH}               \
+               --ohos_sdk=${OHOS_SDK}           \
+               --cmake_extra_defines CMAKE_INSTALL_PREFIX=${LYCIUM_ROOT}/usr/$pkgname/${ARCH}/  > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/build/OHOS/${ARCH}/Release
+
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake --install . >> $buildlog 2>&1
+    ret=$?
+
+    sour=./_deps/
+    dest=${LYCIUM_ROOT}/usr/$pkgname/${ARCH}/lib/
+    echo "copying depends libs ..." >> $buildlog 2>&1
+    echo "sour:$sour" >> $buildlog 2>&1
+    echo "dest:$dest" >> $buildlog 2>&1
+
+    mkdir -p ${dest}
+
+    for build_dir in "${sour}"/*-build/; do
+        [ -d "$build_dir" ] || continue
+        target_name=$(basename "$build_dir" | sed 's/-build$//')
+
+        if find "$build_dir" -type f -name "*.a" -print -quit | grep -q .; then
+            mkdir -p "${dest}/${target_name}"
+            find "$build_dir" -type f -name "*.a" -exec cp {} "${dest}/${target_name}" \;
+        fi
+    done >> $buildlog 2>&1
+    echo "copying depends libs completed" >> $buildlog 2>&1
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

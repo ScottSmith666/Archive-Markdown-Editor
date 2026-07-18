@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "themis",
+        "License": "Apache License 2.0",
+        "License File": "https://github.com/cossacklabs/themis/blob/master/LICENSE",
+        "Version Number": "0.15.5",
+        "Owner": "wangchen99@chinasoftinc.com",
+        "Upstream URL": "https://github.com/cossacklabs/themis",
+        "Description": "Themis is a cross-platform high-level cryptographic library for mobile, web, and server platforms."
+        "Dependencies": ["openssl"]
+    }
+]

@@ -1,0 +1,65 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: luohao <luohao155@h-partners.com>
+# Maintainer: luohao <luohao155@h-partners.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+
+    # 清空日志文件
+    echo "=== BMF 测试开始 ===" > ${logfile}
+
+    # 检查构建目录是否存在
+    if [ ! -d "${builddir}-${ARCH}-build/${ARCH}-build/output/bmf/bin" ]; then
+        echo "错误: 构建目录不存在: ${builddir}-${ARCH}-build/${ARCH}-build/output/bmf/bin" >> ${logfile}
+        return 1
+    fi
+
+    cd ${builddir}-${ARCH}-build/${ARCH}-build/output/bmf/bin
+
+    # 设置LD_LIBRARY_PATH环境变量
+    export LD_LIBRARY_PATH=../lib:$LD_LIBRARY_PATH
+
+    # 执行四个测试命令
+    echo "执行测试命令..." >> ${logfile}
+
+    echo "=== 执行 ./test_cpp_builder ===" >> ${logfile}
+    ./test_cpp_builder --gtest_filter=cpp_basefeature.log_callback:cpp_modules.test_exception_in_python_module:cpp_transcode.transcode_incorrect_stream_notify:cpp_transcode.transcode_incorrect_encoder_param >> ${logfile} 2>&1
+    res1=$?
+
+    echo "=== 执行 ./test_hmp ===" >> ${logfile}
+    ./test_hmp >> ${logfile} 2>&1
+    res2=$?
+
+    echo "=== 执行 ./test_bmf_engine ===" >> ${logfile}
+    ./test_bmf_engine --gtest_filter=graph_config.graph_config:input_stream.add_normal_packets:input_stream.pop_packet_at_timestamp:input_stream_manager.schedule_node:output_stream.add_mirror_stream:output_stream.propagate_packets:output_stream_manager.propagate_packets:safe_queue.single_thread:scheduler.start:scheduler_queue.start >> ${logfile} 2>&1
+    res3=$?
+
+    echo "=== 执行 ./test_bmf_module_sdk ===" >> ${logfile}
+    ./test_bmf_module_sdk --gtest_filter=audio_frame.*:bmf_av_packet.*:media_description.*:convert_backend.*:exception.simple_exception:json_param.*:log_buffer.*:module_functor.*:module_manager.test_compat_path:module_manager.in_app_module:module_registry.*:type_info.type_info:packet.constructors:task.task:video_frame.frame_constructors:video_frame.crop_test:video_frame.private_data:video_frame.private_data_json_param:video_frame.copy_props:video_frame.yuv_frame_storage >> ${logfile} 2>&1
+    res4=$?
+
+    # 检查所有测试结果
+    if [ $res1 -eq 0 ] && [ $res2 -eq 0 ] && [ $res3 -eq 0 ] && [ $res4 -eq 0 ]; then
+        res=0
+    else
+        res=1
+    fi
+
+    cd $OLDPWD
+    return $res
+}

@@ -1,0 +1,111 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor:   1596268623@qq.com Chenxu <chenxu.unix@163.com>
+# Maintainer:    1596268623@qq.com
+
+pkgname=libarchive
+pkgver=v3.6.2
+pkgrel=0
+pkgdesc="The libarchive project develops a portable, efficient C library that can read and write streaming archives in a variety of formats."
+url="http://www.libarchive.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD")
+depends=("xz" "zstd" "openssl")
+makedepends=()
+# 官网地址：https://github.com/libarchive/libarchive/archive/refs/tags/$pkgver.tar.gz，因网络原因采用gitee mirrors
+source="https://gitee.com/mirrors/$pkgname/repository/archive/$pkgver.zip"
+
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+
+builddir=${pkgname}-$pkgver
+packagename=$builddir.zip
+source envset.sh
+patchflag=true
+prepare() {
+    if $patchflag
+    then
+       cd $builddir
+       # 该patch 修改测试文件中的/tmp 目录，替换为/data/local/tmp
+       patch -p1 < ../libarchive_ohos_test.patch
+       patchflag=false
+       cd $OLDPWD
+    fi
+    
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    
+    cp -rf $builddir $pkgname-$ARCH-build
+    cd $pkgname-$ARCH-build
+    ./build/autogen.sh > $buildlog 2>&1
+    cd $OLDPWD
+    
+    export CPPFLAGS="-I${LYCIUM_ROOT}/usr/xz/${ARCH}/include -I${LYCIUM_ROOT}/usr/zstd/${ARCH}/include -I${LYCIUM_ROOT}/usr/openssl/${ARCH}/include ${CPPFLAGS}"
+    export LDFLAGS="-L${LYCIUM_ROOT}/usr/xz/${ARCH}/lib -L${LYCIUM_ROOT}/usr/zstd/${ARCH}/lib -L${LYCIUM_ROOT}/usr/openssl/${ARCH}/lib ${LDFLAGS}"
+}
+
+build() {
+    # https://github.com/libarchive/libarchive/issues/1607
+    # cmake编译不会定义宏HAVE_PKCS5_PBKDF2_HMAC_SHA1，所以使用configure编译
+    cd $pkgname-$ARCH-build
+    ./configure "$@" --host=$host --without-xml2 > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    # 对最关键一步的退出码进行判断
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 打包安装
+package() {
+    cd $pkgname-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+# 进行测试的准备和说明
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cd $pkgname-$ARCH-build
+    $MAKE check >> $buildlog 2>&1
+    cd $OLDPWD
+
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境fmt
+cleanbuild() {
+   rm -rf ${PWD}/$builddir ${PWD}/$pkgname-armeabi-v7a-build  ${PWD}/$pkgname-arm64-v8a-build #${PWD}/$packagename
+}

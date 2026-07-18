@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "spdlog",
+        "License": "MIT",
+        "License File": "https://github.com/gabime/spdlog/blob/v1.x/LICENSE",
+        "Version Number": "v1.9.2",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/gabime/spdlog",
+        "Description": "Very fast, header-only/compiled, C++ logging library"
+    },
+    {
+        "Name": "fmt",
+        "License": "MIT",
+        "License File": "https://github.com/fmtlib/fmt/blob/master/LICENSE.rst",
+        "Version Number": "8.1.1",
+        "Owner": "CHENGLIUQ@isoftstone.com",
+        "Upstream URL": "https://github.com/fmtlib/fmt/archive/refs/tags/8.1.1.tar.gz",
+        "Description": "fmt is an open-source formatting library providing a fast and safe alternative to C stdio and C++ iostreams."
+    }
+]

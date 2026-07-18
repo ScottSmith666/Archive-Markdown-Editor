@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "XNNPACK",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/google/XNNPACK/blob/master/LICENSE",
+        "Version Number": "bc09d8f8b4681aaeaa82b9d9a078e7eae4838424",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/google/XNNPACK",
+        "Description": "XNNPACK is a highly optimized neural network inference solution."
+    }
+]

@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "sqlite",
+        "License": "Public Domain",
+        "License File": "https://www.sqlite.org/copyright.html",
+        "Version Number": "version-3.42.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/sqlite/sqlite/archive/refs/tags/.tar.gz",
+        "Description": "This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+    },
+    {
+        "Name": "tcl",
+        "License": "TCL/TK License",
+        "License File": "https://www.tcl.tk/software/tcltk/license.html",
+        "Version Number": "8.6.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/tcl/files/Tcl/8.6.13/tcl8.6.13-src.tar.gz",
+        "Description": "Tool Command Language (Tcl) is an interpreted language and very portable interpreter for that language. Tcl is embeddable and extensible, and has been widely used since its creation in 1988 by John Ousterhout."
+    }
+]

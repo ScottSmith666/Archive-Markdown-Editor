@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "unixODBC",
+        "License": "GNU Lesser General Public License v2.1",
+        "License File": "https://github.com/lurcher/unixODBC/blob/master/LICENSE",
+        "Version Number": "2.3.11",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/lurcher/unixODBC/releases/download/2.3.11/unixODBC-2.3.11.tar.gz",
+        "Description": "The unixODBC Project goals are to develop and promote unixODBC to be the definitive standard for ODBC on non MS Windows platforms."
+    }
+]

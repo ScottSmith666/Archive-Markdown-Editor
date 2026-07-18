@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "mupdf",
+        "License": "AGPL-3.0",
+        "License File": "https://artifex.com/licensing/gnu-agpl-v3",
+        "Version Number": "v1.26.3",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://casper.mupdf.com/downloads/archive/mupdf-1.26.3-source.tar.gz",
+        "Description": "MuPDF is the fast & powerful solution for managing PDF and other document formats."
+    }
+]

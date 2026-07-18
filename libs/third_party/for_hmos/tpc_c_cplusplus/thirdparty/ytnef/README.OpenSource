@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "ytnef",
+        "License": "GPL-2.0 license",
+        "License File": "https://github.com/Yeraze/ytnef/blob/master/COPYING",
+        "Version Number": "ytnef-2.1.2",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/Yeraze/ytnef/releases/tag/v2.1.2",
+        "Description": "Yeraze's TNEF Stream Reader - for winmail.dat files."
+    }
+]

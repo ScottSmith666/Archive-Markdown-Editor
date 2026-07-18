@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "BMF",
+        "License": "Apache 2.0",
+        "License File": "https://github.com/BabitMF/bmf/blob/v0.2.0/LICENSE",
+        "Version Number": "V0.2.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/BabitMF/bmf/archive/refs/tags/v0.2.0.tar.gz",
+        "Description": "BMF (Babit Multimedia Framework) is a cross-platform, multi-language, customizable multimedia processing framework developed by ByteDance."
+    }
+]

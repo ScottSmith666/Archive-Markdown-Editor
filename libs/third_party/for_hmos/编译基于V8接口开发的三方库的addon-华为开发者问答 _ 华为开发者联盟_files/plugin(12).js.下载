@@ -1,0 +1,20 @@
+(function () {
+  CKEDITOR.plugins.add('templateanswer', {
+    icons: 'templateanswer',
+    hidpi: false,
+    init: function (editor) {
+      editor.addCommand('templateanswer', {
+        exec: function (editor) {
+          editor.fire('templateanswer');
+        },
+      });
+      if (editor.ui.addButton) {
+        editor.ui.addButton('templateanswer', {
+          label: '插入模板',
+          icon: 'templateanswer',
+          command: 'templateanswer',
+        });
+      }
+    },
+  });
+})();

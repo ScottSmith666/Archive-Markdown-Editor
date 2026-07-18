@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "lua-amf3",
+        "License": "MIT",
+        "License File": "https://github.com/neoxic/lua-amf3/blob/master/LICENSE",
+        "Version Number": "2.0.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/neoxic/lua-amf3/archive/refs/tags/2.0.5.zip",
+        "Description": "lua-amf3 provides fast AMF3 encoding/decoding routines for Lua."
+    },
+    {
+        "Name": "LuaJIT",
+        "License": "MIT",
+        "License File": "https://github.com/LuaJIT/LuaJIT/blob/v2.1/COPYRIGHT",
+        "Version Number": "2.1.0-beta3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://luajit.org/download/LuaJIT-2.1.0-beta3.tar.gz",
+        "Description": "A Just-In-Time Compiler for Lua."
+    }
+]

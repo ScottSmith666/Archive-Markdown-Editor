@@ -1,0 +1,227 @@
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+pkgname=caffe
+pkgver=1.0
+pkgrel=0
+pkgdesc="Caffe is a deep learning framework made with expression, speed, and modularity in mind. It is developed by Berkeley AI Research (BAIR)/The Berkeley Vision and Learning Center (BVLC) and community contributors."
+url="https://github.com/BVLC/caffe"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Copyright (c) 2014-2017 The Regents of the University of California")
+depends=("snappy" "leveldb" "opencv" "szip" "hdf5" "boost" "glog" "zlib" "gflags" "googletest")
+source="https://github.com/BVLC/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+downloadpackage=true
+autounpack=true
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+# oh的sdk无法编译fortran语言，这里借用系统的交叉工具链来编译
+makedepends=("arm-linux-gnueabi-gfortran" "aarch64-linux-gnu-gfortran")
+
+# protobuf使用v3.6.1版本
+protobufpkgname=protobuf
+protobufbuildhostflag=true
+protobufpkgver=v3.6.1
+protobufsource="https://github.com/protocolbuffers/$protobufpkgname/archive/refs/tags/$protobufpkgver.tar.gz"
+protobufbuilddir=$protobufpkgname-${protobufpkgver:1}
+protobufpackagename=$protobufbuilddir.tar.gz
+protoc=
+
+# BLAS使用3.11.0版本
+blaspkgname=BLAS
+blaspkgver=3.11.0
+blassource="http://www.netlib.org/blas/blas-3.11.0.tgz"
+blasbuilddir=$blaspkgname-$blaspkgver
+blaspackagename=$blasbuilddir.tgz
+blaslibs=
+
+# CBLAS官网没有明确版本
+cblaspkgname=CBLAS
+cblassource="http://www.netlib.org/blas/blast-forum/cblas.tgz"
+cblasbuilddir=$cblaspkgname
+cblaspackagename=cblasbuilddir.tgz
+cblaslibs=
+cblasinclude=
+
+patchflag=true
+unpackagethirdpartyflag=true
+fc=
+ar=
+cc=
+
+# 预设编译blas需要的工具链
+setcompiler() {
+    if [ "$ARCH" == "armeabi-v7a" ];then
+        fc=arm-linux-gnueabi-gfortran
+        ar=arm-linux-gnueabi-ar
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+    fi
+
+    if [ "$ARCH" == "arm64-v8a" ];then
+        fc=aarch64-linux-gnu-gfortran
+        ar=aarch64-linux-gnu-ar
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+    fi
+}
+
+downloadthirdparty() {
+    if [ ! -f "$protobufpackagename" ];then
+        curl -L -f $protobufsource > $protobufpackagename
+        if [ "$?" != "0" ];then
+            echo "download $protobufbuilddir fail"
+            return 1
+        fi
+    fi
+    if [ ! -f "$blaspackagename" ];then
+        curl -L -f $blassource > $blaspackagename
+        if [ "$?" != "0" ];then
+            echo "download $blasbuilddir fail"
+            return 1
+        fi
+    fi
+    
+    if [ ! -f "$cblaspackagename" ];then
+        curl -L -f $cblassource > $cblaspackagename
+        if [ "$?" != "0" ];then
+            echo "download $cblasbuilddir fail"
+            return 1
+        fi
+    fi
+    
+    return 0
+}
+
+unpackagethirdparty() {
+    tar xvfz $protobufpackagename > /dev/null 2>&1
+    tar xvfz $blaspackagename > /dev/null 2>&1
+    tar xvfz $cblaspackagename > /dev/null 2>&1
+}
+
+patchthirdparty() {
+    # 该文件依赖gfortran.so,需要裁剪掉
+    mv $blasbuilddir/xerbla.f $blasbuilddir/xerbla.f.bak
+    cd $builddir
+    # caffe原库调用opencv时宏参数找不到，这里为报错的文件添加opencv宏定义相关的头文件
+    patch -p1 < ../caffe_oh_pkg.patch
+    cd $OLDPWD
+}
+
+protobufbuildhost() {
+    if [ $protobufbuildhostflag == false ];then
+        return 1
+    fi
+    
+    mkdir -p $protobufbuilddir/cmake/build
+    cd $protobufbuilddir/cmake/build
+    cmake .. -Dprotobuf_BUILD_TESTS=OFF > `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1 >> build.log 2>&1
+    ./protoc --version
+    if [ "$?" != "0" ];then
+        echo "compile linux protoc fail"
+        return 1
+    fi
+    protoc=`pwd`/protoc
+    cd $OLDPWD
+    protobufbuildhostflag=false
+    return 0
+}
+
+buildprotobuf() {
+    mkdir -p $protobufbuilddir/cmake/$ARCH-build
+    cd $protobufbuilddir/cmake/$ARCH-build
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -Dprotobuf_BUILD_TESTS=OFF .. -L > build.log 2>&1
+    make -j4 >> build.log 2>&1
+    make install >> build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+buildblas() {
+    cd $blasbuilddir
+    $fc -c -O3 -fPIC *.f > `pwd`/build.log
+    $ar rv libblas.a *.o >> `pwd`/build.log
+    ret=$?
+    blaslibs=`pwd`/libblas.a
+    cd $OLDPWD
+    return $ret
+}
+
+buildcblas() {
+    cp -rf $cblasbuilddir $cblasbuilddir-$ARCH-build
+    cp Makefile.ohos $cblasbuilddir-$ARCH-build/Makefile.in
+    cd $cblasbuilddir-$ARCH-build
+    make CC=$cc FC=$fc -j4 alllib > `pwd`/build.log 2>&1
+    ret=$?
+    cblaslibs=`pwd`/lib/cblas_ohos.a
+    cblasinclude=`pwd`/include
+    cd $OLDPWD
+    return $ret
+}
+
+prepare() {
+    downloadthirdparty
+    if [ "$?" != "0" ];then
+        exit 1
+    fi
+    
+    if [ $unpackagethirdpartyflag == true ];then
+        unpackagethirdparty
+        unpackagethirdpartyflag=false
+    fi
+    
+    setcompiler
+    if [ $patchflag == true ];then
+        patchthirdparty
+        patchflag=false
+    fi
+    
+    protobufbuildhost
+    mkdir -p $builddir/$ARCH-build
+}
+
+buildthirdparty() {
+    buildblas
+    if [ "$?" != "0" ];then
+        echo "build blas fail"
+        exit 1
+    fi
+    buildcblas
+    if [ "$?" != "0" ];then
+        echo "build cblas fail"
+        exit 1
+    fi
+    
+    buildprotobuf "$@"
+    if [ "$?" != "0" ];then
+        echo "build protobuf fail"
+        exit 1
+    fi
+}
+
+build() {
+    buildthirdparty "$@"
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@;$LYCIUM_ROOT/usr/caffe/$ARCH" -DOHOS_ARCH=$ARCH -B$ARCH-build -DUSE_LMDB=OFF -DBLAS=clbas -DBUILD_python=OFF  -DBUILD_python_layer=OFF -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=FALSE -DProtobuf_PROTOC_EXECUTABLE=$protoc -DCMAKE_SHARED_LINKER_FLAGS="$blaslibs $cblaslibs" -DCMAKE_CXX_FLAGS="-I$cblasinclude" -S./ -L > $ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1 && make -j4 test.testbin -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # cp caffe_test.sh $builddir
+    # cd $builddir
+    # ./caffe_test.sh $ARCH
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$protobufbuilddir ${PWD}/$blasbuilddir ${PWD}/$cblasbuilddir-armeabi-v7a-build \
+    ${PWD}/$cblasbuilddir-arm64-v8a-build #${PWD}/$packagename ${PWD}/$protobufpackagename ${PWD}/$blaspackagename ${PWD}/$cblaspackagename
+}

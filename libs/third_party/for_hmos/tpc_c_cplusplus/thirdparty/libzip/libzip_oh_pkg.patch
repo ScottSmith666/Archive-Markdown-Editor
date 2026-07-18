@@ -1,0 +1,12 @@
+diff -rupN libzip-1.9.2/CMakeLists.txt libzip/CMakeLists.txt
+--- libzip-1.9.2/CMakeLists.txt	2022-06-28 14:17:12.000000000 +0000
++++ libzip/CMakeLists.txt	2023-03-20 01:25:30.923371971 +0000
+@@ -238,7 +238,7 @@ if(WIN32)
+ endif(WIN32)
+ 
+ # rpath handling: use rpath in installed binaries
+-if(NOT CMAKE_SYSTEM_NAME MATCHES Linux)
++if((NOT CMAKE_SYSTEM_NAME MATCHES Linux) AND (NOT CMAKE_SYSTEM_NAME MATCHES OHOS))
+   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+ endif()

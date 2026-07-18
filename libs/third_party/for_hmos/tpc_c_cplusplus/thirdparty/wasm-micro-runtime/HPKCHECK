@@ -1,0 +1,102 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: luohao <luohao155@h-partners.com>
+# Maintainer: luohao <luohao155@h-partners.com>
+
+source HPKBUILD > /dev/null 2>&1
+
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+IWASM_BUILD_DIR="$ARCH-build/iwasm-build"
+
+checkprepare(){
+    res=0
+    mkdir -p ${builddir}/${IWASM_BUILD_DIR}/iwasm_test
+
+    testsorcedir=${builddir}/${IWASM_BUILD_DIR}/iwasm_test
+    # 👇 打印路径（推荐加引号避免路径含空格时报错）
+    echo "Test source directory: ${testsorcedir}" > ${logfile} 2>&1
+
+    cp ${builddir}/tests/standalone/bfs/bfs.wasm ${testsorcedir}
+    cp ${builddir}/tests/standalone/binary-trees/binary_trees.wasm ${testsorcedir}
+    cp ${builddir}/tests/standalone/c-ray/c_ray.wasm ${builddir}/tests/standalone/c-ray/scene ${testsorcedir}
+    cp ${builddir}/tests/standalone/coremark/coremark_wasi_nofp.wasm ${builddir}/tests/standalone/coremark/coremark_wasi.wasm ${testsorcedir}
+    cp ${builddir}/tests/standalone/dhrystone/dhrystone.wasm ${testsorcedir}
+    cp ${builddir}/tests/standalone/simple/simple.wasm ${testsorcedir}
+    cp ${builddir}/tests/standalone/stream/stream.wasm ${testsorcedir}
+    cp ${builddir}/tests/standalone/test-parson/test_parson.wasm ${testsorcedir}
+
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "Copy test wasm failed" >> ${logfile} 2>&1
+        return $res
+    fi
+    return $res
+}
+
+openharmonycheck() {
+    cd "${builddir}/${IWASM_BUILD_DIR}" || { echo "cd failed" >> "${logfile}"; return 1; }
+
+    # 定义测试用例：每行格式为 "描述|命令"
+    local tests=(
+        "bfs.wasm|./iwasm --heap-size=0 -f bfs iwasm_test/bfs.wasm"
+        "binary_trees.wasm|./iwasm iwasm_test/binary_trees.wasm 14"
+        "c_ray.wasm|cat iwasm_test/scene | ./iwasm iwasm_test/c_ray.wasm -s 1024x768 > foo.ppm 2>> \"${logfile}\""
+        "coremark_wasi_nofp.wasm|./iwasm iwasm_test/coremark_wasi_nofp.wasm"
+        "coremark_wasi.wasm|./iwasm iwasm_test/coremark_wasi.wasm"
+        "dhrystone.wasm|./iwasm --heap-size=16384 iwasm_test/dhrystone.wasm"
+        "simple.wasm|./iwasm iwasm_test/simple.wasm"
+        "stream.wasm|./iwasm iwasm_test/stream.wasm"
+        "test_parson.wasm|./iwasm --heap-size=16384 iwasm_test/test_parson.wasm"
+    )
+
+    local passed=() failed=()
+    local name cmd
+
+    for test in "${tests[@]}"; do
+        IFS='|' read -r name cmd <<< "$test"
+        echo "============> run $name" >> "${logfile}" 2>&1
+
+        # 对于 c_ray.wasm，其命令已包含重定向；其他统一追加日志
+        if [[ "$name" == "c_ray.wasm" ]]; then
+            eval "$cmd" || failed+=("$name")
+        else
+            eval "$cmd >> \"${logfile}\" 2>&1" || failed+=("$name")
+        fi
+
+        if [[ ! " ${failed[@]} " =~ " $name " ]]; then
+            passed+=("$name")
+        fi
+    done
+
+    # 打印汇总报告
+    {
+        echo ""; echo "========== Test Summary =========="
+        [ ${#passed[@]} -gt 0 ] && echo "PASSED: ${passed[*]}"
+        [ ${#failed[@]} -gt 0 ] && echo "FAILED: ${failed[*]}"
+        echo "=================================="
+    } >> "${logfile}"
+
+    # 失败时保存 LastTest.log
+    if [ ${#failed[@]} -gt 0 ]; then
+        mkdir -p "${LYCIUM_FAULT_PATH}/${pkgname}"
+        cp Testing/Temporary/LastTest.log "${LYCIUM_FAULT_PATH}/${pkgname}/" 2>/dev/null || true
+        cd "$OLDPWD"
+        return 1
+    fi
+
+    cd "$OLDPWD"
+    return 0
+}

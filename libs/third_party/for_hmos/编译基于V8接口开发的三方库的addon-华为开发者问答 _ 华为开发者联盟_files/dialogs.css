@@ -1,0 +1,205 @@
+.codeSnippet-dialog.cke_dialog_container .cke_dialog .cke_dialog_body {
+  padding: 24px;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  background: #ffffff;
+  position: relative;
+}
+.codeSnippet-dialog.cke_dialog_container .cke_dialog .cke_dialog_body .cke_dialog_title {
+  text-align: left;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 40px;
+  color: rgba(0, 0, 0, 0.9);
+  margin-bottom: 24px;
+  border: none;
+  background: #fff;
+  padding: 0 0 0px;
+}
+
+.cke_dialog_container .cke_dialog .cke_resizer {
+  opacity: 0;
+}
+
+.cke_dialog_container .cke_dialog .cke_dialog_body .cke_dialog_ui_vbox_child {
+  padding: 0px;
+}
+.codeSnippet-dialog.cke_dialog_container .cke_dialog .cke_dialog_body .cke_dialog_close_button {
+  background-image: url('../images/edit-close.svg');
+  position: absolute;
+  top: 24px;
+  right: 24px !important;
+  display: block;
+  width: 40px;
+  height: 40px;
+  background-size: unset;
+}
+.codeSnippet-dialog.cke_dialog_container .cke_dialog .cke_dialog_body .cke_dialog_contents_body {
+  padding: 0;
+  overflow: hidden;
+}
+
+.codeSnippet-dialog.cke_dialog_container
+  .cke_dialog
+  .cke_dialog_body
+  .cke_dialog_contents_body
+  .cke_dialog_page_contents {
+  width: inherit;
+}
+.codeSnippet-dialog.cke_dialog_container .cke_dialog .cke_dialog_footer {
+  border: none;
+  background: #fff;
+}
+
+.codeSnippet-dialog.cke_dialog_container .cke_dialog .cke_dialog_footer .cke_dialog_footer_buttons {
+  margin: 24px 0 0;
+  width: 100%;
+}
+.codeSnippet-dialog.cke_dialog_container .cke_dialog .cke_dialog_footer .cke_dialog_footer_buttons .cke_dialog_ui_hbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0px;
+}
+
+.codeSnippet-dialog.cke_dialog_container
+  .cke_dialog
+  .cke_dialog_footer
+  .cke_dialog_footer_buttons
+  .cke_dialog_ui_hbox
+  .cke_dialog_ui_button_ok {
+  height: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #ffffff;
+  padding: 10px 20px;
+  border: unset;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.9);
+}
+.codeSnippet-dialog.cke_dialog_container
+  .cke_dialog
+  .cke_dialog_footer
+  .cke_dialog_footer_buttons
+  .cke_dialog_ui_hbox
+  .cke_dialog_ui_button_cancel {
+  height: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: unset;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content {
+  position: relative !important;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .lang-box {
+  display: flex;
+  align-items: center;
+  background: #f1f3f5 !important;
+  border-radius: 12px 12px 0 0;
+  opacity: 0.8;
+  padding: 8px 12px !important;
+  cursor: pointer;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .lang-box .lang-title {
+  font-weight: 400;
+  line-height: 19px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  margin-right: 8px;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .lang-box .select-code-box {
+  border-radius: 32px;
+  min-width: 90px;
+  background: rgba(0, 0, 0, 0.05) !important;
+  display: flex;
+  align-items: center;
+  padding: 2px 8px 2px 12px;
+  justify-content: space-around;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .lang-box .select-code-box .select-code {
+  color: rgba(0, 0, 0, 0.9);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .lang-box .select-code-box .select-down {
+  display: block;
+  background: url('../images/select-down.svg') no-repeat right;
+  width: 24px;
+  height: 24px;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .lang-box .select-code-box .select-up {
+  display: none;
+  background: url('../images/select-up.svg') no-repeat right;
+  width: 24px;
+  height: 24px;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .codesnippet-option-box {
+  display: none;
+  position: absolute;
+  border-radius: 12px;
+  box-shadow: 0px 4px 16px 0px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(108.73px);
+  background: #ffffff;
+  z-index: 10;
+  left: 76px;
+  top: 40px;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .codesnippet-option-box .codesnippet-option-list {
+  width: 186px;
+  max-height: 408px;
+  margin: 4px 0;
+  overflow-y: auto;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .codesnippet-option-box .codesnippet-option-list li {
+  padding: 10px 12px;
+  margin: 0 4px;
+  color: #000000;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  position: relative;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .codesnippet-option-box .codesnippet-option-list li:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+}
+.codeSnippet-dialog.cke_dialog_container .lang-content .codesnippet-option-box .codesnippet-option-list li:last-child {
+  border-bottom: unset;
+}
+.codeSnippet-dialog.cke_dialog_container
+  .lang-content
+  .codesnippet-option-box
+  .codesnippet-option-list
+  li.selected::after {
+  content: url('../images/lang-selected.svg');
+  display: block;
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+.codeSnippet-dialog .codeSnippet-dialog-monaco-editor * {
+  font: inherit;
+}
+
+.codeSnippet-dialog-monaco-editor .codicon[class*='codicon-'] {
+  font: normal normal normal 16px codicon !important;
+}
+.monaco-editor.no-user-select.showUnused.showDeprecated.vs {
+  border-radius: 0 0 12px 12px;
+  outline: unset;
+}
+.monaco-editor .overflow-guard {
+  border-radius: 0 0 12px 12px;
+}

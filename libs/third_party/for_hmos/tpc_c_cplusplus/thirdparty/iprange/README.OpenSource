@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "iprange",
+        "License": "GPL 2.0",
+        "License File": "https://github.com/firehol/iprange/blob/v1.0.4/COPYING",
+        "Version Number": "v1.0.4",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/firehol/iprange",
+        "Description": "iprange is a command line tool for dealing with IP address ranges, and it supports both IPv4 and IPv6 addresses. This tool is mainly used for firewall and network administration tasks, such as generating IP address lists, checking whether IP addresses are in a specific range, and so on."
+    }
+]

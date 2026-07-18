@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "meshoptimizer-0.19",
+        "License": "MIT License",
+        "License File": "https://github.com/zeux/meshoptimizer/blob/master/LICENSE.md",
+        "Version Number": "0.19",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/zeux/meshoptimizer",
+        "Description": "Mesh optimization library can make meshes smaller and faster to render"
+    }
+]

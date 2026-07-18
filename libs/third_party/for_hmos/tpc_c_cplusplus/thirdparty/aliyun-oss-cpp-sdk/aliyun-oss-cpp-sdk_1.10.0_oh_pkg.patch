@@ -1,0 +1,13 @@
+diff -Nura aliyun-oss-cpp-sdk-1.10.0/CMakeLists.txt aliyun-oss-cpp-sdk-1.10.0-patch/CMakeLists.txt
+--- aliyun-oss-cpp-sdk-1.10.0/CMakeLists.txt	2024-03-26 17:29:09.000000000 +0800
++++ aliyun-oss-cpp-sdk-1.10.0-patch/CMakeLists.txt	2024-09-30 16:44:09.932615750 +0800
+@@ -39,6 +39,9 @@
+ 	if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+ 		set(PLATFORM_ANDROID 1)
+ 		set(TARGET_OS "ANDROID")
++	elseif (${CMAKE_SYSTEM_NAME} STREQUAL "OHOS")
++		set(PLATFORM_LINUX 1)
++ 		set(TARGET_OS "LINUX")
+ 	else()
+ 		message(FATAL_ERROR "Do not support target platform")
+ 	endif()

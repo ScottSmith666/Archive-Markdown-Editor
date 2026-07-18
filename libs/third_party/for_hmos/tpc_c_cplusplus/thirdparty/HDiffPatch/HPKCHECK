@@ -1,0 +1,17 @@
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $pkgname_$ARCH-build/$builddir/
+    # 没有其他依赖环境，直接添加当前环境
+    export LD_LIBRARY_PATH=`pwd`
+    ./unit_test > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+
+    return $res
+}

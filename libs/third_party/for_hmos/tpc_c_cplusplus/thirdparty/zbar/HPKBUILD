@@ -1,0 +1,88 @@
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=zbar
+pkgver=0.10
+pkgrel=0
+pkgdesc="ZBar is an open source software suite for reading bar codes from various sources, such as video streams, image files and raw intensity sensors. It supports many popular symbologies (types of bar codes) including EAN-13/UPC-A, UPC-E, EAN-8, Code 128, Code 39, Interleaved 2 of 5 and QR Code."
+url="https://zbar.sourceforge.net/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL2.1")
+depends=("libpng")
+makedepends=()
+source="https://sourceforge.net/projects/$pkgname/files/$pkgname/$pkgver/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+buildtools="configure"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+source envset.sh
+host=
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 由于版本问题，原库依赖的libpng库比较老，而当前lycium仓库中libpng比较新，因此需要更换接口：png_set_gray_1_2_4_to_8->png_set_expand_gray_1_2_4_to_8 
+        patch -p1 < `pwd`/../zbar_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp -rf $builddir $pkgname-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+    fi
+    host=arm-linux    
+}
+
+build() {
+    cd $pkgname-$ARCH-build
+    ./configure "$@" --host=$host --disable-video --without-imagemagick --without-gtk --without-python --without-qt >> `pwd`/build.log 2>&1
+    make -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    unset host
+    return $ret
+}
+
+check() {
+    cd $pkgname-$ARCH-build
+    sed '$ascan_image: examples/scan_image.c' Makefile > temp_Makefile
+    mv temp_Makefile Makefile
+    sed '$a\\t$(CC) $(CFLAGS) examples/scan_image.c -o scan_image -lm -Iinclude/ -Lzbar/.libs -lzbar -L$(PNG_LIBS_DIR) -I$(PNG_INCLUDE_DIR) -lpng -lz' Makefile > temp_Makefile
+    mv temp_Makefile Makefile
+    make scan_image PNG_LIBS_DIR=$LYCIUM_ROOT/usr/libpng/$ARCH/lib PNG_INCLUDE_DIR=$LYCIUM_ROOT/usr/libpng/$ARCH/include >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi  
+    echo "The test must be on an OpenHarmony device!"
+    # 解析二维码
+    # ./scan_image qrcode.png
+    # 解析条形码
+    # ./scan_image barcode.png
+    return $ret    
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packageName
+}

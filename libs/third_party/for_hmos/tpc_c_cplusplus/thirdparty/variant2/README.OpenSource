@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "variant2",
+        "License": "Boost Software License",
+        "License File": "COPYING",
+        "Version Number": "1.81.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz",
+        "Description": "variant2 library implements a type-safe discriminated/tagged union type"
+    }
+]

@@ -1,0 +1,12 @@
+diff -Naru assimp-5.2.5/test/unit/UnitTestFileGenerator.h assimp-5.2.5_ohos_test.dir/test/unit/UnitTestFileGenerator.h
+--- assimp-5.2.5/test/unit/UnitTestFileGenerator.h	2022-09-08 11:13:43.000000000 -0700
++++ assimp-5.2.5_ohos_test.dir/test/unit/UnitTestFileGenerator.h	2024-09-24 18:45:20.435954667 -0700
+@@ -60,7 +60,7 @@
+     return fs;
+ }
+ #elif defined(__GNUC__) || defined(__clang__)
+-#define TMP_PATH "/tmp/"
++#define TMP_PATH "/data/local/tmp/"
+ inline FILE* MakeTmpFile(char* tmplate)
+ {
+     auto fd = mkstemp(tmplate);

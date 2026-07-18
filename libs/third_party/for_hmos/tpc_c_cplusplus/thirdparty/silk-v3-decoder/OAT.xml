@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <oatconfig>
+        <filefilterlist>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="*.png" desc="指导文档需要的png图片"/>
+            </filefilter>
+        </filefilterlist>
+    </oatconfig>
+</configuration>

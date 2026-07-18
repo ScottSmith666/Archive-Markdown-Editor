@@ -1,0 +1,87 @@
+# Contributor: <1596268623@qq.com>
+# Maintainer: <1596268623@qq.com>
+
+pkgname=axtls
+pkgver=2.1.5
+pkgrel=0
+pkgdesc="The axTLS embedded SSL project is a highly configurable client/server TLSv1.2 library designed for platforms with small memory requirements. It comes with a small HTTP/HTTPS server and additional test tools."
+url="https://axtls.sourceforge.net//"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=()
+makedepends=()
+source="https://sourceforge.net/projects/${pkgname}/files/${pkgver}/axTLS-${pkgver}.tar.gz/download?use_mirror=excellmedia"
+
+downloadpackage=true
+autounpack=true
+buildtools="makefile"
+
+builddir=${pkgname}-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+
+prepare() {
+
+    cp -arf axtls-code $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    patch -p1 <  ../axtls_oh_pkg.patch
+    #变量无法在patch中展开，只能使用sed，不能打patch
+    sed -i "s|PREFIX=\"/usr/local\"|PREFIX=\"$LYCIUM_ROOT/usr/axtls/$ARCH/\"|g" config/linuxconfig
+    cd $OLDPWD
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        #添加libclang_rt.asan.so 避免__wait3_time64函数找不到的报错
+        ASAN_LIB="${OHOS_SDK}/native/llvm/lib/clang/${CLANG_VERSION}/lib/arm-linux-ohos/libclang_rt.asan.so"
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        #添加libclang_rt.asan.so 避免__wait3_time64函数找不到的报错
+        ASAN_LIB="${OHOS_SDK}/native/llvm/lib/clang/${CLANG_VERSION}/lib/aarch64-linux-ohos/libclang_rt.asan.so"
+    else
+        echo prepare no support $ARCH !!
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE linuxconf VERBOSE=1 CC=$CC LDFLAGS=$ASAN_LIB STRIP=$STRIP > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    unset ASAN_LIB
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo package no support $ARCH !!
+        return -1
+    fi
+
+    unset host
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 进入到编译目录执行
+    # export LD_LIBRARY_PATH=./_stage/:$LD_LIBRARY_PATH
+    # cd _stage && ./axhttpd &
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build #${PWD}/$packagename
+}

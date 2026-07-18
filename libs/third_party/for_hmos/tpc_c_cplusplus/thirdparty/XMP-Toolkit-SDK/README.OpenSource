@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "XMP-Toolkit-SDK",
+        "License": BSD 3-Clause License",
+        "License File": "https://github.com/adobe/XMP-Toolkit-SDK/blob/main/LICENSE",
+        "Version Number": "v2025.03",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/adobe/XMP-Toolkit-SDK",
+        "Description": "The Adobe XMP Toolkit SDK is a powerful open-source metadata processing toolkit that allows developers to integrate XMP (Extensible Metadata Platform) functionality into their products. The XMPCore library provides APIs for parsing, manipulating, and serializing metadata, while the XMPFiles library offers APIs for locating, adding, or updating XMP metadata in files."
+    }
+]

@@ -1,0 +1,26 @@
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+testfile=${LYCIUM_THIRDPARTY_ROOT}/$pkgname/test.data
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir-$ARCH-build
+    ./svm-scale $testfile > test.scale > ${logfile} 2>&1
+    res=$?
+    if [ $res -eq 0 ]
+    then
+        ./svm-train test.scale test.model >> ${logfile} 2>&1
+        res=$?
+    fi
+    if [ $res -eq 0 ]
+    then
+        ./svm-predict test.scale test.model test.predict >> ${logfile} 2>&1
+        res=$?
+    fi
+    cd $OLDPWD
+    
+    return $res
+}

@@ -1,0 +1,102 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=bzip2
+pkgver=1_0_6
+pkgrel=0
+pkgdesc=""
+url=""
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("public domain" "LGPLv2.1" "GPLv2" "GPLv3")
+depends=()
+makedepends=()
+
+# 官方下载地址https://sourceforge.net/projects/$pkgname/files/$pkgname-$pkgver.tar.gz受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgname-$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-$pkgname-${pkgver}
+packagename=$builddir.zip
+
+cc=
+ar=
+ranlib=
+# bzip2 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+        ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+        ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    fi
+
+    if [ $ARCH == "x86_64" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/x86_64-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+        ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    fi
+    cd $OLDPWD # 1> /dev/null
+}
+
+build() {
+    local LOCAL_CFLAGS="-O3 -fstack-protector-strong -fPIC -D_FORTIFY_SOURCE=2"
+    local LOCAL_CXXFLAGS="-O3 -fstack-protector-strong -fPIC -D_FORTIFY_SOURCE=2"
+    local LOCAL_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--disable-new-dtags -s"
+
+    cd "$builddir-$ARCH-build"
+
+    $MAKE VERBOSE=1 \
+        CC="${cc}" \
+        AR="${ar}" \
+        RANLIB="${ranlib}" \
+        CFLAGS="${LOCAL_CFLAGS}" \
+        CXXFLAGS="${LOCAL_CXXFLAGS}" \
+        LDFLAGS="${LOCAL_LDFLAGS}" \
+        libbz2.a bzip2 bzip2recover > "$buildlog" 2>&1
+
+    local ret=$?
+    cd "$OLDPWD"
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    cd $OLDPWD
+    unset cc ar ranlib
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # make check
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build $builddir-x86_64-build #${PWD}/$packagename
+}

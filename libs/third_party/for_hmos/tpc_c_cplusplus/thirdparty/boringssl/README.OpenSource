@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "boringssl",
+        "License": "Apache License 2.0 and ISC License",
+        "License File": "https://github.com/google/boringssl/blob/master/LICENSE",
+        "Version Number": "fips-20220613",
+        "Owner": "tangshaoteng@163.com",
+        "Upstream URL": "https://github.com/google/boringssl/archive/refs/tags/fips-20220613.tar.gz",
+        "Description": "BoringSSL is a fork of OpenSSL that is designed to meet Google's needs."
+    }
+]

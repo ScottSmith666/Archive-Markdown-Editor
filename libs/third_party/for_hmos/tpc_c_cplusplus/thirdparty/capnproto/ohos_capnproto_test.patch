@@ -1,0 +1,45 @@
+diff -Nura capnproto-1.0.2/c++/src/capnp/serialize-test.c++ capnproto-1.0.2.patchdir/c++/src/capnp/serialize-test.c++
+--- capnproto-1.0.2/c++/src/capnp/serialize-test.c++	2024-01-13 01:39:52.000000000 +0800
++++ capnproto-1.0.2.patchdir/c++/src/capnp/serialize-test.c++	2024-08-21 15:56:04.906450169 +0800
+@@ -402,7 +402,7 @@
+   // TODO(cleanup): Find the Windows temp directory? Seems overly difficult.
+   char filename[] = "capnproto-serialize-test-XXXXXX";
+ #else
+-  char filename[] = "/tmp/capnproto-serialize-test-XXXXXX";
++  char filename[] = "/data/local/tmp/capnproto-serialize-test-XXXXXX";
+ #endif
+   kj::AutoCloseFd tmpfile(mkstemp(filename));
+   ASSERT_GE(tmpfile.get(), 0);
+diff -Nura capnproto-1.0.2/c++/src/kj/async-io-test.c++ capnproto-1.0.2.patchdir/c++/src/kj/async-io-test.c++
+--- capnproto-1.0.2/c++/src/kj/async-io-test.c++	2024-01-13 01:39:52.000000000 +0800
++++ capnproto-1.0.2.patchdir/c++/src/kj/async-io-test.c++	2024-08-21 15:57:45.736440405 +0800
+@@ -167,7 +167,7 @@
+ 
+ #if !_WIN32 && !__CYGWIN__  // TODO(someday): Debug why this deadlocks on Cygwin.
+ 
+-#if __ANDROID__
++#if __ANDROID__ || __OHOS__
+ #define TMPDIR "/data/local/tmp"
+ #else
+ #define TMPDIR "/tmp"
+@@ -305,7 +305,7 @@
+ // rewrite the test to use some other message type that is widely supported on streams. But for
+ // now we just limit the test to Linux. Also, it doesn't work on Android for some reason, and it
+ // isn't worth investigating, so we skip it there.
+-#if __linux__ && !__ANDROID__
++#if __linux__ && !__ANDROID__ && !__OHOS__
+ TEST(AsyncIo, AncillaryMessageHandler) {
+   auto ioContext = setupAsyncIo();
+   auto& network = ioContext.provider->getNetwork();
+diff -Nura capnproto-1.0.2/c++/src/kj/filesystem-disk-test.c++ capnproto-1.0.2.patchdir/c++/src/kj/filesystem-disk-test.c++
+--- capnproto-1.0.2/c++/src/kj/filesystem-disk-test.c++	2024-01-13 01:39:52.000000000 +0800
++++ capnproto-1.0.2.patchdir/c++/src/kj/filesystem-disk-test.c++	2024-08-21 16:01:20.986448650 +0800
+@@ -208,7 +208,7 @@
+ #define HOLES_NOT_SUPPORTED 1
+ #endif
+ 
+-#if __ANDROID__
++#if __ANDROID__ || __OHOS__
+ #define VAR_TMP "/data/local/tmp"
+ #else
+ #define VAR_TMP "/var/tmp"

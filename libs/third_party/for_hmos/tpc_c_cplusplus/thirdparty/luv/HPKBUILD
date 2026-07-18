@@ -1,0 +1,117 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Ding Qian <1052888395@qq.com>
+# Maintainer: Ding Qian <1052888395@qq.com>
+
+pkgname=luv
+pkgver=1.45.0-0
+pkgrel=0
+pkgdesc="Bare libuv bindings for lua"
+url="https://github.com/luvit/luv"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache License 2.0")
+depends=("libuv" "LuaJIT")
+makedepends=()
+source="https://github.com/luvit/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+
+syncsubmodule=true
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+buildtools="cmake"
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 在编译时在CMakeLists.txt中无法link到LuaJIT,导致编译不通过.
+        patch -p1 < `pwd`/../luv_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    if [ $syncsubmodule == true ]
+        then
+        cd $builddir
+        # 同步子模块，这里采用git submodule update容易失败，进行git clone下载
+        git clone https://gitee.com/mirrors/libuv.git deps/libuv >> `pwd`/build.log 2>&1
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        git clone https://gitee.com/mirrors/LuaJIT.git deps/luajit >> `pwd`/build.log 2>&1
+        if [ $? != 0 ]
+        then
+            return -2
+        fi
+        git clone https://gitee.com/mirrors/lua.git deps/lua >> `pwd`/build.log 2>&1
+        if [ $? != 0 ]
+        then
+            return -3
+        fi
+        git clone https://github.com/keplerproject/lua-compat-5.3.git deps/lua-compat-5.3 >> `pwd`/build.log 2>&1
+        if [ $? != 0 ]
+        then
+            return -4
+        fi
+        cd $OLDPWD
+        syncsubmodule=false
+    fi
+ 
+    cd $builddir
+    mkdir $ARCH-build
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DBUILD_MODULE=OFF \
+        -DBUILD_SHARED_LIBS=ON \
+        -DWITH_SHARED_LIBUV=ON \
+        -DWITH_LUA_ENGINE=LuaJIT \
+        -DLUA_COMPAT53_DIR=deps/lua-compat-5.3 \
+        -DWITH_AMALG=OFF \
+        -DLUA_BUILD_TYPE=System \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S. -L > `pwd`/$ARCH-build/build.log 2>&1
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1 
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 测试:使用LuaJIT来执行当前测试目录中的run.lua
+    # ./LuaJIT tests/run.lua
+    # 注意环境变量的配置.
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}
+

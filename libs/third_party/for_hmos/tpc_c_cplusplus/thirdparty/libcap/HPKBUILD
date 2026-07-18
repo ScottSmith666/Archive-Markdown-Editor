@@ -1,0 +1,107 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: Chen Xu <chenxu.unix@gmail.com>
+# Maintainer: Chen Xu <chenxu.unix@gmail.com>
+pkgname=libcap
+pkgver=2.69
+pkgrel=0
+pkgdesc="This is a library for getting and setting POSIX.1e (formerly POSIX 6)draft 15 capabilities."
+url="https://mirrors.edge.kernel.org/pub/linux/libs/security/linux-privs/libcap2"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0 or BSD-3-Clause")
+depends=("attr")
+makedepends=("")
+
+source="https://mirrors.edge.kernel.org/pub/linux/libs/security/linux-privs/libcap2/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+buildhost=true
+cc=
+ar=
+cflags=
+ldflags=
+
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        cflags="-O2 -fPIC -march=armv7a"
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        cflags="-O2 -fPIC"
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    
+    if [ $buildhost == true ];then
+        cp -rf $builddir $builddir-host-build
+        cd $builddir-host-build/libcap
+        make _makenames -j4 VERBOSE=1 > `pwd`/build.log 2>&1
+        cd $OLDPWD
+        buildhost=false
+    fi
+    
+    # makefile没有查找attr路径，需要手动指定路径
+    ldflags="-L$LYCIUM_ROOT/usr/attr/$ARCH/lib"
+}
+build() {
+    cd $builddir-$ARCH-build
+    objcopy=${OHOS_SDK}/native/llvm/bin/llvm-objcopy
+    make CC=${cc} AR=${ar} OBJCOPY=${objcopy} CFLAGS="${cflags}" GOLANG=no LDFLAGS=${ldflags} all -j4 VERBOSE=1 > `pwd`/build.log 2>&1
+    
+    # 继续编译
+    make CC=${cc} AR=${ar} OBJCOPY=${objcopy} CFLAGS="${cflags}" GOLANG=no LDFLAGS=${ldflags} all -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+
+    # 在编译过程中需要利用_makenames工具生成cap_names.h
+    # 由于是交叉编译，编译出来的_makenames为arm版本的，无法在host机器上运行，故而会报错，无法生成cap_names.h文件
+    # 需要将host版本_makenames拷贝到指定目录，才能继续编译
+    cp -rf `pwd`/../$builddir-host-build/libcap/_makenames `pwd`/libcap/
+
+    # 继续编译
+    make CC=${cc} AR=${ar} OBJCOPY=${objcopy} CFLAGS="${cflags}" GOLANG=no LDFLAGS=${ldflags} all -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+
+    # 编译测试程序
+    make CC=${cc} AR=${ar} OBJCOPY=${objcopy} CFLAGS="${cflags}" GOLANG=no LDFLAGS=${ldflags} test -C tests -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    installpath=$LYCIUM_ROOT/usr/libcap/$ARCH
+    cd $builddir-$ARCH-build
+    make DESTDIR=$installpath lib="lib" install VERBOSE=1 >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    unset cc ar cflags ldflags
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # cd ${LYCIUM_THIRDPARTY_ROOT}/libcap/libcap-libcap-2.24-arm64-v8a-build/tests
+    # make test
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-host-build $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

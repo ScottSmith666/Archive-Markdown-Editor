@@ -1,0 +1,82 @@
+# Contributor: liulihong <llh_01129@163.com>
+# Maintainer: liulihong <llh_01129@163.com>
+
+pkgname=lame 
+pkgver=3.100 
+pkgrel=0
+pkgdesc="LAME is an educational tool to be used for learning about MP3 encoding."
+url=""
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("LGPLv2" "GPLv2")
+depends=()
+makedepends=()
+ 
+# source="https://nchc.dl.sourceforge.net/project/$pkgname/$pkgname/$pkgver/$pkgname-$pkgver.tar.gz"
+source="https://sourceforge.net/projects/lame/files/${pkgname}/${pkgver}/${pkgname}-${pkgver}.tar.gz"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+buildtools="configure"
+
+source envset.sh
+host=
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    fi
+    cd $builddir
+    cd $OLDPWD
+}
+
+build() {
+
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure "$@" --host=$host > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    cd $OLDPWD
+    unset host
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 check >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # 在构建目录下，执行make test
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/packagename
+}

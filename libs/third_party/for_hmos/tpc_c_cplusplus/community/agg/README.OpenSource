@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "Anti-Grain Geometry",
+        "License": "BSD License",
+        "License File": "Readme",
+        "Version Number": "2.6",
+        "Owner": "zhongluping1@huawei.com",
+        "Upstream URL": "https://github.com/ghaerr/agg-2.6",
+        "Description": "Anti-Grain Geometry library, written by Maxim Shemanarev in C++. It is an Open Source, 2D vector graphics library."
+    }
+]

@@ -1,0 +1,78 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=aliyun-oss-cpp-sdk
+pkgver=1.10.0
+pkgrel=0
+pkgdesc="Aliyun OSS SDK for C++"
+url="https://github.com/aliyun/aliyun-oss-cpp-sdk"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("the Apache License")
+depends=("openssl" "curl")
+makedepends=()
+
+source="https://github.com/aliyun/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+patchflag=true
+
+# 当前 aliyun-oss-cpp-sdk-1.10.0/sdk/src/client/ClientConfiguration.cc 中 PLATFORM_NAME 采用的是Linux
+# 用户可根据自己场景替换为 OHOS
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $patchflag == true ]
+    then
+      cd $builddir
+      # CMakeLists.txt添加opoenharmony平台宏
+      patch -p1 < ../aliyun-oss-cpp-sdk_1.10.0_oh_pkg.patch
+      cd $OLDPWD
+      patchflag=false
+    fi
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -B$ARCH-build -S./ -L -DBUILD_SHARED_LIBS=ON \
+        -DCMAKE_CXX_FLAGS="-I$LYCIUM_ROOT/usr/curl/$ARCH/include \
+        -L$LYCIUM_ROOT/usr/curl/$ARCH/lib -lcurl -Wno-unused-command-line-argument" > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

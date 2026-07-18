@@ -1,0 +1,12 @@
+diff -urN utf8proc-2.7.0_old/CMakeLists.txt utf8proc-2.7.0/CMakeLists.txt
+--- utf8proc-2.7.0_old/CMakeLists.txt	2021-12-17 10:11:23.000000000 +0800
++++ utf8proc-2.7.0/CMakeLists.txt	2024-10-04 19:24:58.163194537 +0800
+@@ -17,7 +17,7 @@
+ set(SO_PATCH 0)
+ 
+ option(UTF8PROC_INSTALL "Enable installation of utf8proc" On)
+-option(UTF8PROC_ENABLE_TESTING "Enable testing of utf8proc" Off)
++option(UTF8PROC_ENABLE_TESTING "Enable testing of utf8proc" ON)
+ option(LIB_FUZZING_ENGINE "Fuzzing engine to link against" Off)
+ 
+ add_library (utf8proc

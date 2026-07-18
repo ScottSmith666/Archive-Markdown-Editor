@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "fftw3",
+        "License": "GPL-2.0-or-later",
+        "License File": "http://fftw.org/doc/License-and-Copyright.html",
+        "Version Number": "3.3.10",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "http://fftw.org/fftw-3.3.10.tar.gz",
+        "Description": "FFTW is a free collection of fast C routines for computing the Discrete Fourier Transform in one or more dimensions"
+    }
+]

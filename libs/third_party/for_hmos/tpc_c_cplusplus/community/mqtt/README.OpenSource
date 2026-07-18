@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "mqtt",
+        "License": "EPL-2.0 and EDL-1.0",
+        "License File": "https://github.com/eclipse/paho.mqtt.c/blob/master/LICENSE",
+		"Owner": "xiafeng@huawei.com",
+        "Version Number": "v1.3.12",
+        "Upstream URL": "https://github.com/eclipse/paho.mqtt.c/archive/refs/tags/v1.3.12.zip",
+        "Description": "This repository contains the source code for the Eclipse Paho MQTT C client library."
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.openssl.org/source/old/1.1.1/openssl-1.1.1u.tar.gz",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    }
+]

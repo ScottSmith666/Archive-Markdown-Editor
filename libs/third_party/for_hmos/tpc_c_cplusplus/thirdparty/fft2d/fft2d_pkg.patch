@@ -1,0 +1,186 @@
+diff -Naur fft2d/CMakeLists.txt fft2dcp/CMakeLists.txt
+--- fft2d/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
++++ fft2dcp/CMakeLists.txt	2024-03-02 15:53:43.547521200 +0800
+@@ -0,0 +1,100 @@
++# Copyright (c) 2023 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++cmake_minimum_required(VERSION 3.16)
++
++# Project  创建工程文件
++project(fft2d C CXX)
++
++# 添加C源文件到项目中
++set(SOURCE_FILES_FFTSG2D
++    ${CMAKE_CURRENT_SOURCE_DIR}/fftsg2d.c
++    ${CMAKE_CURRENT_SOURCE_DIR}/fftsg.c)
++set(SOURCE_FILES_FFTSG3D
++    ${CMAKE_CURRENT_SOURCE_DIR}/fftsg3d.c
++    ${CMAKE_CURRENT_SOURCE_DIR}/fftsg.c)
++
++#生成动态库.so文件，默认在build文件夹中
++add_library(fft4f2d SHARED ${CMAKE_CURRENT_SOURCE_DIR}/fft4f2d.c)
++add_library(fftsg2d SHARED ${SOURCE_FILES_FFTSG2D})
++add_library(fftsg3d SHARED ${SOURCE_FILES_FFTSG3D})
++add_library(shrtdct SHARED ${CMAKE_CURRENT_SOURCE_DIR}/shrtdct.c)
++add_library(alloc SHARED ${CMAKE_CURRENT_SOURCE_DIR}/alloc.c)
++
++#设置编译模式
++set(CMAKE_BUILD_TYPE "Release" )
++
++#生成文件到指定位置
++set(LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
++set(LIBRARY_INCLUDE_PATH ${CMAKE_INSTALL_PREFIX}/include)
++set(TEST_SRC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/sample2d)
++
++#fftsg2dt测试程序
++set(TEST_FFTSG2D 
++    ${TEST_SRC_PATH}/fftsg2dt.c)
++add_executable(fftsg2dt ${TEST_FFTSG2D})
++target_link_libraries(fftsg2dt fftsg2d m alloc)
++
++#fftsg3dt测试程序
++set(TEST_FFTSG3D
++    ${TEST_SRC_PATH}/fftsg3dt.c)
++add_executable(fftsg3dt ${TEST_FFTSG3D})
++target_link_libraries(fftsg3dt fftsg3d m alloc)
++
++#shrtdct测试程序
++set(TEST_SHRTDCT
++    ${TEST_SRC_PATH}/shrtdctt.c)
++add_executable(shrtdctt ${TEST_SHRTDCT})
++target_link_libraries(shrtdctt shrtdct m alloc)
++
++#fft4f2d测试程序
++set(TEST_FFT4F2D
++    ${TEST_SRC_PATH}/fft4f2dt.c)
++add_executable(fft4f2dt ${TEST_FFT4F2D})
++target_link_libraries(fft4f2dt fft4f2d m alloc)
++
++INSTALL(FILES 
++  fft4f2d.h 
++  fftsg.h 
++  fftsg2d.h 
++  fftsg3d.h 
++  alloc.h
++  shrtdct.h
++  DESTINATION ${LIBRARY_INCLUDE_PATH} COMPONENT Headers
++)
++
++install(TARGETS fft4f2d
++LIBRARY     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++ARCHIVE     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++)
++
++install(TARGETS fftsg2d
++LIBRARY     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++ARCHIVE     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++)
++
++install(TARGETS fftsg3d
++LIBRARY     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++ARCHIVE     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++)
++
++install(TARGETS shrtdct
++LIBRARY     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++ARCHIVE     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++)
++
++install(TARGETS alloc
++LIBRARY     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++ARCHIVE     DESTINATION    ${LIBRARY_OUTPUT_PATH}
++)
++
+diff -Naur fft2d/fft4f2d.h fft2dcp/fft4f2d.h
+--- fft2d/fft4f2d.h	1970-01-01 08:00:00.000000000 +0800
++++ fft2dcp/fft4f2d.h	2024-03-02 15:51:35.486254100 +0800
+@@ -0,0 +1,11 @@
++#ifndef _FFT4F2D_H_
++#define _FFT4F2D_H_
++
++#include <math.h>
++
++void cdft2d(int, int, int, double **, int *, double *);
++void rdft2d(int, int, int, double **, int *, double *);
++void ddct2d(int, int, int, double **, double **, int *, double *);
++void ddst2d(int, int, int, double **, double **, int *, double *);
++
++#endif /*_FFT4F2D_H_*/
+\ No newline at end of file
+diff -Naur fft2d/fftsg.h fft2dcp/fftsg.h
+--- fft2d/fftsg.h	1970-01-01 08:00:00.000000000 +0800
++++ fft2dcp/fftsg.h	2024-03-02 15:51:35.489254000 +0800
+@@ -0,0 +1,13 @@
++#ifndef _FFTSG_H_
++#define _FFTSG_H_
++
++#include <math.h>
++
++void cdft(int, int, double *, int *, double *);
++void rdft(int, int, double *, int *, double *);
++void ddct(int, int, double *, int *, double *);
++void ddst(int, int, double *, int *, double *);
++void dfct(int, double *, double *, int *, double *);
++void dfst(int, double *, double *, int *, double *);
++
++#endif /*_FFTSG_H_*/
+\ No newline at end of file
+diff -Naur fft2d/fftsg2d.h fft2dcp/fftsg2d.h
+--- fft2d/fftsg2d.h	1970-01-01 08:00:00.000000000 +0800
++++ fft2dcp/fftsg2d.h	2024-03-02 15:51:35.491254100 +0800
+@@ -0,0 +1,12 @@
++#ifndef _FFTSG2D_H_
++#define _FFTSG2D_H_
++
++#include <math.h>
++
++void cdft2d(int, int, int, double **, double *, int *, double *);
++void rdft2d(int, int, int, double **, double *, int *, double *);
++void rdft2dsort(int, int, int, double **);
++void ddct2d(int, int, int, double **, double *, int *, double *);
++void ddst2d(int, int, int, double **, double *, int *, double *);
++    
++#endif /*_FFTSG2D_H_*/
+\ No newline at end of file
+diff -Naur fft2d/fftsg3d.h fft2dcp/fftsg3d.h
+--- fft2d/fftsg3d.h	1970-01-01 08:00:00.000000000 +0800
++++ fft2dcp/fftsg3d.h	2024-03-02 15:51:35.493254000 +0800
+@@ -0,0 +1,12 @@
++#ifndef _FFTSG3D_H_
++#define _FFTSG3D_H_
++
++#include <math.h>
++
++void cdft3d(int, int, int, int, double ***, double *, int *, double *);
++void rdft3d(int, int, int, int, double ***, double *, int *, double *);
++void rdft3dsort(int, int, int, int, double ***);
++void ddct3d(int, int, int, int, double ***, double *, int *, double *);
++void ddst3d(int, int, int, int, double ***, double *, int *, double *);
++    
++#endif /*_FFTSG3D_H_*/
+\ No newline at end of file
+diff -Naur fft2d/shrtdct.h fft2dcp/shrtdct.h
+--- fft2d/shrtdct.h	1970-01-01 08:00:00.000000000 +0800
++++ fft2dcp/shrtdct.h	2024-03-02 15:51:35.496254400 +0800
+@@ -0,0 +1,9 @@
++#ifndef _SHRTDCTT_H_
++#define _SHRTDCTT_H_
++
++#include <math.h>
++
++void ddct8x8s(int isgn, double **a);
++void ddct16x16s(int isgn, double **a);
++    
++#endif /*_SHRTDCTT_H_*/
+\ No newline at end of file

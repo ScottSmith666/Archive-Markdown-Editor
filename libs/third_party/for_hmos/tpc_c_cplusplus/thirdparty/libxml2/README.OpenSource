@@ -1,0 +1,30 @@
+[
+    {
+        "Name": "libxml2",
+        "License": " MIT license",
+        "License File": "https://github.com/GNOME/libxml2/blob/master/Copyright",
+        "Version Number": "v2.11.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/GNOME/libxml2/archive/refs/tags/v2.11.3.tar.gz",
+        "Description": "libxml2 is an XML toolkit implemented in C, originally developed for the GNOME Project."
+    },
+    {
+        "Name": "xz",
+        "License": "Public Domain and LGPL-2.1 and GPL-2.0 and GPL-3.0",
+        "License File": ["https://github.com/tukaani-project/xz/blob/v5.4/COPYING","https://github.com/tukaani-project/xz/blob/v5.4/COPYING.GPLv2",
+                        "https://github.com/tukaani-project/xz/blob/v5.4/COPYING.GPLv3","https://github.com/tukaani-project/xz/blob/v5.4/COPYING.LGPLv2.1"],
+        "Version Number": "5.4.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/tukaani-project/xz/releases/download/v5.4.1/xz-5.4.1.tar.gz",
+        "Description": "XZ Utils is free general-purpose data compression software with a high compression ratio. "
+    },
+    {
+        "Name": "zlib",
+        "License": "zlib License",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.2.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz",
+        "Description": "A massively spiffy yet delicately unobtrusive compression library."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libgltf",
+        "License": "MIT",
+        "License File": "https://github.com/code4game/libgltf/blob/master/LICENSE.md",
+        "Version Number": "0.1.11",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/code4game/libgltf/archive/refs/heads/master.zip",
+        "Description": "Mainly used to read and use glTF format 3D models in C++ programs."
+    }
+]

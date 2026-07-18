@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "CRoaring",
+        "License": "MIT or Apache-2.0",
+        "License File": "https://github.com/RoaringBitmap/CRoaring/blob/master/LICENSE",
+        "Version Number": "3.0.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/RoaringBitmap/CRoaring/archive/refs/tags/v3.0.1.zip",
+        "Description": "Roaring bitmaps in C (and C++), with SIMD (AVX2, AVX-512 and NEON) optimizations: used by Apache Doris, ClickHouse, and StarRocks"
+    }
+]

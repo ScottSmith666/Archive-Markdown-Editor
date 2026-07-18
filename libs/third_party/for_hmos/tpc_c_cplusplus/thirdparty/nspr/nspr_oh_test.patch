@@ -1,0 +1,145 @@
+diff -Nura nspr-4.35/nspr/pr/tests/abstract.c nspr_patch/nspr/pr/tests/abstract.c
+--- nspr-4.35/nspr/pr/tests/abstract.c	2022-09-12 19:40:15.000000000 +0800
++++ nspr_patch/nspr/pr/tests/abstract.c	2024-08-17 20:36:11.965714363 +0800
+@@ -10,7 +10,8 @@
+ #include <string.h>
+ #include "nspr.h"
+ 
+-static const char abstractSocketName[] = "\0testsocket";
++static const char abstractSocketName[] = "/data/local/tmp/sock";
++
+ 
+ static void
+ ClientThread(void* aArg)
+@@ -63,6 +64,31 @@
+     }
+ }
+ 
++// 清理旧的套接字文件
++static void CleanUpSocket() {
++    PRFileDesc *fd;
++    PRNetAddr addr;
++
++    addr.local.family = PR_AF_LOCAL;
++    memcpy(addr.local.path, abstractSocketName, sizeof(abstractSocketName));
++
++    // 尝试打开套接字文件
++    fd = PR_OpenTCPSocket(addr.raw.family);
++    if (fd) {
++        // 尝试关闭文件描述符
++        PRStatus status = PR_Close(fd);
++        if (status != PR_SUCCESS) {
++            printf("Failed to close socket.\n");
++            return;
++        }
++    }
++
++    // 删除套接字文件
++    if (remove(addr.local.path) != 0) {
++        printf("Failed to delete socket file %s.\n", addr.local.path);
++    }
++}
++
+ int
+ main()
+ {
+@@ -74,6 +100,9 @@
+     PRInt32 len;
+     PRInt32 total;
+ 
++    CleanUpSocket(); 
++    // 清理旧的套接字文件
++
+     addr.local.family = PR_AF_LOCAL;
+     memcpy(addr.local.path, abstractSocketName, sizeof(abstractSocketName));
+ 
+diff -Nura nspr-4.35/nspr/pr/tests/nameshm1.c nspr_patch/nspr/pr/tests/nameshm1.c
+--- nspr-4.35/nspr/pr/tests/nameshm1.c	2022-09-12 19:40:15.000000000 +0800
++++ nspr_patch/nspr/pr/tests/nameshm1.c	2024-08-05 15:54:02.360006852 +0800
+@@ -83,9 +83,9 @@
+ #define SEM_64
+ #endif
+ 
+-#define SEM_NAME1 "/tmp/nameshmSEM1" SEM_D SEM_64
+-#define SEM_NAME2 "/tmp/nameshmSEM2" SEM_D SEM_64
+-#define OPT_NAME "/tmp/xxxNSPRshm" SEM_D SEM_64
++#define SEM_NAME1 "/data/local/tmp/nameshmSEM1" SEM_D SEM_64
++#define SEM_NAME2 "/data/local/tmp/nameshmSEM2" SEM_D SEM_64
++#define OPT_NAME "/data/local/tmp/xxxNSPRshm" SEM_D SEM_64
+ #define EXE_NAME "nameshm1"
+ #define SEM_MODE  0666
+ #define SHM_MODE  0666
+diff -Nura nspr-4.35/nspr/pr/tests/sema.c nspr_patch/nspr/pr/tests/sema.c
+--- nspr-4.35/nspr/pr/tests/sema.c	2022-09-12 19:40:15.000000000 +0800
++++ nspr_patch/nspr/pr/tests/sema.c	2024-08-05 15:54:02.360006852 +0800
+@@ -19,8 +19,8 @@
+ #define SEM_64
+ #endif
+ 
+-#define SEM_NAME1 "/tmp/foo.sem" SEM_D SEM_64
+-#define SEM_NAME2 "/tmp/bar.sem" SEM_D SEM_64
++#define SEM_NAME1 "/data/local/tmp/foo.sem" SEM_D SEM_64
++#define SEM_NAME2 "/data/local/tmp/bar.sem" SEM_D SEM_64
+ #define SEM_MODE  0666
+ #define ITERATIONS 1000
+ 
+diff -Nura nspr-4.35/nspr/pr/tests/semaerr1.c nspr_patch/nspr/pr/tests/semaerr1.c
+--- nspr-4.35/nspr/pr/tests/semaerr1.c	2022-09-12 19:40:15.000000000 +0800
++++ nspr_patch/nspr/pr/tests/semaerr1.c	2024-08-05 15:54:02.364006894 +0800
+@@ -19,8 +19,8 @@
+ #define SEM_64
+ #endif
+ 
+-#define SEM_NAME1 "/tmp/foo.sem" SEM_D SEM_64
+-#define SEM_NAME2 "/tmp/bar.sem" SEM_D SEM_64
++#define SEM_NAME1 "/data/local/tmp/foo.sem" SEM_D SEM_64
++#define SEM_NAME2 "/data/local/tmp/bar.sem" SEM_D SEM_64
+ #define SEM_MODE  0666
+ 
+ static PRBool debug_mode = PR_FALSE;
+diff -Nura nspr-4.35/nspr/pr/tests/semaerr.c nspr_patch/nspr/pr/tests/semaerr.c
+--- nspr-4.35/nspr/pr/tests/semaerr.c	2022-09-12 19:40:15.000000000 +0800
++++ nspr_patch/nspr/pr/tests/semaerr.c	2024-08-05 15:54:02.360006852 +0800
+@@ -19,8 +19,8 @@
+ #define SEM_64
+ #endif
+ 
+-#define NO_SUCH_SEM_NAME "/tmp/nosuchsem.sem" SEM_D SEM_64
+-#define SEM_NAME1 "/tmp/foo.sem" SEM_D SEM_64
++#define NO_SUCH_SEM_NAME "/data/local/tmp/nosuchsem.sem" SEM_D SEM_64
++#define SEM_NAME1 "/data/local/tmp/foo.sem" SEM_D SEM_64
+ #define EXE_NAME "semaerr1"
+ #define SEM_MODE  0666
+ 
+diff -Nura nspr-4.35/nspr/pr/tests/semaping.c nspr_patch/nspr/pr/tests/semaping.c
+--- nspr-4.35/nspr/pr/tests/semaping.c	2022-09-12 19:40:15.000000000 +0800
++++ nspr_patch/nspr/pr/tests/semaping.c	2024-08-05 15:54:02.360006852 +0800
+@@ -19,9 +19,9 @@
+ #define SEM_64
+ #endif
+ 
+-#define SHM_NAME "/tmp/counter" SEM_D SEM_64
+-#define SEM_NAME1 "/tmp/foo.sem" SEM_D SEM_64
+-#define SEM_NAME2 "/tmp/bar.sem" SEM_D SEM_64
++#define SHM_NAME "/data/local/tmp/counter" SEM_D SEM_64
++#define SEM_NAME1 "/data/local/tmp/foo.sem" SEM_D SEM_64
++#define SEM_NAME2 "/data/local/tmp/bar.sem" SEM_D SEM_64
+ #define EXE_NAME "semapong"
+ #define SEM_MODE  0666
+ #define SHM_MODE  0666
+diff -Nura nspr-4.35/nspr/pr/tests/semapong.c nspr_patch/nspr/pr/tests/semapong.c
+--- nspr-4.35/nspr/pr/tests/semapong.c	2022-09-12 19:40:15.000000000 +0800
++++ nspr_patch/nspr/pr/tests/semapong.c	2024-08-05 15:54:02.352006767 +0800
+@@ -19,9 +19,9 @@
+ #define SEM_64
+ #endif
+ 
+-#define SHM_NAME "/tmp/counter" SEM_D SEM_64
+-#define SEM_NAME1 "/tmp/foo.sem" SEM_D SEM_64
+-#define SEM_NAME2 "/tmp/bar.sem" SEM_D SEM_64
++#define SHM_NAME "/data/local/tmp/counter" SEM_D SEM_64
++#define SEM_NAME1 "/data/local/tmp/foo.sem" SEM_D SEM_64
++#define SEM_NAME2 "/data/local/tmp/bar.sem" SEM_D SEM_64
+ #define ITERATIONS 1000
+ 
+ static PRBool debug_mode = PR_FALSE;

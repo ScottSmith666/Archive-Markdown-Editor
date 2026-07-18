@@ -1,0 +1,92 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,5 +1,24 @@
+ project(themis)
+ cmake_minimum_required(VERSION 3.8)
++if(POLICY CMP0069)
++    cmake_policy(SET CMP0069 NEW)
++endif()
++set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_CXX_STANDARD_REQUIRED ON)
++set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
++set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
++set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
++add_compile_options(-grecord-command-line)
++
++find_package(OpenSSL REQUIRED)
++
++include_directories(${OPENSSL_INCLUDE_DIR})
++if(OPENSSL_CRYPTO_LIBRARY)
++    get_filename_component(OPENSSL_LIB_DIR ${OPENSSL_CRYPTO_LIBRARY} DIRECTORY)
++    link_directories(${OPENSSL_LIB_DIR})
++endif()
++
++include_directories(include)
+ include_directories(src)
+ 
+ if (NO_NIST_STS)
+@@ -12,14 +30,18 @@
+ set_target_properties(soter_shared PROPERTIES OUTPUT_NAME soter)
+ target_compile_definitions(soter PRIVATE "DNIST_STS_EXE_PATH=tests/soter/nist-sts")
+ target_compile_options(soter PRIVATE -std=gnu99)
++target_link_libraries(soter PUBLIC crypto)
+ 
+ target_compile_definitions(soter_shared PRIVATE "DNIST_STS_EXE_PATH=tests/soter/nist-sts")
+ target_compile_options(soter_shared PRIVATE -std=gnu99)
++target_link_libraries(soter_shared PUBLIC crypto)
+ 
+ file(GLOB_RECURSE THEMIS_SOURCE_FILES src/themis/*.c)
+ add_library(themis ${THEMIS_SOURCE_FILES})
+ add_library(themis_shared SHARED ${THEMIS_SOURCE_FILES})
+ set_target_properties(themis_shared PROPERTIES OUTPUT_NAME themis)
++target_link_libraries(themis soter)
++target_link_libraries(themis_shared soter)
+ 
+ file(GLOB SOTER_TEST_SOURCE tests/soter/*.c tests/common/*.c )
+ file(GLOB THEMIS_TEST_SOURCE tests/themis/*.c tests/common/*.c)
+@@ -42,3 +64,17 @@
+ target_include_directories(themispp_test PUBLIC tests src/wrappers/themis)
+ target_link_libraries(themispp_test themispp themis soter crypto)
+ set_target_properties(themispp_test PROPERTIES LINKER_LANGUAGE CXX)
++
++set_target_properties(soter_shared PROPERTIES VERSION 0 SOVERSION 0)
++set_target_properties(themis_shared PROPERTIES VERSION 0 SOVERSION 0)
++install(TARGETS soter soter_shared themis themis_shared
++        LIBRARY DESTINATION lib
++        ARCHIVE DESTINATION lib)
++install(DIRECTORY include/soter include/themis
++        DESTINATION include
++        FILES_MATCHING PATTERN "*.h")
++
++configure_file(src/soter/libsoter.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libsoter.pc @ONLY)
++configure_file(src/themis/libthemis.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libthemis.pc @ONLY)
++install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libsoter.pc ${CMAKE_CURRENT_BINARY_DIR}/libthemis.pc
++        DESTINATION lib/pkgconfig)
+\ No newline at end of file
+--- a/src/themis/secure_message_wrapper.c
++++ b/src/themis/secure_message_wrapper.c
+@@ -196,11 +196,21 @@
+                                      wrapped_message + sizeof(themis_secure_signed_message_hdr_t),
+                                      msg->message_hdr.message_length)
+                  == THEMIS_SUCCESS);
++#if defined(__OHOS__) && defined(__arm__)
++    /* arm平台, 内存地址未对齐时会引起signal 7崩溃 */
++    void* sign = malloc(msg->signature_length);
++    if (sign == NULL) {
++        return THEMIS_NO_MEMORY;
++    }
++    memcpy(sign, wrapped_message + sizeof(themis_secure_signed_message_hdr_t) + 
++        msg->message_hdr.message_length, msg->signature_length);
++    THEMIS_CHECK(soter_verify_final(ctx->verify_ctx, 
++                sign, msg->signature_length) == THEMIS_SUCCESS);
++    free(sign);
++#else
+     THEMIS_CHECK(soter_verify_final(ctx->verify_ctx,
+                                     wrapped_message + sizeof(themis_secure_signed_message_hdr_t)
+                                         + msg->message_hdr.message_length,
+                                     msg->signature_length)
+                  == THEMIS_SUCCESS);
++#endif
+     memcpy(message,
+            wrapped_message + sizeof(themis_secure_signed_message_hdr_t),
+            msg->message_hdr.message_length);

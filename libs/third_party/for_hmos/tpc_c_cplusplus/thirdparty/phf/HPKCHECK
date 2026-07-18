@@ -1,0 +1,25 @@
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+linuxresult=${LYCIUM_ROOT}/main/${pkgname}/result_linux.txt   # 在linux执行生成的结果
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+openharmonycheck() {
+    res=0    
+    cd $builddir-$ARCH-build
+    ./phf 10 20 10 3 -v -n > ${logfile} 2>&1
+    res=$?
+    if [ $res -eq 0 ]
+    then
+        ret=`cmp ${pkgname}_${pkgver}_${OHOS_SDK_VER}_test.log $linuxresult`
+        if [ ! -z "$ret" ]
+        then
+            res=1
+            echo "the failed result:" >> ${logfile}
+            echo $ret >> ${logfile}
+        fi
+    fi
+    cd $OLDPWD
+
+    return $res
+}

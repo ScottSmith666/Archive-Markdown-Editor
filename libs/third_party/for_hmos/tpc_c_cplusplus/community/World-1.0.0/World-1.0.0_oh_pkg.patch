@@ -1,0 +1,23 @@
+diff -urN World-1.0.0_old/CMakeLists.txt World-1.0.0/CMakeLists.txt
+--- World-1.0.0_old/CMakeLists.txt	2021-02-15 17:38:48.000000000 +0800
++++ World-1.0.0/CMakeLists.txt	2024-09-23 14:30:28.075055828 +0800
+@@ -3,7 +3,7 @@
+ set(PROJECT_NAME "WORLD")
+ 
+ project(${PROJECT_NAME})
+-
++enable_testing()
+ FILE(GLOB SRCS "src/*.cpp" "src/*.c")
+ 
+ FILE(GLOB HEADERS "src/world/*.h" "src/world/*.hpp")
+@@ -13,3 +13,10 @@
+ target_include_directories(${PROJECT_NAME} PUBLIC "src")
+ 
+ install(TARGETS ${PROJECT_NAME})
++# 添加测试程序
++add_executable(test_program test/test.cpp tools/audioio.cpp)
++# 链接测试程序与WORLD库，并添加头文件搜索路径
++target_include_directories(test_program PUBLIC "${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}/tools")
++target_link_libraries(test_program ${PROJECT_NAME})
++# 添加测试命令
++add_test(NAME run_test_program COMMAND test_program ${CMAKE_SOURCE_DIR}/test/vaiueo2d.wav)

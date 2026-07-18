@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "c-ares",
+        "License": "MIT license",
+        "License File": "LICENSE.md",
+        "Version Number": "cares-1_19_0",
+        "Owner": "chenbaodi@huawei.com",
+        "Upstream URL": "https://github.com/c-ares/c-ares/archive/refs/tags/cares-1_19_0.tar.gz",
+        "Description": "A C library for asynchronous DNS requests"
+    }
+]

@@ -1,0 +1,88 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    cd $ARCH-build
+    echo "total test 4"  > $logfile 2>&1
+    total_tests=4
+    passed_tests=0
+
+    ./src/convert/wmf2eps -o output.eps ./examples/2doorvan.wmf >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "1/4 wmf2eps .......................... failed" >> $logfile 2>&1
+    else
+        echo "1/4 wmf2eps .......................... passed" >> $logfile 2>&1
+        ((passed_tests++))
+    fi
+
+    ./src/convert/wmf2fig -o outputfig.eps ./examples/fjftest.wmf >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "2/4 wmf2fig .......................... failed" >> $logfile 2>&1
+    else
+        echo "2/4 wmf2fig .......................... passed" >> $logfile 2>&1
+        ((passed_tests++))
+    fi
+
+    ./src/convert/wmf2gd -o output.png ./examples/sample.wmf >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+    echo "3/4 wmf2gd .......................... failed" >> $logfile 2>&1
+    else
+    echo "3/4 wmf2gd .......................... passed" >> $logfile 2>&1
+    ((passed_tests++))
+    fi
+
+    ./src/convert/wmf2svg -o output.svg ./examples/cell.wmf >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+    echo "4/4 wmf2svg .......................... failed" >> $logfile 2>&1
+    else
+    echo "4/4 wmf2svg .......................... passed" >> $logfile 2>&1
+    ((passed_tests++))
+    fi
+
+    test_fail=$((total_tests - passed_tests)) 
+    if [ $passed_tests -ne 4 ]
+    then
+    echo "$passed_tests tests passed, $test_fail tests failed" >> $logfile 2>&1
+    else
+    echo "100% tests passed, 0 tests failed out of 4" >> $logfile 2>&1
+    fi
+
+    # 将生成的图片拷贝到tpc_c_cplusplus/lycium/check_result/manual_confirm/libwmf下
+    # 将四张图片拷贝到本地，进行人工对比
+    # 生成的.eps可以在浏览器搜索在线eps查看器查看图，对比原图2doorvan.wmf是否一致
+    # 生成的.png可直接打开，对比原图fjftest.wmf是否一致
+    # 生成的.svg可以通过WPS图片查看，对比原图cell.wmf是否一致
+    # 生成的outputfig.eps和linux下执行的结果用对比工具对比内容，存在时间不同
+    mkdir -p $CHECK_RESULT_PATH/manual_confirm/${pkgname}
+    cp ./output.eps $CHECK_RESULT_PATH/manual_confirm/${pkgname}
+    cp ./outputfig.eps $CHECK_RESULT_PATH/manual_confirm/${pkgname}
+    cp ./output.png $CHECK_RESULT_PATH/manual_confirm/${pkgname}
+    cp ./output.svg $CHECK_RESULT_PATH/manual_confirm/${pkgname}
+
+    cd $OLDPWD
+    return $test_fail
+}

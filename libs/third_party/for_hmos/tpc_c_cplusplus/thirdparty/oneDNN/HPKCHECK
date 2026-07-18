@@ -1,0 +1,19 @@
+# Contributor: 城meto <myxuan475@126.com>
+# Maintainer: 城meto <myxuan475@126.com>
+
+source HPKBUILD > /dev/null 2>&1    # 导入HPKBUILD文件
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+# 在OH环境执行测试的接口
+openharmonycheck() {
+    res=0                  
+    cd ${builddir}/${ARCH}-build    
+    ctest > ${logfile} 2>&1             
+    res=$?      
+    if [ $res -ne 0 ];then
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp Testing/Temporary/LastTest.log ${LYCIUM_FAULT_PATH}/${pkgname}/     
+    fi                   
+    cd $OLDPWD                         
+    return $res  
+}

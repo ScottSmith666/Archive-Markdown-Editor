@@ -1,0 +1,65 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=json-schema-validator
+pkgver=2.2.0
+pkgrel=0
+pkgdesc="This is a C++ library for validating JSON documents based on a JSON Schema which itself should validate with draft-7 of JSON Schema Validation."
+url="https://github.com/pboettch/json-schema-validator"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=("json")
+makedepends=()
+
+source="https://github.com/pboettch/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+patchflag=true 
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    cd $builddir
+    if $patchflag
+    then
+        # 由于库编译报错：constant expression evaluates to -32 which cannot be narrowed to type 'char' [-Wc++11-narrowing]
+        patch -p1 < `pwd`/../json-schema-validator_oh_pkg.patch
+        patchflag=false
+    fi
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    cd $builddir/$ARCH-build/test
+    # 测试用例涉及到install,因此屏蔽掉
+    sed -i '/.*subdirs("cmake-install")*/c\#subdirs("cmake-install")' CTestTestfile.cmake 
+    ret=$?
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # ctest
+    return $ret
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

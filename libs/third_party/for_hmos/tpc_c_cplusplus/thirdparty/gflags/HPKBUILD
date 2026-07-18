@@ -1,0 +1,80 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com> ChenXu <chenxu.unix@gmail.com>
+
+pkgname=gflags
+pkgver=v2.2.2
+pkgrel=0
+pkgdesc="The gflags package contains a C++ library that implements commandline flags processing."
+url="https://github.com/gflags/gflags"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=()
+makedepends=()
+# 官网地址：https://github.com/gflags/$pkgname/archive/refs/tags/$pkgver.tar.gz，因网络原因采用gitee mirrors
+source="https://gitee.com/mirrors/$pkgname/repository/archive/$pkgver.zip"
+downloadpackage=true
+autounpack=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -DBUILD_TESTING=ON -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir/$ARCH-build
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir/$ARCH-build
+    else
+        echo "${ARCH} not support"
+    fi
+    cd $builddir/$ARCH-build/test
+    ohos_sdk_cmake_path=${OHOS_SDK//\//\\\/}"\/native\/build-tools\/cmake\/bin\/cmake" 
+    cat CTestTestfile.cmake | sed 's/'$ohos_sdk_cmake_path'/\/data\/CIusr\/bin\/cmake/' > CTestTestfile_temp.cmake
+    rm CTestTestfile.cmake
+    mv CTestTestfile_temp.cmake CTestTestfile.cmake
+    ret=$?
+    cd $OLDPWD 
+    echo "The test must be on an OpenHarmony device!"
+    # ctest
+    return $ret
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

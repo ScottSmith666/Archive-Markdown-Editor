@@ -1,0 +1,20 @@
+diff -urN json11-1.0.0_old/CMakeLists.txt json11-1.0.0/CMakeLists.txt
+--- json11-1.0.0_old/CMakeLists.txt	2017-06-21 07:48:22.000000000 +0800
++++ json11-1.0.0/CMakeLists.txt	2024-10-07 20:10:12.364267842 +0800
+@@ -8,7 +8,7 @@
+ 
+ enable_testing()
+ 
+-option(JSON11_BUILD_TESTS "Build unit tests" OFF)
++option(JSON11_BUILD_TESTS "Build unit tests" ON)
+ option(JSON11_ENABLE_DR1467_CANARY "Enable canary test for DR 1467" OFF)
+ 
+ if(CMAKE_VERSION VERSION_LESS "3")
+@@ -50,6 +50,7 @@
+ 
+   add_executable(json11_test test.cpp)
+   target_link_libraries(json11_test json11)
++  add_test(NAME Json11Test COMMAND json11_test)
+ endif()
+ 
+ install(TARGETS json11 DESTINATION lib/${CMAKE_LIBRARY_ARCHITECTURE})

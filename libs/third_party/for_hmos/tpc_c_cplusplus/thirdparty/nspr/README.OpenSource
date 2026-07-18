@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "nspr",
+        "License": "MPL-2.0",
+        "License File": "LICENSE",
+        "Version Number": "4.35",
+        "Owner": "llh_01129@163.com",
+        "Upstream URL": "https://archive.mozilla.org/pub/nspr/releases/v4.35/src/nspr-4.35.tar.gz",
+        "Description": "Netscape Portable Runtime (NSPR) provides a platform-neutral API for system level and libc-like functions."
+    }
+]

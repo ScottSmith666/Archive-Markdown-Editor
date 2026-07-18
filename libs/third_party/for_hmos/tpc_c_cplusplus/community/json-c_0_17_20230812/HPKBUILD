@@ -1,0 +1,63 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=json-c_0_17_20230812
+pkgver=0.17-20230812
+pkgrel=0
+pkgdesc="JSON-C implements a reference counting object model that allows you to easily construct JSON objects in C."
+url="https://github.com/json-c/json-c"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=()
+makedepends=()
+
+# 官方下载地址https://github.com/json-c/${pkgname:0:6}/archive/refs/tags/${pkgname:0:6}-$pkgver.tar.gz受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/${pkgname:0:6}/repository/archive/${pkgname:0:6}-$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+
+builddir=${pkgname:0:6}-${pkgname:0:6}-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DDISABLE_WERROR=ON -B$ARCH-build -S./ > $buildlog 2>&1
+    ${MAKE} VERBOSE=1 -C$ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    ${MAKE} VERBOSE=1 -C$ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

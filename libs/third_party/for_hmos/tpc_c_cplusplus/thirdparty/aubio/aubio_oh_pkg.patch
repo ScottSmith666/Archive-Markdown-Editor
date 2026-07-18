@@ -1,0 +1,12 @@
+diff -Nuar aubio-0.4.9/wscript aubio-0.4.9_new/wscript
+--- aubio-0.4.9/wscript	2024-05-18 17:49:26.883345800 +0800
++++ aubio-0.4.9_new/wscript	2024-05-18 17:51:11.549712800 +0800
+@@ -117,7 +117,7 @@
+             help_str = 'build documentation (auto)',
+             help_disable_str = 'do not build documentation')
+ 
+-    add_option_enable_disable(ctx, 'tests', default = True,
++    add_option_enable_disable(ctx, 'tests', default = False,
+             help_str = 'build tests (true)',
+             help_disable_str = 'do not build or run tests')
+ 

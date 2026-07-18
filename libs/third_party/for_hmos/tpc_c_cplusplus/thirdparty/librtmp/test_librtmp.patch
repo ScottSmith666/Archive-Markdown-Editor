@@ -1,0 +1,795 @@
+diff --git a/test_librtmp.cpp b/test_librtmp.cpp
+new file mode 100644
+index 0000000..a054fe6
+--- /dev/null
++++ b/thirdparty/librtmp/test_librtmp.cpp
+@@ -0,0 +1,788 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <signal.h>
++#include <unistd.h>
++#include <sys/time.h>
++
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++
++#include <iostream>
++#include <vector>
++#include <string>
++#include <thread>
++#include <atomic>
++
++extern "C" {
++#include <librtmp/rtmp.h>
++#include <librtmp/log.h>
++#include <librtmp/amf.h>
++#include <librtmp/http.h>
++
++size_t real_http_callback(void *ptr, size_t size, size_t nmemb, void *stream) {
++    printf("Received data block size: %zu bytes\n", size * nmemb);
++    return size * nmemb;
++}
++}
++
++typedef struct {
++    int total;
++    int passed;
++    int failed;
++    int skipped;
++} TestResult;
++
++static TestResult g_result = {0, 0, 0, 0};
++
++/* Global Variables */
++static volatile int g_interrupted = 0;
++static std::string g_test_url;
++static std::string g_server_ip = "127.0.0.1";
++static int g_server_port = 1935;
++static int g_verbose = 0;
++static const int TIMEOUT_SEC = 5;
++
++static std::atomic<bool> g_bg_push_running{false};
++
++/* ============================================ */
++/* Test Macros and Utility Functions            */
++/* ============================================ */
++#define TEST_ASSERT(name, expr) do { \
++    g_result.total++; \
++    if (expr) { \
++        printf("  [\033[32mPASS\033[0m] %s\n", name); \
++        g_result.passed++; \
++    } else { \
++        printf("  [\033[31mFAIL\033[0m] %s\n", name); \
++        g_result.failed++; \
++    } \
++} while(0)
++
++#define TEST_SKIP(name, reason) do { \
++    g_result.total++; \
++    g_result.skipped++; \
++    printf("  [\033[33mSKIP\033[0m] %s (%s)\n", name, reason); \
++} while(0)
++
++static long long get_timestamp_ms() {
++    struct timeval tv;
++    gettimeofday(&tv, NULL);
++    return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
++}
++
++static void print_separator(const char *title) {
++    printf("\n==========================================\n");
++    if (title) printf("  %s\n", title);
++    printf("==========================================\n");
++}
++
++static void print_module_header(const char *module_name) {
++    printf("\n+------------------------------------------+\n");
++    printf("|  %-40s|\n", module_name);
++    printf("+------------------------------------------+\n");
++}
++
++static void signal_handler(int sig) {
++    printf("\n[INFO] Received signal %d, interrupting tests...\n", sig);
++    g_interrupted = 1;
++    g_bg_push_running = false;
++}
++
++std::vector<char> GenerateFLV()
++{
++    unsigned char flv[] = {
++        0x46, 0x4C, 0x56, 0x01, 0x05, 0x00, 0x00, 0x00, 0x09,
++        0x00, 0x00, 0x00, 0x00,
++        0x09, 0x00, 0x00, 0x0E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++        0x17, 0x00, 0x00, 0x00, 0x00,
++        0x01, 0x42, 0x00, 0x1E, 0xFF, 0xE1, 0x00, 0x01, 0x67,
++        0x00, 0x00, 0x00, 0x19
++    };
++    return std::vector<char>(flv, flv + sizeof(flv));
++}
++
++/* ============================================ */
++/* Background Push Thread                       */
++/* ============================================ */
++void BackgroundPushThread(std::string url) {
++    RTMP *rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    rtmp->Link.timeout = TIMEOUT_SEC;
++
++    std::vector<char> url_buf(url.begin(), url.end());
++    url_buf.push_back('\0');
++    RTMP_SetupURL(rtmp, url_buf.data());
++
++    RTMP_EnableWrite(rtmp);
++
++    if (RTMP_Connect(rtmp, NULL) && RTMP_ConnectStream(rtmp, 0)) {
++        std::vector<char> flv_full = GenerateFLV();
++        RTMP_Write(rtmp, flv_full.data(), flv_full.size());
++
++        unsigned char dummy_tag[] = {
++            0x09, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++            0x17, 0x01, 0x00, 0x00, 0x00,
++            0x00, 0x00, 0x00, 0x01, 0x65,
++            0x00, 0x00, 0x00, 0x15
++        };
++
++        uint32_t ts = 0;
++        while (g_bg_push_running && !g_interrupted) {
++            ts += 50;
++            dummy_tag[4] = (ts >> 16) & 0xFF;
++            dummy_tag[5] = (ts >> 8) & 0xFF;
++            dummy_tag[6] = ts & 0xFF;
++
++            RTMP_Write(rtmp, (char*)dummy_tag, sizeof(dummy_tag));
++            usleep(50000);
++        }
++    }
++
++    RTMP_Close(rtmp);
++    RTMP_Free(rtmp);
++}
++
++/* ============================================ */
++/* Micro Local HTTP Server for HTTP_get Test    */
++/* ============================================ */
++void DummyHTTPServerThread(int port) {
++    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
++    int opt = 1;
++    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
++
++    struct timeval timeout;
++    timeout.tv_sec = 2;
++    timeout.tv_usec = 0;
++    setsockopt(server_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
++
++    struct sockaddr_in address;
++    memset(&address, 0, sizeof(address));
++    address.sin_family = AF_INET;
++    address.sin_addr.s_addr = inet_addr("127.0.0.1");
++    address.sin_port = htons(port);
++
++    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) == 0) {
++        listen(server_fd, 1);
++        int client_fd = accept(server_fd, NULL, NULL);
++        if (client_fd >= 0) {
++            char buf[1024];
++            setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
++
++            if (read(client_fd, buf, sizeof(buf)) > 0) {
++                if (strstr(buf, ".swf")) {
++                    const unsigned char swf_body[] = {
++                        'F', 'W', 'S', 0x0A,             // 签名 'FWS' + 版本号 10
++                        0x40, 0x00, 0x00, 0x00,          // 声明文件长度为 64 字节 (必须大于实际发送长度或等于)
++                        0x78, 0x00, 0x05, 0x5F, 0x00,    // 一些必要的 SWF RECT 数据
++                        0x00, 0x0F, 0xA0, 0x00, 0x01,    // 帧率和帧数
++                        0x00, 0x00, 0x00, 0x00           // 补齐到 20 字节以上
++                    };
++                    char header[256];
++                    sprintf(header, "HTTP/1.0 200 OK\r\n"
++                                    "Content-Length: %ld\r\n"
++                                    "Connection: close\r\n\r\n", sizeof(swf_body));
++                    write(client_fd, header, strlen(header));
++                    write(client_fd, swf_body, sizeof(swf_body));
++                } else {
++                    const char* text_body = "Hello, World!!!";
++                    char header[256];
++                    sprintf(header, "HTTP/1.0 200 OK\r\n"
++                                    "Content-Length: %ld\r\n"
++                                    "Connection: close\r\n\r\n", strlen(text_body));
++                    write(client_fd, header, strlen(header));
++                    write(client_fd, text_body, strlen(text_body));
++                }
++            }
++            close(client_fd);
++        }
++    }
++    close(server_fd);
++}
++
++/* ============================================ */
++/* Module 1: Basic API & Lifecycle Tests        */
++/* ============================================ */
++static int test_rtmp_basic() {
++    print_module_header("Module 1: Basic API & Lifecycle Tests");
++
++    RTMP *rtmp = RTMP_Alloc();
++    TEST_ASSERT("RTMP_Alloc (Memory allocation)", rtmp != NULL);
++    if (rtmp) {
++        RTMP_Init(rtmp);
++        TEST_ASSERT("RTMP_Init (State initialization validation)", rtmp->m_inChunkSize == RTMP_DEFAULT_CHUNKSIZE);
++
++        RTMP_Close(rtmp);
++        TEST_ASSERT("RTMP_Close (Disconnect and cleanup)", 1);
++
++        RTMP_Free(rtmp);
++        TEST_ASSERT("RTMP_Free (Free memory without crash)", 1);
++    }
++
++    rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    std::vector<char> url_buf1(g_test_url.begin(), g_test_url.end());
++    url_buf1.push_back('\0');
++
++    int ret = RTMP_SetupURL(rtmp, url_buf1.data());
++    TEST_ASSERT("RTMP_SetupURL (URL configuration)", ret != 0);
++    RTMP_Free(rtmp);
++
++    rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    RTMP_EnableWrite(rtmp);
++    TEST_ASSERT("RTMP_EnableWrite (Enable publish mode)", 1);
++    RTMP_Free(rtmp);
++
++    return 0;
++}
++
++/* ============================================ */
++/* Module 2: Server Connection Verification     */
++/* ============================================ */
++static int test_rtmp_connect() {
++    print_module_header("Module 2: Server Connection Verification");
++    printf("  -> Target URL: %s\n", g_test_url.c_str());
++
++    RTMP *rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    rtmp->Link.timeout = TIMEOUT_SEC;
++
++    std::vector<char> url_buf(g_test_url.begin(), g_test_url.end());
++    url_buf.push_back('\0');
++    RTMP_SetupURL(rtmp, url_buf.data());
++
++    int ret = RTMP_Connect(rtmp, NULL);
++    TEST_ASSERT("RTMP_Connect (High-level connection API)", ret != 0);
++
++    if (ret) {
++        ret = RTMP_ConnectStream(rtmp, 0);
++        TEST_ASSERT("RTMP_ConnectStream (Create media stream channel)", ret != 0);
++    }
++
++    RTMP_Close(rtmp);
++    RTMP_Free(rtmp);
++    return 0;
++}
++
++/* ============================================ */
++/* Module 3: FLV Packet Push Test               */
++/* ============================================ */
++static int test_rtmp_push() {
++    print_module_header("Module 3: FLV Packet Push Test");
++
++    RTMP *rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    rtmp->Link.timeout = TIMEOUT_SEC;
++
++    std::string push_url = g_test_url + "_push";
++    std::vector<char> url_buf(push_url.begin(), push_url.end());
++    url_buf.push_back('\0');
++    RTMP_SetupURL(rtmp, url_buf.data());
++
++    RTMP_EnableWrite(rtmp);
++
++    if (RTMP_Connect(rtmp, NULL) && RTMP_ConnectStream(rtmp, 0)) {
++        std::vector<char> test_flv = GenerateFLV();
++        int nWrite = RTMP_Write(rtmp, test_flv.data(), test_flv.size());
++        TEST_ASSERT("RTMP_Write (Push raw FLV data)", nWrite == (int)test_flv.size());
++    } else {
++        TEST_SKIP("RTMP_Write (Push raw FLV data)", "Network connection failed");
++    }
++
++    RTMP_Close(rtmp);
++    RTMP_Free(rtmp);
++    return 0;
++}
++
++/* ============================================ */
++/* Module 4: Pull Stream Test                   */
++/* ============================================ */
++static int test_rtmp_pull() {
++    print_module_header("Module 4: Pull Stream Test");
++
++    std::string pull_url = g_test_url + "_thread";
++    g_bg_push_running = true;
++    std::thread bg_thread(BackgroundPushThread, pull_url);
++    usleep(800000);
++
++    RTMP *rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    rtmp->Link.timeout = TIMEOUT_SEC;
++
++    std::vector<char> url_buf(pull_url.begin(), pull_url.end());
++    url_buf.push_back('\0');
++    RTMP_SetupURL(rtmp, url_buf.data());
++
++    if (RTMP_Connect(rtmp, NULL) && RTMP_ConnectStream(rtmp, 0)) {
++        char buf[1024];
++        int nRead = RTMP_Read(rtmp, buf, sizeof(buf));
++        TEST_ASSERT("RTMP_Read (Pull unpacked stream data)", nRead > 0);
++    } else {
++        TEST_SKIP("RTMP_Read (Pull unpacked stream data)", "Network connection failed");
++    }
++
++    RTMP_Close(rtmp);
++    RTMP_Free(rtmp);
++
++    g_bg_push_running = false;
++    if (bg_thread.joinable()) {
++        bg_thread.join();
++    }
++
++    return 0;
++}
++
++/* ============================================ */
++/* Module 5: Offline & Utility API Coverage     */
++/* ============================================ */
++static int test_rtmp_offline_utils() {
++    print_module_header("Module 5: Offline & Utility API Coverage");
++
++    TEST_ASSERT("RTMP_LibVersion", RTMP_LibVersion() > 0);
++    TEST_ASSERT("RTMP_GetTime", RTMP_GetTime() > 0);
++
++    RTMPPacket packet;
++    memset(&packet, 0, sizeof(RTMPPacket));
++    TEST_ASSERT("RTMPPacket_Alloc", RTMPPacket_Alloc(&packet, 1024) != 0);
++    RTMPPacket_Reset(&packet);
++    TEST_ASSERT("RTMPPacket_Reset", packet.m_nBytesRead == 0);
++    RTMPPacket_Free(&packet);
++    TEST_ASSERT("RTMPPacket_Free", packet.m_body == NULL);
++
++    char raw_url[256];
++    snprintf(raw_url, sizeof(raw_url), "rtmp://%s:%d/live/test", g_server_ip.c_str(), g_server_port);
++
++    int protocol;
++    AVal host, playpath, app;
++    unsigned int parsed_port = 0;
++    int ret = RTMP_ParseURL(raw_url, &protocol, &host, &parsed_port, &playpath, &app);
++    TEST_ASSERT("RTMP_ParseURL (Extract URL components)", ret != 0 && parsed_port == (unsigned int)g_server_port);
++    if (playpath.av_val) free(playpath.av_val);
++
++    AVal in_path = {(char*)"app/teststream", 14};
++    AVal out_path;
++    memset(&out_path, 0, sizeof(out_path));
++    RTMP_ParsePlaypath(&in_path, &out_path);
++    TEST_ASSERT("RTMP_ParsePlaypath", out_path.av_len > 0);
++    if (out_path.av_val) free(out_path.av_val);
++
++    RTMP *rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    AVal opt = {(char*)"timeout", 7};
++    AVal arg = {(char*)"10", 2};
++    TEST_ASSERT("RTMP_SetOpt (Dictionary property setup)", RTMP_SetOpt(rtmp, &opt, &arg) != 0);
++
++    AVal empty_val = {0, 0};
++    AVal h_val;
++    h_val.av_val = (char*)g_server_ip.c_str();
++    h_val.av_len = g_server_ip.length();
++    AVal p_val = {(char*)"test", 4};
++
++    AVal a_val;
++    a_val.av_len = 4;
++    a_val.av_val = (char*)malloc(5);
++    strcpy(a_val.av_val, "live");
++
++    RTMP_SetupStream(rtmp, RTMP_PROTOCOL_RTMP, &h_val, g_server_port, &empty_val, &p_val, &empty_val, &empty_val, &empty_val, &a_val, &empty_val, &empty_val, 0, &empty_val, &empty_val, &empty_val, 0, 0, 0, 0);
++    TEST_ASSERT("RTMP_SetupStream (Fine-grained stream config)", rtmp->Link.app.av_len == 4);
++
++    RTMP_UserInterrupt();
++    TEST_ASSERT("RTMP_UserInterrupt (Trigger global interrupt flag)", RTMP_ctrlC != 0);
++    RTMP_ctrlC = 0;
++
++    RTMPSockBuf sb;
++    memset(&sb, 0, sizeof(RTMPSockBuf));
++    sb.sb_socket = socket(AF_INET, SOCK_STREAM, 0);
++    TEST_ASSERT("RTMPSockBuf_Close (Low-level Socket management)", RTMPSockBuf_Close(&sb) == 0);
++
++    RTMP_Free(rtmp);
++    return 0;
++}
++
++/* ============================================ */
++/* Module 6: Advanced Control & State API       */
++/* ============================================ */
++static int test_rtmp_advanced_control() {
++    print_module_header("Module 6: Advanced Control & State API");
++
++    RTMP *rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    rtmp->Link.timeout = TIMEOUT_SEC;
++
++    std::vector<char> url_buf(g_test_url.begin(), g_test_url.end());
++    url_buf.push_back('\0');
++    RTMP_SetupURL(rtmp, url_buf.data());
++
++    if (RTMP_Connect(rtmp, NULL) && RTMP_ConnectStream(rtmp, 0)) {
++
++        TEST_ASSERT("RTMP_Socket (Get underlying fd)", RTMP_Socket(rtmp) > 0);
++        TEST_ASSERT("RTMP_IsConnected (State check)", RTMP_IsConnected(rtmp) != 0);
++        TEST_ASSERT("RTMP_IsTimedout (Timeout check)", RTMP_IsTimedout(rtmp) == 0);
++        TEST_ASSERT("RTMP_GetDuration (Get stream duration)", RTMP_GetDuration(rtmp) >= 0.0);
++
++        RTMP_SetBufferMS(rtmp, 3000);
++        TEST_ASSERT("RTMP_SetBufferMS (Set buffer milliseconds)", rtmp->m_nBufferMS == 3000);
++        RTMP_UpdateBufferMS(rtmp);
++        TEST_ASSERT("RTMP_UpdateBufferMS (Execute without crash)", 1);
++
++        TEST_ASSERT("RTMP_SendServerBW (Server bandwidth config)", RTMP_SendServerBW(rtmp) != 0);
++        TEST_ASSERT("RTMP_SendClientBW (Client bandwidth config)", RTMP_SendClientBW(rtmp) != 0);
++        TEST_ASSERT("RTMP_SendCtrl (Send control packet ping)", RTMP_SendCtrl(rtmp, 3, 0, 3000) != 0);
++        TEST_ASSERT("RTMP_SendPause (Send low-level pause command)", RTMP_SendPause(rtmp, 1, 0) != 0);
++        TEST_ASSERT("RTMP_Pause (Business layer resume stream)", RTMP_Pause(rtmp, 0) != 0);
++        TEST_ASSERT("RTMP_SendCreateStream", RTMP_SendCreateStream(rtmp) != 0);
++        TEST_ASSERT("RTMP_SendSeek", RTMP_SendSeek(rtmp, 1000) != 0);
++        TEST_ASSERT("RTMP_ToggleStream", RTMP_ToggleStream(rtmp) != 0);
++
++        int rec_ret = RTMP_ReconnectStream(rtmp, 0);
++        TEST_ASSERT("RTMP_ReconnectStream (Disconnect fault tolerance validation)", rec_ret == 0 || rec_ret == 1);
++
++        RTMP_DeleteStream(rtmp);
++        TEST_ASSERT("RTMP_DeleteStream (Destroy stream channel without crash)", 1);
++
++    } else {
++        TEST_SKIP("RTMP Advanced Control", "Network connection failed");
++    }
++
++    RTMP_Close(rtmp);
++    RTMP_Free(rtmp);
++    return 0;
++}
++
++/* ============================================ */
++/* Module 7: Low-Level Packet I/O API           */
++/* ============================================ */
++static int test_rtmp_packet_io() {
++    print_module_header("Module 7: Low-Level Packet I/O API");
++
++    std::string pull_url = g_test_url + "_packetio";
++    g_bg_push_running = true;
++    std::thread bg_thread(BackgroundPushThread, pull_url);
++    usleep(800000);
++
++    RTMP *rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    rtmp->Link.timeout = TIMEOUT_SEC;
++
++    std::vector<char> url_buf(pull_url.begin(), pull_url.end());
++    url_buf.push_back('\0');
++    RTMP_SetupURL(rtmp, url_buf.data());
++
++    if (RTMP_Connect(rtmp, NULL) && RTMP_ConnectStream(rtmp, 0)) {
++
++        RTMPPacket in_packet = {0};
++        int ret = RTMP_ReadPacket(rtmp, &in_packet);
++        TEST_ASSERT("RTMP_ReadPacket (Fine-grained packet capture)", ret != 0);
++
++        if (ret) {
++            TEST_ASSERT("RTMP_ClientPacket (Client internal data dispatch)", RTMP_ClientPacket(rtmp, &in_packet) >= 0);
++            RTMPPacket_Free(&in_packet);
++        }
++
++        RTMPPacket media_packet = {0};
++        ret = RTMP_GetNextMediaPacket(rtmp, &media_packet);
++        TEST_ASSERT("RTMP_GetNextMediaPacket (Extract media packet)", ret >= 0);
++        if (ret) RTMPPacket_Free(&media_packet);
++
++        RTMPPacket out_packet;
++        RTMPPacket_Alloc(&out_packet, 10);
++        out_packet.m_packetType = RTMP_PACKET_TYPE_INFO;
++        out_packet.m_nChannel = 0x03;
++        out_packet.m_headerType = RTMP_PACKET_SIZE_LARGE;
++        out_packet.m_nTimeStamp = 0;
++        out_packet.m_nInfoField2 = 0;
++        out_packet.m_nBodySize = 10;
++        memset(out_packet.m_body, 0, 10);
++
++        TEST_ASSERT("RTMP_SendPacket (Send assembled packet)", RTMP_SendPacket(rtmp, &out_packet, 0) >= 0);
++        RTMPPacket_Free(&out_packet);
++
++    } else {
++        TEST_SKIP("Packet I/O", "Network connection failed");
++    }
++
++    RTMP_Close(rtmp);
++    RTMP_Free(rtmp);
++
++    g_bg_push_running = false;
++    if (bg_thread.joinable()) bg_thread.join();
++    return 0;
++}
++
++/* ============================================ */
++/* Module 8: Split Connect (Connect0 & Connect1)*/
++/* ============================================ */
++static int test_rtmp_split_connect() {
++    print_module_header("Module 8: Split Connect (Connect0 & Connect1)");
++
++    RTMP *rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++    rtmp->Link.timeout = TIMEOUT_SEC;
++
++    std::vector<char> url_buf(g_test_url.begin(), g_test_url.end());
++    url_buf.push_back('\0');
++    RTMP_SetupURL(rtmp, url_buf.data());
++
++    struct sockaddr_in svc;
++    memset(&svc, 0, sizeof(svc));
++    svc.sin_family = AF_INET;
++    svc.sin_addr.s_addr = inet_addr(g_server_ip.c_str());
++    svc.sin_port = htons(g_server_port);
++
++    int ret0 = RTMP_Connect0(rtmp, (struct sockaddr*)&svc);
++    TEST_ASSERT("RTMP_Connect0 (Low-level TCP and handshake validation)", ret0 != 0);
++
++    if (ret0) {
++        int ret1 = RTMP_Connect1(rtmp, NULL);
++        TEST_ASSERT("RTMP_Connect1 (Send NetConnection AMF command)", ret1 != 0);
++    } else {
++        TEST_SKIP("RTMP_Connect1", "RTMP_Connect0 failed, cannot proceed");
++    }
++
++    RTMP_Close(rtmp);
++    RTMP_Free(rtmp);
++    return 0;
++}
++
++/* ============================================ */
++/* Module 9: Server API (RTMP_Serve)            */
++/* ============================================ */
++void DummyServeClientThread(int port) {
++    usleep(100000);
++    RTMP *client_rtmp = RTMP_Alloc();
++    RTMP_Init(client_rtmp);
++
++    char url[128];
++    snprintf(url, sizeof(url), "rtmp://127.0.0.1:%d/live/serve_test", port);
++    RTMP_SetupURL(client_rtmp, url);
++
++    if (RTMP_Connect(client_rtmp, NULL)) {
++        RTMP_Close(client_rtmp);
++    }
++    RTMP_Free(client_rtmp);
++}
++
++static int test_rtmp_serve() {
++    print_module_header("Module 9: Server API (RTMP_Serve)");
++
++    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
++    int opt = 1;
++    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
++
++    struct sockaddr_in address;
++    memset(&address, 0, sizeof(address));
++    address.sin_family = AF_INET;
++    address.sin_addr.s_addr = inet_addr("127.0.0.1");
++    address.sin_port = 0;
++
++    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
++        close(server_fd);
++        return -1;
++    }
++    listen(server_fd, 1);
++
++    socklen_t len = sizeof(address);
++    getsockname(server_fd, (struct sockaddr *)&address, &len);
++    int listen_port = ntohs(address.sin_port);
++
++    std::thread client_thread(DummyServeClientThread, listen_port);
++
++    struct sockaddr_in client_addr;
++    socklen_t client_len = sizeof(client_addr);
++    int client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_len);
++
++    if (client_fd >= 0) {
++        RTMP *server_rtmp = RTMP_Alloc();
++        RTMP_Init(server_rtmp);
++        server_rtmp->m_sb.sb_socket = client_fd;
++
++        int ret = RTMP_Serve(server_rtmp);
++        TEST_ASSERT("RTMP_Serve (Successfully respond to handshake as server)", ret != 0);
++
++        RTMP_Close(server_rtmp);
++        RTMP_Free(server_rtmp);
++    } else {
++        TEST_SKIP("RTMP_Serve", "Accept receiving client connection failed");
++    }
++
++    close(server_fd);
++    client_thread.join();
++    return 0;
++}
++
++/* ============================================ */
++/* Module 10: Auxiliary & Miscellaneous APIs    */
++/* ============================================ */
++static int test_rtmp_auxiliary_apis() {
++    print_module_header("Module 10: Auxiliary & Miscellaneous APIs");
++
++    RTMPPacket pkt;
++    RTMPPacket_Alloc(&pkt, 16);
++    pkt.m_nBytesRead = 16;
++    strcpy(pkt.m_body, "TEST_DUMP_DATA");
++    RTMPPacket_Dump(&pkt);
++    TEST_ASSERT("RTMPPacket_Dump (Hexadecimal dump)", 1);
++    RTMPPacket_Free(&pkt);
++
++    AMFObject obj;
++    memset(&obj, 0, sizeof(AMFObject));
++    AMFObjectProperty prop;
++    AVal p_name = {(char*)"test_key", 8};
++    int found = RTMP_FindFirstMatchingProperty(&obj, &p_name, &prop);
++    TEST_ASSERT("RTMP_FindFirstMatchingProperty (AMF dictionary safe search)", found == 0);
++
++    RTMPSockBuf sb;
++    memset(&sb, 0, sizeof(RTMPSockBuf));
++    sb.sb_socket = socket(AF_INET, SOCK_STREAM, 0);
++
++    int fill_ret = RTMPSockBuf_Fill(&sb);
++    int send_ret = RTMPSockBuf_Send(&sb, "data", 4);
++    TEST_ASSERT("RTMPSockBuf_Fill (Force read into buffer)", fill_ret >= 0 || fill_ret == -1);
++    TEST_ASSERT("RTMPSockBuf_Send (Force write to buffer)", send_ret <= 0);
++    RTMPSockBuf_Close(&sb);
++
++    RTMP *rtmp = RTMP_Alloc();
++    RTMP_Init(rtmp);
++
++    rtmp->m_methodCalls = (RTMP_METHOD *)malloc(sizeof(RTMP_METHOD));
++    rtmp->m_methodCalls[0].name.av_val = (char *)malloc(10);
++    strcpy(rtmp->m_methodCalls[0].name.av_val, "dummy");
++    rtmp->m_methodCalls[0].name.av_len = 5;
++    rtmp->m_numCalls = 1;
++
++    RTMP_DropRequest(rtmp, 0, 1);
++    TEST_ASSERT("RTMP_DropRequest (Safe drop of pending AMF request)", rtmp->m_numCalls == 0);
++
++    RTMPChunk chunk;
++    memset(&chunk, 0, sizeof(RTMPChunk));
++    char chunk_data[10] = "chunk";
++    chunk.c_chunk = chunk_data;
++    chunk.c_chunkSize = 5;
++    chunk.c_headerSize = 1;
++
++    RTMP_LogLevel prev_level = RTMP_LogGetLevel();
++    RTMP_LogSetLevel(RTMP_LOGCRIT);
++    TEST_ASSERT("RTMP_SendChunk (Low-level Chunk push interception)", RTMP_SendChunk(rtmp, &chunk) == 0);
++    RTMP_LogSetLevel(prev_level);
++
++    int http_port = 18080;
++    {
++        std::thread swf_srv(DummyHTTPServerThread, http_port);
++        usleep(200000);
++
++        unsigned int swf_size = 0;
++        unsigned char swf_hash[32];
++        char swf_url[128];
++        sprintf(swf_url, "http://127.0.0.1:%d/test.swf", http_port);
++
++        const char* original_home = getenv("HOME");
++        std::string saved_home = original_home ? original_home : "";
++        bool had_home = (original_home != nullptr);
++        setenv("HOME", "/data/local/tmp", 1);
++
++        RTMP_LogSetLevel(RTMP_LOGCRIT);
++        int h_ret = RTMP_HashSWF(swf_url, &swf_size, swf_hash, 30);
++        RTMP_LogSetLevel(prev_level);
++
++        TEST_ASSERT("RTMP_HashSWF (Real integration)", h_ret == 0);
++
++        if (had_home) 
++            setenv("HOME", saved_home.c_str(), 1); 
++        else  
++            unsetenv("HOME"); 
++
++        if (swf_srv.joinable()) 
++            swf_srv.join();
++    }
++
++    {
++        std::thread http_srv(DummyHTTPServerThread, http_port);
++        usleep(200000);
++
++        struct HTTP_ctx ctx;
++        memset(&ctx, 0, sizeof(struct HTTP_ctx));
++        ctx.date = (char*)malloc(128);
++        ctx.date[0] = '\0';
++        char url[64];
++        sprintf(url, "http://127.0.0.1:%d/test", http_port);
++
++        RTMP_LogSetLevel(RTMP_LOGCRIT);
++        HTTPResult res = HTTP_get(&ctx, url, (HTTP_read_callback *)real_http_callback);
++        TEST_ASSERT("HTTP_get (Real local server handshake and parse)", res == HTTPRES_OK);
++        RTMP_LogSetLevel(prev_level);
++
++        if (ctx.date) free(ctx.date);
++        if (http_srv.joinable()) http_srv.join();
++    }
++
++    RTMP_Free(rtmp);
++    return 0;
++}
++
++/* ============================================ */
++/* Results Summary & Main Function              */
++/* ============================================ */
++static void print_test_summary() {
++    print_separator("Test Result Summary");
++    printf("Total tests: %d\n", g_result.total);
++    printf("Passed:      %d \033[32m[PASS]\033[0m\n", g_result.passed);
++    printf("Failed:      %d \033[31m[FAIL]\033[0m\n", g_result.failed);
++    printf("Skipped:     %d \033[33m[SKIP]\033[0m\n", g_result.skipped);
++
++    int actual = g_result.total - g_result.skipped;
++    int pass_rate = (actual > 0) ? (g_result.passed * 100 / actual) : 0;
++    printf("Effective pass rate: %d%%\n", pass_rate);
++    printf("==========================================\n");
++
++    if (g_result.failed == 0) {
++        printf("\033[32m[SUCCESS] Real server environment verification all passed!\033[0m\n");
++    } else {
++        printf("\033[31m[WARNING] %d tests failed. Check network, firewall, or server status.\033[0m\n", g_result.failed);
++    }
++}
++
++int main(int argc, char *argv[]) {
++    for (int i = 1; i < argc; i++) {
++        std::string arg = argv[i];
++        if (arg == "-v" || arg == "--verbose") {
++            g_verbose = 1;
++        } else if (arg == "-i" || arg == "--ip") {
++            if (i + 1 < argc) g_server_ip = argv[++i];
++        } else if (arg == "-p" || arg == "--port") {
++            if (i + 1 < argc) g_server_port = atoi(argv[++i]);
++        }
++    }
++
++    char url_buffer[256];
++    snprintf(url_buffer, sizeof(url_buffer), "rtmp://%s:%d/live/test", g_server_ip.c_str(), g_server_port);
++    g_test_url = url_buffer;
++
++    printf("Target URL: %s\n", g_test_url.c_str());
++    printf("Usage: %s [-i <ip>] [-p <port>] [-v]\n", argv[0]);
++    printf("==========================================\n");
++
++    // Ignore SIGPIPE to prevent silent system kills when writing to a dead socket
++    signal(SIGINT, signal_handler);
++    signal(SIGTERM, signal_handler);
++    signal(SIGPIPE, SIG_IGN);
++
++    RTMP_LogSetOutput(stderr);
++    RTMP_LogSetLevel(g_verbose ? RTMP_LOGWARNING : RTMP_LOGERROR);
++
++    if (!g_interrupted) test_rtmp_basic();
++    if (!g_interrupted) test_rtmp_connect();
++    if (!g_interrupted) test_rtmp_push();
++    if (!g_interrupted) test_rtmp_pull();
++    if (!g_interrupted) test_rtmp_offline_utils();
++    if (!g_interrupted) test_rtmp_advanced_control();
++    if (!g_interrupted) test_rtmp_packet_io();
++    if (!g_interrupted) test_rtmp_split_connect();
++    if (!g_interrupted) test_rtmp_serve();
++    if (!g_interrupted) test_rtmp_auxiliary_apis();
++
++    print_test_summary();
++
++    return (g_result.failed == 0) ? 0 : 1;
++}
+\ No newline at end of file

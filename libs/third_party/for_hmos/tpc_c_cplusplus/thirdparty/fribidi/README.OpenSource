@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "fribidi",
+        "License": "LGPL-2.1-only",
+        "License File": "https://github.com/fribidi/fribidi/blob/master/COPYING",
+        "Version Number": "v1.0.12",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/fribidi/fribidi/archive/refs/tags/v1.0.12.tar.gz",
+        "Description": "The Free Implementation of the Unicode Bidirectional Algorithm."
+    }
+]

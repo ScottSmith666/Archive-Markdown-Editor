@@ -1,0 +1,47 @@
+# Contributor: leehom <llh_01129@163.com>
+# Maintainer: leehom <llh_01129@163.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir/$ARCH-build
+  
+    OLD_FILE=./testdata/note.txt
+    NEW_FILE=./testdata/note_new.txt
+    PATCH_FILE=./testdata/note.patch
+    PATCH_NEW_FILE=./testdata/note_patch_new.patch
+
+    ./bsdiff $OLD_FILE $NEW_FILE $PATCH_FILE > ${logfile} 2>&1
+    ret=$?
+    if [ $ret -ne 0 ]; then
+	    echo "run bsdiff test failed!" >> ${logfile} 2>&1
+	    cd $OLDPWD
+	    return $res
+    fi
+
+    ./bspatch $OLD_FILE $PATCH_NEW_FILE $PATCH_FILE >> ${logfile} 2>&1
+    ret=$?
+    if [[ $ret -ne 0 ]] || [[ ! -f $PATCH_NEW_FILE ]]; then
+	    echo "run bspatch test failed!" >> ${logfile} 2>&1
+	    cd $OLDPWD
+	    return $res
+    fi
+
+    MD5_NEW=md5sum $NEW_FILE
+    MD5_NEW=${MD5_NEW:0:32}
+    echo "$MD5_NEW" >> ${logfile} 2>&1
+    MD5_PATCH_NEW=md5sum $PATCH_NEW_FILE
+    MD5_PATCH_NEW=${MD5_PATCH_NEW:0:32}
+    echo "$MD5_PATCH_NEW" >> ${logfile} 2>&1
+    if [ "$MD5_NEW" = "$MD5_PATCH_NEW" ]; then
+	    echo "check MD5 success" >> ${logfile} 2>&1
+	    res=0
+    else
+	    echo "check MD5 failed" >> ${logfile} 2>&1
+	    ret=1
+    fi
+    cd $OLDPWD
+    return $res
+}

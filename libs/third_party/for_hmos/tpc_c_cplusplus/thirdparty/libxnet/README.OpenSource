@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libxnet",
+        "License": "Apache-2.0",
+        "License File": "https://gitlab.freedesktop.org/xorg/lib/libxnet/-/blob/master/COPYING",
+        "Version Number": "1.8.0",
+        "Owner": "panjinling@huawei.com",
+        "Upstream URL": "https://gitlab.freedesktop.org/xorg/lib/libxnet",
+        "Description": "A modern C++ header-only library for IPv4 protocol implementation details."
+    }
+]

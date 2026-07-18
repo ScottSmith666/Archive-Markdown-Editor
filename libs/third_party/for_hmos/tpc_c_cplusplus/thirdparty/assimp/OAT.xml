@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <oatconfig>
+        <filefilterlist>
+            <filefilter name="copyrightPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="HPKBUILD" desc="自己编写的shell脚本，不涉及版权问题"/>
+                <filteritem type="filename" name="SHA512SUM" desc="自己编写的shell脚本，不涉及版权问题"/>
+                <filteritem type="filename" name="LICENSE" desc="LICENSE文件，无需添加许可头"/>
+            </filefilter>
+            <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="HPKBUILD" desc="自己编写的shell脚本，不涉及版权问题"/>
+                <filteritem type="filename" name="SHA512SUM" desc="自己编写的shell脚本，不涉及版权问题"/>
+                <filteritem type="filename" name="LICENSE" desc="LICENSE文件，无需添加许可头"/>
+            </filefilter>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies">
+                <filteritem type="filename" name="*.jpg" desc="截图文件，不涉及版权问题"/>
+            </filefilter>
+        </filefilterlist>
+        <policylist>
+            <policy name="projectPolicy" desc=""></policy>
+        </policylist>
+    </oatconfig>
+</configuration>

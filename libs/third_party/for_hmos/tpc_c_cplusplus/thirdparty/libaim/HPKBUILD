@@ -1,0 +1,132 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: diaomao <diaomao@diaomao.com>
+# Maintainer: diaomao <diaomao@diaomao.com>
+
+pkgname=libaim
+pkgver=0
+pkgrel=0
+pkgdesc="libaim is a library for C++ used to communicate with AOL's instant messaging service using the OSCAR protocol."
+url="https://sourceforge.net/projects/libaim/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=(LGPLv2)
+depends=()
+makedepends=("cvs")
+
+source="https://sourceforge.net/code-snapshots/cvs/l/li/libaim.zip"
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+
+builddir=${pkgname}
+packagename=${pkgname}.zip
+
+patchflag=true
+
+source envset.sh
+
+host=
+prepare() {
+    if $patchflag
+    then
+        mv ${pkgname} ${pkgname}-cvs
+        cvs -d ${PWD}/${pkgname}-cvs co ${pkgname}-ac
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+        mv ${pkgname}-ac ${builddir}
+        cd ${builddir}/src
+        sed -i '/#include <ctype.h>/a #include <string.h>' flap.cpp
+        sed -i '/mask\[/,/]/{s/\b0x[0-9A-Fa-f]\+/\(char\)&/g}' aimsession.cpp
+        sed -i 's/if (bind (s,/if (::bind(s,/' server.cpp
+        sed -i 's/accept (s, (struct sockaddr \*)\&sin, \&(int)len);/accept (s, (struct sockaddr *)\&sin, \&len);/' server.cpp
+        sed -i '/AIMSession session;/a\		session.setServerHostname("127.0.0.1");' jaim.cpp
+        sed -i 's/if (password == "")/if (password == "") {/' jaim.cpp
+        sed -i 's/password = getpass("Password: ");/cout << "Password: ";\n\t\t\tcin >> password;/' jaim.cpp
+        sed -i '/cin >> password;/a\
+				}' jaim.cpp
+        cd $OLDPWD
+        patchflag=false
+    fi
+    cp -r ${builddir} ${builddir}-${ARCH}-build
+
+    if [ ${ARCH} == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ ${ARCH} == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ ${ARCH} == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    cd ${builddir}-${ARCH}-build
+    autoreconf -ifv > $buildlog 2>&1
+    cd $OLDPWD
+}
+
+build() {
+    cd ${builddir}-${ARCH}-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host >> $buildlog 2>&1
+    MAKE=make make -j1 -C src libaim.la >> $buildlog 2>&1
+    MAKE=make make -j1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd ${builddir}-${ARCH}-build
+    MAKE=make make -j1 install-strip >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ ${ARCH} == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ ${ARCH} == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ ${ARCH} == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -2
+    fi
+    unset host
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/${packagename}
+    rm -rf ${PWD}/${pkgname}-cvs
+    rm -rf ${PWD}/${pkgname}-ac
+    rm -rf ${PWD}/${builddir}
+    rm -rf ${PWD}/${builddir}-armeabi-v7a-build
+    rm -rf ${PWD}/${builddir}-arm64-v8a-build
+    rm -rf ${PWD}/${builddir}-x86_64-build
+    rm -rf ${PWD}/download.log
+    rm -rf ${PWD}/last_error
+}

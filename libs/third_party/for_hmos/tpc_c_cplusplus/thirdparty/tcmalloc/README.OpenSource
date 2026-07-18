@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "tcmalloc",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/gperftools/gperftools/tree/master/License",
+        "Version Number": "2.17.2",
+        "Owner": "handong056@chinasoftinc.com",
+        "Upstream URL": "https://github.com/gperftools/gperftools",
+        "Description": "Google's Performance-Optimized Memory Allocator"
+    }
+]

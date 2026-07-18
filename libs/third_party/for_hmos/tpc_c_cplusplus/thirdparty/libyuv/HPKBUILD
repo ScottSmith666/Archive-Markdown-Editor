@@ -1,0 +1,64 @@
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+pkgname=libyuv
+pkgver=c0031cf
+pkgrel=0
+pkgdesc="libyuv is an open-source image processing library that provides various image processing functions, including image format conversion, color space conversion, color adjustment, denoising, defogging, sharpening, and scaling."
+url="https://chromium.googlesource.com/libyuv/libyuv"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD 3-Clause License")
+depends=("googletest")
+makedepends=()
+
+# 官方网站需要访问国外网站权限
+# 官网地址 source="https://chromium.googlesource.com/$pkgname/$pkgname/+archive/$pkgver.tar.gz"
+# 为方便代码下载，HPKBUILD采用镜像仓下载代码
+source="https://github.com/N22E114/$pkgname/archive/refs/tags/${pkgver}.tar.gz"
+
+downloadpackage=true
+autounpack=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+cxxflag=""
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ ${ARCH} == "arm64-v8a" ]
+    then
+        cxxflag="-mfloat-abi=hard"
+    fi
+
+    if [ ${ARCH} == "armeabi-v7a" ]
+    then
+        cxxflag="-mfloat-abi=softfp"
+    fi
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -DCMAKE_CXX_FLAGS="-I$LYCIUM_ROOT/usr/googletest/$ARCH/include $cxxflag" -DUNIT_TEST=ON -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 进入到编译目录执行
+    # ./libyuv_unittest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

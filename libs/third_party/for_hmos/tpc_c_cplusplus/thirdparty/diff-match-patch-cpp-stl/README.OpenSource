@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "diff-match-patch-cpp-stl",
+        "License": "Apache License 2.0",
+        "License File": "https://github.com/leutloff/diff-match-patch-cpp-stl/blob/master/LICENSE",
+        "Version Number": "master",
+        "Owner": "tianyong13@huawei.com",
+        "Upstream URL": "https://github.com/leutloff/diff-match-patch-cpp-stl/archive/refs/heads/master.zip",
+        "Description": "C++ STL variant of https://code.google.com/p/google-diff-match-patch."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libass",
+        "License": "ISC License",
+        "License File": "COPYING",
+        "Version Number": "0.17.1",
+        "Owner": "chenbaodi@huawei.com",
+        "Upstream URL": "https://github.com/libass/libass/releases/download/0.17.1/libass-0.17.1.tar.gz",
+        "Description": "libass is a portable subtitle renderer for the ASS/SSA (Advanced Substation Alpha/Substation Alpha) subtitle format."
+    }
+]

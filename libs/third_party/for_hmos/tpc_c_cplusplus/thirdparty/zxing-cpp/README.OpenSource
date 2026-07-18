@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "zxing-cpp",
+        "License": "Apache License 2.0",
+        "License File": "LICENSE",
+        "Version Number": "v2.0.0",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://github.com/zxing-cpp/zxing-cpp/archive/refs/tags/v2.0.0.tar.gz",
+        "Description": "ZXing-C++ (zebra crossing) is an open-source, multi-format linear/matrix barcode image processing library implemented in C++."
+    }
+]

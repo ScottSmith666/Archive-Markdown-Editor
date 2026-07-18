@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "pixman",
+        "License": "MIT",
+        "License File": "https://gitlab.freedesktop.org/pixman/pixman/-/blob/master/COPYING",
+        "Version Number": "0.42.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.cairographics.org/releases/pixman-0.42.2.tar.gz",
+        "Description": "Pixman is a low-level software library for pixel manipulation, providing features such as image compositing and trapezoid rasterization."
+    },
+    {
+        "Name": "libpng",
+        "License": "libpng-2.0",
+        "License File": "http://www.libpng.org/pub/png/src/libpng-LICENSE.txt",
+        "Version Number": "v1.6.39",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/libpng/files/libpng16/1.6.39/libpng-1.6.39.tar.gz/download",
+        "Description": "PNG image processing library for reading, writing, & manipulating Portable Network Graphics files."
+    }
+]

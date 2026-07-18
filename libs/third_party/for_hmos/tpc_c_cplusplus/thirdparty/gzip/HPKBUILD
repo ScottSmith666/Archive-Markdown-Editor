@@ -1,0 +1,122 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: baijn <1225837220@qq.com>
+# Maintainer: baijn <1225837220@qq.com>
+
+pkgname=gzip
+pkgver=1.13
+pkgrel=0
+pkgdesc="gzip (GNU zip) is a compression utility designed to be a replacement for compress."
+url="https://www.gnu.org/software/gzip/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL 3.0")
+depends=()
+makedepends=()
+source="https://ftp.gnu.org/gnu/$pkgname/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+modify_flag=true
+
+source envset.sh
+host=
+
+prepare() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure "$@" --host=$host > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    return $ret
+}
+
+check() {
+    if $modify_flag
+    then
+        cd $builddir/tests
+        # 鸿蒙系统不支持grep 数值，使用grep -C替换
+        sed -i.bak 's|zgrep -15 17|zgrep -C 15 17|g' ./zgrep-context
+        sed -i 's|$GREP -15 17|$GREP -C 15 17|g' ./zgrep-context
+        # 修改测试用例为相对路径
+        sed -i.bak '53 i\
+            built_programs=(\
+            gzip\
+            gunzip\
+            gzexe\
+            zcat\
+            zcmp\
+            zdiff\
+            zegrep\
+            zfgrep\
+            zforce\
+            zgrep\
+            $(ZLESS_PROG)\
+            zmore\
+            znew)' ./help-version
+        modify_flag=false
+        cd $OLDPWD
+    fi
+    cd $builddir/$ARCH-build/tests
+    # 测试用例grep的绝对路径改为变量
+    sed -i.bak 's|/usr/bin/grep -E|$(GREP) -E|g' ./Makefile
+    # 删除grep的绝对路径
+    sed -i '927d' Makefile
+    # 屏蔽测试用例pipe-output
+    sed -i '1762d' Makefile
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

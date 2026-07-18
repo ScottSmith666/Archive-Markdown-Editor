@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "utf8proc-2.7.0",
+        "License": "utf8proc license",
+        "License File": "https://github.com/JuliaStrings/utf8proc/blob/master/LICENSE.md",
+        "Version Number": "v2.7.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/JuliaStrings/utf8proc",
+        "Description": "utf8proc is a small, clean C library that provides Unicode normalization, case-folding, and other operations for data in the UTF-8 encoding."
+    }
+]

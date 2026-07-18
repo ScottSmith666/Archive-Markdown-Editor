@@ -1,0 +1,9 @@
+# massdns三方库说明
+## 功能简介
+massdns用于批量查找和侦查（子域名枚举）的高性能DNS Stub解析器
+## 三方库版本：
+- 1.1.0
+## 使用约束：
+- [IDE和SDK版本](../../docs/constraint.md)
+## 集成方式
++ [应用hap包集成](docs/hap_integrate.md)

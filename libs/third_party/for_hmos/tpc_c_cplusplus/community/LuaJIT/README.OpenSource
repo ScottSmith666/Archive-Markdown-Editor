@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "LuaJIT",
+        "License": "MIT license",
+        "License File": "https://github.com/LuaJIT/LuaJIT/blob/v2.1/COPYRIGHT",
+        "Version Number": "2.1.0-beta3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://luajit.org/download/LuaJIT-2.1.0-beta3.tar.gz",
+        "Description": "A Just-In-Time Compiler for Lua."
+    }
+]

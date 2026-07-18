@@ -1,0 +1,11 @@
+[
+    {
+       "Name": "rtmpdump",
+		"License": "GNU General Public License v2 (GPLv2) + GNU Lesser General Public License v2.1 (LGPLv2.1)",
+		"License File": "https://github.com/mirror/rtmpdump/tree/master/COPYING",
+		"Version Number": "2.6",
+		"Owner": "xiafeng@huawei.com",
+		"Upstream URL": "https://github.com/mirror/rtmpdump",
+		"Description": "RTMPDump 是一套开源的 RTMP 流媒体处理工具集，支持 RTMP、RTMPE、RTMPT、RTMPS 等协议"
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "x264",
+        "License": "GNU GENERAL PUBLIC LICENSE V2.0",
+        "License File": "COPYING",
+        "Version Number": "x264-stable",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://code.videolan.org/videolan/x264",
+        "Description": "x264 is a free software library for encoding H.264/MPEG-4 AVC video streams. It is one of the most popular video compression libraries in the world and is used worldwide for applications such as web video, TV broadcasting and Blu-ray authoring."
+    }
+]

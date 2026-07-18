@@ -1,0 +1,100 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, wen fan <wenfan001@chinasoftinc.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=ImageMagick_7_1_1_35
+pkgver=7.1.1-35
+pkgrel=
+pkgdesc="ImageMagick is a free and open-source software suite for displaying, converting, and editing raster image and vector image files."
+url=https://imagemagick.org/
+archs=(armeabi-v7a arm64-v8a)
+license=(ImageMagick)
+depends=(libzip zlib_1_3_1 zstd djvulibre fontconfig freetype2 libheif lcms2 openjpeg libpng libtiff libwebp libxml2 icu xz jbigkit bzip2_1_0_8 jpeg)
+makedepends=()
+
+source=https://github.com/ImageMagick/ImageMagick/archive/refs/tags/${pkgver}.tar.gz
+
+autounpack=true
+downloadpackage=true
+
+builddir=ImageMagick-${pkgver}
+packagename=${builddir}.tar.gz
+buildtools=configure
+
+source envset.sh
+host=
+
+prepare() {
+    cp -arf ${builddir} ${builddir}-${ARCH}-build
+    if [ ${ARCH} == armeabi-v7a ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ ${ARCH} == arm64-v8a ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    export CPPFLAGS="-I${LYCIUM_ROOT}/usr/jpeg/${ARCH}/include -I${LYCIUM_ROOT}/usr/jbigkit/${ARCH}/include -I${LYCIUM_ROOT}/usr/bzip2_1_0_8/${ARCH}/include ${CPPFLAGS}"
+    export LDFLAGS="-L${LYCIUM_ROOT}/usr/jbigkit/${ARCH}/lib -L${LYCIUM_ROOT}/usr/jpeg/${ARCH}/lib -L${LYCIUM_ROOT}/usr/bzip2_1_0_8/${ARCH}/lib ${LDFLAGS}"
+    PKG_CONFIG_LIBDIR=${pkgconfigpath} ./configure "$@" --host=${host} > ${buildlog} 2>&1
+    ${MAKE} >> ${buildlog} 2>&1
+    ret=$?
+    cd ${OLDPWD}
+    return ${ret}
+}
+
+package() {
+    cd ${builddir}-${ARCH}-build
+    ${MAKE} install >> ${buildlog} 2>&1
+    cd ${OLDPWD}
+}
+
+check() {
+    cd $builddir-$ARCH-build
+    sed -i.bak 's/$(MAKE) $(AM_MAKEFLAGS) check-TESTS check-local/#$(MAKE) $(AM_MAKEFLAGS) check-TESTS check-local/g' Makefile # 注释make check 里执行文件的代码，只编译生成测试文件
+    sed -i.bak 's/check-TESTS: $(check_PROGRAMS)/check-TESTS: /g' Makefile # 删除check-TESTS的依赖，不检查编译生成测试文件过程
+    ${MAKE} check >> ${buildlog} 2>&1
+    ret=$?
+    cd ${OLDPWD}
+    echo "The test must be on an OpenHarmony device!"
+    return ${ret}
+}
+
+recoverpkgbuildenv() {
+    unset host
+    if [ ${ARCH} == armeabi-v7a ]
+    then
+        unsetarm32ENV
+    elif [ ${ARCH} == arm64-v8a ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/${builddir} ${PWD}/${builddir}-${ARCH}-build
+}

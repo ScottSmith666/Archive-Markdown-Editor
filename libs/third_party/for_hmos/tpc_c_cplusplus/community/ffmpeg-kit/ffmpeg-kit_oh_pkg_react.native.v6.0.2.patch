@@ -1,0 +1,11 @@
+diff -rupN ffmpeg-kit-react.native.v6.0.2/linux/src/Statistics.h ffmpeg-kit-react.native.v6.0.2_patched/linux/src/Statistics.h
+--- ffmpeg-kit-react.native.v6.0.2/linux/src/Statistics.h	2023-09-19 06:22:06.000000000 +0800
++++ ffmpeg-kit-react.native.v6.0.2_patched/linux/src/Statistics.h	2024-12-21 18:18:08.155264373 +0800
+@@ -21,6 +21,7 @@
+ #define FFMPEG_KIT_STATISTICS_H
+ 
+ #include <stdlib.h>
++#include <stdint.h>
+ 
+ namespace ffmpegkit {
+ 

@@ -1,0 +1,161 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 80bda991..0728b73a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -89,8 +89,11 @@ endif()
+ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+     set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_COVERAGE_FLAGS} ${CMAKE_SANITIZER_FLAGS} ${CMAKE_CXX_FLAGS}")
+     set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -pthread ${CMAKE_EXE_LINKER_FLAGS}")
+-    set(BMF_ENABLE_FUZZTEST ON) # enable compilation of fuzztest and fuzztest targets
+-    add_compile_definitions("BMF_ENABLE_FUZZTEST") # define macro for targets with both gtest and fuzztest tests
++    # OHOS平台交叉编译时不启用 fuzztest
++    if(NOT "x${CMAKE_SYSTEM_NAME}" STREQUAL "xOHOS")
++        set(BMF_ENABLE_FUZZTEST ON) # enable compilation of fuzztest and fuzztest targets
++        add_compile_definitions("BMF_ENABLE_FUZZTEST") # define macro for targets with both gtest and fuzztest tests
++    endif()
+ endif()
+ 
+ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+diff --git a/bmf/cmd/CMakeLists.txt b/bmf/cmd/CMakeLists.txt
+index 0fd11ba2..2b7a8b96 100644
+--- a/bmf/cmd/CMakeLists.txt
++++ b/bmf/cmd/CMakeLists.txt
+@@ -56,7 +56,8 @@ endif()
+ 
+ # only compile tool suite if ncursesw is detected
+ # ncursesw can be installed by command line "apt-get install libncursesw5-dev" on Debian
+-if(CURSES_NCURSESW_FOUND)
++# OHOS平台跳过 bmf_suite（需要 ncurses，交叉编译环境通常没有）
++if(CURSES_NCURSESW_FOUND AND NOT "x${CMAKE_SYSTEM_NAME}" STREQUAL "xOHOS")
+     file(GLOB SUITE_LOG_SRCS
+         include/menu.h
+         include/trace_config_menu.h
+diff --git a/bmf/engine/c_engine/src/node.cpp b/bmf/engine/c_engine/src/node.cpp
+index 445c2342..6420dcdf 100644
+--- a/bmf/engine/c_engine/src/node.cpp
++++ b/bmf/engine/c_engine/src/node.cpp
+@@ -395,8 +395,14 @@ int Node::process_node(Task &task) {
+             auto process_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+             module_stat_data_.process_cnts += 1;
+             module_stat_data_.total_process_time += process_time.count();
++#if defined(__OHOS__)
++// OHOS平台使用显式模板参数避免类型推导问题
++            module_stat_data_.max_processing_time = std::max<int64_t>(module_stat_data_.max_processing_time, process_time.count());
++            module_stat_data_.min_processing_time = std::min<int64_t>(module_stat_data_.min_processing_time, process_time.count());
++#else
+             module_stat_data_.max_processing_time = std::max(module_stat_data_.max_processing_time, process_time.count());
+             module_stat_data_.min_processing_time = std::min(module_stat_data_.min_processing_time, process_time.count());
++#endif
+         } else {
+             result = module_->process(task);
+         }
+diff --git a/bmf/hmp/cmake/dependencies.cmake b/bmf/hmp/cmake/dependencies.cmake
+index 9ff595aa..981cbfd1 100644
+--- a/bmf/hmp/cmake/dependencies.cmake
++++ b/bmf/hmp/cmake/dependencies.cmake
+@@ -112,7 +112,7 @@ else ()
+ endif()
+ 
+ #### backward-cpp
+-if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Android|iOS")
++if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Android|iOS|OHOS")
+     if (HMP_LOCAL_DEPENDENCIES)
+         find_library(LIBDW dw)
+         if("${LIBDW}" MATCHES "LIBDW-NOTFOUND")
+diff --git a/bmf/hmp/include/hmp/ffmpeg/ff_helper.h b/bmf/hmp/include/hmp/ffmpeg/ff_helper.h
+index 63236a3f..3c81a0ff 100644
+--- a/bmf/hmp/include/hmp/ffmpeg/ff_helper.h
++++ b/bmf/hmp/include/hmp/ffmpeg/ff_helper.h
+@@ -398,9 +398,11 @@ static AVFrame *to_audio_frame(const TensorList &planes, const AVFrame *avf_ref,
+ 
+     if (planes.size() > FF_ARRAY_ELEMS(avf->buf)) {
+         auto nb_extended_buf = planes.size() - FF_ARRAY_ELEMS(avf->buf);
+-        avf->extended_buf = (AVBufferRef **)av_mallocz_array(
++        // ffmpeg6.0版本已不支持av_mallocz_array，使用av_calloc替代
++        avf->extended_buf = (AVBufferRef **)av_calloc(
+             nb_extended_buf, sizeof(*avf->extended_buf));
+-        avf->extended_data = (uint8_t **)av_mallocz_array(
++        // ffmpeg6.0版本已不支持av_mallocz_array，使用av_calloc替代
++        avf->extended_data = (uint8_t **)av_calloc(
+             planes.size(), sizeof(*avf->extended_data));
+         avf->nb_extended_buf = nb_extended_buf;
+     } else {
+diff --git a/bmf/hmp/src/core/logging.cpp b/bmf/hmp/src/core/logging.cpp
+index 1931f387..912ef82a 100644
+--- a/bmf/hmp/src/core/logging.cpp
++++ b/bmf/hmp/src/core/logging.cpp
+@@ -35,6 +35,15 @@
+ #include <dlfcn.h>
+ #include <atomic>
+ 
++#elif defined(__OHOS__)
++
++#include <sstream>
++#include <iomanip>
++#include <unwind.h>
++#include <vector>
++#include <dlfcn.h>
++#include <atomic>
++
+ #else
+ #include <spdlog/spdlog.h>
+ #include <backward.hpp>
+@@ -110,15 +119,15 @@ int32_t __android_log_set_minimum_priority(android_LogPriority prio) {
+ }
+ #endif
+ 
+-#elif defined(__APPLE__) //
+-static std::atomic<int> _s_log_prio = Level::info;
++#elif defined(__APPLE__) || defined(__OHOS__)
++    static std::atomic<int> _s_log_prio = Level::info;
+ #endif
+ 
+ void set_level(int level) {
+ #if defined(__ANDROID__)
+     auto prio = to_android_priority(level);
+     __android_log_set_minimum_priority(prio);
+-#elif defined(__APPLE__)
++#elif defined(__APPLE__) || defined(__OHOS__)
+     _s_log_prio = level;
+ #else
+     spdlog::set_level((spdlog::level::level_enum)level);
+@@ -126,7 +135,7 @@ void set_level(int level) {
+ }
+ 
+ void set_format(const std::string &fmt) {
+-#if !defined(__ANDROID__) && !defined(__APPLE__)
++#if !defined(__ANDROID__) && !defined(__APPLE__) && !defined(__OHOS__)
+     spdlog::set_pattern(fmt);
+ #endif
+ }
+@@ -143,7 +152,7 @@ void _log(int level, const char *tag, const char *msg) {
+ #endif
+         __android_log_write(prio, tag, msg);
+ 
+-#elif defined(__APPLE__)
++#elif defined(__APPLE__) || defined(__OHOS__)
+     if (level < _s_log_prio) {
+         return;
+     }
+@@ -197,7 +206,7 @@ void _log(int level, const char *tag, const char *msg) {
+     }
+ }
+ 
+-#if defined(__ANDROID__) || defined(__APPLE__)
++#if defined(__ANDROID__) || defined(__APPLE__) || defined(__OHOS__)
+ 
+ namespace {
+ 
+diff --git a/cmake/dependencies.cmake b/cmake/dependencies.cmake
+index 97488556..e60d8b49 100644
+--- a/cmake/dependencies.cmake
++++ b/cmake/dependencies.cmake
+@@ -32,7 +32,7 @@ if (BMF_LOCAL_DEPENDENCIES)
+ 
+     FetchContent_Declare(
+         json
+-        GIT_REPOSITORY https://github.com/nlohmann/json.git 
++        GIT_REPOSITORY https://gitee.com/lycium_pkg_mirror/json.git 
+         GIT_TAG v3.11.2
+         SOURCE_DIR ${JSON_DOWNLOAD_DIR}
+     )

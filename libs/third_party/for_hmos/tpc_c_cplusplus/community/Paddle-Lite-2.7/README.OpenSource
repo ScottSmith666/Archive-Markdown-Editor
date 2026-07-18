@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "Paddle-Lite-2.7",
+        "License": "Apache-2.0 license",
+        "License File": "LICENSE",
+        "Version Number": "v2.7",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "www.paddlepaddle.org.cn/lite",
+        "Description": "PaddlePaddle High Performance Deep Learning Inference Engine for Mobile and Edge."
+    }
+]

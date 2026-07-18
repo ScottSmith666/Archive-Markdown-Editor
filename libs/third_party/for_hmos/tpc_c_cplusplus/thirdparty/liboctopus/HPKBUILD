@@ -1,0 +1,86 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: <1321018403@qq.com>
+# Maintainer: <1321018403@qq.com>
+
+pkgname=liboctopus
+pkgver=3.0.2
+pkgrel=0
+pkgdesc="A C++ library for representing the Octopus format as data structures, as well as parsing and serializing the Octopus JSON format."
+url="https://github.com/opendesigndev/liboctopus"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("Apache License 2.0")
+depends=()
+makedepends=()
+source="https://github.com/opendesigndev/$pkgname/archive/refs/tags/v3.0.2.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools=cmake
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+patchflag=true
+
+prepare() {
+    if [ $patchflag == true ];then
+        cd $builddir
+        # 为liboctopus添加测试用例
+        patch -p1 < ../liboctopus_3.0.2_oh_test.patch >> $publicbuildlog 2>&1
+        cd $OLDPWD
+        patchflag=false
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/include/octopus
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/include/octopus-manifest
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/include/nonstd
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp -f octopus/*.h $LYCIUM_ROOT/usr/$pkgname/include/octopus/
+    cp -f octopus-manifest/*.h $LYCIUM_ROOT/usr/$pkgname/include/octopus-manifest
+    cp -f nonstd/*.hpp $LYCIUM_ROOT/usr/$pkgname/include/nonstd/
+    cp $ARCH-build/lib${pkgname}.a $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    cd $OLDPWD
+}
+
+check() {
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "x86_64" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/x86_64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    fi
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

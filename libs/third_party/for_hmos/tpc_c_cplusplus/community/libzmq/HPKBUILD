@@ -1,0 +1,97 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong2 <huangminzhong2@huawei.com>
+# Maintainer: huangminzhong2 <huangminzhong2@huawei.com>
+
+pkgname=libzmq 
+pkgver=v4.1.8
+pkgrel=0 
+pkgdesc="A library which extends the standard socket interfaces with features traditionally provided by specialised messaging middleware products." 
+url="https://github.com/zeromq/libzmq" 
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MPL-2.0")
+depends=() 
+makedepends=()
+install= 
+source="https://github.com/zeromq/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+downloadpackage=true
+autounpack=true
+patchflag=true
+buildtools="cmake"
+builddir=${pkgname}-${pkgver:1}
+packagename=$builddir.tar.gz 
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # libzmq_oh_pkg.patch文件的作用如下
+        # 1. test_many_sockets用例测试时会不停的创建文件描述符，直到达到系统上限，当系统资源不足时，源代码未判断errno == ENOMEM这个条件，在鸿蒙系统有的版本会直接报out of memory的错误并结束测试程序
+        # 2. test_pair_ipc和test_reqrep_ipc测试用例需修改/tmp目录为/data/local/tmp目录
+        #3. test_spec_req和test_req_relaxed测试用例在鸿蒙系统，需给70ms以上的时间来完成zmq_socket的创建和连接，以保证请求的正确循环
+        patch -p1 < `pwd`/../libzmq_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    #cmake -DZMQ_HAVE_SOCK_CLOEXEC_EXITCODE=0 -DZMQ_HAVE_SOCK_CLOEXEC_EXITCODE__TRYRUN_OUTPUT="Your_Expected_Output" ...
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DZMQ_HAVE_TCP_KEEPINTVL_EXITCODE=FAILED_TO_RUN -DZMQ_HAVE_TCP_KEEPIDLE_EXITCODE=FAILED_TO_RUN \
+        -DZMQ_HAVE_TCP_KEEPCNT_EXITCODE=FAILED_TO_RUN -DZMQ_HAVE_SO_KEEPALIVE_EXITCODE=FAILED_TO_RUN \
+        -DZMQ_HAVE_SOCK_CLOEXEC_EXITCODE=FAILED_TO_RUN -DZMQ_HAVE_SOCK_CLOEXEC_EXITCODE__TRYRUN_OUTPUT="./" \
+        -DZMQ_HAVE_TCP_KEEPCNT_EXITCODE__TRYRUN_OUTPUT="./" -DZMQ_HAVE_TCP_KEEPIDLE_EXITCODE__TRYRUN_OUTPUT="./" \
+        -DZMQ_HAVE_TCP_KEEPINTVL_EXITCODE__TRYRUN_OUTPUT="./" -DZMQ_HAVE_SO_KEEPALIVE_EXITCODE__TRYRUN_OUTPUT="./" \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L >  $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >>  $buildlog 2>&1
+    cd $OLDPWD
+}
+
+# 进行测试的准备和说明
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cd $builddir/$ARCH-build
+    
+    # 屏蔽用例
+    # test_abstract_ipc ：该用例只用于linux平台测试
+    # test_filter_ipc ：检查用户是否属于补充组时，没有找到，系统本身对于组成员分配无法满足测试要求
+    patterns_to_delete=(  
+        "test_abstract_ipc"  
+        "test_filter_ipc"  
+    )
+    
+    # 循环遍历数组并执行sed命令
+    cp tests/CTestTestfile.cmake tests/CTestTestfile.cmake.bak
+    for pattern in "${patterns_to_delete[@]}"; do
+        sed -i "/${pattern}\"/{N;d;}" tests/CTestTestfile.cmake
+    done
+    
+    cd $OLDPWD
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

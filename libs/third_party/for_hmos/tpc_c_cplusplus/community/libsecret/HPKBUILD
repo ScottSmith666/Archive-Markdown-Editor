@@ -1,0 +1,103 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: xujian <xujian141@h-partners.com>
+# Maintainer: xujian <xujian141@h-partners.com>
+
+pkgname=libsecret
+pkgver=0.21.3
+pkgrel=0
+pkgdesc="GLib is a general-purpose, portable utility library, which provides many useful data types, macros, type conversions, string utilities, file utilities, a mainloop abstraction, and so on."
+url="https://docs.gtk.org/glib/"
+archs=("arm64-v8a") # armeabi-v7a 需要开启 -mfloat-abi=softfp 编译OK
+license=("Apache 2.0" "CC0-1.0" "GPL-2.0" "LGPL-2.1" "LLVM" "old-glib" "MIT")
+depends=("glib" "pcre2" "libffi")
+makedepends=("meson")
+
+source="https://gitlab.gnome.org/GNOME/$pkgname.git"
+
+downloadpackage=false
+autounpack=false
+buildtools="meson"
+
+builddir=$pkgname
+packagename=
+
+clonesrcflag=true
+
+prepare() {
+    # 源码下载
+    if $clonesrcflag
+    then
+        git clone -b $pkgver $source > $publicbuildlog 2>&1
+        if [ $? != 0 ]
+        then 
+            return -1
+        fi
+        # 打patch，关闭了对后端keyrings秘钥环的运行时依赖，使主要接口可以使用鸿蒙huks的能力进行秘钥管理
+        pushd libsecret
+        git apply ../0001-secret-password.patch
+        popd
+
+        cd $builddir
+        git submodule update --init --recursive >> $publicbuildlog 2>&1
+        if [ $? != 0 ]
+        then 
+            return -2
+        fi
+        cd $OLDPWD
+        clonesrcflag=false
+    fi
+    # 依赖库加入 pkg_config_path 路径
+    for depend in ${depends[@]}
+    do
+        dependpath=$LYCIUM_ROOT/usr/$depend/$ARCH/lib/pkgconfig
+        if [ ! -d ${dependpath} ]
+        then
+            continue
+        fi
+        pkgconfigpath=$pkgconfigpath"${dependpath}:"
+    done
+    pkgconfigpath=${pkgconfigpath%:*}
+
+    cp $ARCH-cross-file.txt $builddir
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ohos_sdk_path=${OHOS_SDK//\//\\\/}
+    sed -i 's/ohos_sdk/'"$ohos_sdk_path"'/g' $ARCH-cross-file.txt
+
+    # meson 过程会下载代码, 可能时间较久, 请保持网络通常
+    PKG_CONFIG_PATH=$pkgconfigpath meson $ARCH-build --cross-file $ARCH-cross-file.txt --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH -D is_ohos=true -D gtk_doc=false -D introspection=false > $buildlog 2>&1
+    $Ninja -v -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $Ninja -v -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

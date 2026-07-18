@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libucl",
+        "License": "BSD 2-Clause License",
+        "License File": "https://github.com/vstakhov/libucl/blob/master/COPYING",
+        "Version Number": "0.8.2",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/vstakhov/libucl",
+        "Description": "UCL is an universal configuration library parser,it is compatible with JSON language and therefore can be used as a simple JSON parser."
+    }
+]

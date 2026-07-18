@@ -1,0 +1,72 @@
+# Contributor: TangShaoteng <tangshaoteng@163.com>
+# Maintainer: TangShaoteng <tangshaoteng@163.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+checkprepare() {
+    # 添加动态库libc++_shared.so所在路径到环境变量
+    export LD_LIBRARY_PATH=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/$builddir-$ARCH-build/trunk:$LD_LIBRARY_PATH
+    # 添加ffmpeg命令所在路径到环境变量
+    export PATH=${LYCIUM_ROOT}/usr/FFmpeg/$ARCH/bin:$PATH
+}
+
+openharmonycheck() {
+    res=0
+    cd $builddir-$ARCH-build/trunk
+    # 获取IP地址
+    ipv4_addr_str=`ifconfig | grep "inet addr" | grep Bcast | awk '{print $2}'`
+    ipv4_addr_result=$(echo $ipv4_addr_str | grep "addr")
+    if [ -z "$ipv4_addr_result" ]
+    then
+        echo "error: not found ipv4 addr" > ${logfile} 2>&1
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp ./objs/srs.log ${LYCIUM_FAULT_PATH}/${pkgname}/
+        cd $OLDPWD
+        return -1;
+    fi
+    ipv4_addr=${ipv4_addr_result:5}
+    # 启动srs服务器程序
+    ./objs/srs -c conf/srs.conf > ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "error: the srs service failed to run" >> ${logfile} 2>&1
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp ./objs/srs.log ${LYCIUM_FAULT_PATH}/${pkgname}/
+        cd $OLDPWD
+        return -1;
+    fi
+    # 查询srs服务器程序运行状态
+    srs_run_status=`./etc/init.d/srs status | grep OK`
+    if [ -z "$srs_run_status" ]
+    then
+        echo "error: the srs service exited" >> ${logfile} 2>&1
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp ./objs/srs.log ${LYCIUM_FAULT_PATH}/${pkgname}/
+        cd $OLDPWD
+        return -1;
+    fi
+    # 开始推流
+    ffmpeg -re -i ./doc/source.flv -c copy -f flv rtmp://$ipv4_addr/live/livestream >> ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        echo "livestream error :$res" >> ${logfile} 2>&1
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp ./objs/srs.log ${LYCIUM_FAULT_PATH}/${pkgname}/
+    fi
+    # 测试结束主动结束守护进程srs
+    srs_run_status=`./etc/init.d/srs stop | grep OK`
+    if [ -z "$srs_run_status" ]
+    then
+        echo "error: the srs service stop filed" >> ${logfile} 2>&1
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp ./objs/srs.log ${LYCIUM_FAULT_PATH}/${pkgname}/
+        cd $OLDPWD
+        return -1;
+    fi
+    cd $OLDPWD
+
+    return $res
+}

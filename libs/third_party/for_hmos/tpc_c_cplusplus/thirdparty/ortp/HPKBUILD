@@ -1,0 +1,66 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: xucaiming <719260170@qq.com>
+# Maintainer: xucaiming <719260170@qq.com>
+
+pkgname=ortp
+pkgver=5.2.89
+pkgrel=0
+pkgdesc="oRTP is a C library implementing the RTP protocol (rfc3550). It is available for most unix clones (primilarly Linux and HP-UX), and Microsoft Windows."
+url="https://github.com/BelledonneCommunications/ortp"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("AGPL-3.0 license")
+depends=("bctoolbox")
+makedepends=()
+source="https://github.com/BelledonneCommunications/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+buildtools="cmake"
+
+autounpack=true
+downloadpackage=true
+
+builddir=${pkgname}-${pkgver}
+packagename=${pkgname}-${pkgver}.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # 禁用注释检测、未使用的命令参数检测
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DCMAKE_Fortran_COMPILER=OFF \
+        -DCMAKE_C_FLAGS="-Wno-error=sign-compare ${CFLAGS}" \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L  > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # cd $ARCH-build/tester
+    # ./ortp_tester
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir
+    return 0
+}

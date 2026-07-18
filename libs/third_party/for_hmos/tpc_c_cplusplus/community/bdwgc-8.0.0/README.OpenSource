@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "bdwgc-8.0.0",
+        "License": "MIT license",
+        "License File": "https://github.com/ivmai/bdwgc/blob/master/LICENSE",
+        "Version Number": "v8.0.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/ivmai/bdwgc",
+        "Description": "bdwgc is a conservative garbage collector for C and C++."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "openh264",
+        "License": "BSD-2-Clause license",
+        "License File": "https://github.com/cisco/openh264?tab=BSD-2-Clause-1-ov-file",
+        "Version Number": "v2.6.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/cisco/openh264/archive/refs/tags/v2.6.0.tar.gz",
+        "Description": "OpenH264 is an open-source high-performance H.264 video encoder, cross-platform, free for commercial use, widely used in video conferencing and real-time communication fields."
+    }
+]

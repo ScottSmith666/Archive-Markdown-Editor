@@ -1,0 +1,77 @@
+# Contributor: leehom <llh_01129@163.com.com>
+# Maintainer: leehom <llh_01129@163.com>
+pkgname=bsdiff
+pkgver=master
+pkgrel=0
+pkgdesc="Bsdiff is a third-party library that provides binary file splitting and merging capabilities"
+url="https://github.com/mendsley/bsdiff"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD 2-clause license")
+depends=("bzip2")
+makedepends=()
+
+source="https://github.com/mendsley/$pkgname.git"
+commitid=b817e9491cf7b8699c8462ef9e2657ca4ccd7667
+
+autounpack=false
+downloadpackage=false
+patchflag=true
+builddir=$pkgname-${commitid}
+packagename=
+cloneflag=true
+
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone -b $pkgver $source $builddir
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid
+        if [ $? -ne 0 ]
+        then
+            return -2
+        fi
+        cd $OLDPWD
+        cloneflag=false
+    fi
+    if $patchflag
+    then
+        cd $builddir
+        # 由于原库没有编译库，通过cmake编译出库文件
+        patch -p1 < `pwd`/../bsdiff_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L \
+    -DBUILD_SAMPLE=ON > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 进入编译目录，执行./bsdiff oldfile newfile xx.patch
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

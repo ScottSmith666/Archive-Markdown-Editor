@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "tquic",
+        "License": "Apache-2.0",
+        "License File": "LICENSE",
+        "Version Number": "0.10.0",
+        "Owner": "fujiadong <fujiadong05@chinasoftinc.com>",
+        "Upstream URL": "https://github.com/tencent/tquic",
+        "Description": "tquic is a high-performance, lightweight QUIC protocol implementation written in Rust, developed by Tencent. It fully complies with the IETF QUIC standard (RFC 9000/RFC 9001/RFC 9002) and is optimized for low-latency, high-throughput network communication scenarios. It supports multiple transport layer features such as connection migration, 0-RTT handshake, and stream multiplexing, and is suitable for both server-side and embedded device-side QUIC protocol stack integration."
+    }
+]

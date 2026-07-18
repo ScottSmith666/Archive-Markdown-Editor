@@ -1,0 +1,139 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhanghanyong <zhang_hanyong@h-partners.com>
+# Maintainer: zhanghanyong <zhang_hanyong@h-partners.com>
+
+pkgname=silk-v3-decoder 
+pkgver=master 
+pkgrel=0 
+pkgdesc="Skype Silk Codec SDK Decode silk v3 audio files (like wechat amr, aud files, qq slk files) and convert to other format (like mp3). Batch conversion support."
+url="https://github.com/kn007/silk-v3-decoder" 
+archs=("arm64-v8a" "armeabi-v7a") # cpu 架构
+license=("MIT License")
+source="https://gitee.com/lycium_pkg_mirror/$pkgname.git"
+commitid=07bfa0f56bbfcdacd56e2e73b7bcd10a0efb7f4c
+testcasecommitid=503b447ba12e4678e7722d29237bd76c50e9924a
+autounpack=false
+downloadpackage=false
+buildtools="make"
+buildhost=true
+builddir=$pkgname-${commitid}
+testcasedir=testcase-${testcasecommitid}
+testsource="https://gitee.com/lycium_pkg_mirror/silk.git"
+packagename=
+cloneflag=true
+cc=
+ar=
+ranlib=
+ld=
+cxx=
+
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone -b $pkgver $source $builddir
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid
+        if [ $? -ne 0 ]
+        then
+            return -2
+        fi
+        cd $OLDPWD
+        mkdir $testcasedir
+        #克隆silk-v3-decoder库所需要的测试用例从其他开源仓
+        git clone -b $pkgver $testsource $testcasedir
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+        cd $testcasedir
+        git reset --hard $testcasecommitid
+        if [ $? -ne 0 ]
+        then
+            return -2
+        fi
+        cd $OLDPWD
+        cloneflag=false
+    fi
+    mkdir -p $ARCH-build
+    cp $builddir/* $ARCH-build -rf
+    if [ $ARCH == "armeabi-v7a" ]; then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        cxx=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang++
+    fi
+    if [ $ARCH == "arm64-v8a" ]; then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        cxx=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang++
+    fi
+    ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    ld=${OHOS_SDK}/native/llvm/bin/ld.lld
+}
+
+build() {
+    cd $ARCH-build/silk
+    if [ $ARCH == "armeabi-v7a" ]; then
+        make ADDED_DEFINES+=NO_ASM CC=${cc} AR=${ar} RANLIB=${ranlib} LD=${ld} CXX=${cxx} VERBOSE=1 >> `pwd`/build.log 2>&1
+        $MAKE ADDED_DEFINES+=NO_ASM encoder CC=${cc} AR=${ar} RANLIB=${ranlib} LD=${ld} CXX=${cxx} VERBOSE=1 >> `pwd`/build.log 2>&1
+        $MAKE signalcompare CC=${cc} AR=${ar} RANLIB=${ranlib} LD=${ld} CXX=${cxx} VERBOSE=1 >> `pwd`/build.log 2>&1
+    fi
+    if [ $ARCH == "arm64-v8a" ]; then
+        make CC=${cc} AR=${ar} RANLIB=${ranlib} LD=${ld} CXX=${cxx} VERBOSE=1 >> `pwd`/build.log 2>&1
+        $MAKE encoder CC=${cc} AR=${ar} RANLIB=${ranlib} LD=${ld} CXX=${cxx} VERBOSE=1 >> `pwd`/build.log 2>&1
+        $MAKE signalcompare CC=${cc} AR=${ar} RANLIB=${ranlib} LD=${ld} CXX=${cxx} VERBOSE=1 >> `pwd`/build.log 2>&1
+    fi
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 安装打包
+package() {
+    pwd
+    # 需要手动拷贝头文件
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin/
+    cp $ARCH-build/silk/decoder $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cp $ARCH-build/silk/encoder $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cp $ARCH-build/silk/signalcompare $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cp $ARCH-build/silk/libSKP_SILK_SDK.a $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    find $ARCH-build/silk -type f -name "*.h" -exec cp {} $LYCIUM_ROOT/usr/$pkgname/$ARCH/include \;
+}
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cp $testcasedir/src/SILK_SDK_SRC_ARM_v1.0.9/test_vectors $ARCH-build/silk -r
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$testcasedir ${PWD}/armeabi-v7a-build ${PWD}/arm64-v8a-build
+}

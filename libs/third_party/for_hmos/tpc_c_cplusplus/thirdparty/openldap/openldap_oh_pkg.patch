@@ -1,0 +1,30 @@
+diff -rupN openldap-2.5.14/libraries/liblmdb/mdb.c openldap-2.5.14_patched/libraries/liblmdb/mdb.c
+--- openldap-2.5.14/libraries/liblmdb/mdb.c	2023-02-09 02:49:18.000000000 +0800
++++ openldap-2.5.14_patched/libraries/liblmdb/mdb.c	2023-07-04 09:38:15.237980454 +0800
+@@ -108,7 +108,7 @@ typedef SSIZE_T	ssize_t;
+ #include <unistd.h>
+ #endif
+ 
+-#if defined(__sun) || defined(ANDROID)
++#if defined(__sun) || defined(ANDROID) || defined(__OHOS__)
+ /* Most platforms have posix_memalign, older may only have memalign */
+ #define HAVE_MEMALIGN	1
+ #include <malloc.h>
+@@ -131,6 +131,8 @@ typedef SSIZE_T	ssize_t;
+ # define MDB_FDATASYNC		fsync
+ #elif defined(ANDROID)
+ # define MDB_FDATASYNC		fsync
++#elif defined(__OHOS__)
++# define MDB_FDATASYNC		fsync
+ #endif
+ 
+ #ifndef _WIN32
+@@ -268,7 +270,7 @@ typedef SSIZE_T	ssize_t;
+  */
+ #ifndef MDB_USE_ROBUST
+ /* Android currently lacks Robust Mutex support. So does glibc < 2.4. */
+-# if defined(MDB_USE_POSIX_MUTEX) && (defined(ANDROID) || \
++# if defined(MDB_USE_POSIX_MUTEX) && (defined(ANDROID) || (defined(__OHOS__)) || \
+ 	(defined(__GLIBC__) && GLIBC_VER < 0x020004))
+ #  define MDB_USE_ROBUST	0
+ # else

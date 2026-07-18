@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <oatconfig>
+        <filefilterlist>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="*.png" desc="指导文档需要的png图片"/>
+            </filefilter>
+            <filefilter name="copyrightPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="config.*" desc="config文件，不添加版权头"/>
+            </filefilter>
+            <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="config.*" desc="config文件，不添加版权头"/>
+            </filefilter>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="test.mp3" desc="测试使用的鸿蒙自有音频文件"/>
+            </filefilter>
+        </filefilterlist>
+    </oatconfig>
+</configuration>

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "wasm-micro-runtime",
+        "License": "Apache 2.0 license",
+        "License File": "LICENSES",
+        "Version Number": "WAMR-2.4.3",
+        "Owner": "haoluocr@isoftstone.com",
+        "Upstream URL": "https://github.com/bytecodealliance/wasm-micro-runtime/archive/refs/tags/WAMR-2.4.3.tar.gz",
+        "Description": "WebAssembly Micro Runtime (WAMR) is a lightweight standalone WebAssembly (Wasm) runtime with small footprint."
+    }
+]

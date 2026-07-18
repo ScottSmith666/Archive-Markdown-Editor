@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "espeak-ng",
+        "License": "GPL-3.0 and Apache-2.0 and BSD-2-Clause",
+        "License File": "https://github.com/espeak-ng/espeak-ng?tab=GPL-3.0-1-ov-file",
+        "Version Number": "1.52.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/espeak-ng/espeak-ng/archive/refs/tags/1.52.0.tar.gz",
+        "Description": "espeak-ng is a compact, cross-platform, open-source speech synthesis software that can convert text into speech."
+    }
+]

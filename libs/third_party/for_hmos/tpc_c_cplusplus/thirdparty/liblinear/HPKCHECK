@@ -1,0 +1,59 @@
+# Contributor: 城meto <myxuan475@126.com>
+# Maintainer: 城meto <myxuan475@126.com>
+
+source HPKBUILD > /dev/null 2>&1    # 导入HPKBUILD文件
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+total_count=0
+uint_count=0   # 用于统计测试用例成功执行个数
+
+uint_test() {
+    ret=0
+    cd ${builddir}-${ARCH}-build   
+    ((total_count++))
+    # 测试步骤，执行训练、预期结果
+    echo "---------------------- Test $total_count: type$1 -- $2 ----------------------" >> ${logfile} 2>&1  
+    ./train -s $1 heart_scale >> ${logfile} 2>&1   
+    cp heart_scale heart_scale.t 
+    ./predict heart_scale.t heart_scale.model output >> ${logfile} 2>&1  
+    ret=$?
+
+    # 清空还原
+    rm heart_scale.t
+    rm heart_scale.model
+
+    # 输出结果
+    if [ $ret -ne 0 ];then
+        echo "---------------------- FAIL ----------------------" >> ${logfile} 2>&1
+    else
+        echo "---------------------- SUCCESS ----------------------" >> ${logfile} 2>&1
+        ((uint_count++))
+    fi
+    cd $OLDPWD  
+    return $ret
+}
+
+# 在OH环境执行测试的接口
+openharmonycheck() {
+    uint_count=0                              
+    
+    echo "Unit Test Begin: " > ${logfile} 2>&1      
+    uint_test 0 "L2-regularized logistic regression (primal)"
+    uint_test 1 "L2-regularized L2-loss support vector classification (dual)"
+    uint_test 2 "L2-regularized L2-loss support vector classification (primal)"
+    uint_test 3 "L2-regularized L1-loss support vector classification (dual)"
+    uint_test 4 "support vector classification by Crammer and Singer"
+    uint_test 5 "L1-regularized L2-loss support vector classification"
+    uint_test 6 "L1-regularized logistic regression"
+    uint_test 7 "L2-regularized logistic regression (dual)"
+    uint_test 11 "L2-regularized L2-loss support vector regression (primal)"
+    uint_test 12 "L2-regularized L2-loss support vector regression (dual)"
+    uint_test 13 "L2-regularized L1-loss support vector regression (dual)"
+    uint_test 21 "one-class support vector machine (dual)"                            
+                            
+    echo "Unit Test End: Success $uint_count, Total: $total_count" >> ${logfile} 2>&1       
+    if [ $uint_count -ne $total_count ];then
+        return -1
+    else
+        return 0
+    fi
+}

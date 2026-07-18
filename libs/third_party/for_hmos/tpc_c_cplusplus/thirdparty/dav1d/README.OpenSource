@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "dav1d",
+        "License": " BSD 2-Clause License",
+        "License File": "COPYING",
+        "Version Number": "1.5.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://code.videolan.org/videolan/dav1d/-/archive/1.5.2/dav1d-1.5.2.tar.gz",
+        "Description": "The reference implementation of the ohos dav1d (AV1 decoder) interface"
+    }
+]

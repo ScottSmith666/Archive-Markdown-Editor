@@ -1,0 +1,442 @@
+# 主要修改为在__ANDROID__位置相应的加入__OHOS__编译宏
+# 为了保证armeabi-v7a编译通过在test\common\fp_control.h 文件中加入FE_TOWARDZERO定义
+# 为了适配uname函数linux跟鸿蒙系统差异修改了 test\common\memory_usage.h
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 50ea31a5..a6679cce 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -251,7 +251,7 @@ endforeach()
+ # - Enabling LTO on Android causes the NDK bug.
+ #   NDK throws the warning: "argument unused during compilation: '-Wa,--noexecstack'"
+ # - For some reason GCC does not instrument code with Thread Sanitizer when lto is enabled and C linker is used.
+-if (TBB_ENABLE_IPO AND BUILD_SHARED_LIBS AND NOT ANDROID_PLATFORM AND NOT TBB_SANITIZE MATCHES "thread")
++if (TBB_ENABLE_IPO AND BUILD_SHARED_LIBS AND NOT ANDROID_PLATFORM AND NOT OHOS_PLATFORM AND NOT TBB_SANITIZE MATCHES "thread")
+     if (NOT CMAKE_VERSION VERSION_LESS 3.9)
+         cmake_policy(SET CMP0069 NEW)
+         include(CheckIPOSupported)
+diff --git a/cmake/compilers/Clang.cmake b/cmake/compilers/Clang.cmake
+index 8798286a..73500188 100644
+--- a/cmake/compilers/Clang.cmake
++++ b/cmake/compilers/Clang.cmake
+@@ -65,7 +65,7 @@ endif()
+ # Clang flags to prevent compiler from optimizing out security checks
+ set(TBB_COMMON_COMPILE_FLAGS ${TBB_COMMON_COMPILE_FLAGS} -Wformat -Wformat-security -Werror=format-security -fPIC $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:-fstack-protector-strong>)
+ 
+-if (NOT APPLE AND NOT ANDROID_PLATFORM AND CMAKE_SYSTEM_PROCESSOR MATCHES "(AMD64|amd64|i.86|x86)")
++if (NOT APPLE AND NOT ANDROID_PLATFORM AND NOT OHOS_PLATFORM AND CMAKE_SYSTEM_PROCESSOR MATCHES "(AMD64|amd64|i.86|x86|aarch64)")
+     set(TBB_LIB_COMPILE_FLAGS ${TBB_LIB_COMPILE_FLAGS} -fstack-clash-protection $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:-fcf-protection=full>)
+ endif()
+ 
+diff --git a/include/oneapi/tbb/detail/_config.h b/include/oneapi/tbb/detail/_config.h
+index 1d36013e..b7aeda3e 100644
+--- a/include/oneapi/tbb/detail/_config.h
++++ b/include/oneapi/tbb/detail/_config.h
+@@ -277,7 +277,7 @@
+     #define __TBB_CPP20_COMPARISONS_PRESENT 0
+ #endif
+ 
+-#define __TBB_RESUMABLE_TASKS                           (!__TBB_WIN8UI_SUPPORT && !__ANDROID__ && !__QNXNTO__ && (!__linux__ || __GLIBC__))
++#define __TBB_RESUMABLE_TASKS                           (!__TBB_WIN8UI_SUPPORT && !__ANDROID__ && !__OHOS__ && !__QNXNTO__ && (!__linux__ || __GLIBC__))
+ 
+ /* This macro marks incomplete code or comments describing ideas which are considered for the future.
+  * See also for plain comment with TODO and FIXME marks for small improvement opportunities.
+@@ -339,7 +339,7 @@
+ #define __TBB_TSX_INTRINSICS_PRESENT (__RTM__ || __INTEL_COMPILER || (_MSC_VER>=1700 && (__TBB_x86_64 || __TBB_x86_32)))
+ 
+ #define __TBB_WAITPKG_INTRINSICS_PRESENT ((__INTEL_COMPILER >= 1900 || (__TBB_GCC_VERSION >= 110000 && (__APPLE__ || __TBB_GNU_ASM_VERSION >= 2032)) || __TBB_CLANG_VERSION >= 120000) \
+-                                         && (_WIN32 || _WIN64 || __unix__ || __APPLE__) && (__TBB_x86_32 || __TBB_x86_64) && !__ANDROID__)
++                                         && (_WIN32 || _WIN64 || __unix__ || __APPLE__) && (__TBB_x86_32 || __TBB_x86_64) && !__ANDROID__ && !__OHOS__)
+ 
+ /** Internal TBB features & modes **/
+ 
+@@ -391,7 +391,7 @@
+ #endif
+ 
+ #if !defined(__TBB_SURVIVE_THREAD_SWITCH) && \
+-          (_WIN32 || _WIN64 || __APPLE__ || (defined(__unix__) && !__ANDROID__))
++          (_WIN32 || _WIN64 || __APPLE__ || (defined(__unix__) && !(__ANDROID__ || __OHOS__)))
+     #define __TBB_SURVIVE_THREAD_SWITCH 1
+ #endif /* __TBB_SURVIVE_THREAD_SWITCH */
+ 
+diff --git a/include/oneapi/tbb/detail/_exception.h b/include/oneapi/tbb/detail/_exception.h
+index d1aa1fc6..5b7b1e2b 100644
+--- a/include/oneapi/tbb/detail/_exception.h
++++ b/include/oneapi/tbb/detail/_exception.h
+@@ -66,14 +66,14 @@ public:
+ };
+ 
+ //! Exception for impossible finalization of task_sheduler_handle
+-#if __APPLE__
++#if __APPLE__ || __OHOS__
+     #pragma GCC visibility push(default)
+ #endif
+ class TBB_EXPORT unsafe_wait : public std::runtime_error {
+ public:
+     unsafe_wait(const char* msg) : std::runtime_error(msg) {}
+ };
+-#if __APPLE__
++#if __APPLE__ || __OHOS__
+     #pragma GCC visibility pop
+ #endif
+ 
+diff --git a/src/tbb/allocator.cpp b/src/tbb/allocator.cpp
+index 689c5125..4e95cc13 100644
+--- a/src/tbb/allocator.cpp
++++ b/src/tbb/allocator.cpp
+@@ -40,7 +40,7 @@
+ // memalign() and it offers nothing but overhead due to inconvenient interface. This is likely the case with other
+ // standard libraries as well, and more libraries can be added to the preprocessor check below. Unfortunately, we
+ // can't detect musl, so we simply enable memalign() on Linux and Android in general.
+-#if defined(linux) || defined(__linux) || defined(__linux__) || defined(__ANDROID__)
++#if defined(linux) || defined(__linux) || defined(__linux__) || defined(__ANDROID__) || defined(__OHOS__)
+ #include <malloc.h> // memalign
+ #define __TBB_USE_MEMALIGN
+ #else
+@@ -119,7 +119,7 @@ static const dynamic_link_descriptor MallocLinkTable[] = {
+ #define MALLOCLIB_NAME "tbbmalloc" DEBUG_SUFFIX ".dll"
+ #elif __APPLE__
+ #define MALLOCLIB_NAME "libtbbmalloc" DEBUG_SUFFIX ".2.dylib"
+-#elif __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __sun || _AIX || __ANDROID__
++#elif __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __sun || _AIX || __ANDROID__ || __OHOS__
+ #define MALLOCLIB_NAME "libtbbmalloc" DEBUG_SUFFIX ".so"
+ #elif __unix__  // Note that order of these #elif's is important!
+ #define MALLOCLIB_NAME "libtbbmalloc" DEBUG_SUFFIX ".so.2"
+diff --git a/src/tbb/dynamic_link.cpp b/src/tbb/dynamic_link.cpp
+index c4abfc62..ac9f3cb4 100644
+--- a/src/tbb/dynamic_link.cpp
++++ b/src/tbb/dynamic_link.cpp
+@@ -63,7 +63,7 @@
+ #endif /* __TBB_WEAK_SYMBOLS_PRESENT && !__TBB_DYNAMIC_LOAD_ENABLED */
+ 
+ 
+-#define __USE_STATIC_DL_INIT    ( !__ANDROID__ )
++#define __USE_STATIC_DL_INIT    ( !(__ANDROID__ || __OHOS__) )
+ 
+ 
+ /*
+diff --git a/src/tbb/misc.h b/src/tbb/misc.h
+index 988c29b1..1f3cb25c 100644
+--- a/src/tbb/misc.h
++++ b/src/tbb/misc.h
+@@ -35,7 +35,7 @@
+ #include <atomic>
+ 
+ // Does the operating system have a system call to pin a thread to a set of OS processors?
+-#define __TBB_OS_AFFINITY_SYSCALL_PRESENT ((__linux__ && !__ANDROID__) || (__FreeBSD_version >= 701000))
++#define __TBB_OS_AFFINITY_SYSCALL_PRESENT ((__linux__ && !(__ANDROID__ || __OHOS__)) || (__FreeBSD_version >= 701000))
+ // On IBM* Blue Gene* CNK nodes, the affinity API has restrictions that prevent its usability for TBB,
+ // and also sysconf(_SC_NPROCESSORS_ONLN) already takes process affinity into account.
+ #define __TBB_USE_OS_AFFINITY_SYSCALL (__TBB_OS_AFFINITY_SYSCALL_PRESENT && !__bg__)
+diff --git a/src/tbb/misc_ex.cpp b/src/tbb/misc_ex.cpp
+index 6011a32c..52d5b085 100644
+--- a/src/tbb/misc_ex.cpp
++++ b/src/tbb/misc_ex.cpp
+@@ -210,7 +210,7 @@ int AvailableHwConcurrency() {
+ }
+ 
+ /* End of __TBB_USE_OS_AFFINITY_SYSCALL implementation */
+-#elif __ANDROID__
++#elif __ANDROID__ || __OHOS__
+ 
+ // Work-around for Android that reads the correct number of available CPUs since system calls are unreliable.
+ // Format of "present" file is: ([<int>-<int>|<int>],)+
+diff --git a/src/tbbmalloc/tbbmalloc.cpp b/src/tbbmalloc/tbbmalloc.cpp
+index b72e03a7..69dc6702 100644
+--- a/src/tbbmalloc/tbbmalloc.cpp
++++ b/src/tbbmalloc/tbbmalloc.cpp
+@@ -43,7 +43,7 @@ namespace internal {
+ #define MALLOCLIB_NAME "tbbmalloc" DEBUG_SUFFIX ".dll"
+ #elif __APPLE__
+ #define MALLOCLIB_NAME "libtbbmalloc" DEBUG_SUFFIX ".2.dylib"
+-#elif __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __sun || _AIX || __ANDROID__
++#elif __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __sun || _AIX || __ANDROID__ || __OHOS__
+ #define MALLOCLIB_NAME "libtbbmalloc" DEBUG_SUFFIX ".so"
+ #elif __unix__
+ #define MALLOCLIB_NAME "libtbbmalloc" DEBUG_SUFFIX  __TBB_STRING(.so.2)
+diff --git a/src/tbbmalloc_proxy/proxy.cpp b/src/tbbmalloc_proxy/proxy.cpp
+index d27591bb..812cc719 100644
+--- a/src/tbbmalloc_proxy/proxy.cpp
++++ b/src/tbbmalloc_proxy/proxy.cpp
+@@ -14,7 +14,7 @@
+     limitations under the License.
+ */
+ 
+-#if __unix__ && !__ANDROID__
++#if __unix__ && !( __ANDROID__ || __OHOS__ )
+ // include <bits/c++config.h> indirectly so that <cstdlib> is not included
+ #include <cstddef>
+ // include <features.h> indirectly so that <stdlib.h> is not included
+@@ -260,7 +260,7 @@ TBBMALLOCPROXY_EXPORT int mallopt(int /*param*/, int /*value*/) __THROW
+     return 1;
+ }
+ 
+-#if defined(__GLIBC__) || defined(__ANDROID__)
++#if defined(__GLIBC__) || defined(__ANDROID__) || defined(__OHOS__)
+ TBBMALLOCPROXY_EXPORT struct mallinfo mallinfo() __THROW
+ {
+     struct mallinfo m;
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index c75ab216..80598e12 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -282,7 +282,7 @@ function(tbb_add_tbbbind_test)
+     endif()
+ 
+     # Disable all HWLOC dependent tests in case of unsupported environment.
+-    if (TBB_WINDOWS_DRIVER OR ANDROID_PLATFORM OR APPLE OR NOT BUILD_SHARED_LIBS)
++    if (TBB_WINDOWS_DRIVER OR ANDROID_PLATFORM OR OHOS_PLATFORM OR APPLE OR NOT BUILD_SHARED_LIBS)
+         return()
+     endif()
+     ProcessorCount(SYSTEM_CONCURRENCY)
+@@ -437,7 +437,7 @@ if (TARGET TBB::tbb)
+         # The linker may not detect a dependency on pthread in static variable constructors.
+         target_link_libraries(test_dynamic_link PRIVATE "-Wl,--no-as-needed")
+     endif()
+-    if (APPLE OR ANDROID_PLATFORM)
++    if (APPLE OR ANDROID_PLATFORM OR OHOS_PLATFORM)
+         target_link_libraries(test_dynamic_link PRIVATE -rdynamic)
+     endif()
+     if (WIN32 AND NOT TBB_TCM_TESTING)
+diff --git a/test/common/config.h b/test/common/config.h
+index b0d36141..c1ba8f54 100644
+--- a/test/common/config.h
++++ b/test/common/config.h
+@@ -77,7 +77,7 @@
+ 
+ const unsigned MByte = 1024*1024;
+ 
+-#if (_WIN32 && !__TBB_WIN8UI_SUPPORT) || (__linux__ && !__ANDROID__ && !__bg__) || __FreeBSD_version >= 701000
++#if (_WIN32 && !__TBB_WIN8UI_SUPPORT) || (__linux__ && !__ANDROID__ && !__OHOS__ && !__bg__) || __FreeBSD_version >= 701000
+ #define __TBB_TEST_SKIP_AFFINITY 0
+ #if __linux__
+ #define __TBB_USE_CGROUPS 1
+diff --git a/test/common/fp_control.h b/test/common/fp_control.h
+index 9e18f8bb..69562c0d 100644
+--- a/test/common/fp_control.h
++++ b/test/common/fp_control.h
+@@ -111,7 +111,9 @@ inline void SetRoundingMode ( int mode ) {
+ #else /* Other archs */
+ 
+ #include <fenv.h>
+-
++#ifdef __arm__
++#define FE_TOWARDZERO 0xc00000
++#endif
+ const int RND_MODE_MASK = FE_TONEAREST | FE_DOWNWARD | FE_UPWARD | FE_TOWARDZERO;
+ 
+ const int NumSseModes = 1;
+diff --git a/test/common/memory_usage.h b/test/common/memory_usage.h
+index cf8b4180..074d6d4b 100644
+--- a/test/common/memory_usage.h
++++ b/test/common/memory_usage.h
+@@ -69,7 +69,10 @@ namespace utils {
+ #if __unix__
+     inline unsigned LinuxKernelVersion()
+     {
+-        unsigned digit1, digit2, digit3;
++        #if __OHOS__
++        return 1000000 * 2 + 1000 * 6 + 15;
++        #else
++        unsigned digit1, digit2, digit3;
+         struct utsname utsnameBuf;
+ 
+         if (-1 == uname(&utsnameBuf)) {
+@@ -79,6 +82,7 @@ namespace utils {
+             CHECK_MESSAGE(false, "Unable to parse OS release: " << utsnameBuf.release);
+         }
+         return 1000000 * digit1 + 1000 * digit2 + digit3;
++        #endif
+     }
+ #endif
+ 
+diff --git a/test/common/utils_concurrency_limit.h b/test/common/utils_concurrency_limit.h
+index 720bbb72..e74070c2 100644
+--- a/test/common/utils_concurrency_limit.h
++++ b/test/common/utils_concurrency_limit.h
+@@ -390,7 +390,7 @@ int limit_number_of_threads( int max_threads ) {
+ #endif // __TBB_TEST_SKIP_AFFINITY
+ 
+ // TODO: consider using cpuset_setaffinity/sched_getaffinity on FreeBSD to enable the functionality
+-#define OS_AFFINITY_SYSCALL_PRESENT (__linux__ && !__ANDROID__)
++#define OS_AFFINITY_SYSCALL_PRESENT (__linux__ && !__ANDROID__ && !__OHOS__)
+ 
+ #if OS_AFFINITY_SYSCALL_PRESENT
+ void get_thread_affinity_mask(std::size_t& ncpus, std::vector<int>& free_indexes) {
+diff --git a/test/common/utils_dynamic_libs.h b/test/common/utils_dynamic_libs.h
+index 99afca38..3f283bbd 100644
+--- a/test/common/utils_dynamic_libs.h
++++ b/test/common/utils_dynamic_libs.h
+@@ -58,7 +58,7 @@ namespace utils {
+ #define EXT ".dylib"
+ #endif
+ // Android SDK build system does not support .so file name versioning
+-#elif __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __sun || _AIX || __ANDROID__
++#elif __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __sun || _AIX || __ANDROID__ || __OHOS__
+ #define EXT ".so"
+ #elif __unix__  // Order of these elif's matters!
+ #define EXT __TBB_STRING(.so.2)
+diff --git a/test/conformance/conformance_resumable_tasks.cpp b/test/conformance/conformance_resumable_tasks.cpp
+index 70fd878d..4ea911d9 100644
+--- a/test/conformance/conformance_resumable_tasks.cpp
++++ b/test/conformance/conformance_resumable_tasks.cpp
+@@ -16,7 +16,7 @@
+ 
+ #include "common/test.h"
+ 
+-#if (!__TBB_WIN8UI_SUPPORT && !defined(WINAPI_FAMILY) && !__ANDROID__)
++#if (!__TBB_WIN8UI_SUPPORT && !defined(WINAPI_FAMILY) && !__ANDROID__ && !__OHOS__)
+ 
+ #include "oneapi/tbb/task.h"
+ #include "oneapi/tbb/task_group.h"
+diff --git a/test/tbb/test_collaborative_call_once.cpp b/test/tbb/test_collaborative_call_once.cpp
+index 11a04a10..e7b2b91c 100644
+--- a/test/tbb/test_collaborative_call_once.cpp
++++ b/test/tbb/test_collaborative_call_once.cpp
+@@ -212,7 +212,7 @@ TEST_CASE("only calls once - move only argument") {
+ TEST_CASE("only calls once - stress test") {
+ #if TBB_TEST_LOW_WORKLOAD
+     constexpr std::size_t N = 32;
+-#elif __TBB_x86_32 || __arm__  || __ANDROID__
++#elif __TBB_x86_32 || __arm__  || __ANDROID__ || __OHOS__
+     // Some C++ implementations allocate 8MB stacks for std::thread on 32 bit platforms
+     // that makes impossible to create more than ~500 threads.
+     // Android has been added to decrease testing time.
+@@ -286,7 +286,7 @@ TEST_CASE("handles exceptions - state reset") {
+ TEST_CASE("handles exceptions - stress test") {
+ #if TBB_TEST_LOW_WORKLOAD
+     constexpr std::size_t N = 32;
+-#elif __TBB_x86_32 || __arm__ || __ANDROID__
++#elif __TBB_x86_32 || __arm__ || __ANDROID__ || __OHOS__
+     // Some C++ implementations allocate 8MB stacks for std::thread on 32 bit platforms
+     // that makes impossible to create more than ~500 threads.
+     // Android has been added to decrease testing time.
+diff --git a/test/tbb/test_eh_thread.cpp b/test/tbb/test_eh_thread.cpp
+index a8885e66..48ea884a 100644
+--- a/test/tbb/test_eh_thread.cpp
++++ b/test/tbb/test_eh_thread.cpp
+@@ -34,7 +34,7 @@
+ // On Windows there is no real thread number limit beside available memory.
+ // Therefore, the test for thread limit is unreasonable.
+ // TODO: enable limitThreads with sanitizer under docker
+-#if TBB_USE_EXCEPTIONS && !_WIN32 && !__ANDROID__
++#if TBB_USE_EXCEPTIONS && !_WIN32 && !__ANDROID__ && !__OHOS__
+ 
+ #include <limits.h>
+ #include <sys/types.h>
+diff --git a/test/tbbmalloc/test_malloc_atexit.cpp b/test/tbbmalloc/test_malloc_atexit.cpp
+index 19ccc4d6..0ad3a3b5 100644
+--- a/test/tbbmalloc/test_malloc_atexit.cpp
++++ b/test/tbbmalloc/test_malloc_atexit.cpp
+@@ -62,7 +62,7 @@ bool exe_isMallocOverloaded()
+ #endif
+ #include <signal.h>
+ 
+-#if __unix__ && !__ANDROID__
++#if __unix__ && !__ANDROID__ && !__OHOS__
+ extern "C" {
+ void __libc_free(void *ptr);
+ void *__libc_realloc(void *ptr, size_t size);
+@@ -88,7 +88,7 @@ void *realloc(void *ptr, size_t size)
+ void dummyFunction() {}
+ 
+ // TODO: enable the check under Android
+-#if (MALLOC_UNIXLIKE_OVERLOAD_ENABLED || MALLOC_ZONE_OVERLOAD_ENABLED) && !__ANDROID__
++#if (MALLOC_UNIXLIKE_OVERLOAD_ENABLED || MALLOC_ZONE_OVERLOAD_ENABLED) && !__ANDROID__ && !__OHOS__
+ typedef void *(malloc_type)(size_t);
+ 
+ static void SigSegv(int)
+diff --git a/test/tbbmalloc/test_malloc_compliance.cpp b/test/tbbmalloc/test_malloc_compliance.cpp
+index 1a85ed58..fb69757b 100644
+--- a/test/tbbmalloc/test_malloc_compliance.cpp
++++ b/test/tbbmalloc/test_malloc_compliance.cpp
+@@ -257,7 +257,7 @@ static void setSystemAllocs()
+     Raligned_realloc=_aligned_realloc;
+     Taligned_free=_aligned_free;
+     Rposix_memalign=0;
+-#elif  __APPLE__ || __sun || __ANDROID__
++#elif  __APPLE__ || __sun || __ANDROID__ || __OHOS__
+ // macOS, Solaris*, and Android* don't have posix_memalign
+     Raligned_malloc=0;
+     Raligned_realloc=0;
+@@ -623,7 +623,7 @@ void myMemset(void *ptr, int c, size_t n)
+ }
+ 
+ // This test requires more than TOTAL_MB_ALLOC MB of RAM.
+-#if __ANDROID__
++#if __ANDROID__ || __OHOS__
+ // Android requires lower limit due to lack of virtual memory.
+ #define TOTAL_MB_ALLOC	200
+ #else
+@@ -710,7 +710,7 @@ void CMemTest::NULLReturn(UINT MinSize, UINT MaxSize, int total_threads)
+                 // Technically, if malloc returns a non-null pointer, it is allowed to set errno anyway.
+                 // However, on most systems it does not set errno.
+                 bool known_issue = false;
+-#if __unix__ || __ANDROID__
++#if __unix__ || __ANDROID__ || __OHOS__
+                 if( CHECK_ERRNO(errno==ENOMEM) ) known_issue = true;
+ #endif /* __unix__ */
+                 if ( CHECK_ERRNO(errno != ENOMEM+j+1) && !known_issue) {
+@@ -1041,7 +1041,7 @@ TEST_CASE("MAIN TEST") {
+         perProcessLimits = false;
+ #endif
+     //-------------------------------------
+-#if __APPLE__ || __TBB_USE_SANITIZERS
++#if __APPLE__ || __TBB_USE_SANITIZERS || __OHOS__
+     /* Skip due to lack of memory limit enforcing under macOS. */
+     //Skip this test under ASAN , as OOM condition breaks the ASAN as well
+ #else
+diff --git a/test/tbbmalloc/test_malloc_overload.cpp b/test/tbbmalloc/test_malloc_overload.cpp
+index 7f8c3489..6f12f0e1 100644
+--- a/test/tbbmalloc/test_malloc_overload.cpp
++++ b/test/tbbmalloc/test_malloc_overload.cpp
+@@ -51,8 +51,8 @@
+   #include <android/api-level.h> // for __ANDROID_API__
+ #endif
+ 
+-#define __TBB_POSIX_MEMALIGN_PRESENT (__unix__ && !__ANDROID__) || __APPLE__
+-#define __TBB_PVALLOC_PRESENT __unix__ && !__ANDROID__
++#define __TBB_POSIX_MEMALIGN_PRESENT (__unix__ && !(__ANDROID__ || __OHOS__)) || __APPLE__
++#define __TBB_PVALLOC_PRESENT __unix__ && !__ANDROID__ && !__OHOS__
+ #if __GLIBC__
+   // aligned_alloc available since GLIBC 2.16
+   #define __TBB_ALIGNED_ALLOC_PRESENT __GLIBC_PREREQ(2, 16)
+@@ -281,7 +281,7 @@ void CheckFreeAligned() {
+         }
+ }
+ 
+-#if __ANDROID__
++#if __ANDROID__ || __OHOS__
+ // Workaround for an issue with strdup somehow bypassing our malloc replacement on Android.
+ char *strdup(const char *str) {
+     REPORT( "Known issue: malloc replacement does not work for strdup on Android.\n" );
+@@ -415,7 +415,7 @@ TEST_CASE("Main set of tests") {
+ */
+     REQUIRE_MESSAGE(getenv("PATH"), "We assume that PATH is set everywhere.");
+     char *pathCopy = strdup(getenv("PATH"));
+-#if __ANDROID__
++#if __ANDROID__ || __OHOS__
+     REQUIRE_MESSAGE(strcmp(pathCopy,getenv("PATH")) == 0, "strdup workaround does not work as expected.");
+ #endif
+     const char *newEnvName = "__TBBMALLOC_OVERLOAD_REGRESSION_TEST_FOR_REALLOC_AND_MSIZE";
+@@ -467,7 +467,7 @@ TEST_CASE("Main set of tests") {
+            && !info.hblkhd && !info.usmblks && !info.fsmblks
+            && !info.uordblks && !info.fordblks && !info.keepcost));
+ 
+- #if !__ANDROID__
++ #if !(__ANDROID__ || __OHOS__)
+     // These non-standard functions are exported by GLIBC, and might be used
+     // in conjunction with standard malloc/free. Test that we overload them as well.
+     // Bionic doesn't have them.
+diff --git a/test/tbbmalloc/test_malloc_whitebox.cpp b/test/tbbmalloc/test_malloc_whitebox.cpp
+index 03f08ccb..fc8b6c61 100644
+--- a/test/tbbmalloc/test_malloc_whitebox.cpp
++++ b/test/tbbmalloc/test_malloc_whitebox.cpp
+@@ -285,7 +285,7 @@ static size_t allocatedBackRefCount()
+ }
+ 
+ class TestInvalidBackrefs: public SimpleBarrier {
+-#if __ANDROID__
++#if __ANDROID__ || __OHOS__
+     // Android requires lower iters due to lack of virtual memory.
+     static const int BACKREF_GROWTH_ITERS = 50*1024;
+ #else

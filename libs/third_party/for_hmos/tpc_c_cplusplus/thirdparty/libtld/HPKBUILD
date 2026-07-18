@@ -1,0 +1,109 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: sunwei <sunwei218@h-partners.com>
+# Maintainer: sunwei <sunwei218@h-partners.com>
+
+pkgname=libtld
+pkgver=2.0.5
+pkgrel=0
+pkgdesc="libtld is a library used to extract TLD information from URIs. It can help developers extract information such as domain names and subdomains."
+url="https://github.com/m2osw/libtld"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT license")
+depends=()
+makedepends=()
+source="https://github.com/m2osw/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+downloaddepsflag=true
+buildhostlibtld=true
+patchflag=true
+
+prepare() {
+    if $downloaddepsflag
+    then
+        # 下载依赖包
+        sure download "https://github.com/m2osw/snapcmakemodules/archive/refs/tags/1.0.45.0.zip" snapcmakemodules-1.0.45.0.zip
+        unzip snapcmakemodules-1.0.45.0.zip
+        mv snapcmakemodules-1.0.45.0 SnapCMakeModules
+        downloaddepsflag=false
+    fi
+    if $buildhostlibtld
+    then
+        mkdir -p $builddir-host-build/BUILD
+        cp -rf $pkgname-${pkgver} ./$builddir-host-build
+        cp -rf SnapCMakeModules ./$builddir-host-build
+        cd $builddir-host-build/BUILD
+        cmake -DCMAKE_PREFIX_PATH=../SnapCMakeModules/Modules \
+            -DLIBTLD_VERSION_MAJOR=2 -DLIBTLD_VERSION_MINOR=0 -DLIBTLD_VERSION_PATCH=5 \
+            -DCMAKE_CXX_STANDARD=20 \
+            -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+            ../libtld-2.0.5/ > $publicbuildlog 2>&1
+        $MAKE VERBOSE=1 > $publicbuildlog 2>&1
+        buildhostlibtld=false
+        cd $OLDPWD
+    fi
+    if [ "$patchflag" == true ]
+    then
+        cd $builddir
+        # 不能访问的测试文件路径 修改为可以访问的路径
+        patch -p1 < ../libtld_ohos_test.patch > $buildlog 2>&1
+        #此处patch是因为有文件要在编译过程中执行需要避免生成相对应版本的可执行文件
+        patch -p1 < ../libtld_ohos_pkg.patch > $buildlog 2>&1
+        cd $OLDPWD
+        patchflag=false
+    fi
+    mkdir -p $pkgname-$ARCH-build/BUILD
+    cp -rf $pkgname-${pkgver} ./$pkgname-$ARCH-build
+    cp -rf SnapCMakeModules ./$pkgname-$ARCH-build
+}
+
+build() {
+    cd $pkgname-$ARCH-build/BUILD
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DSnapCMakeModules_DIR=../SnapCMakeModules/Modules \
+        -DSnapDoxygen_DIR=../SnapCMakeModules/Modules \
+        -DLIBTLD_VERSION_MAJOR=2 -DLIBTLD_VERSION_MINOR=0 -DLIBTLD_VERSION_PATCH=5 \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+        -DCMAKE_C_FLAGS="-w -s -Wno-error -Wno-unused-command-line-argument -Wno-unknown-warning-option -Wno-sign-compare -Wno-error=sign-compare" \
+        -DCMAKE_CXX_FLAGS="-w -s -Wno-error -Wno-unused-command-line-argument -Wno-unknown-warning-option -Wno-sign-compare -Wno-tautological-pointer-compare -Wno-error=sign-compare -Wno-c++17-attribute-extensions -std=c++17" \
+        -DLIBTLD_VERSION_PATCH=0 ../libtld-2.0.5 >>  $buildlog 2>&1
+    #构建过程中需要执行宿主机的可执行文件
+    cp ../../libtld-2.0.5-host-build/BUILD/libtld/tld_parser ./libtld/
+    $MAKE VERBOSE=1 >>  $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 打包安装
+package() {
+    cd $pkgname-$ARCH-build/BUILD
+    $MAKE VERBOSE=1 install >>  $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $pkgname-armeabi-v7a-build  $pkgname-arm64-v8a-build
+}

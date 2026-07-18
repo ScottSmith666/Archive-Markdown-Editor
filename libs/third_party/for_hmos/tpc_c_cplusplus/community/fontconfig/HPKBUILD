@@ -1,0 +1,153 @@
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=fontconfig
+pkgver=2.14.2
+pkgrel=0
+pkgdesc="Font configuration and customization library."
+url="https://gitlab.freedesktop.org/fontconfig/fontconfig"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("HPND" "Public Domain" "MIT-Modern-Variant" "MIT")
+depends=("libzip" "freetype2" "libxml2" "libpng" "json-c")
+makedepends=("gperf" "gettextize" "autopoint" "libtool")
+source="https://www.freedesktop.org/software/${pkgname}/release/${pkgname}-${pkgver}.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver 
+packagename=$builddir.tar.gz 
+autogenflag=true
+testpatch=true
+
+source envset.sh
+host=
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    fi
+    if $autogenflag
+    then
+        cd $builddir
+        ./autogen.sh > `pwd`/build.log 2>&1
+        cd $OLDPWD
+        autogenflag=false
+    fi
+}
+
+build() {
+    local LOCAL_CFLAGS="${CFLAGS} -O3 -fstack-protector-strong -fPIC"
+    local LOCAL_CXXFLAGS="${CXXFLAGS} -O3 -fstack-protector-strong -fPIC"
+    local LOCAL_LDFLAGS="${LDFLAGS} -Wl,-z,relro,-z,now -Wl,--disable-new-dtags -s"
+
+    cd "$builddir/$ARCH-build"
+
+    FREETYPE_CFLAGS="-I${LYCIUM_ROOT}/usr/freetype2/$ARCH/include/freetype2"
+    FREETYPE_LIBS="${LYCIUM_ROOT}/usr/freetype2/$ARCH/lib/libfreetype.a \
+    ${LYCIUM_ROOT}/usr/bzip2/$ARCH/lib/libbz2.a \
+    ${LYCIUM_ROOT}/usr/libpng/$ARCH/lib/libpng.a \
+    ${LYCIUM_ROOT}/usr/brotli/$ARCH/lib/libbrotlicommon.so \
+    ${LYCIUM_ROOT}/usr/brotli/$ARCH/lib/libbrotlienc.so \
+    ${LYCIUM_ROOT}/usr/brotli/$ARCH/lib/libbrotlidec.so -lz"
+
+    CFLAGS="${FREETYPE_CFLAGS} ${LOCAL_CFLAGS}" \
+    CXXFLAGS="${LOCAL_CXXFLAGS}" \
+    LDFLAGS="${LOCAL_LDFLAGS}" \
+    LIBS="${FREETYPE_LIBS}" \
+    PKG_CONFIG_PATH="${pkgconfigpath}" \
+    ../configure "$@" \
+        --host="$host" \
+        --enable-libxml2 \
+        --enable-static \
+        --enable-shared \
+        --disable-silent-rules \
+        --disable-rpath \
+        > "$PWD/build.log" 2>&1
+
+    make -j4 >> "$PWD/build.log" 2>&1
+    local ret=$?
+    cd "$OLDPWD"
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    # 下载字库
+    # 测试过程需要curl下载字体，为避免测试机下载失败，采用提前下载好
+    cd $builddir/$ARCH-build/test
+    mkdir noto
+    curl -s -o noto/noto.zip https://noto-website-2.storage.googleapis.com/pkgs/NotoSans-hinted.zip
+    cd $OLDPWD
+    cd $builddir/$ARCH-build/test/noto
+    unzip noto.zip  > `pwd`/build.log 2>&1
+    tar -zcf noto.tar.gz *.ttf README LICENSE_OFL.txt
+    cp noto.tar.gz ../
+    cd $OLDPWD
+    # 编译测试用例
+    cd $builddir/$ARCH-build/test
+    make test-pthread test-crbug1004254 test-bz89617 test-bz131804 test-migration \
+    test-bz96676 test-name-parse test-bz106618 test-bz106632 test-issue107 test-bz1744377 \
+    test-issue180 test-family-matching >> `pwd`/build.log 2>&1
+    if $testpatch
+    then
+        sed -i '435d' ../../test/run-test.sh
+        sed -i '434a cp $MyPWD/noto.tar.gz "$FONTDIR"/noto.tar.gz' ../../test/run-test.sh
+        sed -i '/.*(cd "$FONTDIR"; unzip noto.zip)/c\    (cd "$FONTDIR"; tar -zxf noto.tar.gz)' ../../test/run-test.sh
+        testpatch=false
+    fi
+    sed -i '/.*check-TESTS: $(check_PROGRAMS) $(check_SCRIPTS)/c\check-TESTS: $(check_SCRIPTS) #$(check_PROGRAMS)' Makefile
+    sed -i '/.*test-bz89617.log: test-bz89617$(EXEEXT)/c\test-bz89617.log: #test-bz89617$(EXEEXT)' Makefile
+    sed -i '/.*test-bz131804.log: test-bz131804$(EXEEXT)/c\test-bz131804.log: #test-bz131804$(EXEEXT)' Makefile
+    sed -i '/.*test-bz96676.log: test-bz96676$(EXEEXT)/c\test-bz96676.log: #test-bz96676$(EXEEXT)' Makefile
+    sed -i '/.*test-name-parse.log: test-name-parse$(EXEEXT)/c\test-name-parse.log: #test-name-parse$(EXEEXT)' Makefile
+    sed -i '/.*test-bz106632.log: test-bz106632$(EXEEXT)/c\test-bz106632.log: #test-bz106632$(EXEEXT)' Makefile
+    sed -i '/.*test-issue107.log: test-issue107$(EXEEXT)/c\test-issue107.log: #test-issue107$(EXEEXT)' Makefile
+    sed -i '/.*test-issue110.log: test-issue110$(EXEEXT)/c\test-issue110.log: #test-issue110$(EXEEXT)' Makefile
+    sed -i '/.*test-d1f48f11.log: test-d1f48f11$(EXEEXT)/c\test-d1f48f11.log: #test-d1f48f11$(EXEEXT)' Makefile
+    sed -i '/.*test-bz1744377.log: test-bz1744377$(EXEEXT)/c\test-bz1744377.log: #test-bz1744377$(EXEEXT)' Makefile
+    sed -i '/.*test-issue180.log: test-issue180$(EXEEXT)/c\test-issue180.log: #test-issue180$(EXEEXT)' Makefile
+    sed -i '/.*test-family-matching.log: test-family-matching$(EXEEXT)/c\test-family-matching.log: #test-family-matching$(EXEEXT)' Makefile
+
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    fi
+    unset host
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # copy 依赖库
+    # make -C test check-TESTS
+    
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

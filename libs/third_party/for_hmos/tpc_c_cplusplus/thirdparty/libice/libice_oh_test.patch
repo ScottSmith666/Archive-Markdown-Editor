@@ -1,0 +1,117 @@
+diff -Naur old/example/main_test.c new/example/main_test.c
+--- old/example/main_test.c	1970-01-01 08:00:00.000000000 +0800
++++ new/example/main_test.c	2024-03-15 10:15:18.441348900 +0800
+@@ -0,0 +1,113 @@
++#include <stdio.h>
++
++#include "ICElib.h"
++
++#define ICE_PROTOCOL_NAME "tcp"
++#define ICE_MAJOR_VERSION 1
++#define ICE_MINOR_VERSION 1
++
++extern void cIcePoProcessMsgProc(
++	IceConn ice_conn, 
++	IcePointer client_data, 
++	int opcode, 
++	unsigned long length, 
++	Bool swap,
++	IceReplyWaitInfo *reply_wait, 
++	Bool *reply_ready_ret
++);
++
++extern IcePoAuthStatus cIcePoAuthProc(
++	IceConn ice_conn, 
++	IcePointer *authStatePtr, 
++	Bool cleanUp, Bool swap,
++	int authDataLen, 
++	IcePointer authData, 
++	int *replyDataLenRet, 
++	IcePointer *replyDataRet, 
++	char **errorStringRet
++);
++
++// 假设的协议名称、供应商和版本信息
++const char *protocol_name = ICE_PROTOCOL_NAME;
++const char *vendor = "YourVendorName";
++const char *release = "1.0";
++
++// 假设的协议版本信息
++const int version_count = 1;
++IcePoVersionRec version_recs[] = {
++	{
++		ICE_MAJOR_VERSION, 
++		ICE_MINOR_VERSION, 
++		cIcePoProcessMsgProc
++	}
++};
++
++// 假设的认证机制名称和处理函数（这里只是占位符，需要实际实现）
++const int auth_count = 1;
++const char *auth_names[] = {"MIT-MAGIC-COOKIE-1"};
++IcePoAuthProc auth_procs[] = {cIcePoAuthProc}; // 你需要实现这个函数
++
++// callback
++void
++cIcePoProcessMsgProc(
++	IceConn ice_conn, 
++	IcePointer client_data, 
++	int opcode, 
++	unsigned long length, 
++	Bool swap,
++	IceReplyWaitInfo *reply_wait, 
++	Bool *reply_ready_ret
++)
++{
++	//pass
++	return;
++}
++
++IcePoAuthStatus
++cIcePoAuthProc(
++	IceConn ice_conn, 
++	IcePointer *authStatePtr, 
++	Bool cleanUp, 
++	Bool swap, 
++	int authDataLen,
++	IcePointer authData, 
++	int *replyDataLenRet, 
++	IcePointer *replyDataRet, 
++	char **errorStringRet
++)
++{
++	//pass
++	IcePoAuthStatus enumStatus = IcePoAuthHaveReply;
++	return enumStatus;
++}
++
++int
++main(int argc, char **argv)
++{
++	int iOpcode = 0;
++	int closeIceRegister = 1;
++	printf("main enter...\n");
++
++	iOpcode = IceRegisterForProtocolSetup(
++		protocol_name, 
++		vendor, release, 
++		version_count, 
++		version_recs, 
++		auth_count, 
++		auth_names, 
++		auth_procs, 
++		NULL
++	);
++	if (-1 == iOpcode)
++	{
++		printf("IceRegisterForProtocolSetup failed, iOpcode = %d\n", iOpcode);
++		return 0;
++	}
++	else
++	{
++		printf("IceRegisterForProtocolSetup successed, iOpcode = %d\n", iOpcode);
++	}
++	printf("main leave...\n");
++
++	return 0;
++}

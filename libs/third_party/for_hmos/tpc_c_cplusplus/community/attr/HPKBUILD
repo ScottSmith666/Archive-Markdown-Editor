@@ -1,0 +1,120 @@
+# Contributor: Chen Xu <chenxu.unix@gmail.com>
+# Maintainer:  Chen Xu <chenxu.unix@gmail.com>
+pkgname=attr
+pkgver="2.4.47"
+pkgrel=0
+pkgdesc="The attr package contains utilities to administer the extended attributes on filesystem objects."
+url="https://www.linuxfromscratch.org/blfs/view/7.5/postlfs/attr.html"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL-2.1-only")
+depends=("gettext")
+makedepends=()
+
+source="http://download.savannah.gnu.org/releases/$pkgname/$pkgname-$pkgver.src.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+support64=
+patchflag=true
+buildlibtoolflag=true
+originpath=
+
+buildlibtool() {
+    mkdir -p $builddir/tool
+    cd $builddir/tool
+    sure download https://mirrors.sjtug.sjtu.edu.cn/gnu/libtool/libtool-2.4.2.tar.xz libtool-2.4.2.tar.xz
+    tar -xf libtool-2.4.2.tar.xz
+    cd libtool-2.4.2
+    ./configure --prefix=`pwd` > `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1  >> `pwd`/build.log 2>&1
+    ret=$?
+    cd ${PKGBUILD_ROOT}
+    return $ret
+}
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 补全c++宏定义
+        patch -p1 < `pwd`/../attr_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    # 编译指定版本libtool工具
+    if $buildlibtoolflag
+    then
+        sure buildlibtool
+        buildlibtoolflag=false
+    fi
+
+    cp -rf $builddir  $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+        support64=no
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+        support64=yes
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    # 经过尝试设置PKG_CONFIG_PATH="${pkgconfigpath}"之后并无效果因为
+    # attr库的configure没有去查找gettext的头文件路径以及库文件路径
+    # 此处需要手动指定gettext的头文件路径以及库文件路径，且需要链接libintl库
+    export CFLAGS="-I${LYCIUM_ROOT}/usr/gettext/$ARCH/include ${CFLAGS}"
+    export LDFLAGS="-L${LYCIUM_ROOT}/usr/gettext/$ARCH/lib -lintl ${LDFLAGS}"
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    originpath=$PATH
+    export PATH=`pwd`/../$builddir/tool/libtool-2.4.2/bin:$PATH
+    ./configure "$@" --host=$host --enable-lib64=${support64} > `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+    export PATH=$originpath
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install install-lib install-dev VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    unset host support64 originpath
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build  # ${PWD}/$packagename
+}

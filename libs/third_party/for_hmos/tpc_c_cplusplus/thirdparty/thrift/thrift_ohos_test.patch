@@ -1,0 +1,24 @@
+iff -Nura thrift-0.18.1/lib/cpp/test/TFileTransportTest.cpp thrift-0.18.1_patchdir/lib/cpp/test/TFileTransportTest.cpp
+--- thrift-0.18.1/lib/cpp/test/TFileTransportTest.cpp   2024-08-17 10:34:10.907547269 +0800
++++ thrift-0.18.1_patchdir/lib/cpp/test/TFileTransportTest.cpp  2024-08-16 15:10:07.199856617 +0800
+@@ -44,7 +44,7 @@
+  * Global state
+  **************************************************************************/
+
+-static const char* tmp_dir = "/tmp";
++static const char* tmp_dir = "/data/local/tmp";
+
+ class FsyncLog;
+ FsyncLog* fsync_log;
+diff -Nura thrift-0.18.1/lib/cpp/test/TransportTest.cpp thrift-0.18.1_patchdir/lib/cpp/test/TransportTest.cpp
+--- thrift-0.18.1/lib/cpp/test/TransportTest.cpp        2024-08-17 10:34:10.907547269 +0800
++++ thrift-0.18.1_patchdir/lib/cpp/test/TransportTest.cpp       2024-08-16 15:09:49.507516036 +0800
+@@ -264,7 +264,7 @@
+ public:
+   CoupledFileTransports() {
+ #ifndef _WIN32
+-    const char* tmp_dir = "/tmp";
++    const char* tmp_dir = "/data/local/tmp";
+ #define FILENAME_SUFFIX "/thrift.transport_test"
+ #else
+     const char* tmp_dir = getenv("TMP");

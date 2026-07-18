@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "CavalierContours",
+        "License": "MIT License",
+        "License File": "https://github.com/jbuckmccready/CavalierContours/blob/master/LICENSE",
+        "Version Number": "master",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/jbuckmccready/CavalierContours.git",
+        "Description": "A 2D multi-fold line library for offset, cross-merging, and other combinations"
+    }
+]

@@ -1,0 +1,85 @@
+[
+    {
+        "Name": "minidlna",
+        "License": "GPL-2.0",
+        "License File": "https://sourceforge.net/p/minidlna/git/ci/master/tree/COPYING",
+        "Version Number": "1.3.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/minidlna/files/minidlna/1.3.3/minidlna-1.3.3.tar.gz",
+        "Description": "MiniDLNA (aka ReadyDLNA) is server software with the aim of being fully compliant with DLNA/UPnP-AV clients."
+    },
+    {
+        "Name": "FFmpge",
+        "License": "GPL-2.0 and GPL-3.0 and LGPL-3.0 ",
+        "License File": ["https://github.com/FFmpeg/FFmpeg/blob/master/COPYING.GPLv2","https://github.com/FFmpeg/FFmpeg/blob/master/COPYING.GPLv3",
+                         "https://github.com/FFmpeg/FFmpeg/blob/master/COPYING.LGPLv2.1","https://github.com/FFmpeg/FFmpeg/blob/master/COPYING.LGPLv3"],
+        "Version Number": "n6.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n6.0.tar.gz",
+        "Description": "FFmpeg is a collection of libraries and tools to process multimedia content such as audio, video, subtitles and related metadata."
+    },
+    {
+        "Name": "jpeg",
+        "License": "Independent JPEG Group License",
+        "License File": "https://www.ijg.org/files/README",
+        "Version Number": "v9e",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "http://www.ijg.org/files/jpegsrc.v9e.tar.gz",
+        "Description": "IJG is an informal group that writes and distributes a widely used free library for JPEG image compression"
+    },
+    {
+        "Name": "sqlite",
+        "License": "Public Domain",
+        "License File": "https://www.sqlite.org/copyright.html",
+        "Version Number": "version-3.42.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/sqlite/sqlite/archive/refs/tags/.tar.gz",
+        "Description": "This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+    },
+    {
+        "Name": "libexif",
+        "License": "LGPL-2.1",
+        "License File": "https://github.com/libexif/libexif/blob/master/COPYING",
+        "Version Number": "0.6.24",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libexif/libexif/releases/download/v0.6.24/libexif-0.6.24.tar.bz2",
+        "Description": "libexif is a library for parsing, editing, and saving EXIF data."
+    },
+    {
+        "Name": "libid3tag",
+        "License": "GPL-2.0-only",
+        "License File": "https://github.com/audacity/libid3tag/blob/master/COPYING",
+        "Version Number": "0.15.1b",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://launchpadlibrarian.net/414577184/libid3tag_0.15.1b.orig.tar.gz",
+        "Description": "libid3tag is a library for reading and writing ID3 tags."
+    },
+    {
+        "Name": "libogg",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/xiph/ogg/blob/master/COPYING",
+        "Version Number": "v1.3.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/xiph/ogg/releases/download/v1.3.5/libogg-1.3.5.tar.gz",
+        "Description": "Reference implementation of the Ogg media container"
+    },
+    {
+        "Name": "libvorbis",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/xiph/vorbis/blob/master/COPYING",
+        "Version Number": "v1.3.7",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/xiph/vorbis/releases/download/v1.3.7/libvorbis-1.3.7.tar.gz",
+        "Description": "Reference implementation of the Ogg Vorbis audio format."
+    },
+    {
+        "Name": "flac",
+        "License": "BSD-3-Clause and GFDL-1.3-only and GPL-2.0-only and LGPL-2.1-only",
+        "License File": ["https://github.com/xiph/flac/blob/master/COPYING.Xiph","https://github.com/xiph/flac/blob/master/COPYING.LGPL",
+                         "https://github.com/xiph/flac/blob/master/COPYING.GPL","https://github.com/xiph/flac/blob/master/COPYING.FDL"],
+        "Version Number": "1.4.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/xiph/flac/releases/download/1.4.3/flac-1.4.3.tar.xz",
+        "Description": "Free Lossless Audio Codec"
+    }
+]

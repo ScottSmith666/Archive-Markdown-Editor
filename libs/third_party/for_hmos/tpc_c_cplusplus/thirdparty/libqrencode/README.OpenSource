@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "libqrencode",
+        "License": "LGPL-2.1-only",
+        "License File": "https://github.com/fukuchi/libqrencode/blob/v4.1.1/COPYING",
+        "Version Number": "v4.1.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz",
+        "Description": "Libqrencode is a fast and compact library for encoding data in a QR Code, a 2D symbology that can be scanned by handy terminals such as a smartphone. "
+    },
+    {
+        "Name": "libpng",
+        "License": "libpng-2.0",
+        "License File": "https://sourceforge.net/p/libpng/code/ci/master/tree/LICENSE",
+        "Version Number": "1.6.39",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/libpng/files/libpng16/1.6.39/libpng-1.6.39.tar.xz",
+        "Description": "LIBPNG: Portable Network Graphics support, official libpng repository"
+    }
+]

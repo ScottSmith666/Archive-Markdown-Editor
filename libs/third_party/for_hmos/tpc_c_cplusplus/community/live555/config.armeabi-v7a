@@ -1,0 +1,19 @@
+CROSS_COMPILE?=		${OHOS_SDK}/native/llvm/bin/
+COMPILE_OPTS =		$(INCLUDES) -I${LYCIUM_ROOT}/usr/openssl-3.4.0/armeabi-v7a/include -I. -O2 -DSOCKLEN_T=socklen_t -DNO_SSTREAM=1 -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -fPIC
+C =			c
+C_COMPILER =		$(CROSS_COMPILE)arm-linux-ohos-clang
+C_FLAGS =		$(COMPILE_OPTS) 
+CPP =			cpp
+CPLUSPLUS_COMPILER =	$(CROSS_COMPILE)arm-linux-ohos-clang++
+CPLUSPLUS_FLAGS =	$(COMPILE_OPTS) -Wall -DBSD=1
+OBJ =			o
+LINK =			$(CROSS_COMPILE)arm-linux-ohos-clang++ -o
+LINK_OPTS =	
+CONSOLE_LINK_OPTS =	$(LINK_OPTS)
+LIBRARY_LINK =		$(CROSS_COMPILE)llvm-ar cr 
+LIBRARY_LINK_OPTS =	$(LINK_OPTS)
+LIB_SUFFIX =			a
+LIBS_FOR_CONSOLE_APPLICATION = ${LYCIUM_ROOT}/usr/openssl-3.4.0/armeabi-v7a/lib/libssl.a ${LYCIUM_ROOT}/usr/openssl-3.4.0/armeabi-v7a/lib/libcrypto.a
+LIBS_FOR_GUI_APPLICATION =
+EXE =
+

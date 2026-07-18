@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "farmhash",
+        "License": "MIT",
+        "License File": "https://github.com/google/farmhash/blob/master/COPYING",
+        "Version Number": "master",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/farmhash.git",
+        "Description": "FarmHash provides hash functions for strings and other data.  The functions mix the input bits thoroughly but are not suitable for cryptography"
+    }
+]

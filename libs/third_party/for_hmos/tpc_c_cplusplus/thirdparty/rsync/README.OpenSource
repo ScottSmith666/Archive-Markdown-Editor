@@ -1,0 +1,47 @@
+[
+    {
+        "Name": "rsync",
+        "License": "GPL 3.0",
+        "License File": "https://github.com/RsyncProject/rsync/blob/master/COPYING",
+        "Version Number": "v3.3.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://codeload.github.com/RsyncProject/rsync/zip/refs/tags/v3.3.0",
+        "Description": "Rsync is an open-source, fast, and multi-functional tool that is used to achieve full or incremental synchronization backup of local or remote data. It can be run on multiple operating system platforms."
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1w",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1w.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    },
+	{
+        "Name": "xxHash",
+        "License": "BSD 2-Clause",
+        "License File": "https://github.com/Cyan4973/xxHash/blob/dev/LICENSE",
+        "Version Number": "v0.8.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/Cyan4973/xxHash/archive/refs/tags/v0.8.1.tar.gz",
+        "Description": "xxHash is an Extremely fast Hash algorithm, processing at RAM speed limits. Code is highly portable."
+    },
+	{
+        "Name": "zstd",
+        "License": "BSD or GPLv2",
+        "License File": "https://gitee.com/mirrors/facebook-zstd/blob/dev/COPYING,https://gitee.com/mirrors/facebook-zstd/blob/dev/LICENSE",
+        "Version Number": "v1.5.4",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/facebook-zstd/repository/archive/v1.5.4.zip",
+        "Description": "Zstandard, or zstd as short version, is a fast lossless compression algorithm, targeting real-time compression scenarios at zlib-level and better compression ratios."
+    },
+    {
+        "Name": "zlib_1_3_1",
+        "License": "Zlib",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.3.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib",
+        "Description": "zlib 1.3.1 is a general purpose data compression library.All the code is thread safe."
+    }
+]

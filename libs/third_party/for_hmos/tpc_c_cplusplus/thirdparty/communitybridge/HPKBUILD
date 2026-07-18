@@ -1,0 +1,41 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=communitybridge
+pkgver=v0.1
+pkgrel=0
+pkgdesc="此库为影子库，只用于 CI 触发 community 目录下的库编译，不可用于其他目的。用于解决 community 下非依赖库，不能主动编译问题。可将 community 下上述情况库的库名（及目录名）填写到本项目的 depends 数组中以依赖库的方式触发其编译。"
+url=""
+archs=("armeabi-v7a" "arm64-v8a")
+license=()
+depends=() # 填下 community 下的库目录名，lycium 会自动触发其的编译工作
+makedepends=()
+
+source=
+
+autounpack=false
+downloadpackage=false
+
+builddir=
+packagename=
+
+# 所有函数均为空函数
+prepare() {
+    :
+}
+
+build() {
+    :
+}
+
+package() {
+    :
+}
+
+check() {
+    :
+}
+
+cleanbuild(){
+    :
+}

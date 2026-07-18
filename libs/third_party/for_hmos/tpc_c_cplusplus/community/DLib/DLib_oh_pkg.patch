@@ -1,0 +1,11 @@
+diff -rupN DLib-1.1-free/CMakeLists.txt DLib-1.1-free_patch/CMakeLists.txt
+--- DLib-1.1-free/CMakeLists.txt	2023-08-24 10:42:32.303144743 +0800
++++ DLib-1.1-free_patch/CMakeLists.txt	2023-08-24 10:45:15.833834065 +0800
+@@ -63,6 +63,7 @@ if(BUILD_DVision)
+     ${SRCS})
+ 
+   find_package(Boost QUIET)  # For dynamic_bitset
++  include_directories(${Boost_INCLUDE_DIR})
+   if (Boost_FOUND)
+     set(HDRS include/DVision/BRIEF.h ${HDRS})
+     set(SRCS src/DVision/BRIEF.cpp ${SRCS})

@@ -1,0 +1,59 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zws <zhouwusong05@chinasoftinc.com>
+# Maintainer: zws <zhouwusong05@chinasoftinc.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    export LD_LIBRARY_PATH=$(realpath ${builddir}/${ARCH}-build/lib/):$LD_LIBRARY_PATH
+    cp -r ${builddir}/testdata ${builddir}/${ARCH}-build/lib/tests/ > ${logfile} 2>&1
+    cd ${builddir}/${ARCH}-build/lib/tests || return 1
+
+    total_tests=$(ls -1 *_test 2>/dev/null | wc -l)
+    passed=0 failed=0 executed=0
+    global_case_total=0 global_case_passed=0 global_case_failed=0
+
+    for test_exe in *_test; do
+        [ -x "$test_exe" ] || continue  
+        
+        echo "Running $test_exe ..." >> ${logfile}
+        temp_log=$(mktemp)
+        "./$test_exe" > "$temp_log" 2>&1
+        test_res=$?
+
+        case_total=$(grep -E 'total: [0-9]+|of [0-9]+ tests|[0-9]+ tests' "$temp_log" | grep -Eo '[0-9]+' | tail -1 || echo 1)
+        case_failed=$(grep -E 'failed: [0-9]+|FAILED [0-9]+' "$temp_log" | grep -Eo '[0-9]+' | tail -1 || echo 0)
+        case_passed=$((case_total - case_failed))
+
+        global_case_total=$((global_case_total + case_total))
+        global_case_passed=$((global_case_passed + case_passed))
+        global_case_failed=$((global_case_failed + case_failed))
+
+        echo "$test_exe - Cases: Total=$case_total, Passed=$case_passed, Failed=$case_failed" >> ${logfile}
+        
+        [ $test_res -eq 0 ] && ((passed++)) || { ((failed++)); res=$test_res; }
+        ((executed++))
+        rm -f "$temp_log"
+    done
+    
+    echo -e "\n=== Final Summary ===" >> ${logfile}
+    echo "Test Executables: Executed=$executed, Passed=$passed, Failed=$failed, Total=$total_tests" >> ${logfile}
+    echo "Test Cases: Total=$global_case_total, Passed=$global_case_passed, Failed=$global_case_failed" >> ${logfile}
+ 
+    cd "$OLDPWD"                   
+    return $res
+}

@@ -1,0 +1,266 @@
+diff --git a/libid3tag_oh_test.c b/libid3tag_oh_test.c
+new file mode 100644
+index 0000000..a825f98
+--- /dev/null
++++ b/libid3tag_oh_test.c
+@@ -0,0 +1,260 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <stdbool.h>
++#include <string.h>
++
++#include "id3tag.h"
++
++#define FALSE (0)
++#define SUCCESS (1)
++
++struct id3_file
++{
++    FILE *iofile;
++    enum id3_file_mode mode;
++    char *path;
++
++    int flags;
++
++    struct id3_tag *primary;
++
++    unsigned int ntags;
++    struct filetag *tags;
++};
++
++struct filetag
++{
++    struct id3_tag *tag;
++    unsigned long location;
++    id3_length_t length;
++};
++
++id3_utf8_t utf8_str[256];
++id3_utf8_t *encode_ucs4(id3_ucs4_t const *ucs4_str)
++{
++    id3_utf8_encode(utf8_str, ucs4_str);
++    return utf8_str;
++}
++
++id3_ucs4_t ucs4_str[256];
++id3_utf8_t *encode_utf8(id3_utf8_t const *utf8_str)
++{
++    id3_utf8_decode(utf8_str, ucs4_str);
++    return ucs4_str;
++}
++
++// 函数说明 主要测试读取标签信息的功能是否正常
++static bool peek_id3_attribute(const char *path)
++{
++    struct id3_file *file = NULL;
++    int result;
++    file = id3_file_open(path, ID3_FILE_MODE_READWRITE);
++    if (file == NULL)
++    {
++        printf("File open FAIL.\r\n");
++        return FALSE;
++    }
++    printf("tags count: %d\n", file->ntags);
++
++    for (int i = 0; i < file->ntags; i++)
++    {
++        struct id3_tag *tag = file->tags->tag;
++        printf("location: %d, length: %d\n", file->tags->location, file->tags->length);
++        
++        for (int j = 0; j < tag->nframes; j++)
++        {
++            struct id3_frame *frame = tag->frames[j];
++            printf("frame decription: %s\n", frame->description);
++            for (int k = 0; k < frame->nfields; k++)
++            {
++                union id3_field field = frame->fields[k];
++                switch (id3_field_type(&field))
++                {
++                case ID3_FIELD_TYPE_TEXTENCODING:
++                    printf("encode: %d\n", id3_field_gettextencoding(&field));
++                    break;
++                case ID3_FIELD_TYPE_LATIN1:
++                    printf("%s\n", id3_field_getlatin1(&field));
++                    break;
++
++                case ID3_FIELD_TYPE_LATIN1FULL:
++                    printf("%s\n", id3_field_getfulllatin1(&field));
++                    break;
++                case ID3_FIELD_TYPE_STRING:
++                    printf("%s\n", encode_ucs4(id3_field_getstring(&field)));
++                    break;
++                case ID3_FIELD_TYPE_STRINGFULL:
++                    printf("%s\n", encode_ucs4(id3_field_getfullstring(&field)));
++                    break;
++                case ID3_FIELD_TYPE_INT8:
++                case ID3_FIELD_TYPE_INT16:
++                case ID3_FIELD_TYPE_INT24:
++                case ID3_FIELD_TYPE_INT32:
++                case ID3_FIELD_TYPE_INT32PLUS:
++                    printf("%d\n", id3_field_getint(&field));
++                    break;
++                case ID3_FIELD_TYPE_STRINGLIST:
++                {
++                    unsigned int nstr = field.stringlist.nstrings;
++                    printf("stringlist %u: ", nstr);
++                    for (int m = 0; m < nstr; m++)
++                        printf("%s", encode_ucs4(id3_field_getstrings(&field, m)));
++                        printf("\n");
++                }
++                    break;
++                default:
++                    printf("print FAIL!!, %d\n", id3_field_type(&field));
++                    break;
++                }
++            }
++        }
++    }
++
++    result = id3_file_close(file);
++
++    if (result == -1){
++        return FALSE; 
++    }
++
++    printf("File close SUCCESS.\r\n");
++
++    return SUCCESS;
++}
++
++// 函数说明 主要测试改写标签信息的功能是否正常
++static bool change_id3_attribute(const char *path, const id3_utf8_t *utf8_str_title, const id3_utf8_t *utf8_str_artist)
++{
++    printf("change_id3_attribute=========================================>>>>>>>>>>>>>>>>>>>>\n");
++
++    struct id3_file *file = NULL;
++    int result;
++    file = id3_file_open(path, ID3_FILE_MODE_READWRITE);
++    if (file == NULL)
++    {
++        printf("File open FAIL.\r\n");
++        return FALSE;
++    }
++
++    if (utf8_str_title != NULL) {
++        union id3_field *field_title = &(file->tags->tag->frames[0]->fields[1]);
++        id3_ucs4_t *ucs4_field_title = encode_utf8(utf8_str_title);
++        result = id3_field_setstrings(field_title, 1, &ucs4_field_title);
++    }
++
++    if (result == -1){
++        return FALSE; 
++    }
++
++    printf("Title changes SUCCESS.\r\n");
++
++    if (utf8_str_artist != NULL) {
++        union id3_field *field_artist = &(file->tags->tag->frames[1]->fields[1]);
++        id3_ucs4_t *ucs4_field_artist = encode_utf8(utf8_str_artist);
++        result = id3_field_setstrings(field_artist, 1, &ucs4_field_artist);
++    }
++
++    if (result == -1){
++        return FALSE; 
++    }
++
++    printf("Artist changes SUCCESS.\r\n");
++
++    result = id3_file_update(file);
++
++    if (result == -1){
++        return FALSE; 
++    }
++
++    printf("File update SUCCESS.\r\n");
++
++    result = id3_file_close(file);
++
++    if (result == -1){
++        return FALSE; 
++    }
++
++    printf("File close SUCCESS.\r\n");
++
++    return SUCCESS;
++}
++
++// 函数说明 主要测试id3_tag_new()函数功能是否正常
++static bool Test_id3_tag_new_func()
++{
++    printf("Test tag new start.\r\n");
++
++    struct id3_tag *tag = id3_tag_new();
++    if (tag == NULL)
++    {
++        printf("Test create pointer FAIL.\r\n");
++        return FALSE;
++    }
++    id3_tag_delete(tag);
++
++    printf("Test tag new SUCCESS.\r\n");
++
++    return SUCCESS;
++}
++
++// 函数说明 主要测试id3_tag_version()函数功能是否正常
++static bool Test_id3_tag_get_version_func(const char *path)
++{
++    printf("Test get version start.\r\n");
++
++    struct id3_file *file = NULL;
++    file = id3_file_open(path, ID3_FILE_MODE_READWRITE);
++    if (file == NULL)
++    {
++        printf("File open FAIL.\r\n");
++        return FALSE;
++    }
++
++    unsigned int version_test = 0;
++    version_test = id3_tag_version(file->primary);
++    if (file->primary == NULL)
++    {
++        printf("Test get version FAIL.\r\n");
++        return FALSE;
++    }
++
++    printf("Test get version SUCCESS.\r\n");
++    printf("id3_tag Version:%d\r\n", version_test);
++
++    return SUCCESS;
++}
++
++int main(int argc, char* argv[])
++{ 
++    printf("The value of argc is %d\n", argc);
++    printf("The values of argv are:\n");
++
++    for(int i = 0; i < argc; ++i) {
++        printf("argv[%d] is %s\n", i, argv[i]);
++    }
++
++    if (argc < 2) {
++        printf ("Usage:%s\n", "./test path new_title new_artist");
++        return -1;
++    }
++
++    char *path = argv[1];
++    char *new_title = NULL;
++    char *new_artist = NULL;
++
++    if (argc > 2) {
++        new_title = argv[2];
++    }
++
++    if (argc > 3) {
++        new_artist = argv[3];
++    }
++
++    peek_id3_attribute(path);
++    change_id3_attribute(path, new_title, new_artist);
++    peek_id3_attribute(path);
++
++    Test_id3_tag_new_func();
++    Test_id3_tag_get_version_func(path);
++    return 0;
++}
++

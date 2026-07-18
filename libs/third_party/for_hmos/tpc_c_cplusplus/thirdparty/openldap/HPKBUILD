@@ -1,0 +1,81 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=openldap
+pkgver=2.5.14
+pkgrel=0
+pkgdesc="OpenLDAP Software is an open source implementation of the Lightweight Directory Access Protocol."
+url="https://www.openldap.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=(OpenLDAP Public License 2.8)
+depends=()
+makedepends=()
+
+source="https://mirror-hk.koddos.net/OpenLDAP/$pkgname-release/$pkgname-$pkgver.tgz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+patchflag=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tgz
+
+source envset.sh
+host=
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../openldap_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == ${archs[0]} ]; then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == ${archs[1]} ]; then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "cant not support this ARCH($ARCH) type!!!"
+    fi    
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    ../configure "$@" --host=$host --with-yielding_select=yes >> `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+
+    if [ $ARCH == ${archs[0]} ]; then
+        unsetarm32ENV
+    elif [ $ARCH == ${archs[1]} ]; then
+        unsetarm64ENV
+    else
+        echo "cant not support this ARCH($ARCH) type!!!"
+    fi    
+
+    unset host
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    ## real test CMD
+    ## 进入到编译目录执行
+    ## make test
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

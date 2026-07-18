@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libvips",
+        "License": "LGPL-2.1",
+        "License File": "LICENSE",
+        "Version Number": "8.14.5",
+        "Owner": "1393302983@qq.com",
+        "Upstream URL": "https://codeload.github.com/libvips/libvips/tar.gz/refs/tags/v8.14.5",
+        "Description": "libvips is a demand-driven, horizontally threaded image processing library."
+    }
+]

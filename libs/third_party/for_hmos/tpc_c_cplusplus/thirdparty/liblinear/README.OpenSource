@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "liblinear",
+        "License": "BSD-3-Clause",
+        "License File": "COPYRIGHT",
+        "Version Number": "2.4.6",
+        "Owner": "myxuan475@126.com",
+        "Upstream URL": "https://codeload.github.com/cjlin1/liblinear/tar.gz/refs/tags/v246",
+        "Description": "LIBLINEAR is a simple package for solving large-scale regularized linear classification, regression and outlier detection."
+    }
+]

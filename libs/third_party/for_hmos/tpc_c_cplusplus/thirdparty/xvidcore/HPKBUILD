@@ -1,0 +1,91 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, DongZhengDong <dzhengdong10@gmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com> 
+
+pkgname=xvidcore
+pkgver=release-1_3_7
+pkgrel=0
+pkgdesc="xvidcore is an open-source MPEG-4 Part 2 codec that is widely used for creating and playing video content."
+url="https://github.com/arthenica/xvidcore"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL 2.0")
+depends=()
+makedepends=()
+source="https://codeload.github.com/arthenica/$pkgname/zip/refs/tags/$pkgver"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.zip
+
+source envset.sh
+host=
+prepare() {
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build/xvidcore/build/generic
+    ./bootstrap.sh > $buildlog 2>&1
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" \
+    --host=$host --prefix=${LYCIUM_ROOT}/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    $MAKE V=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build/xvidcore/build/generic
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir-$ARCH-build/xvidcore/examples
+    $MAKE V=1 >> $buildlog 2>&1
+    bzip2 -d cactus.pgm.bz2
+    cd $OLDPWD
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}   
+
+cleanbuild() {
+    rm -rf  ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build ${PWD}/$builddir
+}

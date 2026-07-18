@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "stb",
+        "License": "MIT License",
+        "License File": "LICENSES",
+        "Version Number": "master",
+        "Owner": "xuchenci@isoftstone.com",
+        "Upstream URL": "https://github.com/nothings/stb/archive/refs/heads/master.zip",
+        "Description": "Used image data needs to be loaded into the village, or when scaling or saving images"
+    }
+]

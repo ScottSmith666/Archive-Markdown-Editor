@@ -1,0 +1,11 @@
+diff -rupN OpenBLAS-0.3.23/CMakeLists.txt OpenBLAS-0.3.23_patch/CMakeLists.txt
+--- OpenBLAS-0.3.23/CMakeLists.txt	2023-08-24 15:43:10.734511633 +0800
++++ OpenBLAS-0.3.23_patch/CMakeLists.txt	2023-08-24 15:44:08.619766867 +0800
+@@ -16,6 +16,7 @@ set(OpenBLAS_VERSION "${OpenBLAS_MAJOR_V
+ include(GNUInstallDirs)
+ 
+ include(CMakePackageConfigHelpers)
++add_compile_options(-mfloat-abi=softfp)
+ 
+ #######
+ option(BUILD_WITHOUT_LAPACK "Do not build LAPACK and LAPACKE (Only BLAS or CBLAS)" OFF)

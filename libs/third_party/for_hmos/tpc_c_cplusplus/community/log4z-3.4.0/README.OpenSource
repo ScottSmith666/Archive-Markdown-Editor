@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "log4z-3.4.0",
+        "License": "MIT license",
+        "License File": "https://github.com/zsummer/log4z/blob/v3.4.0/COPYRIGHT",
+        "Version Number": "v3.4.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/zsummer/log4z/tree/v3.4.0",
+        "Description": "Log4z is an open source C++ lightweight & cross platform log library."
+    }
+]

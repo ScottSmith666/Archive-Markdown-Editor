@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "FreeImage",
+        "License": "FreeImage Public License - Version 1.0",
+        "License File": "https://github.com/danoli3/FreeImage/blob/master/license-fi.txt",
+        "Version Number": "3.19.10",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://github.com/danoli3/FreeImage/archive/refs/tags/3.19.10.tar.gz",
+        "Description": "Mainly used for reading, writing, converting, and processing various common raster image formats (such as PNG, JPEG, BMP, TIFF, etc.)."
+    }
+]

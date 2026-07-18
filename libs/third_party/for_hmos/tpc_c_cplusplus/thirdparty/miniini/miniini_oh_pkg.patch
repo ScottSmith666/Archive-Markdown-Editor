@@ -1,0 +1,51 @@
+diff -Naur miniini-0.9/makefile miniini-0.9-patch/makefile
+--- miniini-0.9/makefile	2010-07-09 23:02:00.000000000 +0800
++++ miniini-0.9-patch/makefile	2023-04-14 11:10:16.851931249 +0800
+@@ -17,10 +17,10 @@
+ 
+ define compile
+ 	rm -f $(bin_dir)$(lib)
+-	g++ $(CPPFLAGS) $(LDFLAGS) -c $(sources)
++	$(CXX) $(CPPFLAGS) $(LDFLAGS) -c $(sources)
+ 	mkdir -p $(bin_dir)
+-	ar -cvq $(bin_dir)$(lib) $(objects)
+-	ar -t $(bin_dir)$(lib)
++	$(AR) -cvq $(bin_dir)$(lib) $(objects)
++	$(AR) -t $(bin_dir)$(lib)
+ 	rm $(objects) 
+ endef
+ 
+@@ -60,27 +60,27 @@
+ 
+ tester: CPPFLAGS =  -I $(i_dir) $(flags_dbg)
+ tester:
+-	g++ -o $(bin_dir)tester $(CPPFLAGS) $(LDFLAGS) $(s_dir)tester.cpp $(bin_dir)$(libdbg)
++	$(CXX) -o $(bin_dir)tester $(CPPFLAGS) $(LDFLAGS) $(s_dir)tester.cpp $(bin_dir)$(libdbg)
+ 
+ tester-no-stl: CPPFLAGS =  -I $(i_dir) $(flags_dbg) -D MINIINI_NO_STL
+ tester-no-stl:
+-	g++ -o $(bin_dir)tester $(CPPFLAGS) $(LDFLAGS) $(s_dir)tester.cpp $(bin_dir)$(libdbg)
++	$(CXX) -o $(bin_dir)tester $(CPPFLAGS) $(LDFLAGS) $(s_dir)tester.cpp $(bin_dir)$(libdbg)
+ 
+ benchmark-debug: CPPFLAGS =  -I $(i_dir) $(flags_dbg) 
+ benchmark-debug:
+-	g++ -o $(bin_dir)benchmark-dbg $(CPPFLAGS) $(LDFLAGS) $(s_dir)benchmark.cpp $(bin_dir)$(libdbg)
++	$(CXX) -o $(bin_dir)benchmark-dbg $(CPPFLAGS) $(LDFLAGS) $(s_dir)benchmark.cpp $(bin_dir)$(libdbg)
+ 
+ benchmark-debug-no-stl: CPPFLAGS =  -I $(i_dir) $(flags_dbg) -D MINIINI_NO_STL
+ benchmark-debug-no-stl:
+-	g++ -o $(bin_dir)benchmark-dbg $(CPPFLAGS) $(LDFLAGS) $(s_dir)benchmark.cpp $(bin_dir)$(libdbg)
++	$(CXX) -o $(bin_dir)benchmark-dbg $(CPPFLAGS) $(LDFLAGS) $(s_dir)benchmark.cpp $(bin_dir)$(libdbg)
+ 
+ benchmark-optimized: CPPFLAGS =  -I $(i_dir) $(flags_opt) 
+ benchmark-optimized:
+-	g++ -o $(bin_dir)benchmark $(CPPFLAGS) $(LDFLAGS) $(s_dir)benchmark.cpp $(bin_dir)$(lib)
++	$(CXX) -o $(bin_dir)benchmark $(CPPFLAGS) $(LDFLAGS) $(s_dir)benchmark.cpp $(bin_dir)$(libdbg)
+ 
+ benchmark-optimized-no-stl: CPPFLAGS =  -I $(i_dir) $(flags_opt) -D MINIINI_NO_STL
+ benchmark-optimized-no-stl:
+-	g++ -o $(bin_dir)benchmark $(CPPFLAGS) $(LDFLAGS) $(s_dir)benchmark.cpp $(bin_dir)$(lib)
++	$(CXX) -o $(bin_dir)benchmark $(CPPFLAGS) $(LDFLAGS) $(s_dir)benchmark.cpp $(bin_dir)$(libdbg)
+ 
+ clean:
+ 	rm -f $(objects) 

@@ -1,0 +1,81 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: wangwenju <wangwenju7@h-partners.com>
+# Maintainer: wangwenju <wangwenju7@h-partners.com>
+
+pkgname=xquic
+pkgver=v1.9.1
+pkgrel=0
+pkgdesc="Alibaba's high-performance, cross-platform IETF QUIC and HTTP/3 library for OpenHarmony"
+url="https://github.com/alibaba/xquic"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("Apache-2.0")
+depends=("boringssl-fips-20251031" "CUnit" "libevent")
+makedepends=()
+source="https://github.com/alibaba/${pkgname}/archive/refs/tags/${pkgver}.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools=cmake
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+patchflag=true
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    cd ${builddir}
+    if ${patchflag}
+    then
+    # 修复case_test脚本运行报错以及test_server崩溃问题
+    patch -p1 < ../xquic_v1.9.1_test.patch
+    patchflag=false
+    fi
+}
+
+build() {
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DSSL_INCLUDE_DIR=$LYCIUM_ROOT/usr/boringssl-fips-20251031/$ARCH/include \
+    -DSSL_LIBRARY_STATIC=$LYCIUM_ROOT/usr/boringssl-fips-20251031/$ARCH/lib/libssl.a \
+    -DCRYPTO_LIBRARY_STATIC=$LYCIUM_ROOT/usr/boringssl-fips-20251031/$ARCH/lib/libcrypto.a \
+    -DCMAKE_C_FLAGS="-Wno-error=format -Wno-error=implicit-function-declaration -Wno-incompatible-pointer-types -Wno-unused-command-line-argument" \
+    -DCMAKE_CXX_FLAGS="-Wno-error=format -Wno-error=implicit-function-declaration -Wno-incompatible-pointer-types -Wno-unused-command-line-argument" \
+    -DSSL_TYPE=boringssl -DSSL_PATH=$LYCIUM_ROOT/usr/boringssl-fips-20251031/$ARCH \
+    -DCMAKE_SHARED_LINKER_FLAGS="-lc++" \
+    -DXQC_ENABLE_TESTING=1 -DXQC_SUPPORT_SENDMMSG_BUILD=1 -DXQC_ENABLE_EVENT_LOG=1 -DXQC_ENABLE_BBR2=1 -DXQC_ENABLE_RENO=1 \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp -rf include $LYCIUM_ROOT/usr/$pkgname/$ARCH
+    cp -f $ARCH-build/libxquic-static.a $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp -f $ARCH-build/libxquic.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

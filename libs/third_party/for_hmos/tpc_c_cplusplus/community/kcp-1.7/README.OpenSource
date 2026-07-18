@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "kcp-1.7",
+        "License": "MIT License",
+        "License File": "https://github.com/skywind3000/kcp/blob/master/LICENSE",
+        "Version Number": "1.7",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/skywind3000/kcp",
+        "Description": "It is a Fast and Reliable ARQ Protocol"
+    }
+]

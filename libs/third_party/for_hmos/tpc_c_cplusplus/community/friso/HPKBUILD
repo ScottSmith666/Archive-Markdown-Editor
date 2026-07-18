@@ -1,0 +1,81 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=friso
+pkgver=v1.6.4-release
+pkgrel=0
+pkgdesc="High performance Chinese tokenizer with both GBK and UTF-8 charset support based on MMSEG algorithm developed by ANSI C. Completely based on modular implementation and can be easily embedded in other programs, like: MySQL, PostgreSQL, PHP, etc."
+url="https://github.com/lionsoul2014/friso"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache License 2.0")
+depends=()
+makedepends=()
+#source="https://github.com/lionsoul2014/${pkgname}/archive/refs/tags/${pkgver}.tar.gz"
+source="https://gitee.com/lycium_pkg_mirror/${pkgname}/repository/archive/${pkgver}.tar.gz"
+autounpack=true
+downloadpackage=true
+buildtools="make"
+builddir=${pkgname}-${pkgver:1}
+packagename=$builddir.tar.gz
+
+cc=
+ar=
+
+prepare() {
+    #cp -arf $builddir $builddir-$ARCH-build
+    cp -arf ${pkgname}-v${pkgver:1} $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build/src
+    #$MAKE VERBOSE=1 CC=$cc AR=$ar >> $buildlog 2>&1 #多线程编译会报错
+    make VERBOSE=1 CC=$cc AR=$ar >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    local include_dir=$LYCIUM_ROOT/usr/$pkgname/$ARCH/include/friso
+    local lib_dir=$LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    local bin_dir=$LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    cd $builddir-$ARCH-build/src
+    mkdir -p $include_dir $lib_dir $bin_dir >> $buildlog 2>&1
+    cp friso $bin_dir >> $buildlog 2>&1
+    cp libfriso.so $lib_dir >> $buildlog 2>&1
+    cp *.h $include_dir >> $buildlog 2>&1
+    cd $OLDPWD
+    unset cc ar
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build #${PWD}/$packagename
+}

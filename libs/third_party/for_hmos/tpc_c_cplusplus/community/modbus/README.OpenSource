@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "modbus",
+    "License": "LGPL v2.1 or Later",
+    "License File": "COPYING.LESSER",
+    "Version Number": "3.1.10",
+    "Owner": "swanlink",
+    "Upstream URL": "https://github.com/stephane/libmodbus",
+    "Description": "libmodbus is a free software library to send/receive data with a device which respects the Modbus protocol. This library can use a serial port or an Ethernet connection. The Protocol Reference Guide which can be obtained from http://www.modbus.org."
+  }
+]

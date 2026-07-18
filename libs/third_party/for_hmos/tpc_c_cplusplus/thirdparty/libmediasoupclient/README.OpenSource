@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libmediasoupclient",
+        "License": "ISC License",
+        "License File": "https://github.com/versatica/libmediasoupclient/blob/v3/LICENSE",
+        "Version Number": "3.4.0",
+        "Owner": "1393302983@qq.com",
+        "Upstream URL": "https://github.com/versatica/libmediasoupclient/archive/refs/tags/3.4.0.tar.gz",
+        "Description": "C++ client side library for building mediasoup based applications."
+    }
+]

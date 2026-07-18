@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "mbedtls-polarssl-1.1.3",
+        "License": "Apache-2.0 or GPL-2.0",
+        "License File": "https://github.com/Mbed-TLS/mbedtls/blob/development/LICENSE",
+        "Version Number": "polarssl-1.1.3",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/Mbed-TLS/mbedtls",
+        "Description": "An open source, portable, easy to use, readable and flexible TLS library, and reference implementation of the PSA Cryptography API."
+    }
+]

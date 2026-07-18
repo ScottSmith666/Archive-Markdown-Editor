@@ -1,0 +1,102 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the 'License');
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an 'AS IS' BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=7zip
+pkgver=2409
+pkgrel=0
+pkgdesc="7-Zip is a file archiver with a high compression ratio."
+url="https://www.7-zip.org/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("GNU LGPL" "BSD 3-clause" "unRAR license")
+depends=()
+makedepends=()
+
+source="https://www.7-zip.org/a/7z$pkgver-src.tar.xz"
+
+autounpack=false
+downloadpackage=true
+buildtools="make"
+
+source envset.sh
+
+builddir=7z$pkgver-src
+packagename=$builddir.tar.xz
+unpackflag=true
+asmflag=
+map=
+
+prepare() {
+    map=`pwd`/7zip.expmap
+    if $unpackflag
+    then
+        mkdir $builddir
+        tar -xf $packagename -C $builddir
+        unpackflag=false
+    fi
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        asmflag=""
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        asmflag="USE_LZMA_DEC_ASM=1 IS_ARM64=1"
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        asmflag=""
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    cp -rf $builddir $builddir-$ARCH-build
+}
+
+build() {
+    # build 7z Alone2
+    cd $builddir-$ARCH-build/CPP/7zip/Bundles/Alone2/
+    $MAKE -f makefile.gcc $asmflag LDFLAGS="-shared -fPIC -Wl,--version-script=$map" PROG="lib7zz.so"> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ret -ne 0 ]
+    then
+        echo "fail $ARCH: build 7z Alone2 ret=" $ret
+        return -1
+    fi
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build/CPP/7zip/Bundles/Alone2/
+    mkdir -p ${LYCIUM_ROOT}/usr/$pkgname/$ARCH/libs
+    cp _o/lib7zz.so ${LYCIUM_ROOT}/usr/$pkgname/$ARCH/libs
+    # TODO cp obj file
+    ret=$?
+    cd $OLDPWD
+    unset asmflag
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build $builddir-arm64-v8a-build #${PWD}/$packagename
+}

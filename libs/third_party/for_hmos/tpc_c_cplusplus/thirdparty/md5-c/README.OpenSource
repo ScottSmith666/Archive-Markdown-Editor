@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "md5-c",
+        "License": "unlicense",
+        "License File": "LICENSES",
+        "Version Number": "main",
+        "Owner": "qiandinge@isoftstone.com",
+        "Upstream URL": "https://github.com/Zunawe/md5-c/archive/refs/heads/main.zip",
+        "Description": "A simple, commented reference implementation of the MD5 hash algorithm"
+    }
+]

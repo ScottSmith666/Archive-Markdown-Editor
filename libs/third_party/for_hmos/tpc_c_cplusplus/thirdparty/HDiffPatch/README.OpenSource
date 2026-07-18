@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "HDiffPatch",
+        "License": "MIT",
+        "License File": "https://github.com/sisong/HDiffPatch/blob/master/LICENSE",
+        "Version Number": "v4.6.3",
+        "Owner": "swkec@isoftstone.com",
+        "Upstream URL": "https://github.com/sisong/HDiffPatch/archive/refs/tags/v4.6.3.tar.gz",
+        "Description": "HDiffPatch is a C++ library for comparing and merging text differences. It provides an efficient way to calculate the differences between two texts and apply these differences to a target text to produce a new merged text. HDiffPatch can be used in various applications, such as version control systems, text editors, automation build tools, etc.."
+    }
+]

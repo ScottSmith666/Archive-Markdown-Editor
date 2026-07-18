@@ -1,0 +1,143 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>,duanjf <605126199@qq.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=darts-clone
+pkgver=master
+pkgrel=0
+pkgdesc="Darts-clone is a clone of Darts (Double-ARray Trie System)."
+url="https://github.com/s-yata/darts-clone"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD 2-clause license")
+depends=()
+makedepends=("automake" "autoconf")
+source="https://gitee.com/lycium_pkg_mirror/$pkgname.git"
+downloadpackage=false
+autounpack=false
+buildtools=configure
+builddir=${pkgname}-master
+
+commitid=e40ce4627526985a7767444b6ed6893ab6ff8983
+cloneflag=true
+source envset.sh
+host=
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone -b $pkgver $source $builddir > $publicbuildlog 2>&1 
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid > $publicbuildlog 2>&1 
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd $OLDPWD
+        cloneflag=false
+    fi
+
+    cp -rf $builddir $pkgname-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi   
+    cd $pkgname-$ARCH-build
+    #生成configure文件
+    aclocal > $publicbuildlog 2>&1
+    if [ $? -ne 0 ]
+        then
+            echo "aclocal error."
+            return -1
+    fi
+    automake --add-missing >> $publicbuildlog 2>&1
+    if [ $? -ne 0 ]
+        then
+            echo "automake error."
+            return -2
+    fi
+    autoconf >> $publicbuildlog 2>&1
+    if [ $? -ne 0 ]
+        then
+            echo "autoconf error."
+            return -3
+    fi
+    cd ${OLDPWD}
+}
+
+build() {
+    cd $pkgname-$ARCH-build  
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host > $buildlog 2>&1
+    ${MAKE} VERBOSE=1 >> $buildlog 2>&1
+    # 对最关键一步的退出码进行判断
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build
+    ${MAKE} VERBOSE=1 install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+	    return -1
+    fi
+    unset host
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $pkgname-$ARCH-build
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $pkgname-$ARCH-build
+    else
+        echo "${ARCH} not support"
+    fi
+    #复制test-driver脚本
+    cd $pkgname-$ARCH-build   
+    cp -p "$(readlink test-driver)" ../
+    rm test-driver
+    cp -p ../test-driver .
+    rm ../test-driver
+    #注释掉make check的编译阶段
+    sed -i.bak '/^all: all-am$/,/^\t@:$/s/^/#/' test/Makefile
+    sed -i.bak '/^all: all-am$/,/^\tdone$/s/^/#/' src/Makefile
+    cd $OLDPWD
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$pkgname-armeabi-v7a-build  ${PWD}/$pkgname-arm64-v8a-build
+}

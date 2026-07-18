@@ -1,0 +1,79 @@
+# Contributor: dingqian <1052888395@qq.com>
+# Maintainer: dingqian <1052888395@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd ${builddir}-${ARCH}-build
+     
+    ./md5 "Hello, World!" >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        cd $old_pwd
+        return $res  
+    fi
+     
+    ./md5 "Multiple" Strings >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        cd $old_pwd
+        return $res  
+    fi
+     
+    ./md5 "" >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        cd $old_pwd
+        return $res  
+    fi
+
+    ./md5 "Can use \" escapes" >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        cd $old_pwd
+        return $res  
+    fi
+     
+    echo -n "Hello, World!" | ./md5 >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        cd $old_pwd
+        return $res  
+    fi
+    
+    echo "Hello, World!" | ./md5 >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        cd $old_pwd
+        return $res  
+    fi
+ 
+    echo "File Input" > testFile | ./md5 >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        cd $old_pwd
+        return $res
+    fi
+     
+    cat testFile | ./md5 >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        cd $old_pwd
+        return $res
+    fi
+    
+    res=$?
+    cd $OLDPWD
+
+    return $res
+}

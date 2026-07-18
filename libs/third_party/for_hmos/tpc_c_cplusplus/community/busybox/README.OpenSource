@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "busybox",
+        "License": "GPL 2.0",
+        "License File": "LICENSE",
+        "Version Number": "1_36_0",
+        "Owner": "zhongluping1@huawei.com",
+        "Upstream URL": "https://github.com/mirror/busybox",
+        "Description": "BusyBox combines tiny versions of many common UNIX utilities into a single small executable"
+    }
+]

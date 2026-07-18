@@ -1,0 +1,21 @@
+(function () {
+  CKEDITOR.plugins.add('batchuploadimg', {
+    lang: 'en,zh-cn',
+    icons: 'batchuploadimg',
+    hidpi: false,
+    init: function (editor) {
+      editor.addCommand('batchuploadimg', {
+        exec: function (editor) {
+          editor.fire('batchuploadimg');
+        },
+      });
+      if (editor.ui.addButton) {
+        editor.ui.addButton('batchuploadimg', {
+          label: editor.lang.batchuploadimg.Title,
+          icon: 'batchuploadimg',
+          command: 'batchuploadimg',
+        });
+      }
+    },
+  });
+})();

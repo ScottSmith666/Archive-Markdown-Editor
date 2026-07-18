@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "sha",
+        "License": "",
+        "License File": "",
+        "Version Number": "df4ed74db83ea9ebc1486c247d3855dde8224481",
+        "Owner": "zhangxin546@h-partners.com",
+        "Upstream URL": "https://github.com/BrianGladman/sha",
+        "Description": "sha is an algorithm that calculates a fixed length string (also known as message digest) corresponding to a digital message."
+    }
+]

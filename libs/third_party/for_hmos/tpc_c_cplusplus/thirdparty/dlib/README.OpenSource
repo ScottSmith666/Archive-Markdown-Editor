@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "dlib",
+        "License": "BSL-1.0",
+        "License File": "https://github.com/davisking/dlib/tree/master?tab=BSL-1.0-1-ov-file#",
+        "Version Number": "20.0",
+        "Owner": "wangxuanbo4 <wangxuanbo4@h-partners.com>",
+        "Upstream URL": "https://gitee.com/mirrors/dlib/repository/archive/v20.0.zip",
+        "Description": "Dlib is a modern C++ toolkit containing machine learning algorithms and tools for creating complex software in C++ to solve real world problems."
+    }
+]

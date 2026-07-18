@@ -1,0 +1,113 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Chen Xu <chenxu.unix@gmail.com>
+# Maintainer: Chen Xu <chenxu.unix@gmail.com>
+
+pkgname=protobuf_v3.6.1
+pkgver=v3.6.1
+pkgrel=0
+pkgdesc="Protocol Buffers (a.k.a., protobuf) are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data."
+url="https://github.com/protocolbuffers/protobuf"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Protobuf License")
+depends=("abseil-cpp" "zlib" "googletest")
+makedepends=()
+# 官网地址：https://github.com/protocolbuffers/${pkgname:0:8}/archive/refs/tags/$pkgver.tar.gz，因网络原因采用gitee mirrors
+source="https://gitee.com/mirrors/protobufsource/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildhostprotoc=true
+patchflag=true
+
+builddir=protobufsource-$pkgver
+packagename=$builddir.zip
+PATH_BAK=
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 支持c++14宏定义
+        patch -p1 < `pwd`/../protobuf-v3.6.1_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    if $buildhostprotoc
+    then 
+        mkdir -p $builddir/third_party/abseil-cpp/
+        unzip $PKGBUILD_ROOT/../../community/abseil-cpp/abseil-cpp*.zip -d $builddir/third_party/abseil-cpp > /dev/null 2>&1
+        mv $builddir/third_party/abseil-cpp/abseil-cpp-*/* $builddir/third_party/abseil-cpp/
+
+        mkdir -p $builddir/third_party/googletest/
+        unzip $PKGBUILD_ROOT/../googletest/googletest*.zip -d $builddir/third_party/googletest > /dev/null 2>&1
+        mv $builddir/third_party/googletest/googletest-*/* $builddir/third_party/googletest/
+
+        cp -rf $builddir $builddir-host-build
+        cd $builddir-host-build/cmake
+        cmake . -L -Dprotobuf_BUILD_TESTS=OFF > `pwd`/build.log 2>&1
+        make VERBOSE=1 -j4 >> `pwd`/build.log 2>&1
+        buildhostprotoc=false
+        cd ../..
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    PATH_BAK=$PATH
+}
+
+
+build() {
+    cd $builddir-$ARCH-build/cmake
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -Dprotobuf_WITH_ZLIB=ON -Dprotobuf_BUILD_TESTS=ON \
+    -DOHOS_ARCH=$ARCH -B./ -S./ -L -DCMAKE_CXX_FLAGS="-munaligned-access" >> `pwd`/build.log 2>&1
+    export PATH=`pwd`/../../$builddir-host-build/cmake/:$PATH
+    make VERBOSE=1 -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build/cmake
+    make install VERBOSE=1 >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $builddir-$ARCH-build/cmake/
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $builddir-$ARCH-build/cmake/
+    else
+        echo "The platform is not supported"
+    fi
+    
+    export PATH=$PATH_BAK
+    unset PATH_BAK
+    # 需要拷贝libz.so.1 libc++_shared.so
+    # mount -o remount,rw /
+    # cd /data/local/tmp/lycium/main/protobuf_v3.6.1/protobuf-3.6.1-arm64-v8a-build/cmake
+    # export LD_LIBRARY_PATH=/data/local/tmp/lycium/usr/zlib/arm64-v8a/lib:$LD_LIBRARY_PATH
+    # ./lite-arena-test
+    # ./lite-test
+    # ./tests
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-host-build ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build #${PWD}/$packagename
+}

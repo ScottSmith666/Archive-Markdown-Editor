@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "wcdb",
+        "License": "MIT License",
+        "License File": "https://github.com/Tencent/wcdb/blob/master/LICENSE",
+        "Version Number": "v2.1.14",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/Tencent/wcdb",
+        "Description": "WCDB database library with both shared and static libraries."
+    }
+]

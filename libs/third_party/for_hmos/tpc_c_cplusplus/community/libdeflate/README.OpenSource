@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libdeflate",
+        "License": "MIT",
+        "License File": "https://github.com/ebiggers/libdeflate/blob/master/COPYING",
+        "Version Number": "v1.17",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/ebiggers/libdeflate/archive/refs/tags/v1.17.tar.gz",
+        "Description": "libdeflate is a library for fast, whole-buffer DEFLATE-based compression and decompression."
+    }
+]

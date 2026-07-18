@@ -1,0 +1,112 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, wen fan <wenfan001@chinasoftinc.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=bzip2_1_0_8
+pkgver=1.0.8
+pkgrel=
+pkgdesc="bzip2 is a freely available, patent free (see below), high-quality data compressor."
+url=https://sourceware.org/git/bzip2
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=(bzip2-1.0.6)
+depends=()
+makedepends=()
+
+source=
+
+autounpack=false
+downloadpackage=false
+buildtools=make
+clonesrcflag=true
+commitid=6a8690fc8d26c815e798c588f796eabe9d684cf0
+
+builddir=bzip2-${pkgver}
+packagename=
+
+cc=
+ar=
+ranlib=
+# bzip2 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+prepare() {
+    if ${clonesrcflag}
+    then
+        git clone ${url}.git ${builddir} > ${publicbuildlog} 2>&1 || return -1
+        cd ${builddir}
+        git reset --hard ${commitid} >> ${publicbuildlog} 2>&1 || return -1
+        cd ${OLDPWD}
+        clonesrcflag=false
+    fi
+
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+        ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+        ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    fi
+
+    if [ $ARCH == "x86_64" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/x86_64-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+        ranlib=${OHOS_SDK}/native/llvm/bin/llvm-ranlib
+    fi
+    cd $OLDPWD # 1> /dev/null
+}
+
+build() {
+    local LOCAL_CFLAGS="-O3 -fstack-protector-strong -fPIC"
+    local LOCAL_CXXFLAGS="-O3 -fstack-protector-strong -fPIC"
+    local LOCAL_LDFLAGS="-Wl,-z,relro,-z,now -s"
+
+    cd "$builddir-$ARCH-build"
+
+    $MAKE VERBOSE=1 \
+        CC="${cc}" \
+        AR="${ar}" \
+        RANLIB="${ranlib}" \
+        CFLAGS="${LOCAL_CFLAGS}" \
+        CXXFLAGS="${LOCAL_CXXFLAGS}" \
+        LDFLAGS="${LOCAL_LDFLAGS}" \
+        libbz2.a bzip2 bzip2recover > "$buildlog" 2>&1
+
+    local ret=$?
+    cd "$OLDPWD"
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE VERBOSE=1 install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    cd $OLDPWD
+    unset cc ar ranlib
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # make check
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

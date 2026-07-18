@@ -1,0 +1,25 @@
+diff --git a/test/runtest.sh b/test/runtest.sh
+index 812e54a..ba954e8 100755
+--- a/test/runtest.sh
++++ b/test/runtest.sh
+@@ -15,10 +15,10 @@ touch "${FN_FAIL}" "${FN_PASS}"
+ 
+ #detect if ucd supports icu
+ ARG_ICU=
+-${EXEC_UCD} -c $0
+-if [ "$?" = "0" ]; then
+-    ARG_ICU="-c"
+-fi
++# ${EXEC_UCD} -c $0
++# if [ "$?" = "0" ]; then
++#     ARG_ICU="-c"
++# fi
+ 
+ tail -f "${FN_FAIL}" &
+ tail -f "${FN_PASS}" &
+@@ -75,4 +75,4 @@ for LANG in ?? ; do
+ done
+ 
+ killall tail > /dev/null 2>&1
+-killall tail > /dev/null 2>&1
++# killall tail > /dev/null 2>&1

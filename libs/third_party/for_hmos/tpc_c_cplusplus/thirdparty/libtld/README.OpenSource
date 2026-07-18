@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libtld",
+        "License": "MIT",
+        "License File": "https://github.com/m2osw/libtld?tab=License-1-ov-file",
+        "Version Number": "2.0.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/m2osw/libtld/archive/refs/tags/2.0.5.tar.gz",
+        "Description": "libtld is a library used to extract TLD information from URIs. It can help developers extract information such as domain names and subdomains."
+    }
+]

@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "liboqs",
+        "License": "MIT",
+        "License File": "https://github.com/open-quantum-safe/liboqs/blob/0.14.0/LICENSE.txt",
+        "Version Number": "v0.15.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/open-quantum-safe/liboqs ",
+        "Description": "This is an open-source library offering post-quantum cryptography (PQC) implementations with a unified C API."，
+        "Dependencies": ["openssl"]
+    }
+]

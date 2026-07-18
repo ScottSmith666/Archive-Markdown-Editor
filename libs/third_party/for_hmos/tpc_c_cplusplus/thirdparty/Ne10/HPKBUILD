@@ -1,0 +1,105 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhanghanyong <zhang_hanyong@h-partners.com>
+# Maintainer: zhanghanyong <zhang_hanyong@h-partners.com>
+
+pkgname=Ne10 
+pkgver=1.2.1 
+pkgrel=0 
+pkgdesc="Ne10 is a library of common, useful functions that have been heavily optimised for ARM-based CPUs equipped with NEON SIMD capabilities"
+url="https://github.com/projectNe10/Ne10" 
+archs=("armeabi-v7a" "arm64-v8a") # cpu 架构
+license=("BSD 3-Clause License")
+source="https://github.com/projectNe10/$pkgname/archive/refs/tags/v$pkgver.zip"
+downloadpackage=true
+autounpack=true
+buildtools=cmake
+patchflag=true
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        #1、解决链接阶段函数符号找不到问题
+        #2、工具链不支持-mthumb-interwork需要去掉
+        patch -p1 < `pwd`/../Ne10_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+build() {
+    cd $builddir
+    math_and_physics_enable=ON
+    if [ $ARCH == "arm64-v8a" ]; then
+        math_and_physics_enable=OFF
+    fi    
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" .. \
+    -DNE10_LINUX_TARGET_ARCH=aarch64 \
+    -DNE10_BUILD_SHARED=ON \
+    -DGNULINUX_PLATFORM=ON \
+    -DNE10_ENABLE_MATH=$math_and_physics_enable \
+    -DNE10_ENABLE_PHYSICS=$math_and_physics_enable \
+    -DNE10_BUILD_UNIT_TEST=ON \
+    -DNE10_SMOKE_TEST=ON \
+    -DNE10_REGRESSION_TEST=ON \
+    -DNE10_PERFORMANCE_TEST=ON \
+    -DOHOS_ARCH=$ARCH \
+    -DCMAKE_C_FLAGS="-mfloat-abi=softfp -mfpu=neon" \
+    -DCMAKE_ASM_FLAGS="-mfloat-abi=softfp -mfpu=neon" \
+    -Wno-unused-command-line-argument \
+    -Wno-unused-command-line-argument \
+    -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    $MAKE -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 安装打包
+package() {
+    cd $builddir
+    # 需要手动拷贝头文件
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp -r inc/* $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp -r $ARCH-build/modules/*.so* $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp -r $ARCH-build/modules/*.a $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

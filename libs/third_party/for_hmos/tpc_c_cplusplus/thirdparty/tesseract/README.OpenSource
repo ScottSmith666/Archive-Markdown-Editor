@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "tesseract",
+        "License": "Apache-2.0 license",
+        "License File": "LICENSE",
+        "Version Number": "5.3.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.3.2.tar.gz",
+        "Description": "Tesseract contains an OCR engine - libtesseract and a command line program."
+    }
+]

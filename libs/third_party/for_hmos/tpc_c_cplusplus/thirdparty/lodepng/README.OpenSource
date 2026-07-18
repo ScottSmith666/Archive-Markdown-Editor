@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "lodepng",
+        "License": "Zlib license",
+        "License File": "LICENSE",
+        "Version Number": "master",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/lvandeve/lodepng",
+        "Description": "encoding and decoding library"
+    }
+]

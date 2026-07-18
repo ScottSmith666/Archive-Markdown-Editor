@@ -1,0 +1,108 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Chen Xu <chenxu.unix@gmail.com>, Jeff Han <hanjinfei@foxmail.com>
+# Maintainer:  Chen Xu <chenxu.unix@gmail.com>
+
+pkgname=clapack
+pkgver="3.2.1"
+pkgrel=0
+pkgdesc="The CLAPACK library was built using a Fortran to C conversion utility called f2c. The entire Fortran 77 LAPACK library is run through f2c to obtain C code, and then modified to improve readability. CLAPACK's goal is to provide LAPACK for someone who does not have access to a Fortran compiler."
+url="https://netlib.org/clapack/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=()
+makedepends=()
+
+source="https://netlib.org/$pkgname/$pkgname-$pkgver-CMAKE.tgz"
+
+downloadpackage=true
+autounpack=true
+buildtools="cmake"
+
+builddir="$pkgname-$pkgver-CMAKE"
+packagename="$pkgname-$pkgver-CMAKE.tgz"
+
+originpath=
+patchflag=true
+buildhost=true
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 1. BLAS的测试编译脚本获取目标的LOCATION属性失败，需要注释
+        # 2. 由于打开了NO_BLAS_WRAP导致部分测试用例出现函数重定义问题
+        # 3. 类型__off64_t未定义，增加定义
+        # 4. 部分源代码依赖头文件fpu_control.h，不支持需要注释掉
+        patch -p1 < $PKGBUILD_ROOT/clapack_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    if $buildhost
+    then
+        mkdir -p $builddir/host-build
+        cd $builddir
+        PKG_CONFIG_LIBDIR="${pkgconfigpath}" cmake -G "Unix Makefiles" \
+	    -DCMAKE_C_FLAGS=-Wno-format-security \
+            -Bhost-build -S./ -L > $publicbuildlog 2>&1
+        $MAKE arithchk -C host-build VERBOSE=1 >> $publicbuildlog 2>&1
+        ret=$?
+        cd $OLDPWD
+        if [ $ret -ne 0 ]
+        then
+            return $ret
+        fi
+        buildhost=false
+    fi
+
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DCMAKE_C_FLAGS=-Wno-format-security \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    make -j4 -C $ARCH-build >> $buildlog 2>&1
+
+    # 由于是交叉编译，需要使用arithchk生成头文件arith.h才能继续编译
+    originpath=$PATH
+    export PATH=`pwd`/host-build/F2CLIBS/libf2c/:$PATH
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    export PATH=$originpath
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    cp INCLUDE/* $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp $(find $ARCH-build -name *.a) $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    ret=$?
+    cd $OLDPWD
+    unset originpath
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

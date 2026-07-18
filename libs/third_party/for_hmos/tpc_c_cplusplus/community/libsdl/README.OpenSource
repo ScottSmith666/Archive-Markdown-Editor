@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libsdl",
+        "License": "zlib license",
+        "License File": "https://github.com/libsdl-org/SDL/blob/main/LICENSE.txt",
+        "Version Number": "2.28.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libsdl-org/SDL",
+        "Description": "Simple DirectMedia Layer (SDL for short) is a cross-platform library designed to make it easy to write multi-media software, such as games and emulators."
+    }
+]

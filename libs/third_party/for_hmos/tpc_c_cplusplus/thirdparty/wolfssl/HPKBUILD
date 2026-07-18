@@ -1,0 +1,88 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: sunwei <sunwei218@h-partners.com>
+# Maintainer: sunwei <sunwei218@h-partners.com>
+pkgname=wolfssl
+pkgver=5.8.2
+pkgrel=0
+pkgdesc="wolfSSL is a lightweight SSL/TLS encryption library designed for embedded systems and IoT devices, providing a complete network security solution."
+url="https://github.com/wolfSSL/wolfssl"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-3.0 license")
+depends=()
+makedepends=()
+
+source="https://github.com/wolfSSL/$pkgname/archive/refs/tags/v$pkgver-stable.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}-stable
+packagename=$builddir.tar.gz
+patch_flag=false
+source envset.sh
+host=
+
+prepare() {
+    cp -rf $builddir $pkgname-$ARCH-build
+    if [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+        host=arm-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $pkgname-$ARCH-build
+    ./autogen.sh > $buildlog 2>&1
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host >> $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ARCH == "arm64-v8a" ];then
+        unsetarm64ENV
+    elif [ $ARCH == "armeabi-v7a" ];then
+        unsetarm32ENV
+    else
+        echo "${ARCH} not support"
+        return -2
+    fi
+    unset host
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # make check
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build
+    return 0
+}

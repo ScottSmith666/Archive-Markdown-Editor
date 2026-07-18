@@ -1,0 +1,157 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: 小肉头君 <chenbaodi@huawei.com>, 城meto <myxuan475@126.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=harfbuzz 
+pkgver=7.1.0 
+pkgrel=0 
+pkgdesc="HarfBuzz text shaping engine."
+url="https://github.com/harfbuzz/harfbuzz"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("Old MIT" "OFL-1.1" "MIT" "Apache-2.0")
+depends=("freetype2")
+makedepends=()
+
+# 原仓地址: https://github.com/$pkgname/$pkgname/archive/refs/tags/$pkgver.tar.gz, 因网络原因使用镜像
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+
+builddir=$pkgname-$pkgver 
+packagename=$builddir.zip
+
+source envset.sh
+autogenflag=true
+host=
+
+firstflag=true
+
+prepare() {
+
+    if [ $firstflag == true ]
+    then
+        firstflag=false
+        #这里屏蔽使用python脚本来检测参数，oh上面不支持python
+        sed -i 's/^TESTS += \$(dist_check_SCRIPTS/#TESTS += \$(dist_check_SCRIPTS/g' $builddir/src/Makefile.am
+    fi   
+
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    fi
+    if $autogenflag
+    then
+        cd $builddir
+        ./autogen.sh > `pwd`/build.log 2>&1
+        cd $OLDPWD
+        autogenflag=false
+    fi
+}
+
+build() {
+    local LOCAL_CFLAGS="${CFLAGS} -O3 -fstack-protector-strong -fPIC"
+    local LOCAL_CXXFLAGS="${CXXFLAGS} -O3 -fstack-protector-strong -fPIC"
+    local LOCAL_LDFLAGS="${LDFLAGS} -Wl,-z,relro,-z,now -Wl,--disable-new-dtags -s"
+
+    cd "$builddir/$ARCH-build"
+
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    CFLAGS="${LOCAL_CFLAGS}" \
+    CXXFLAGS="${LOCAL_CXXFLAGS}" \
+    LDFLAGS="${LOCAL_LDFLAGS}" \
+    ../configure "$@" \
+        -prefix="${LYCIUM_ROOT}/usr/harfbuzz/$ARCH" \
+        --host="$host" \
+        --with-freetype=yes \
+        --with-icu=no \
+        --with-glib=no \
+        --with-cairo=no \
+        --enable-static \
+        --disable-rpath \
+        > "$PWD/build.log" 2>&1
+
+    make -j4 VERBOSE=1 >> "$PWD/build.log" 2>&1
+    local ret=$?
+    cd "$OLDPWD"
+    return $ret
+}
+
+# 安装打包
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    cd $builddir/$ARCH-build/src
+    make test-algs test-array test-bimap test-iter test-machinery test-map test-multimap test-number test-ot-tag test-priority-queue test-set test-serialize test-unicode-ranges test-vector test-repacker test-classdef-graph >> `pwd`/../build.log 2>&1
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    fi
+
+    sed -i 's/^check-TESTS: \$(check_PROGRAMS/check-TESTS: #\$(check_PROGRAMS/g' Makefile
+    sed -i 's/^test-algs.log: test-algs/test-algs.log:# test-algs/g' Makefile
+    sed -i 's/^test-array.log: test-array/test-array.log:# test-array/g' Makefile
+    sed -i 's/^test-bimap.log: test-bimap/test-bimap.log:# test-bimap/g' Makefile
+    sed -i 's/^test-iter.log: test-iter/test-iter.log:# test-iter/g' Makefile
+    sed -i 's/^test-machinery.log: test-machinery/test-machinery.log:# test-machinery/g' Makefile
+    sed -i 's/^test-map.log: test-map/test-map.log:# test-map/g' Makefile
+    sed -i 's/^test-multimap.log: test-multimap/test-multimap.log:# test-multimap/g' Makefile
+    sed -i 's/^test-number.log: test-number/test-number.log:# test-number/g' Makefile
+    sed -i 's/^test-ot-tag.log: test-ot-tag/test-ot-tag.log:# test-ot-tag/g' Makefile
+    sed -i 's/^test-priority-queue.log: test-priority-queue/test-priority-queue.log:# test-priority-queue/g' Makefile
+    sed -i 's/^test-set.log: test-set/test-set.log:# test-set/g' Makefile
+    sed -i 's/^test-serialize.log: test-serialize/test-serialize.log:# test-serialize/g' Makefile
+    sed -i 's/^test-unicode-ranges.log: test-unicode-ranges/test-unicode-ranges.log:# test-unicode-ranges/g' Makefile
+    sed -i 's/^test-vector.log: test-vector/test-vector.log:# test-vector/g' Makefile
+    sed -i 's/^test-repacker.log: test-repacker/test-repacker.log:# test-repacker/g' Makefile
+    sed -i 's/^test-classdef-graph.log: test-classdef-graph/test-classdef-graph.log:# test-classdef-graph/g' Makefile
+
+    cd $OLDPWD
+    unset host
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # make -C src check-TESTS
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

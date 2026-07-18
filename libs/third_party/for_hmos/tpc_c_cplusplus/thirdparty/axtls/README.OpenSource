@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "axtls",
+        "License": "BSD-3-Clause",
+        "License File": "https://axtls.sourceforge.net//README/index.html",
+        "Version Number": "2.1.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/axtls/files/2.1.5/axTLS-2.1.5.tar.gz/download",
+        "Description": "The axTLS embedded SSL project is a highly configurable client/server TLSv1.2 library designed for platforms with small memory requirements. It comes with a small HTTP/HTTPS server and additional test tools."
+    }
+]

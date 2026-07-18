@@ -1,0 +1,141 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100755
+index 0000000..bd72193
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,63 @@
++# 指定 tremolo 库的源代码路径  
++cmake_minimum_required(VERSION 3.6)  
++project(tremolo_lib)
++
++# 添加头文件搜索路径
++include_directories(./)
++include_directories(./3rdParty/)
++include_directories(./DragonBones/src/)
++include_directories(./DragonBones/src/dragonBones/core/)
++include_directories(./DragonBones/src/dragonBones/parsers/)
++
++# 获取当前目录下的所有 .h 文件
++file(GLOB HEADER_FILES "*.cpp")
++
++# 添加要编译的源文件  
++add_library(DragonBones
++./DragonBones/src/dragonBones/model/TimelineData.cpp
++./DragonBones/src/dragonBones/model/DragonBonesData.cpp
++./DragonBones/src/dragonBones/model/ArmatureData.cpp
++./DragonBones/src/dragonBones/model/FrameData.cpp
++./DragonBones/src/dragonBones/model/AnimationData.cpp
++./DragonBones/src/dragonBones/textures/TextureData.cpp
++./DragonBones/src/dragonBones/animation/WorldClock.cpp
++./DragonBones/src/dragonBones/animation/Animation.cpp
++./DragonBones/src/dragonBones/animation/AnimationState.cpp
++./DragonBones/src/dragonBones/animation/TimelineState.cpp
++./DragonBones/src/dragonBones/events/EventObject.cpp
++./DragonBones/src/dragonBones/core/BaseObject.cpp
++./DragonBones/src/dragonBones/armature/Slot.cpp
++./DragonBones/src/dragonBones/armature/Armature.cpp
++./DragonBones/src/dragonBones/armature/Bone.cpp
++./DragonBones/src/dragonBones/factories/BaseFactory.cpp
++./DragonBones/src/dragonBones/parsers/JSONDataParser.cpp
++./DragonBones/src/dragonBones/parsers/DataParser.cpp
++)
++
++include_directories(./DragonBones/src/dragonBones/model/) 
++add_executable(DragonBones_test DragonBones_test.cpp)
++target_link_libraries(DragonBones_test PRIVATE DragonBones) 
++
++# 获取当前目录下的所有 .h 文件
++file(GLOB_RECURSE HEADER_FILES_model "./DragonBones/src/dragonBones/model/*.h")
++file(GLOB_RECURSE HEADER_FILES_textures "./DragonBones/src/dragonBones/textures/*.h")
++file(GLOB_RECURSE HEADER_FILES_animation "./DragonBones/src/dragonBones/animation/*.h")
++file(GLOB_RECURSE HEADER_FILES_events "./DragonBones/src/dragonBones/events/*.h")
++file(GLOB_RECURSE HEADER_FILES_geom "./DragonBones/src/dragonBones/geom/*.h")
++file(GLOB_RECURSE HEADER_FILES_core "./DragonBones/src/dragonBones/core/*.h")
++file(GLOB_RECURSE HEADER_FILES_armature "./DragonBones/src/dragonBones/armature/*.h")
++file(GLOB_RECURSE HEADER_FILES_factories "./DragonBones/src/dragonBones/factories/*.h")
++file(GLOB_RECURSE HEADER_FILES_parsers "./DragonBones/src/dragonBones/parsers/*.h")
++
++# 安装库文件
++install(TARGETS DragonBones DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
++install(FILES ${HEADER_FILES_model} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/model/)
++install(FILES ${HEADER_FILES_textures} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/textures/)
++install(FILES ${HEADER_FILES_animation} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/animation/)
++install(FILES ${HEADER_FILES_events} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/events/)
++install(FILES ${HEADER_FILES_geom} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/geom/)
++install(FILES ${HEADER_FILES_core} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/core/)
++install(FILES ${HEADER_FILES_armature} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/armature/)
++install(FILES ${HEADER_FILES_factories} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/factories/)
++install(FILES ${HEADER_FILES_parsers} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/parsers/)
++
+diff --git a/DragonBones_test.cpp b/DragonBones_test.cpp
+new file mode 100644
+index 0000000..0f87c71
+--- /dev/null
++++ b/DragonBones_test.cpp
+@@ -0,0 +1,65 @@
++#include <iostream>
++#include <fstream>
++#include <string>  
++#include <DragonBones.h>
++#include <JSONDataParser.h>
++
++using namespace std;
++using namespace dragonBones;
++
++int main() {
++    // 读取JSON文件
++    string jsonData = "";
++    ifstream ifs("../Cocos2DX_3.x/Demos/Resources/res/AnimationBaseTest/AnimationBaseTest.json");  
++    if (ifs) {
++        string line;
++        while (getline(ifs, line)) {
++            jsonData += line + "\n";
++        }
++        ifs.close();
++    }
++    else {
++        cerr << "Error: Cannot open file test.json" << endl;  
++        return 1;  
++    }
++  
++    // 解析DragonBones数据
++    JSONDataParser jsdb;
++    DragonBonesData* data = jsdb.parseDragonBonesData(jsonData.c_str());  
++    if (data == nullptr) {
++        cerr << "Error: Cannot parse JSON data" << endl;  
++        return 1;
++    }
++    
++    cout << "autoSearch = " << data->autoSearch << endl;
++    cout << "frameRate = " << data->frameRate << endl;
++    cout << "name = " << data->name << endl;
++    cout << "armatures" << endl;
++    for (std::map<std::string, ArmatureData*>::iterator it = data->armatures.begin(); it!= data->armatures.end(); it++ ) {
++
++        cout << "string armatures.name = " << it->first << endl;
++        cout << "armatures.name = " << it->second->name << endl;
++       
++        std::map<std::string, BoneData*> bones =  it->second->bones;
++        for(map<std::string, BoneData*>::iterator it_bones = bones.begin(); it_bones!=bones.end();it_bones++)
++        {
++             cout << "bones:" << "it_bones" << endl;
++             cout << "it_bones->second->weight = " << it_bones->second->weight << endl;
++             cout << "it_bones->second->length = " << it_bones->second->length << endl;
++             cout << "it_bones->second->name = " << it_bones->second->name << endl;
++        }
++
++        std::map<std::string, SlotData*> slots = it->second->slots;
++        for(map<std::string, SlotData*>::iterator it_slots = slots.begin(); it_slots!=slots.end(); it_slots++)
++        {
++            cout << "slots:" << "it_slots" << endl;
++            cout << "it_slots->second->name" << it_slots->second->name << endl;
++            cout << "it_slots->second->zOrder" << it_slots->second->zOrder << endl;
++            cout << "it_slots->second->displayIndex" << it_slots->second->displayIndex << endl;
++        }
++    }
++  
++    // 释放内存  
++    delete data;  
++    return 0;  
++}
+\ No newline at end of file

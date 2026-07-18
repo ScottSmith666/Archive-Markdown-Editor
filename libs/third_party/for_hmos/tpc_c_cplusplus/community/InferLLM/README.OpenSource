@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "InferLLM",
+        "License": "Apache-2.0 license",
+        "License File": "LICENSE",
+        "Version Number": "405d866e4c11b884a8072b4b30659c63555be41d",
+        "Owner": "jia_jiahao@runkaihong.com.cn",
+        "Upstream URL": "https://github.com/MegEngine/InferLLM",
+        "Description": "InferLLM 是一个简单高效的 LLM CPU 推理框架，可以实现在本地部署 LLM 中的量化模型"
+    }
+]

@@ -1,0 +1,13 @@
+--- libsrtp-2.5.0/CMakeLists.txt	2023-02-01 15:25:02.000000000 +0800
++++ CMakeLists.txt	2023-03-22 10:57:04.552717234 +0800
+@@ -289,7 +289,9 @@
+   find_package(PCAP)
+   if (PCAP_FOUND)
+     add_executable(rtp_decoder test/rtp_decoder.c test/getopt_s.c test/util.c)
+-    target_link_libraries(rtp_decoder srtp2 ${PCAP_LIBRARY})
++    target_link_libraries(rtp_decoder srtp2 ${PCAP_LIBRARY_TEMP})
++    target_include_directories(rtp_decoder PRIVATE ${PCAP_INCLUDE_DIR_TEMP})
++
+   endif()
+ 
+   if(NOT (BUILD_SHARED_LIBS AND WIN32))

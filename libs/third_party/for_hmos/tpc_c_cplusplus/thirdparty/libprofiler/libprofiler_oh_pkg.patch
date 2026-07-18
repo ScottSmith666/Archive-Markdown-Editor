@@ -1,0 +1,148 @@
+diff --git a/libprofiler.cpp b/libprofiler.cpp
+index c982ba2..a4379a2 100644
+--- a/libprofiler.cpp
++++ b/libprofiler.cpp
+@@ -9,7 +9,11 @@
+ #include <string.h>
+ #include <string>
+ #include <pthread.h>
++#if defined(__OHOS__)
++#include <sys/mman.h>
++#else
+ #include <sys/shm.h>
++#endif
+ #include <cxxabi.h>
+ #include <ncurses.h>
+ #include <functional> 
+@@ -20,11 +24,36 @@
+ #include <math.h>
+ #include <set> // To be replaced by hashset ?
+ 
++#if defined(__OHOS__)
++#if defined(__arm__)
++#define GET_EBX(var)  __asm__ __volatile__( "mov %0, r1" : "=r"(var) )
++#define SET_EBX(var)  __asm__ __volatile__( "mov r1, %0" : :"r"(var) )
++
++#define GET_RAX(var)  __asm__ __volatile__( "mov %0, r0" : "=r"(var) )
++#define SET_RAX(var)  __asm__ __volatile__( "mov r0, %0" : :"r"(var) )
++
++#elif defined(__aarch64__)
++#define GET_EBX(var)  __asm__ __volatile__( "mov %0, x1" : "=r"(var) )
++#define SET_EBX(var)  __asm__ __volatile__( "mov x1, %0" : :"r"(var) )
++
++#define GET_RAX(var)  __asm__ __volatile__( "mov %0, x0" : "=r"(var) )
++#define SET_RAX(var)  __asm__ __volatile__( "mov x0, %0" : :"r"(var) )
++
++#else
++#define GET_EBX(var)  __asm__ __volatile__( "movl %%ebx, %0" : "=a"(var) )
++#define SET_EBX(var)  __asm__ __volatile__( "movl %0, %%ebx" : :"a"(var) )
++
++#define GET_RAX(var)  __asm__ __volatile__( "mov %%rax, %0" : "=a"(var) )
++#define SET_RAX(var)  __asm__ __volatile__( "mov %0, %%rax" : :"a"(var) )
++#endif
++
++#else
+ #define GET_EBX(var)  __asm__ __volatile__( "movl %%ebx, %0" : "=a"(var) ) 
+ #define SET_EBX(var)  __asm__ __volatile__( "movl %0, %%ebx" : :"a"(var) ) 
+ 
+ #define GET_RAX(var)  __asm__ __volatile__( "mov %%rax, %0" : "=a"(var) ) 
+ #define SET_RAX(var)  __asm__ __volatile__( "mov %0, %%rax" : :"a"(var) ) 
++#endif
+ 
+ #define ORDER_COUNT    0
+ #define ORDER_CPU      1
+@@ -584,18 +613,25 @@ extern "C" bool stopProgram(){
+ }
+ 
+ extern "C" void redirect_standard_output() {
+-   
++   #if defined(__OHOS__)
++   	shared_com = (char*) mmap(NULL, COMMUNICATION_BUFFER_SIZE + 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
++	if (shared_com == MAP_FAILED) {
++		perror("mmap failed");
++		exit(EXIT_FAILURE);
++	}
++   #else
+    int shmid = shmget(IPC_PRIVATE, COMMUNICATION_BUFFER_SIZE + 1, 0660 | IPC_CREAT);	
+-   
++   #endif
+    pipe(pipe_fds);
+ 
+    switch (fork()) {
+       case -1:                      // = error
+          perror("fork");
+          exit(EXIT_FAILURE);
+-      case 0: {	                // = child 
++      case 0: {	                // = child
++		#if !defined(__OHOS__)
+ 	    shared_com = (char*) shmat(shmid, 0, 0);
+-	    
++	    #endif
+ 	    shared_com[0] = 0;
+ 	    shared_com[5] = 0; // Select first item in the list	
+ 	    shared_com[6] = MODE_LIST; // Display mode list
+@@ -611,7 +647,9 @@ extern "C" void redirect_standard_output() {
+       default:                      // = parent
+          dup2(pipe_fds[1], 1);      // replace stdout with output to child
+          setvbuf(stdout, 0, _IONBF, 0);
++		#if !defined(__OHOS__)
+ 	    shared_com = (char*) shmat(shmid, 0, 0);
++		#endif
+    }
+ 
+    // Create thread that will manage the print in buffer from shared mem	
+@@ -631,8 +669,13 @@ extern "C" int demangle(char* oBuffer, int iSize, void *func){
+ 	char aMangled[2048];
+ 
+ 	char** data = backtrace_symbols(&func, 1);
++	#if defined(__OHOS__)
++	char* aFirst = strchr(data[0],'<');
++	char* aLast = strchr(data[0],'>');
++	#else
+ 	char* aFirst = strchr(data[0],'(');
+ 	char* aLast = strchr(data[0],')');
++	#endif
+ 
+ 	int aSize = aLast-aFirst-1;
+ 	if ((aSize<iSize) && (aSize<2048) ) {
+@@ -1379,7 +1422,11 @@ extern "C" void manageSignals(){
+ 
+ 	_hdlErrorStruct.sa_handler = 0;
+ 	_hdlErrorStruct.sa_sigaction = handlingErrorSignals;
++	#if defined(__OHOS__)
++	sigemptyset(&_hdlErrorStruct.sa_mask);
++	#else
+ 	_hdlErrorStruct.sa_mask = 0;
++	#endif
+ 	_hdlErrorStruct.sa_flags = SA_SIGINFO;
+ 	_hdlErrorStruct.sa_restorer = 0;
+ 
+@@ -1390,7 +1437,11 @@ extern "C" void manageSignals(){
+ 
+ 	_hdlTermStruct.sa_handler = 0;
+ 	_hdlTermStruct.sa_sigaction = handlingTerminate;
++	#if defined(__OHOS__)
++	sigemptyset(&_hdlErrorStruct.sa_mask);
++	#else
+ 	_hdlTermStruct.sa_mask = 0;
++	#endif
+ 	_hdlTermStruct.sa_flags = SA_SIGINFO;
+ 	_hdlTermStruct.sa_restorer = 0;
+ 
+@@ -1543,7 +1594,15 @@ extern "C" void __cyg_profile_func_exit(void *func, void *callsite){
+ 	  }
+ 	 
+ 	  // Here adding callers information
+-	  recordCallers(aItemMethod,callsite,cTime,aItem->_outerTime);	
++	  #if defined(__OHOS__)
++	  void* real_caller_func = callsite;
++	  if (aCtxt->_stackdepth > 2) {
++			real_caller_func = aCtxt->_stack[aCtxt->_stackdepth - 2]._func;
++	  } 
++		recordCallers(aItemMethod, real_caller_func, cTime, aItem->_outerTime);
++	  #else
++	  recordCallers(aItemMethod,callsite,cTime,aItem->_outerTime);
++	  #endif	
+ 
+        aCtxt->_stackdepth--;
+ 

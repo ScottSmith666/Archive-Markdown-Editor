@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "xerces-c",
+        "License": "Apache License V2.0",
+        "License File": "LICENSE",
+        "Version Number": "v3.2.4",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/apache/xerces-c.git",
+        "Description": "Apache Xerces-C validating XML parser"
+    }
+]

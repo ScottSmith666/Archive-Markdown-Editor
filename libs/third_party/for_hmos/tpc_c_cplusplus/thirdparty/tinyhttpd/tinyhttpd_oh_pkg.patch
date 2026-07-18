@@ -1,0 +1,31 @@
+diff -Naur tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817/Makefile.in tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817-new/Makefile.in
+--- tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817/Makefile.in	2018-02-08 18:40:23.000000000 +0800
++++ tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817-new/Makefile.in	2024-06-25 16:05:07.157777300 +0800
+@@ -1,6 +1,6 @@
+ # Makefile.in for thttpd
+ #
+-# Copyright © 1995,1998 by Jef Poskanzer <jef@mail.acme.com>.
++# Copyright ï¿½ 1995,1998 by Jef Poskanzer <jef@mail.acme.com>.
+ # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+@@ -114,6 +114,7 @@
+ 
+ install-man:
+ 	-mkdir -p $(DESTDIR)$(MANDIR)/man8
++	-mkdir -p $(DESTDIR)$(MANDIR)/man1
+ 	$(INSTALL) -m 444 -o bin -g bin thttpd.8 $(DESTDIR)$(MANDIR)/man8
+ 
+ installsubdirs:
+diff -Naur tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817/extras/htpasswd.c tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817-new/extras/htpasswd.c
+--- tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817/extras/htpasswd.c	2018-02-08 18:40:23.000000000 +0800
++++ tinyhttpd-b35e7daf10426f9be1e22ddc0ba8c6d23225c817-new/extras/htpasswd.c	2024-06-25 16:04:30.609934100 +0800
+@@ -83,7 +83,7 @@
+     }
+ }
+ 
+-#ifdef MPE
++#if defined(MPE) || defined(__OHOS__)
+ /* MPE lacks getpass() and a way to suppress stdin echo.  So for now, just
+ issue the prompt and read the results with echo.  (Ugh). */
+ 

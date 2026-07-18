@@ -1,0 +1,73 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhushuaiyu05@chinasoftinc.com
+# Maintainer: zhushuaiyu05@chinasoftinc.com
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    local res=1
+    local original_dir="$(pwd)"
+    local script_dir="$(dirname "$0")"
+    local tquic_dir="tquic-0.10.0"
+
+    cd "${script_dir}" || {
+        echo "错误: 无法进入脚本目录 ${script_dir}" >> "${logfile}"
+        return 1
+    }
+
+    cd "${tquic_dir}" || {
+        echo "错误: 无法进入 tquic 源码目录 ${tquic_dir}" >> "${logfile}"
+        cd "${original_dir}" 2>/dev/null
+        return 1
+    }
+    echo "当前目录: $(pwd)" >> "${logfile}"
+
+    local test_bin_name=$(find target/aarch64-unknown-linux-ohos/release/deps -maxdepth 1 -type f -name 'tquic-*' ! -name '*.d' ! -name '*.rlib' -executable)
+    if [ ! -f "${test_bin_name}" ]; then
+        echo "错误: 测试二进制文件不存在: ${test_bin_name}" >> "${logfile}"
+        cd "${original_dir}" 2>/dev/null
+        return 1
+    fi
+
+    cp "${test_bin_name}" ./ || {
+        echo "错误: 复制测试二进制失败" >> "${logfile}"
+        cd "${original_dir}" 2>/dev/null
+        return 1
+    }
+
+    local bin_name=$(basename "$test_bin_name")
+    chmod 777 "${bin_name}" || {
+        echo "错误: 修改权限失败" >> "${logfile}"
+        cd "${original_dir}" 2>/dev/null
+        return 1
+    }
+
+    echo "bin_name: ${bin_name}" >> "${logfile}"
+
+    ./"${bin_name}" >> "${logfile}" 2>&1
+
+    if grep -q "${success_string}" "${logfile}"; then
+        echo "check success" >> "${logfile}"
+        res=0
+    else
+        echo "check fail" >> "${logfile}"
+        res=1
+    fi
+
+    # 返回原始目录
+    cd "${original_dir}" || echo "警告: 无法返回原始目录 ${original_dir}" >> "${logfile}"
+    return ${res}
+}

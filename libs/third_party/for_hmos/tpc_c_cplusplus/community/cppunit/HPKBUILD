@@ -1,0 +1,68 @@
+# Contributor: dingqian <1052888395@qq.com>
+# Maintainer: dingqian <1052888395@qq.com>
+pkgname=cppunit
+pkgver=1.14.0
+pkgrel=0
+pkgdesc="CppUnit is the C++ port of the famous JUnit framework for unit testing"
+url="https://www.freedesktop.org/wiki/Software/cppunit/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL-2.0")
+depends=()
+makedepends=()
+source="https://dev-www.libreoffice.org/src/$pkgname-$pkgver.tar.gz"
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+source envset.sh
+host=
+
+prepare() {
+    cp -rf $builddir $pkgname-$ARCH-build
+    if [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "armeabi-v7a" ];then
+        setarm32ENV
+        host=arm-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $pkgname-$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host  >> $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname-$ARCH-build
+    $MAKE VERBOSE=1 install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ARCH == "arm64-v8a" ];then
+        unsetarm64ENV
+    elif [ $ARCH == "armeabi-v7a" ];then
+        unsetarm32ENV
+    else
+        echo "${ARCH} not support"
+        return -2
+    fi
+    unset host
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+}
+
+cleanbuild(){
+   rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build
+}

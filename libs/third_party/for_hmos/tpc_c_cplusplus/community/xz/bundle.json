@@ -1,0 +1,33 @@
+{
+    "name": "@ohos/xz",
+    "description": "XZ Utils is free general-purpose data compression software with a high compression ratio.",
+    "version": "3.1",
+    "license": "GPLv2",
+    "publishAs": "code-segment",
+    "segment": {
+        "destPath": "third_party/xz"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "xz",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/xz:xz"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

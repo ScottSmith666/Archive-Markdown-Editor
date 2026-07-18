@@ -1,0 +1,33 @@
+{
+    "name": "@ohos/libmp3lame",
+    "description": "gypified libmp3lame C library",
+    "version": "v3.99.5",
+    "license": "LGPL",
+    "publishAs": "",
+    "segment": {
+        "destPath": "third_party/libmp3lame"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "libmp3lame",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": ["standard"],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/libmp3lame:mp3lame_targets"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

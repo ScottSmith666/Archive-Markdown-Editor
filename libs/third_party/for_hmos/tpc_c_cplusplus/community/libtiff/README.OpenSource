@@ -1,0 +1,66 @@
+[
+    {
+        "Name": "libtiff",
+        "License": "libtiff",
+        "License File": "https://gitlab.com/libtiff/libtiff/-/blob/master/LICENSE.md",
+        "Version Number": "51558511bdbbcffdce534db21dbaf5d54b31638a",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://gitlab.com/libtiff/libtiff",
+        "Description": "a small collection of tools for doingsimple manipulations of TIFF images, and documentation on the library and tools."
+    },
+    {
+        "Name": "zstd",
+        "License": "BSD-3-Clause or GPL-2.0-only",
+        "License File": ["https://github.com/facebook/zstd/blob/dev/LICENSE","https://github.com/facebook/zstd/blob/dev/COPYING"],
+        "Version Number": "v1.5.4",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/facebook/zstd/releases/download/v1.5.4/zstd-1.5.4.tar.gz",
+        "Description": "Zstandard, or zstd as short version, is a fast lossless compression algorithm, targeting real-time compression scenarios at zlib-level and better compression ratios."
+    },
+    {
+        "Name": "libjpeg-turbo",
+        "License": "IJG and BSD-3-clause",
+        "License File": ["https://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/README.ijg","https://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/LICENSE.md"],
+        "Version Number": "2.1.91",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/2.1.91.tar.gz",
+        "Description": "libjpeg-turbo is a JPEG image codec that uses SIMD instructions to accelerate baseline JPEG compression and decompression"
+    },
+    {
+        "Name": "xz",
+        "License": "Public Domain and LGPL-2.1 and GPL-2.0 and GPL-3.0",
+        "License File": ["https://github.com/tukaani-project/xz/blob/v5.4/COPYING","https://github.com/tukaani-project/xz/blob/v5.4/COPYING.GPLv2",
+                        "https://github.com/tukaani-project/xz/blob/v5.4/COPYING.GPLv3","https://github.com/tukaani-project/xz/blob/v5.4/COPYING.LGPLv2.1"],
+        "Version Number": "5.4.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/tukaani-project/xz/releases/download/v5.4.1/xz-5.4.1.tar.gz",
+        "Description": "XZ Utils is free general-purpose data compression software with a high compression ratio. "
+    },
+    {
+        "Name": "libwebp",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/webmproject/libwebp/blob/main/COPYING",
+        "Version Number": "1.3.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/webmproject/libwebp/archive/refs/tags/v1.3.0.tar.gz",
+        "Description": "WebP codec is a library to encode and decode images in WebP format. This package contains the library that can be used in other programs to add WebP support, as well as the command line tools 'cwebp' and 'dwebp' to compress and decompress images respectively."
+    },
+    {
+        "Name": "libdeflate",
+        "License": "MIT",
+        "License File": "https://github.com/ebiggers/libdeflate/blob/master/COPYING",
+        "Version Number": "v1.17",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/ebiggers/libdeflate/archive/refs/tags/v1.17.tar.gz",
+        "Description": "libdeflate is a library for fast, whole-buffer DEFLATE-based compression and decompression."
+    },
+    {
+        "Name": "jbigkit",
+        "License": "GPL-2.0-only",
+        "License File": "COPYING",
+        "Version Number": "2.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.cl.cam.ac.uk/~mgk25/$pkgname/download/jbigkit-2.1.tar.gz",
+        "Description": "JBIG-KIT is a software implementation of the JBIG1 data compression standard (ITU-T T.82), which was designed for bi-level image data, such as scanned documents."
+    }
+]

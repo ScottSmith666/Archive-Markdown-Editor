@@ -1,0 +1,12 @@
+diff -Naur FFmpeg-n6.0/tests/md5.sh FFmpeg-n6.0_patch/tests/md5.sh
+--- FFmpeg-n6.0/tests/md5.sh	2023-05-30 20:19:15.182858198 +0800
++++ FFmpeg-n6.0_patch/tests/md5.sh	2023-05-31 09:13:47.753463704 +0800
+@@ -1,7 +1,7 @@
+ # try to find an md5 program
+ 
+ if [ X"$(echo | md5sum -b 2> /dev/null)" != X ]; then
+-    do_md5sum() { md5sum -b $1; }
++    do_md5sum() { md5sum $1; }
+ elif [ X"$(echo | command md5 2> /dev/null)" != X ]; then
+     do_md5sum() { command md5 $1 | sed 's#MD5 (\(.*\)) = \(.*\)#\2 *\1#'; }
+ elif [ -x /sbin/md5 ]; then

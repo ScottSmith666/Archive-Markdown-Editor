@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "Jasper",
+        "License": "JasPer-2.0",
+        "License File": "https://github.com/jasper-software/jasper/blob/master/LICENSE.txt",
+        "Version Number": "4.0.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/jasper-software/jasper/tree/version-4.0.0",
+        "Description": " JasPer is a collection of software (i.e., a library and application programs) for the coding and manipulation of images"
+    },
+    {
+        "Name": "libjpeg-turbo",
+        "License": "IJG and BSD 3-clause",
+        "License File": ["https://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/README.ijg","https://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/LICENSE.md"],
+        "Version Number": "2.1.91",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/2.1.91.tar.gz",
+        "Description": "libjpeg-turbo is a JPEG image codec that uses SIMD instructions to accelerate baseline JPEG compression and decompression"
+    }
+]

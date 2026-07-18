@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "spdlog",
+        "License": "MIT",
+        "License File": "https://github.com/gabime/spdlog/blob/v1.16.0/LICENSE",
+        "Version Number": "1.16.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/gabime/spdlog",
+        "Description": "Spdlog is a high-performance C++log library mainly used to record runtime information (such as debugging information, error logs, etc.) in C++programs."
+    }
+]

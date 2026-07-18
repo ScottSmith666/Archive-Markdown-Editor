@@ -1,0 +1,20 @@
+# Contributor: tangshaoteng <sttangc@isoftstone.com>
+# Maintainer: tangshaoteng <sttangc@isoftstone.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd $builddir-$ARCH-build
+    driver_config=`${LYCIUM_ROOT}/usr/unixODBC/${ARCH}/bin/odbcinst -j | grep DRIVERS | awk '{print $2}'`
+    data_source_config=`${LYCIUM_ROOT}/usr/unixODBC/${ARCH}/bin/odbcinst -j | grep SYSTEM | awk '{print $4}'`
+    driver_lib=${LYCIUM_ROOT}/usr/sqliteodbc/${ARCH}/lib/libsqlite3odbc.so
+    echo -e "[SQL3]\nDescription = unixODBC for sqlite3\nDriver = $driver_lib\nSetup = $driver_lib\nFileUsage=1" > $driver_config
+    echo -e "[myDB]\nDriver = SQL3" > $data_source_config
+    echo -e "quit" | ${LYCIUM_ROOT}/usr/unixODBC/${ARCH}/bin/isql -v myDB > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+
+    return $res
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <oatconfig>
+        <filefilterlist>
+            <filefilter name="copyrightPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="HPKBUILD" desc="HPKBUILD文件，不添加版权头"/>
+                <filteritem type="filename" name="SHA512SUM" desc="SHA512SUM文件，不添加版权头"/>
+                <filteritem type="filename" name="HPKCHECK" desc="HPKCHECK文件，无需添加许可头"/>
+                <filteritem type="filename" name="LICENSE" desc="LICENSE文件，无需添加许可头"/>
+            </filefilter>
+            <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filename" name="HPKBUILD" desc="HPKBUILD文件，不添加版权头"/>
+                <filteritem type="filename" name="SHA512SUM" desc="SHA512SUM文件，不添加版权头"/>
+                <filteritem type="filename" name="LICENSE" desc="LICENSE文件，无需添加许可头"/>
+                <filteritem type="filename" name="HPKCHECK" desc="HPKCHECK文件，无需添加许可头"/>
+            </filefilter>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for resources files policies">
+                <filteritem type="filename" name="*.png" desc="指导文档需要的png图片"/>
+            </filefilter>
+        </filefilterlist>
+    </oatconfig>
+</configuration>

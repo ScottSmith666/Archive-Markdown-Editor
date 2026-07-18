@@ -1,0 +1,35 @@
+diff --git a/libtld/tld.cpp b/libtld/tld.cpp
+index 380e15b2..f82a4c26 100644
+--- a/libtld/tld.cpp
++++ b/libtld/tld.cpp
+@@ -627,7 +627,7 @@ enum tld_result tld_load_tlds(const char *filename, int fallback)
+     {
+         // first try a user updated version of the file
+         //
+-        err = tld_file_load("/var/lib/libtld/tlds.tld", &g_tld_file);
++        err = tld_file_load("/data/local/tld_file/tlds.tld", &g_tld_file);
+         if(err == TLD_FILE_ERROR_NONE)
+         {
+             return TLD_RESULT_SUCCESS;
+@@ -636,7 +636,7 @@ enum tld_result tld_load_tlds(const char *filename, int fallback)
+ 
+         // second try the default installed version of the file
+         //
+-        filename = "/usr/share/libtld/tlds.tld";
++        filename = "/data/storage/el2/base/haps/entry/cache/tlds.tld";
+     }
+     // else -- only try with the user defined version
+ 
+diff --git a/tests/run_all_tests.sh b/tests/run_all_tests.sh
+index 435746ab..03621483 100755
+--- a/tests/run_all_tests.sh
++++ b/tests/run_all_tests.sh
+@@ -5,7 +5,7 @@
+ NAME=`basename $0`
+ if test "$NAME" = "unittest" -a ! -d debian
+ then
+-	BUILD_PATH="`pwd`/BUILD"
++	BUILD_PATH="`cd .. && pwd`"
+ else
+ 	BUILD_PATH="`cd ../.. && pwd`/BUILD/Debug/contrib/libtld"
+ fi

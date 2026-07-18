@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "shapelib",
+        "License": "MIT OR LGPL-2.0-or-later",
+        "License File": "LICENSE-LGPL and LICENSE-MIT",
+        "Version Number": "shapelib-1.6.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://download.osgeo.org/shapelib/shapelib-1.6.0.zip",
+        "Description": "Mainly used for reading, writing, and manipulating ESRI Shapefile file formats, including .shp (spatial geometry information) and .dbf (attribute information) files."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libexif",
+        "License": "LGPL-2.1-only",
+        "License File": "https://github.com/libexif/libexif/blob/master/COPYING",
+        "Version Number": "0.6.24",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libexif/libexif/releases/download/v0.6.24/libexif-0.6.24.tar.bz2",
+        "Description": "libexif is a library for parsing, editing, and saving EXIF data."
+    }
+]

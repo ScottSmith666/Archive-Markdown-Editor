@@ -1,0 +1,79 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=tinyexr
+pkgver=v1.0.2
+pkgrel=0
+pkgdesc="Tiny OpenEXR image loader/saver library"
+url="https://github.com/syoyo/tinyexr"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("3-clause BSD" "public domain")
+depends=()
+makedepends=()
+install=
+source="https://github.com/syoyo/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../tinyexr_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    # 源库Makefile没有make install，这里手动copy到usr目录
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp tinyexr.h deps/miniz/miniz.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp $ARCH-build/libminiz.a $ARCH-build/libtinyexr.a $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # test CMD
+    # ./test_tinyexr .././transparent.exr
+    # Load EXR err: Loading multipart or DeepImage is not supported  in LoadEXR() API(code -4)
+    # ./test_tinyexr .././asakusa.exr
+    # Wrote output.exr.
+    # ./test_tinyexr .././test/unit/regression/日本語.exr
+    # Wrote output.exr.
+    # ./test_tinyexr ../././test/unit/regression/tiled_half_1x1_alpha.exr
+    # Wrote output.exr.
+    # ./test_tinyexr .././test/unit/regression/flaga.exr
+    # Load EXR err: Layer Not Found. Seems EXR contains channels with layer(e.g. `diffuse.R`). if you are using LoadEXR(), please try LoadEXRWithLayer(). LoadEXR() cannot load EXR having channels with layer.(code -13)
+    # ./test_tinyexr .././test/unit/regression/piz-bug-issue-100.exr
+    # Wrote output.exr.
+    # ./test_tinyexr .././test/unit/regression/2by2.exr
+    # Wrote output.exr.
+    # ./test_tinyexr .././test/unit/regression/issue-160-piz-decode.exr
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

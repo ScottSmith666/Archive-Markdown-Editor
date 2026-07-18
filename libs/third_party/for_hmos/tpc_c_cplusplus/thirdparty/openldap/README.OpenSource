@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "openldap",
+        "License": "OpenLDAP Public License 2.8",
+        "License File": "https://www.openldap.org/software/release/license.html",
+        "Version Number": "2.5.14",
+        "Owner": "kanchengc@isoftstone.com",
+        "Upstream URL": "https://mirror-hk.koddos.net/OpenLDAP/openldap-release/openldap-2.5.14.tgz",
+        "Description": "OpenLDAP Software is an open source implementation of the Lightweight Directory Access Protocol."
+    }
+]

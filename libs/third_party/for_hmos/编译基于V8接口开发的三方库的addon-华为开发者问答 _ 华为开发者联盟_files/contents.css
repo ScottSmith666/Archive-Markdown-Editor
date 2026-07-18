@@ -1,0 +1,343 @@
+/*
+Copyright (c) 2003-2020, CKSource - Frederico Knabben. All rights reserved.
+For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+*/
+body {
+  /* Font */
+  /* Emoji fonts are added to visualise them nicely in Internet Explorer. */
+  /* 段落字体 */
+  font-family: 'Microsoft YaHei', Roboto, sans-serif, Arial, Verdana, 'Trebuchet MS', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  font-size: 12px;
+  /* Text color */
+  color: #2a2b31;
+  /* Remove the background color to make it transparent. */
+  background-color: #fff;
+  margin: 20px;
+}
+.cke-article::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+.cke_editable,
+.cke_article,
+.cke-article {
+  /* 正文字号 */
+  font-size: 16px;
+  /* 行间距 */
+  line-height: 1.8;
+  /* Fix for missing scrollbars with RTL texts. (#10488) */
+  word-wrap: break-word;
+}
+.cke_editable blockquote,
+.cke_article blockquote,
+.cke-article blockquote {
+  font-style: italic;
+  font-family: Georgia, Times, 'Times New Roman', serif;
+  padding: 2px 0;
+  border-style: solid;
+  border-color: #ccc;
+  border-width: 0;
+}
+.cke_editable blockquote,
+.cke_article blockquote,
+.cke-article blockquote {
+  padding-left: 20px;
+  padding-right: 8px;
+  border-left-width: 5px;
+}
+.cke_editable p,
+.cke_article p,
+.cke-article p {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  word-break: break-word !important;
+  min-height: 28.8px;
+}
+.cke_editable a,
+.cke_article a,
+.cke-article a {
+  text-decoration: none;
+}
+.cke_editable a:-webkit-any-link,
+.cke_article a:-webkit-any-link,
+.cke-article a:-webkit-any-link,
+.cke_editable a:any-link,
+.cke_article a:any-link,
+.cke-article a:any-link {
+  color: #0782c1;
+}
+.cke_editable ol,
+.cke_article ol,
+.cke-article ol,
+.cke_editable ul,
+.cke_article ul,
+.cke-article ul,
+.cke_editable dl,
+.cke_article dl,
+.cke-article dl {
+  /* IE7: reset rtl list margin. (#7334) */
+  margin-right: 0px;
+  /* Preserved spaces for list items with text direction different than the list. (#6249,#8049)*/
+  padding: 0 40px;
+}
+.cke_editable ol,
+.cke_article ol,
+.cke-article ol {
+  list-style: decimal !important;
+}
+.cke_editable ol li,
+.cke_article ol li,
+.cke-article ol li {
+  list-style: decimal !important;
+}
+.cke_editable ul,
+.cke_article ul,
+.cke-article ul {
+  list-style: disc !important;
+}
+.cke_editable ul li,
+.cke_article ul li,
+.cke-article ul li {
+  list-style: disc !important;
+}
+.cke_editable h1,
+.cke_article h1,
+.cke-article h1,
+.cke_editable h2,
+.cke_article h2,
+.cke-article h2,
+.cke_editable h3,
+.cke_article h3,
+.cke-article h3,
+.cke_editable h4,
+.cke_article h4,
+.cke-article h4,
+.cke_editable h5,
+.cke_article h5,
+.cke-article h5,
+.cke_editable h6,
+.cke_article h6,
+.cke-article h6 {
+  font-weight: normal;
+  line-height: 1.2;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.cke_editable h1,
+.cke_article h1,
+.cke-article h1 {
+  font-size: 28px;
+}
+.cke_editable h2,
+.cke_article h2,
+.cke-article h2 {
+  font-size: 24px;
+}
+.cke_editable h3,
+.cke_article h3,
+.cke-article h3 {
+  font-size: 20px;
+}
+.cke_editable hr,
+.cke_article hr,
+.cke-article hr {
+  border: 0px;
+  border-top: 1px solid #ccc;
+}
+.cke_editable em,
+.cke_article em,
+.cke-article em {
+  font-style: italic;
+}
+.cke_editable img.left,
+.cke_article img.left,
+.cke-article img.left {
+  float: left;
+  border: 1px solid #ccc;
+  margin-right: 15px;
+  padding: 5px;
+}
+.cke_editable img.right,
+.cke_article img.right,
+.cke-article img.right {
+  float: right;
+  border: 1px solid #ccc;
+  margin-left: 15px;
+  padding: 5px;
+}
+.cke_editable table,
+.cke_article table,
+.cke-article table {
+  border-collapse: collapse;
+  margin: auto;
+}
+.cke_editable table caption,
+.cke_article table caption,
+.cke-article table caption {
+  text-align: center;
+  caption-side: top;
+}
+.cke_editable table th,
+.cke_article table th,
+.cke-article table th {
+  text-align: center;
+}
+.cke_editable th,
+.cke_article th,
+.cke-article th,
+.cke_editable td,
+.cke_article td,
+.cke-article td {
+  border: 1px solid black;
+}
+.cke_editable pre,
+.cke_article pre,
+.cke-article pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  -moz-tab-size: 4;
+  tab-size: 4;
+}
+.cke_editable span[lang],
+.cke_article span[lang],
+.cke-article span[lang] {
+  font-style: italic;
+}
+.cke_editable .marker,
+.cke_article .marker,
+.cke-article .marker {
+  background-color: Yellow;
+}
+.cke_editable div.easyimage,
+.cke_article div.easyimage,
+.cke-article div.easyimage {
+  text-align: center;
+  padding: 10px;
+  margin: 10px 20px;
+}
+.cke_editable div.easyimage.easyimage-align-left,
+.cke_article div.easyimage.easyimage-align-left,
+.cke-article div.easyimage.easyimage-align-left {
+  text-align: left;
+  margin-right: 1.5em;
+}
+.cke_editable div.easyimage.easyimage-align-right,
+.cke_article div.easyimage.easyimage-align-right,
+.cke-article div.easyimage.easyimage-align-right {
+  text-align: right;
+  margin-left: 1.5em;
+}
+.cke_editable figure > figcaption,
+.cke_article figure > figcaption,
+.cke-article figure > figcaption {
+  text-align: center;
+  display: block;
+}
+.cke_editable a > img,
+.cke_article a > img,
+.cke-article a > img {
+  border: none;
+  padding: 1px;
+  margin: 1px;
+  outline: 1px solid #0782c1;
+}
+.cke_editable .math-featured,
+.cke_article .math-featured,
+.cke-article .math-featured {
+  padding: 20px;
+  margin: 10px;
+  box-shadow: 0 0 2px #c80000;
+  background-color: rgba(255, 0, 0, 0.05);
+}
+.cke_editable .code-featured,
+.cke_article .code-featured,
+.cke-article .code-featured {
+  border: 5px solid red;
+}
+.cke_editable .image-clean,
+.cke_article .image-clean,
+.cke-article .image-clean {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.cke_editable .image-clean > figcaption,
+.cke_article .image-clean > figcaption,
+.cke-article .image-clean > figcaption {
+  font-size: 0.9em;
+  text-align: right;
+}
+.cke_editable .image-grayscale,
+.cke_article .image-grayscale,
+.cke-article .image-grayscale {
+  background-color: white;
+  color: #666;
+}
+.cke_editable .image-grayscale img,
+.cke_article .image-grayscale img,
+.cke-article .image-grayscale img,
+.cke_editable img.image-grayscale,
+.cke_article img.image-grayscale,
+.cke-article img.image-grayscale {
+  filter: grayscale(100%);
+}
+.cke_editable .embed-240p,
+.cke_article .embed-240p,
+.cke-article .embed-240p {
+  margin: 0 auto;
+  max-width: 426px;
+  max-height: 240px;
+}
+.cke_editable .embed-360p,
+.cke_article .embed-360p,
+.cke-article .embed-360p {
+  margin: 0 auto;
+  max-width: 640px;
+  max-height: 360px;
+}
+.cke_editable .embed-480p,
+.cke_article .embed-480p,
+.cke-article .embed-480p {
+  margin: 0 auto;
+  max-width: 854px;
+  max-height: 480px;
+}
+.cke_editable .embed-720p,
+.cke_article .embed-720p,
+.cke-article .embed-720p {
+  margin: 0 auto;
+  max-width: 1280px;
+  max-height: 720px;
+}
+.cke_editable .embed-1080p,
+.cke_article .embed-1080p,
+.cke-article .embed-1080p {
+  margin: 0 auto;
+  max-width: 1920px;
+  max-height: 1080px;
+}
+.ms-content-import table:not([cellpadding]) td,
+.ms-content-import table:not([cellpadding]) th {
+  padding: 6.4px;
+}
+.ms-content-import h1,
+.ms-content-import h2,
+.ms-content-import h3,
+.ms-content-import h4,
+.ms-content-import h5,
+.ms-content-import h6 {
+  font-weight: bold;
+}
+.ms-content-import table {
+  margin: unset;
+}
+.ms-content-import table,
+.ms-content-import tfoot,
+.ms-content-import tbody,
+.ms-content-import tr,
+.ms-content-import thead,
+.ms-content-import td,
+.ms-content-import th {
+  vertical-align: middle;
+}

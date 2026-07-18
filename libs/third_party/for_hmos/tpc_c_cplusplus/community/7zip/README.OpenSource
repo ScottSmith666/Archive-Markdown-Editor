@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "7zip",
+        "License": "GNU LGPL,BSD 3-clause and unRAR license"",
+        "License File": "https://www.7-zip.org/license.txt",
+        "Version Number": "24.09",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://www.7-zip.org/a/7z2409-src.tar.xz",
+        "Description": "7-Zip is a file archiver with a high compression ratio."
+    }
+]

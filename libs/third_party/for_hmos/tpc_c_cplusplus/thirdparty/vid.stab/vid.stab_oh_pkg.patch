@@ -1,0 +1,36 @@
+diff -Naur vid.stab-1.1.1/CMakeLists.txt vid.stab-1.1.1-patch/CMakeLists.txt
+--- vid.stab-1.1.1/CMakeLists.txt	2022-05-30 08:49:01.000000000 -0700
++++ vid.stab-1.1.1-patch/CMakeLists.txt	2023-07-06 18:51:12.523800096 -0700
+@@ -95,3 +95,5 @@
+ 
+ include(create_pkgconfig_file)
+ create_pkgconfig_file(vidstab "Vid.Stab, a library for stabilizing video clips")
++
++add_subdirectory(tests)
+diff -Naur vid.stab-1.1.1/tests/CMakeLists.txt vid.stab-1.1.1-patch/tests/CMakeLists.txt
+--- vid.stab-1.1.1/tests/CMakeLists.txt	2022-05-30 08:49:01.000000000 -0700
++++ vid.stab-1.1.1-patch/tests/CMakeLists.txt	2023-07-09 22:49:42.164374561 -0700
+@@ -47,5 +47,5 @@
+ target_link_libraries(tests ${ORC_LIBRARIES})
+ endif()
+ if(USE_OMP)
+-target_link_libraries(tests gomp)
++target_link_libraries(tests ${GOMP_LIBRARIES})
+ endif()
+diff -Naur vid.stab-1.1.1/tests/testframework.h vid.stab-1.1.1-patch/tests/testframework.h
+--- vid.stab-1.1.1/tests/testframework.h	2022-05-30 08:49:01.000000000 -0700
++++ vid.stab-1.1.1-patch/tests/testframework.h	2023-07-11 19:30:12.434193038 -0700
+@@ -18,11 +18,11 @@
+ #define test_bool(expr)   \
+   ((expr)                 \
+    ? tests_success++     \
+-   : test_fails (__STRING(expr), __FILE__, __LINE__, ___FUNCTION))
++   : test_fails (___FUNCTION, __FILE__, __LINE__, ___FUNCTION))
+ 
+ #define UNIT(func)                                                               \
+   if(!help_mode){tests_init();                                              \
+-   fprintf(stderr,"\033[1;34m*** UNIT TEST %s ***\033[0m\n",__STRING(func));     \
++   fprintf(stderr,"\033[1;34m*** UNIT TEST %s ***\033[0m\n",__FUNCTION__);     \	  
+    (func);                                                                       \
+    fprintf(stderr,"---->\t");                                                     \
+    if(test_summary()){ fprintf(stderr, "\t\t\033[1;32m PASSED\033[0m\n");         \

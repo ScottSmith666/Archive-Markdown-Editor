@@ -1,0 +1,91 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: <1321018403@qq.com>
+# Maintainer: <1321018403@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+prepare_test_env() {
+    [ "$EUID" -ne 0 ] && { echo "Root required"; exit 1; }
+    SRC="${TPC_SRC:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
+    [ ! -d "$SRC/thirdparty" ] && { echo "Invalid source"; exit 1; }
+
+    DEST="/data/tpc_c_cplusplus"
+    rm -rf "$DEST"
+    cp -r "$SRC" "$DEST" || exit 1
+
+    getent group daemon >/dev/null || echo "daemon:x:1:" >> /etc/group
+    getent passwd daemon >/dev/null || echo "daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin" >> /etc/passwd
+
+    NFD_SRC=$(find "$DEST/thirdparty/NFD" -maxdepth 1 -type d -name "NFD-*" | head -1)
+    BUILD_DIR="$NFD_SRC/${ARCH}-build"
+    [ -d "$BUILD_DIR" ] && chown -R daemon:daemon "$BUILD_DIR"
+
+    cd "$DEST/thirdparty/NFD" || exit 1
+}
+
+openharmonycheck() {
+    prepare_test_env
+    cd $builddir/$ARCH-build
+
+    echo "\n unit-tests-core test begin" > ${logfile} 2>&1
+    ./unit-tests-core >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        cd $OLDPWD
+        return $res
+    fi
+
+    echo "\n unit-tests-tools test begin" >> ${logfile} 2>&1
+    ./unit-tests-tools >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        cd $OLDPWD
+        return $res
+    fi
+
+    echo "\n cs-benchmark test begin" >> ${logfile} 2>&1
+    ./cs-benchmark >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        cd $OLDPWD
+        return $res
+    fi
+
+    echo "\n pit-fib-benchmark test begin" >> ${logfile} 2>&1
+    ./pit-fib-benchmark >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        cd $OLDPWD
+        return $res
+    fi
+
+    echo "\n unit-tests-daemon test begin" >> ${logfile} 2>&1
+    ./unit-tests-daemon -t !Face/TestUnixStreamChannel -t !Mgmt/TestGeneralConfigSection >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        cd $OLDPWD
+        return $res
+    fi
+
+    ./unit-tests-daemon -t Mgmt/TestGeneralConfigSection >> $logfile 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        cd $OLDPWD
+        return $res
+    fi
+    cd $OLDPWD
+    return $res
+}

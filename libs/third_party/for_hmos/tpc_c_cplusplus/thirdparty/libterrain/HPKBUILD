@@ -1,0 +1,175 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and limitations under the License.
+
+# Contributor: lixingyang <lixingyang15@h-partners.com>
+# Maintainer: lixingyang <lixingyang15@h-partners.com>
+
+pkgname=libterrain
+pkgver=master
+pkgrel=0
+pkgdesc="Libterrain is a terrain rendering library primarily used for efficient rendering and management of terrain in 3D scenes."
+url="https://sourceforge.net/projects/libterrain/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=()
+depends=()
+makedepends=("automake" "autoconf" "libtool")
+
+source="https://git.code.sf.net/p/libterrain/code"
+downloadpackage=false
+autounpack=false
+buildtools="configure"
+
+builddir=$pkgname-$pkgver
+rootDir=$PWD
+
+source envset.sh
+host=
+cloneflag=true
+patchflag=true
+
+prepare() {
+    if [ $cloneflag == true ]; then
+        mkdir -p $builddir
+        git clone "$source" "$builddir"
+        if [ $? != 0 ]; then
+            return -1
+        fi
+        cloneflag=false
+    fi
+    if $patchflag
+    then
+        cd $builddir
+        # 该库由于没有测试用例，所以打patch新增测试用例
+        patch -p1 < `pwd`/../libterrain_oh_test.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]; then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]; then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "x86_64" ]; then
+        setx86_64ENV
+        host=x86_64-linux
+    else 
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    export CFLAGS="$CFLAGS -fPIC"
+    export CXXFLAGS="$CXXFLAGS -fPIC"
+    cd $builddir-$ARCH-build/libterrain
+
+    if [ -f "configure.ac" ]; then
+        sed -i '/^AC_INIT/a\
+        AC_CONFIG_HEADERS([config.h])' configure.ac
+    fi
+
+    if [ -f "src/image.c" ]; then
+        if ! grep -q "#include <stdio.h>" src/image.c; then
+            sed -i '/#include "imagedef.h"/a #include <stdio.h>' src/image.c
+        fi
+        sed -i '/#warning no support for PNM images/d' src/image.c
+    fi
+    if [ -f "src/terrain.c" ]; then
+        sed -i '/#warning no support for PNM images/d' src/terrain.c
+    fi
+    sed -i '/LT_INIT/i AM_PROG_AR' configure.ac
+    mkdir -p build-aux m4
+    aclocal -I m4 >> $buildlog 2>&1
+    libtoolize --force --copy >> $buildlog 2>&1
+    autoheader --force >> $buildlog 2>&1
+    export WARNINGS=no
+    automake --add-missing --copy --force-missing >> $buildlog 2>&1 || {
+        echo "Automake had warnings but continuing..."
+    }
+    autoconf --force >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    # 进入 libterrain 子目录
+    if [ -d "libterrain" ]; then
+        cd libterrain
+    else
+        return -1
+    fi
+
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" \
+        --host=$host \
+        CC="$CC" \
+        CXX="$CXX" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP" \
+        CFLAGS="-O3 -flto=thin -fPIC -Wno-error $CFLAGS_ARCH -I$OHOS_SDK/usr/include" \
+        CXXFLAGS="-O3 -flto=thin -fPIC -Wno-error $CFLAGS_ARCH -I$OHOS_SDK/usr/include" \
+        LDFLAGS="-Wl,--gc-sections" \
+        LIBS="-lm" >> $buildlog 2>&1
+    
+    if [ $? != 0 ]; then
+        return -1
+    fi
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    
+    if [ $? != 0 ]; then
+        return -1
+    fi
+    $MAKE VERBOSE=1 install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    ret=$?
+    cd $rootDir
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build/libterrain
+    $MAKE install VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $rootDir
+    return $ret
+}
+
+check() {
+    # 由于没有测试用例，所以自己写了个简单的测试用例libterrain_oh_test.c，编译如下
+    cd $builddir-$ARCH-build/libterrain/src
+    $CC -L ./.libs/ -lterrain -o libterrain_oh_test libterrain_oh_test.c
+    cd $OLDPWD
+
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "$ARCH not support!"
+        return -4
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir 
+    rm -rf ${PWD}/$builddir-arm64-v8a-build
+    rm -rf ${PWD}/$builddir-armeabi-v7a-build
+    rm -rf ${PWD}/$builddir-x86_64-build
+}

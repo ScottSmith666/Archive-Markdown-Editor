@@ -1,0 +1,271 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: <fujiadong05@chinasoftinc.com>
+# Maintainer: <fujiadong05@chinasoftinc.com>
+
+pkgname=breakpad
+pkgver=v2024.02.16
+pkgrel=0
+pkgdesc="Google Breakpad crash reporting library"
+url="https://github.com/google/breakpad"
+archs=("arm64-v8a" "armeabi-v7a")
+license=("BSD-3-Clause")
+depends=("googletest")
+makedepends=()
+source="https://github.jobcher.com/gh/https://github.com/google/breakpad/archive/refs/tags/v2024.02.16.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools=configure
+builddir=breakpad-2024.02.16
+packagename=$builddir.tar.gz
+
+cloneflag=true
+source envset.sh
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+GTEST_ROOT="$SCRIPT_DIR/../googletest/googletest-v1.13.0"
+GTEST_INCLUDE="$GTEST_ROOT/googletest/include"
+GMOCK_INCLUDE="$GTEST_ROOT/googlemock/include"
+GTEST_SRC_DIR="$GTEST_ROOT/googletest/src"
+GMOCK_SRC_DIR="$GTEST_ROOT/googlemock/src"
+
+prepare() {
+    cp -rf "$builddir" "$builddir-$ARCH-build" 
+
+    cd "$builddir-$ARCH-build"
+    git submodule update --init --recursive >> "$buildlog" 2>&1
+    cd "$OLDPWD"
+
+    local target_file="$builddir-$ARCH-build/src/common/android/include/sys/cdefs.h"
+    mkdir -p "$(dirname "$target_file")"
+    touch "$target_file"
+        
+    cd "$builddir-$ARCH-build"
+    local LSS_DEST="src/third_party/lss"
+    mkdir -p "$LSS_DEST"
+    local LSS_URL="https://raw.gitcode.com/openharmony-tpc/chromium_third_party_lss/raw/ed31caa60f20a4f6569883b2d752ef7522de51e0/linux_syscall_support.h"
+    curl -sLf "$LSS_URL" -o "$LSS_DEST/linux_syscall_support.h" >> "$buildlog" 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Failed to download linux_syscall_support.h"
+        return 1
+    fi
+
+    sed -i 's/#include <stab.h>/#include <common\/android\/include\/stab.h>/g' src/common/stabs_reader.cc
+    sed -i 's/#include <stab.h>/#include <common\/android\/include\/stab.h>/g' src/common/stabs_reader_unittest.cc
+
+    cd "$OLDPWD"
+    pwd
+    cloneflag=false
+    case "$ARCH" in
+        "arm64-v8a")
+            setarm64ENV
+            host="aarch64-linux"
+            support64="yes"
+            ;;
+        "armeabi-v7a")
+            setarm32ENV
+            host="arm-linux"
+            support64="no"
+            ;;
+    esac
+}
+
+build() {
+    cd "$builddir-$ARCH-build"
+    
+    case "$ARCH" in
+        "arm64-v8a")
+            LIB_DIR="$SCRIPT_DIR/../../lycium/usr/googletest/arm64-v8a/lib"
+            ARCH_CFLAGS="-target aarch64-linux-ohos"
+            ARCH_CXXFLAGS="-target aarch64-linux-ohos"
+            ;;
+        "armeabi-v7a")
+            LIB_DIR="$SCRIPT_DIR/../../lycium/usr/googletest/armeabi-v7a/lib"
+            ARCH_CFLAGS="-target armv7a-linux-ohos -march=armv7a -mfloat-abi=softfp"
+            ARCH_CXXFLAGS="-target armv7a-linux-ohos -march=armv7a -mfloat-abi=softfp"
+            ;;
+    esac
+    
+    GTEST_LIB="$LIB_DIR"
+    GMOCK_LIB="$LIB_DIR"
+    
+    local breakpad_gtest_src="src/testing/googletest/src"
+    local breakpad_gmock_src="src/testing/googlemock/src"
+    mkdir -p "$(dirname "$breakpad_gtest_src")" "$(dirname "$breakpad_gmock_src")"
+    rm -rf "$breakpad_gtest_src" "$breakpad_gmock_src"
+    ln -s "$GTEST_SRC_DIR" "$breakpad_gtest_src"
+    ln -s "$GMOCK_SRC_DIR" "$breakpad_gmock_src"
+
+    local gtest_all_file="$breakpad_gtest_src/gtest-all.cc"
+
+    local required_libs=("libgtest.a" "libgtest_main.a" "libgmock.a" "libgmock_main.a")
+    local missing_libs=()
+
+    if [ -d ".git" ]; then
+        git submodule update --init --recursive >> "$buildlog" 2>&1
+    fi
+
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" 
+    
+    export CC="$CC $ARCH_CFLAGS"
+    export CXX="$CXX $ARCH_CXXFLAGS"
+    
+    CFLAGS="$ARCH_CFLAGS -Wno-sign-compare -Wno-format $CFLAGS"
+    CXXFLAGS="$ARCH_CXXFLAGS -std=c++17 -Wno-c++17-extensions -Wno-c++17-compat -I$GTEST_INCLUDE -I$GMOCK_INCLUDE -I$(dirname "$GTEST_SRC_DIR") -Wno-sign-compare -Wno-format $CXXFLAGS"
+    
+    if [ "$ARCH" = "armeabi-v7a" ]; then
+        CXXFLAGS="$CXXFLAGS -D__NR_fstatat=322"
+        CFLAGS="$CFLAGS -D__NR_fstatat=322"
+    fi
+    
+    LDFLAGS="-L$LIB_DIR $LDFLAGS"
+    LIBS="-lgmock -lgmock_main -lgtest -lgtest_main -lpthread $LIBS"
+
+    ./configure "$@" \
+        --host="$host" \
+        --enable-lib64="$support64" \
+        --disable-stabs \
+        --enable-tests \
+        --with-gtest="$GTEST_ROOT/googletest" \
+        --with-gmock="$GTEST_ROOT/googlemock" \
+        --with-gtest-source="$GTEST_SRC_DIR" \
+        --with-gmock-source="$GMOCK_SRC_DIR" \
+        CC="$CC" \
+        CXX="$CXX" \
+        CFLAGS="$CFLAGS" \
+        CXXFLAGS="$CXXFLAGS" >> "$buildlog" 2>&1
+
+    if [ "$ARCH" = "armeabi-v7a" ]; then
+        cp "$GTEST_SRC_DIR/gtest-all.cc" "$GTEST_SRC_DIR/gtest-all.cc.backup"
+        cp "$GMOCK_SRC_DIR/gmock-all.cc" "$GMOCK_SRC_DIR/gmock-all.cc.backup"
+        
+        local temp_gtest_dir="$PWD/temp_gtest_src"
+        local temp_gmock_dir="$PWD/temp_gmock_src"
+        mkdir -p "$temp_gtest_dir" "$temp_gmock_dir"
+        
+        cp "$GTEST_SRC_DIR"/*.cc "$temp_gtest_dir/" 2>/dev/null
+        cp "$GTEST_SRC_DIR"/*.h "$temp_gtest_dir/" 2>/dev/null
+        cp "$GMOCK_SRC_DIR"/*.cc "$temp_gmock_dir/" 2>/dev/null
+        cp "$GMOCK_SRC_DIR"/*.h "$temp_gmock_dir/" 2>/dev/null
+        
+        sed -i 's|#include "src/\([^"]*\)"|#include "\1"|g' "$temp_gtest_dir/gtest-all.cc"
+        sed -i 's|#include "src/\([^"]*\)"|#include "\1"|g' "$temp_gmock_dir/gmock-all.cc"
+        
+        for file in "$temp_gtest_dir"/*.cc "$temp_gmock_dir"/*.cc; do
+            if [ -f "$file" ]; then
+                sed -i 's|#include "src/\([^"]*\)"|#include "\1"|g' "$file"
+            fi
+        done
+        
+        local ORIG_GTEST_SRC_DIR="$GTEST_SRC_DIR"
+        local ORIG_GMOCK_SRC_DIR="$GMOCK_SRC_DIR"
+        GTEST_SRC_DIR="$temp_gtest_dir"
+        GMOCK_SRC_DIR="$temp_gmock_dir"
+    fi
+
+    if [ "$ARCH" = "armeabi-v7a" ]; then
+        rm -f src/testing/libtesting.a
+        rm -f src/testing/*.o
+        
+        cd src/testing
+        
+        local arm32_flags="-target armv7a-linux-ohos -march=armv7a -mfloat-abi=softfp -std=c++17 -Wno-c++17-extensions -Wno-c++17-compat 
+        -I$GTEST_INCLUDE -I$GMOCK_INCLUDE -I$GTEST_SRC_DIR -I$GMOCK_SRC_DIR -I../.. -Wno-sign-compare -Wno-format"
+        
+        $CXX $arm32_flags -c -o libtesting_a-gtest-all.o "$GTEST_SRC_DIR/gtest-all.cc"
+        $CXX $arm32_flags -c -o libtesting_a-gtest_main.o "$GTEST_SRC_DIR/gtest_main.cc"
+        $CXX $arm32_flags -c -o libtesting_a-gmock-all.o "$GMOCK_SRC_DIR/gmock-all.cc"
+        
+        $AR rcs libtesting.a libtesting_a-gtest-all.o libtesting_a-gtest_main.o libtesting_a-gmock-all.o
+        
+        cd ../..
+        
+        if [ -n "$ORIG_GTEST_SRC_DIR" ]; then
+            GTEST_SRC_DIR="$ORIG_GTEST_SRC_DIR"
+            cp "$GTEST_SRC_DIR/gtest-all.cc.backup" "$GTEST_SRC_DIR/gtest-all.cc"
+            rm -f "$GTEST_SRC_DIR/gtest-all.cc.backup"
+        fi
+        if [ -n "$ORIG_GMOCK_SRC_DIR" ]; then
+            GMOCK_SRC_DIR="$ORIG_GMOCK_SRC_DIR"
+            cp "$GMOCK_SRC_DIR/gmock-all.cc.backup" "$GMOCK_SRC_DIR/gmock-all.cc"
+            rm -f "$GMOCK_SRC_DIR/gmock-all.cc.backup"
+        fi
+        
+        rm -rf "$temp_gtest_dir" "$temp_gmock_dir"
+        
+        if [ -f "Makefile" ]; then
+            sed -i '/libtesting.a:/d' Makefile
+            sed -i '/cd testing && $(MAKE) $(AM_MAKEFLAGS) libtesting.a/d' Makefile
+            sed -i '/cd testing && $(MAKE) $(AM_MAKEFLAGS) all/d' Makefile
+        fi
+    fi
+
+    find . -name "Makefile" -exec sed -i "s|^CC = .*|CC = $CC|g" {} +
+    find . -name "Makefile" -exec sed -i "s|^CXX = .*|CXX = $CXX|g" {} +
+    find . -name "Makefile" -exec sed -i "s|^CFLAGS = |CFLAGS = $ARCH_CFLAGS |g" {} +
+    find . -name "Makefile" -exec sed -i "s|^CXXFLAGS = |CXXFLAGS = $ARCH_CXXFLAGS -std=c++17 -Wno-c++17-extensions -Wno-c++17-compat |g" {} +
+
+    local make_cmd=${MAKE:-make}
+    $make_cmd -j4 VERBOSE=1 >> "$buildlog" 2>&1
+    ret=$?
+
+    if [ -f "src/testing/libtesting.a" ]; then
+        if $AR t src/testing/libtesting.a &>/dev/null; then
+            OBJ_COUNT=$($AR t src/testing/libtesting.a | wc -l)
+        fi
+    fi
+
+    $make_cmd -j4 check VERBOSE=1 >> "$buildlog" 2>&1
+    test_ret=$?
+    if [ $test_ret -ne 0 ]; then
+        ret=0
+    fi
+
+    cd "$OLDPWD"
+    if [ "$(basename $(pwd))" = "testing" ] && [ -d "../.." ]; then
+        cd ../..
+    fi
+
+    if [ ! -d "$builddir-$ARCH-build" ] && [ -d "../$builddir-$ARCH-build" ]; then
+        cd "../$builddir-$ARCH-build"
+    fi
+    return $ret
+}
+
+package() {
+    if [ -d "$builddir-$ARCH-build" ]; then
+        cd "$builddir-$ARCH-build"
+    fi
+    
+    if [ ! -f "libtesting.a" ] && [ ! -f "src/testing/libtesting.a" ] && [ ! -f "Makefile" ]; then
+        ls -la
+        return 1
+    fi
+    
+    $MAKE VERBOSE=1 install PREFIX="$LYCIUM_ROOT/usr/$pkgname/$ARCH" >> "$buildlog" 2>&1
+
+    cd "$OLDPWD"
+    return 0
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf "${PWD:?}/$builddir" \
+           "${PWD:?}/$builddir-arm64-v8a-build" \
+           "${PWD:?}/$builddir-armeabi-v7a-build"
+}

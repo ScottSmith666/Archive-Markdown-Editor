@@ -1,0 +1,138 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the ImageMagick License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://imagemagick.org/script/license.php
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jiang Xu <xujiang16@h-partners.com>
+# Maintainer: huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=ImageMagick
+pkgver=7.1.1-15
+pkgrel=0
+pkgdesc="ImageMagick is a free and open-source software suite for displaying, converting, and editing raster image and vector image files."
+url="https://imagemagick.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("ImageMagick license")
+depends=("libzip" "zlib_1_3_1" "zstd" "djvulibre" "fontconfig" "freetype2" "libheif" "lcms2" "openjpeg" "libpng" "tiff" "libwebp" "libxml2" "icu" "xz" "jbigkit" "bzip2_1_0_8" "jpeg")
+makedepends=()
+
+source=https://github.com/${pkgname}/${pkgname}/archive/refs/tags/${pkgver}.tar.gz
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+buildtools="configure"
+originpath=
+
+source envset.sh
+host=
+
+prepare() {
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    export CPPFLAGS="-I${LYCIUM_ROOT}/usr/jpeg/${ARCH}/include -I${LYCIUM_ROOT}/usr/jbigkit/${ARCH}/include -I${LYCIUM_ROOT}/usr/bzip2_1_0_8/${ARCH}/include ${CPPFLAGS}"
+    export LDFLAGS="-L${LYCIUM_ROOT}/usr/jbigkit/${ARCH}/lib -L${LYCIUM_ROOT}/usr/jpeg/${ARCH}/lib -L${LYCIUM_ROOT}/usr/bzip2_1_0_8/${ARCH}/lib ${LDFLAGS}"
+    originpath=$PATH
+    PATH="/data/CIusr/bin:$PATH"
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ./configure "$@" --host=$host > $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    export PATH=$originpath
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    unset originpath
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir-$ARCH-build
+    sed -i 's/$(MAKE) $(AM_MAKEFLAGS) check-TESTS check-local/#$(MAKE) $(AM_MAKEFLAGS) check-TESTS check-local/g' Makefile # 注释make check 里执行文件的代码，只编译生成测试文件
+    sed -i 's/check-TESTS: $(check_PROGRAMS)/check-TESTS: /g' Makefile # 删除check-TESTS的依赖，不检查编译生成测试文件过程
+    $MAKE check >> $buildlog 2>&1
+    ret=$?
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./tests/wandtest
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./tests/drawtest
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./tests/validate
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/colorHistogram
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/averageImages
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/color
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/coalesceImages
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/readWriteImages
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/montageImages
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/geometry
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/readWriteBlob
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/attributes
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/coderInfo
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/exceptions
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/appendImages
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/tests/morphImages
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/demo/gravity
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/demo/zoom
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/demo/demo
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/demo/analyze
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/demo/flip
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/demo/shapes
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/demo/button
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/demo/piddle
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Magick++/demo/detrans
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./libtool
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./Makefile
+    sed -i.bak  's|/bin/bash|/data/CIusr/bin/bash|g'  ./utilities/magick
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # $MAKE check-TESTS >> $buildlog 2>&1
+    return $ret
+}
+
+recoverpkgbuildenv() {
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]                                                                                                                                                                         
+    then                                                                                                                                                                               
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir 
+    rm -rf ${PWD}/$builddir-arm64-v8a-build 
+    rm -rf ${PWD}/$builddir-armeabi-v7a-build #${PWD}/$packagename
+}
+

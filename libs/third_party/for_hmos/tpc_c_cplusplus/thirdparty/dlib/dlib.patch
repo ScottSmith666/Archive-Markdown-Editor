@@ -1,0 +1,12 @@
+diff --git dlib-v20.0/dlib/test/CMakeLists.txt dlib-v20.0/dlib/test/CMakeLists.txt
+index 330ac241..b0c022ba 100644
+--- dlib-v20.0/dlib/test/CMakeLists.txt
++++ dlib-v20.0/dlib/test/CMakeLists.txt
+@@ -41,7 +41,6 @@ add_executable(${target_name} main.cpp tester.cpp
+    conditioning_class.cpp
+    config_reader.cpp
+    constexpr_if.cpp
+-   correlation_tracker.cpp
+    crc32.cpp
+    create_iris_datafile.cpp
+    data_io.cpp

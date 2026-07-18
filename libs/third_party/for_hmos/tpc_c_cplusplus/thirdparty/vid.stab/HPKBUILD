@@ -1,0 +1,63 @@
+# Contributor: wupingyuan <3415239542@qq.com>
+# Maintainer: wupingyuan <3415239542@qq.com>
+pkgname=vid.stab
+pkgver=v1.1.1
+pkgrel=0
+pkgdesc="Vidstab is a video stabilization library which can be plugged-in with Ffmpeg and Transcode."
+url="https://github.com/georgmartius/vid.stab"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL")
+depends=("openmp")
+makedepends=()
+
+source="https://github.com/georgmartius/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 打补丁说明以下:
+        # 1、添加测试用例到编译脚本
+        # 2、链接不到gomp库
+        # 3、找不到符号__STRING
+        patch -p1 < `pwd`/../vid.stab_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DGOMP_LIBRARIES="$LYCIUM_ROOT/usr/openmp/$ARCH/lib/libgomp.so" \
+    -DBUILD_SHARED_LIBS=OFF -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # 注意:需要把openmp下的libomp.so推到开发板中/system/lib64
+    # ./tests/tests
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "AES",
+        "License": "MIT",
+        "License File": "https://github.com/dhuertas/AES/blob/master/LICENSE",
+        "Version Number": "44407f634f11992404596129ec31545e3f268ad3",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/dhuertas/AES",
+        "Description": "AES algorithm implementation using C."
+    }
+]

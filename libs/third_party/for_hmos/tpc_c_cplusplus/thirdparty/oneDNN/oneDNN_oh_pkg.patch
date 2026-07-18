@@ -1,0 +1,31 @@
+diff -Naur oneDNN-3.2_old/cmake/OpenMP.cmake oneDNN-3.2/cmake/OpenMP.cmake
+--- oneDNN-3.2_old/cmake/OpenMP.cmake	2023-06-23 09:17:29.000000000 +0800
++++ oneDNN-3.2/cmake/OpenMP.cmake	2023-07-04 16:49:15.533832674 +0800
+@@ -97,7 +97,7 @@
+         append(CMAKE_SHARED_LINKER_FLAGS "-fopenmp=libgomp")
+         append(CMAKE_EXE_LINKER_FLAGS "-fopenmp=libgomp")
+     elseif(OpenMP_CXX_FOUND)
+-        if(MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
++        if((MSVC OR OHOS) AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+             list(APPEND EXTRA_SHARED_LIBS ${OpenMP_CXX_LIBRARIES})
+         endif()
+     else()
+diff -Naur oneDNN-3.2_old/src/cpu/aarch64/xbyak_aarch64/src/util_impl_linux.h oneDNN-3.2/src/cpu/aarch64/xbyak_aarch64/src/util_impl_linux.h
+--- oneDNN-3.2_old/src/cpu/aarch64/xbyak_aarch64/src/util_impl_linux.h	2023-06-23 09:17:29.000000000 +0800
++++ oneDNN-3.2/src/cpu/aarch64/xbyak_aarch64/src/util_impl_linux.h	2023-07-04 16:49:15.545832824 +0800
+@@ -374,11 +374,14 @@
+        * for the case thd dictionary is unavailable.
+        */
+       lastDataCacheLevel_ = 2; // It is assumed L1 and L2 cache exist.
+-
++#ifndef __OHOS__
+       cacheInfo_.levelCache[0].size[0] = sysconf(_SC_LEVEL1_ICACHE_SIZE); // L1, ICache
+       cacheInfo_.levelCache[0].size[1] = sysconf(_SC_LEVEL1_DCACHE_SIZE); // L1, DCache
+       cacheInfo_.levelCache[1].size[2] = sysconf(_SC_LEVEL2_CACHE_SIZE);  // L2, UCache
+       cacheInfo_.levelCache[2].size[2] = sysconf(_SC_LEVEL3_CACHE_SIZE);  // L3, UCache
++#else
++      printf("not support\n");
++#endif
+     }
+   }
+ 

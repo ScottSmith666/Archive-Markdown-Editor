@@ -1,0 +1,605 @@
+diff --git a/XMPCommon/Utilities/TAtomicTypes.h b/XMPCommon/Utilities/TAtomicTypes.h
+index 80df64c..21c34a4 100644
+--- a/XMPCommon/Utilities/TAtomicTypes.h
++++ b/XMPCommon/Utilities/TAtomicTypes.h
+@@ -24,7 +24,7 @@
+ 		#include "XMPCommon/Utilities/TAtomicTypes_Win.h"
+ 	#elif XMP_MacBuild || XMP_iOSBuild
+ 		#include "XMPCommon/Utilities/TAtomicTypes_Mac.h"
+-	#elif XMP_UNIXBuild
++	#elif XMP_UNIXBuild || XMP_OHOSBuild
+ 		#include "XMPCommon/Utilities/TAtomicTypes_Linux.h"
+     #elif XMP_AndroidBuild
+     	#include "XMPCommon/Utilities/TAtomicTypes_Android.h"
+diff --git a/XMPCommon/Utilities/TAtomicTypes_Linux.h b/XMPCommon/Utilities/TAtomicTypes_Linux.h
+index 78ffd2c..8034b14 100644
+--- a/XMPCommon/Utilities/TAtomicTypes_Linux.h
++++ b/XMPCommon/Utilities/TAtomicTypes_Linux.h
+@@ -10,7 +10,7 @@
+ // of the Adobe license agreement accompanying it. 
+ // =================================================================================================
+ 
+-#if XMP_UNIXBuild
++#if XMP_UNIXBuild || XMP_OHOSBuild
+ 
+ #ifndef __TAtomicTypes_h__
+ 	#error	"This file is supposed to be included from TAtomicTypes and not directly"
+diff --git a/XMPCore/build/CMakeListsCommon.txt b/XMPCore/build/CMakeListsCommon.txt
+index db06d91..2875e89 100644
+--- a/XMPCore/build/CMakeListsCommon.txt
++++ b/XMPCore/build/CMakeListsCommon.txt
+@@ -276,7 +276,7 @@ if(UNIX)
+ 			else()
+ 				add_custom_command (TARGET ${TARGET_NAME}
+ 					POST_BUILD
+-					COMMAND strip ${OUTPUT_DIR}/lib${XMPCORE_LIB}.so
++					COMMAND ${CMAKE_STRIP} ${OUTPUT_DIR}/lib${XMPCORE_LIB}.so
+ 					COMMAND ls -l ${OUTPUT_DIR}/lib${XMPCORE_LIB}.so
+ 				)
+ 			endif()
+diff --git a/XMPCore/source/XMPUtils.cpp b/XMPCore/source/XMPUtils.cpp
+index c0f6e41..b796977 100644
+--- a/XMPCore/source/XMPUtils.cpp
++++ b/XMPCore/source/XMPUtils.cpp
+@@ -1240,7 +1240,7 @@ XMP_Index XMPUtils::LookupFieldSelector_v2(const spIArrayNode & arrayNode, XMP_V
+ // A bit of hackery to use the best available time functions. Mac, UNIX and iOS have thread safe versions
+ // of gmtime and localtime.
+ 
+-#if XMP_MacBuild | XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild
++#if XMP_MacBuild | XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 
+ 	typedef time_t			ansi_tt;
+ 	typedef struct tm		ansi_tm;
+diff --git a/XMPFiles/build/CMakeListsCommon.txt b/XMPFiles/build/CMakeListsCommon.txt
+index ce3b9c7..c9950f2 100644
+--- a/XMPFiles/build/CMakeListsCommon.txt
++++ b/XMPFiles/build/CMakeListsCommon.txt
+@@ -352,7 +352,7 @@ if(UNIX AND NOT ANDROID)
+ 			else()
+ 				add_custom_command (TARGET ${TARGET_NAME}
+ 					POST_BUILD
+-					COMMAND strip ${OUTPUT_DIR}/lib${XMPFILES_LIB}.so
++					COMMAND ${CMAKE_STRIP} ${OUTPUT_DIR}/lib${XMPFILES_LIB}.so
+ 					COMMAND ls -l ${OUTPUT_DIR}/lib${XMPFILES_LIB}.so
+ 				)
+ 			endif()
+diff --git a/XMPFiles/source/FormatSupport/QuickTime_Support.cpp b/XMPFiles/source/FormatSupport/QuickTime_Support.cpp
+index 2b31d9f..cdf73bf 100644
+--- a/XMPFiles/source/FormatSupport/QuickTime_Support.cpp
++++ b/XMPFiles/source/FormatSupport/QuickTime_Support.cpp
+@@ -813,7 +813,7 @@ static inline bool IsMacLangKnown ( XMP_Uns16 macLang )
+ 	XMP_Uns16 macScript = GetMacScript ( macLang );
+ 	if ( macScript == kNoMacScript ) return false;
+ 
+-	#if XMP_UNIXBuild | XMP_AndroidBuild
++	#if XMP_UNIXBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 		if ( macScript != ksmRoman ) return false;
+ 	#elif XMP_WinBuild
+ 		if ( GetWinCP(macLang) == 0 ) return false;
+@@ -836,7 +836,7 @@ bool ConvertToMacLang ( const std::string & utf8Value, XMP_Uns16 macLang, std::s
+ 	#if XMP_MacBuild
+ 		XMP_Uns16 macScript = GetMacScript ( macLang );
+ 		ReconcileUtils::UTF8ToMacEncoding ( macScript, macLang, (XMP_Uns8*)utf8Value.c_str(), utf8Value.size(), macValue );
+-	#elif XMP_UNIXBuild | XMP_AndroidBuild
++	#elif XMP_UNIXBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 		UTF8ToMacRoman ( utf8Value, macValue );
+ 	#elif XMP_WinBuild
+ 		UINT winCP = GetWinCP ( macLang );
+@@ -862,7 +862,7 @@ bool ConvertFromMacLang ( const std::string & macValue, XMP_Uns16 macLang, std::
+ 	#if XMP_MacBuild
+ 		XMP_Uns16 macScript = GetMacScript ( macLang );
+ 		ReconcileUtils::MacEncodingToUTF8 ( macScript, macLang, (XMP_Uns8*)macValue.c_str(), macValue.size(), utf8Value );
+-	#elif XMP_UNIXBuild | XMP_AndroidBuild
++	#elif XMP_UNIXBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 		MacRomanToUTF8 ( macValue, utf8Value );
+ 	#elif XMP_WinBuild
+ 		UINT winCP = GetWinCP ( macLang );
+diff --git a/XMPFiles/source/FormatSupport/RIFF.hpp b/XMPFiles/source/FormatSupport/RIFF.hpp
+index 68db6d4..feeb97d 100644
+--- a/XMPFiles/source/FormatSupport/RIFF.hpp
++++ b/XMPFiles/source/FormatSupport/RIFF.hpp
+@@ -204,7 +204,7 @@ namespace RIFF {
+ 		char appOptions[16];
+ 		char appName[32];
+ 	};
+-#if SUNOS_SPARC || SUNOS_X86 || XMP_AndroidBuild
++#if SUNOS_SPARC || SUNOS_X86 || XMP_AndroidBuild || XMP_OHOSBuild
+ 	#pragma pack (  )
+ #else
+ 	#pragma pack ( pop )
+diff --git a/XMPFiles/source/FormatSupport/Reconcile_Impl.cpp b/XMPFiles/source/FormatSupport/Reconcile_Impl.cpp
+index 9344fd5..2b15f07 100644
+--- a/XMPFiles/source/FormatSupport/Reconcile_Impl.cpp
++++ b/XMPFiles/source/FormatSupport/Reconcile_Impl.cpp
+@@ -175,7 +175,7 @@ bool ReconcileUtils::IsUTF8 ( const void * textPtr, size_t textLen )
+ 
+ 	// ! Does not exist, must not be called, for Generic UNIX builds.
+ 
+-#elif XMP_AndroidBuild
++#elif XMP_AndroidBuild | XMP_OHOSBuild
+ 
+ 	// Not Implemented for Android, as(for now) Not possible to identify locale from native side of Android
+ 
+@@ -208,6 +208,10 @@ void ReconcileUtils::UTF8ToLocal ( const void * _utf8Ptr, size_t utf8Len, std::s
+ 	
+ 		XMP_Throw ( "Generic UNIX does not have conversions between local and Unicode", kXMPErr_Unavailable );
+ 
++	#elif XMP_OHOSBuild
++
++		XMP_Throw ( "Conversions between local and Unicode not implemented for OpenHarmony", kXMPErr_Unavailable );
++
+ 	#elif XMP_AndroidBuild
+ 
+ 		XMP_Throw ( "Conversions between local and Unicode not implemented for Android", kXMPErr_Unavailable );
+@@ -360,7 +364,7 @@ void ReconcileUtils::UTF8ToLatin1 ( const void * _utf8Ptr, size_t utf8Len, std::
+ 
+ 	// ! Does not exist, must not be called, for Generic UNIX builds.
+ 
+-#elif XMP_AndroidBuild
++#elif XMP_AndroidBuild | XMP_OHOSBuild
+ 
+ 	// Not to be called for Android. Keep Android only UTF8
+ 
+@@ -395,6 +399,10 @@ void ReconcileUtils::LocalToUTF8 ( const void * _localPtr, size_t localLen, std:
+ 	
+ 		XMP_Throw ( "Generic UNIX does not have conversions between local and Unicode", kXMPErr_Unavailable );
+ 
++	#elif XMP_OHOSBuild
++
++		XMP_Throw ( "Conversions between local and Unicode not implemented for OpenHarmony", kXMPErr_Unavailable );
++
+ 	#elif XMP_AndroidBuild
+ 
+ 		XMP_Throw ( "Conversions between local and Unicode not implemented for Android", kXMPErr_Unavailable );
+diff --git a/XMPFiles/source/PluginHandler/ModuleUtils.h b/XMPFiles/source/PluginHandler/ModuleUtils.h
+index cadbb00..a92194d 100644
+--- a/XMPFiles/source/PluginHandler/ModuleUtils.h
++++ b/XMPFiles/source/PluginHandler/ModuleUtils.h
+@@ -25,7 +25,7 @@ typedef CFBundleRef OS_ModuleRef;
+ #include <tr1/memory>
+ #endif
+ typedef void* OS_ModuleRef;
+-#elif XMP_AndroidBuild
++#elif XMP_AndroidBuild | XMP_OHOSBuild
+ #include <memory>
+ typedef void* OS_ModuleRef;
+ #else
+diff --git a/XMPFilesPlugins/PluginTemplate/build/CMakeLists.txt b/XMPFilesPlugins/PluginTemplate/build/CMakeLists.txt
+index f4e117c..c6222af 100644
+--- a/XMPFilesPlugins/PluginTemplate/build/CMakeLists.txt
++++ b/XMPFilesPlugins/PluginTemplate/build/CMakeLists.txt
+@@ -169,7 +169,7 @@ if (UNIX)
+ 		else()
+ 			add_custom_command (TARGET ${TARGET_NAME}
+ 				POST_BUILD
+-				COMMAND strip ${XMPPLUGIN_OUTPUT_DIR}/${TARGET_NAME}.xpi
++				COMMAND ${CMAKE_STRIP} ${XMPPLUGIN_OUTPUT_DIR}/${TARGET_NAME}.xpi
+ 				COMMAND ls -l ${XMPPLUGIN_OUTPUT_DIR}/${TARGET_NAME}.xpi
+ 			)
+ 		endif()
+diff --git a/build/ProductConfig.cmake b/build/ProductConfig.cmake
+index 3f51fa6..295efc7 100644
+--- a/build/ProductConfig.cmake
++++ b/build/ProductConfig.cmake
+@@ -98,11 +98,25 @@ if (UNIX)
+     	set(XMP_SHARED_COMPILE_DEBUG_FLAGS " ")
+     	set(XMP_SHARED_COMPILE_RELEASE_FLAGS "-fwrapv ")
+ 
+-	if(NOT XMP_DISABLE_FASTMATH)
+-	#	set(XMP_SHARED_COMPILE_FLAGS "${XMP_SHARED_COMPILE_FLAGS} -ffast-math")
+-	#	set(XMP_SHARED_COMPILE_RELEASE_FLAGS "${XMP_SHARED_COMPILE_RELEASE_FLAGS} -fomit-frame-pointer -funroll-loops")
+-	endif()
++		if(NOT XMP_DISABLE_FASTMATH)
++		#	set(XMP_SHARED_COMPILE_FLAGS "${XMP_SHARED_COMPILE_FLAGS} -ffast-math")
++		#	set(XMP_SHARED_COMPILE_RELEASE_FLAGS "${XMP_SHARED_COMPILE_RELEASE_FLAGS} -fomit-frame-pointer -funroll-loops")
++		endif()
+ 
++    elseif(OHOS)
++    	if(OHOS_ARCH STREQUAL "armeabi-v7a")
++    		add_definitions(-march=armv7-a -mfloat-abi=softfp -mfpu=neon-vfpv4)
++    		set(XMP_PLATFORM_FOLDER "armeabi-v7a-build")
++    	elseif(OHOS_ARCH STREQUAL "arm64-v8a")
++    		set(XMP_PLATFORM_FOLDER "arm64-v8a-build")
++    	elseif(OHOS_ARCH STREQUAL "x86_64")
++    		set(XMP_PLATFORM_FOLDER "x86_64-build")
++    	endif()
++    	set(XMP_PLATFORM_SHORT "ohos")
++    	set(XMP_PLATFORM_LINK "  ${XMPCORE_UUIDLIB_PATH} ${XMP_EXTRA_LINK_FLAGS} ${XMP_TOOLCHAIN_LINK_FLAGS}")
++    	set(XMP_SHARED_COMPILE_FLAGS "-Wno-multichar  -funsigned-char  ${XMP_EXTRA_COMPILE_FLAGS} ${XMP_TOOLCHAIN_COMPILE_FLAGS}")
++    	set(XMP_SHARED_COMPILE_DEBUG_FLAGS " ")
++    	set(XMP_SHARED_COMPILE_RELEASE_FLAGS "-fwrapv ")
+     else()
+ 		if(NOT CMAKE_CROSSCOMPILING)
+ 			if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+diff --git a/build/shared/SharedConfig_Linux.cmake b/build/shared/SharedConfig_Linux.cmake
+index e2bcdab..c1ce4d6 100644
+--- a/build/shared/SharedConfig_Linux.cmake
++++ b/build/shared/SharedConfig_Linux.cmake
+@@ -21,7 +21,9 @@ endif(ANDROID)
+ # ==============================================================================
+ 
+ add_definitions(-DUNIX_ENV=1)
+-
++if(OHOS)
++	add_definitions(-DOHOS_ENV=1)
++endif(OHOS)
+ # Linux -------------------------------------------
+ 
+ set(COMMON_PLATFORM_LINK " ${${COMPONENT}_PLATFORM_LINK}")
+diff --git a/public/include/XMPCommon/XMPCommonDefines.h b/public/include/XMPCommon/XMPCommonDefines.h
+index 7012a67..5accbe1 100644
+--- a/public/include/XMPCommon/XMPCommonDefines.h
++++ b/public/include/XMPCommon/XMPCommonDefines.h
+@@ -44,7 +44,7 @@
+ 
+     #endif
+ 
+-    #if XMP_AndroidBuild
++    #if XMP_AndroidBuild | XMP_OHOSBuild
+     #define SUPPORT_STD_ATOMIC_IMPLEMENTATION 0
+     #ifdef _LIBCPP_VERSION
+         #define SUPPORT_SHARED_POINTERS_IN_TR1 0
+diff --git a/public/include/XMPCore/XMPCoreDefines.h b/public/include/XMPCore/XMPCoreDefines.h
+index 5af5be9..133eabd 100644
+--- a/public/include/XMPCore/XMPCoreDefines.h
++++ b/public/include/XMPCore/XMPCoreDefines.h
+@@ -54,7 +54,7 @@
+ // =================================================================================================
+ // Android Specific Settings
+ // ======================
+-#if XMP_AndroidBuild
++#if XMP_AndroidBuild | XMP_OHOSBuild
+ #define ENABLE_CPP_DOM_MODEL 0
+ #endif
+ 
+diff --git a/public/include/XMP_Const.h b/public/include/XMP_Const.h
+index b14d193..cd69e6d 100644
+--- a/public/include/XMP_Const.h
++++ b/public/include/XMP_Const.h
+@@ -17,7 +17,7 @@
+     #include <stdint.h>
+ #endif
+ //Android has both inttypes and stdint. But inttypes includes stdint plus other functions
+-#if XMP_UNIXBuild | XMP_AndroidBuild		// hopefully an inttypes.h on all UNIXes...
++#if XMP_UNIXBuild | XMP_AndroidBuild | XMP_OHOSBuild		// hopefully an inttypes.h on all UNIXes...
+ 		#include <inttypes.h>
+ #endif
+ 
+@@ -72,7 +72,7 @@ extern "C" {
+     typedef unsigned long XMP_Uns32;
+     typedef unsigned long long XMP_Uns64;
+ 
+-#elif XMP_UNIXBuild | XMP_AndroidBuild
++#elif XMP_UNIXBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 
+ 	#if ! XMP_64
+ 
+@@ -102,7 +102,7 @@ extern "C" {
+ 
+ #else
+ 
+-	#error "XMP environment error - must define one of XMP_MacBuild, XMP_WinBuild, XMP_UNIXBuild, XMP_AndroidBuild or XMP_iOSBuild"
++	#error "XMP environment error - must define one of XMP_MacBuild, XMP_WinBuild, XMP_UNIXBuild, XMP_AndroidBuild, XMP_OHOSBuild or XMP_iOSBuild"
+ 
+ #endif
+ 
+diff --git a/public/include/XMP_Environment.h b/public/include/XMP_Environment.h
+index 3be35bc..33202e6 100644
+--- a/public/include/XMP_Environment.h
++++ b/public/include/XMP_Environment.h
+@@ -35,8 +35,8 @@
+ 		#error "MAC_ENV must be defined so that \"#if MAC_ENV\" is true"
+ 	#endif
+ 	
+-    #if defined ( WIN_ENV ) || defined ( UNIX_ENV ) || defined ( ANDROID_ENV )
+-        #error "XMP environment error - must define only one of MAC_ENV, WIN_ENV, UNIX_ENV or ANDROID_ENV"
++    #if defined ( WIN_ENV ) || defined ( UNIX_ENV ) || defined ( ANDROID_ENV ) || defined ( OHOS_ENV )
++        #error "XMP environment error - must define only one of MAC_ENV, WIN_ENV, UNIX_ENV, ANDROID_ENV or OHOS_ENV""
+     #endif
+ 
+     #define XMP_MacBuild  1
+@@ -52,8 +52,8 @@
+ 		#error "WIN_ENV must be defined so that \"#if WIN_ENV\" is true"
+ 	#endif
+ 	
+-    #if defined ( MAC_ENV ) || defined ( UNIX_ENV ) || defined ( IOS_ENV ) || defined ( ANDROID_ENV )
+-		#error "XMP environment error - must define only one of MAC_ENV (or IOS_ENV), WIN_ENV, UNIX_ENV, ANDROID_ENV"
++    #if defined ( MAC_ENV ) || defined ( UNIX_ENV ) || defined ( IOS_ENV ) || defined ( ANDROID_ENV ) || defined ( OHOS_ENV )
++		#error "XMP environment error - must define only one of MAC_ENV (or IOS_ENV), WIN_ENV, UNIX_ENV, ANDROID_ENV, OHOS_ENV"
+     #endif
+ 
+     #define XMP_MacBuild  0
+@@ -67,14 +67,14 @@
+ 	#endif
+ 	#define XMP_AndroidBuild  0
+ 
+-#elif defined ( UNIX_ENV ) && !defined (ANDROID_ENV)
++#elif defined ( UNIX_ENV ) && !defined (ANDROID_ENV) && !defined ( OHOS_ENV )
+ 
+ 	#if 0	// ! maybe someday - ! UNIX_ENV
+ 		#error "UNIX_ENV must be defined so that \"#if UNIX_ENV\" is true"
+ 	#endif
+ 	
+-	#if defined ( MAC_ENV ) || defined ( WIN_ENV ) || defined ( IOS_ENV ) || defined ( ANDROID_ENV )
+-		#error "XMP environment error - must define only one of MAC_ENV (or IOS_ENV), WIN_ENV, UNIX_ENV, ANDROID_ENV"
++	#if defined ( MAC_ENV ) || defined ( WIN_ENV ) || defined ( IOS_ENV ) || defined ( ANDROID_ENV ) || defined ( OHOS_ENV )
++		#error "XMP environment error - must define only one of MAC_ENV (or IOS_ENV), WIN_ENV, UNIX_ENV, ANDROID_ENV, OHOS_ENV"
+ 	#endif
+ 
+     #define XMP_MacBuild  0
+@@ -91,8 +91,8 @@
+ 		#error "IOS_ENV must be defined so that \"#if IOS_ENV\" is true"
+ 	#endif
+ 
+-	#if defined ( WIN_ENV ) || defined ( UNIX_ENV ) || defined ( ANDROID_ENV )
+-		#error "XMP environment error - must define only one of IOS_ENV, WIN_ENV, UNIX_ENV, ANDROID_ENV"
++	#if defined ( WIN_ENV ) || defined ( UNIX_ENV ) || defined ( ANDROID_ENV ) || defined ( OHOS_ENV )
++		#error "XMP environment error - must define only one of IOS_ENV, WIN_ENV, UNIX_ENV, ANDROID_ENV, OHOS_ENV"
+ 	#endif
+ 
+ 	#define XMP_MacBuild  0
+@@ -104,6 +104,22 @@
+ 
+ 	#define XMP_AndroidBuild  0
+ 
++#elif defined ( OHOS_ENV )
++
++	#if 0	// ! maybe someday - ! UNIX_ENV
++		#error "OHOS_ENV must be defined so that \"#if OHOS_ENV\" is true"
++	#endif
++	
++	#if defined ( MAC_ENV ) || defined ( WIN_ENV ) || defined ( IOS_ENV )
++		#error "XMP environment error - must define only one of MAC_ENV (or IOS_ENV), WIN_ENV, UNIX_ENV, OHOS_ENV"
++	#endif
++
++    #define XMP_MacBuild  0
++    #define XMP_WinBuild  0
++    #define XMP_iOSBuild  0
++    #define XMP_UNIXBuild  0
++    #define XMP_OHOSBuild  1
++
+ #elif defined ( ANDROID_ENV )
+ 
+ 	#if 0	// ! maybe someday - ! UNIX_ENV
+@@ -184,7 +200,7 @@
+ // =================================================================================================
+ // UNIX Specific Settings
+ // ======================
+-#if (XMP_UNIXBuild) | (XMP_AndroidBuild)
++#if (XMP_UNIXBuild) | (XMP_AndroidBuild) | (XMP_OHOSBuild)
+ 	#define XMP_HELPER_DLL_IMPORT
+ 	#define XMP_HELPER_DLL_EXPORT __attribute__ ((visibility ("default")))
+ 	#define XMP_HELPER_DLL_PRIVATE __attribute__ ((visibility ("hidden")))
+diff --git a/samples/build/cmake/SharedConfigSDK.cmake b/samples/build/cmake/SharedConfigSDK.cmake
+index 74122f8..2414d85 100644
+--- a/samples/build/cmake/SharedConfigSDK.cmake
++++ b/samples/build/cmake/SharedConfigSDK.cmake
+@@ -67,7 +67,15 @@ if(UNIX)
+     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG=1")
+ 
+ 	set(CMAKE_C_FLAGS "")
+-  else(APPLE)
++  elseif(OHOS)
++	# OHOS -------------------------------------------
++	set(PLATFORM_FOLDER "${OHOS_ARCH}-build")
++	set(XMPCORE_LIB "libXMPCore")
++	set(XMPFILES_LIB "libXMPFiles")
++	set(LIB_EXT ".so")	
++	add_definitions(-DOHOS_ENV=1)	
++
++  else()
+ 	# Linux -------------------------------------------
+ 	if(STATIC)
+ 		set(BUILD_FOLDER "gcc4")	
+@@ -92,7 +100,7 @@ if(UNIX)
+     set(CMAKE_CXX_FLAGS "${CXX_FLAGS} -Wno-ctor-dtor-privacy -fPIC -funsigned-char -fexceptions -Wno-multichar -Wno-implicit")
+     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -DDEBUG=1 -D_DEBUG=1")
+     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG=1")
+-  endif(APPLE)
++  endif()
+ else(UNIX)
+   if(WIN32)
+   
+diff --git a/samples/source/XMPFilesCoverage.cpp b/samples/source/XMPFilesCoverage.cpp
+index b4ccec1..6bd7161 100644
+--- a/samples/source/XMPFilesCoverage.cpp
++++ b/samples/source/XMPFilesCoverage.cpp
+@@ -301,6 +301,20 @@ extern "C" int main ( int argc, const char * argv[] )
+ 		
+ 		DumpHandlerInfo();
+ 	
++#if OHOS_ENV
++		TestOneFile ( "../../../testfiles/BlueSquare.ai" );
++		TestOneFile ( "../../../testfiles/BlueSquare.eps" );
++		TestOneFile ( "../../../testfiles/BlueSquare.indd" );
++		TestOneFile ( "../../../testfiles/BlueSquare.jpg" );
++		TestOneFile ( "../../../testfiles/BlueSquare.pdf" );
++		TestOneFile ( "../../../testfiles/BlueSquare.psd" );
++		TestOneFile ( "../../../testfiles/BlueSquare.tif" );
++		TestOneFile ( "../../../testfiles/BlueSquare.avi" );
++		TestOneFile ( "../../../testfiles/BlueSquare.mov" );
++		TestOneFile ( "../../../testfiles/BlueSquare.mp3" );
++		TestOneFile ( "../../../testfiles/BlueSquare.wav" );
++		TestOneFile ( "../../../testfiles/BlueSquare.png" );
++#else
+ 		TestOneFile ( "../../../../testfiles/BlueSquare.ai" );
+ 		TestOneFile ( "../../../../testfiles/BlueSquare.eps" );
+ 		TestOneFile ( "../../../../testfiles/BlueSquare.indd" );
+@@ -313,6 +327,7 @@ extern "C" int main ( int argc, const char * argv[] )
+ 		TestOneFile ( "../../../../testfiles/BlueSquare.mp3" );
+ 		TestOneFile ( "../../../../testfiles/BlueSquare.wav" );
+ 		TestOneFile ( "../../../../testfiles/BlueSquare.png" );
++#endif
+ 
+ 	} catch ( XMP_Error & excep ) {
+ 
+diff --git a/samples/source/common/LargeFileAccess.cpp b/samples/source/common/LargeFileAccess.cpp
+index 4940721..5964b17 100644
+--- a/samples/source/common/LargeFileAccess.cpp
++++ b/samples/source/common/LargeFileAccess.cpp
+@@ -561,7 +561,7 @@ void LFA_Throw ( const char* msg, int id )
+ // LFA implementations for POSIX
+ // =============================
+ 
+-#if XMP_UNIXBuild || XMP_iOSBuild || XMP_AndroidBuild
++#if XMP_UNIXBuild || XMP_iOSBuild || XMP_AndroidBuild || XMP_OHOSBuild
+ 
+ 	// ---------------------------------------------------------------------------------------------
+ 
+@@ -889,7 +889,7 @@ bool LFA_isEof(LFA_FileRef file)
+ 	return filesize == filepos;
+ #endif
+ 
+-#if XMP_UNIXBuild || XMP_iOSBuild ||XMP_AndroidBuild
++#if XMP_UNIXBuild || XMP_iOSBuild ||XMP_AndroidBuild || XMP_OHOSBuild
+ 	int descr = (int)(size_t)file;
+ 
+ 	struct stat info;
+diff --git a/samples/source/common/globals.h b/samples/source/common/globals.h
+index 0de8124..6f7616c 100644
+--- a/samples/source/common/globals.h
++++ b/samples/source/common/globals.h
+@@ -17,13 +17,13 @@
+ 	#include <cstdio>
+ 
+ 	//sanity check platform/endianess
+-	#if !defined(WIN_ENV) && !defined(MAC_ENV) && !defined(UNIX_ENV) && !defined(IOS_ENV) && !defined(ANDROID_ENV)
+-		#error "XMP environment error - must define one of MAC_ENV, WIN_ENV, UNIX_ENV or IOS_ENV or ANDROID_ENV"
++	#if !defined(WIN_ENV) && !defined(MAC_ENV) && !defined(UNIX_ENV) && !defined(IOS_ENV) && !defined(ANDROID_ENV) && !defined(OHOS_ENV)
++		#error "XMP environment error - must define one of MAC_ENV, WIN_ENV, UNIX_ENV or IOS_ENV, ANDROID_ENV or OHOS_ENV"
+ 	#endif
+ 
+ 	#ifdef WIN_ENV
+ 		#define XMPQE_LITTLE_ENDIAN 1
+-	#elif (defined(MAC_ENV) || defined(UNIX_ENV) || defined(IOS_ENV)) || defined(ANDROID_ENV)
++	#elif (defined(MAC_ENV) || defined(UNIX_ENV) || defined(IOS_ENV)) || defined(ANDROID_ENV) || defined (OHOS_ENV)
+ 		#if __BIG_ENDIAN__
+ 			#define XMPQE_BIG_ENDIAN 1
+ 		#elif __LITTLE_ENDIAN__
+diff --git a/source/EndianUtils.hpp b/source/EndianUtils.hpp
+index 48d9281..d715d18 100644
+--- a/source/EndianUtils.hpp
++++ b/source/EndianUtils.hpp
+@@ -34,7 +34,7 @@
+ 	#else
+ 		#error "Neither __BIG_ENDIAN__ nor __LITTLE_ENDIAN__ is set"
+ 	#endif
+-#elif XMP_AndroidBuild
++#elif XMP_AndroidBuild | XMP_OHOSBuild
+     #if __BIG_ENDIAN__
+         #define kBigEndianHost 1
+     #elif __LITTLE_ENDIAN__
+diff --git a/source/Host_IO-POSIX.cpp b/source/Host_IO-POSIX.cpp
+index 88bdd19..8752e81 100644
+--- a/source/Host_IO-POSIX.cpp
++++ b/source/Host_IO-POSIX.cpp
+@@ -30,7 +30,7 @@
+ // Host_IO implementations for POSIX
+ // =================================
+ 
+-#if (! XMP_MacBuild) & (! XMP_UNIXBuild) & (! XMP_iOSBuild) & (! XMP_AndroidBuild)
++#if (! XMP_MacBuild) & (! XMP_UNIXBuild) & (! XMP_iOSBuild) & (! XMP_AndroidBuild) & (! XMP_OHOSBuild)
+ 	#error "This is the POSIX implementation of Host_IO for Mac, iOS , Android and general UNIX."
+ #endif
+ 
+diff --git a/source/Host_IO.hpp b/source/Host_IO.hpp
+index 1cdb3c2..dbced86 100644
+--- a/source/Host_IO.hpp
++++ b/source/Host_IO.hpp
+@@ -21,7 +21,7 @@
+ #elif XMP_MacBuild
+ 	#include <CoreServices/CoreServices.h>
+ 	#include <dirent.h>	// Mac uses the POSIX folder functions.
+-#elif XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild
++#elif XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 	#include <dirent.h>
+ #else
+ 	#error "Unknown host platform."
+@@ -99,7 +99,7 @@ namespace Host_IO {
+ 	#if XMP_WinBuild
+ 		typedef HANDLE FileRef;
+ 		static const FileRef noFileRef = INVALID_HANDLE_VALUE;
+-	#elif XMP_AndroidBuild
++	#elif XMP_AndroidBuild | XMP_OHOSBuild
+ 		typedef int FileRef;
+ 		static const FileRef noFileRef = -1;
+ 		typedef off64_t XMP_off_t;
+@@ -170,7 +170,7 @@ namespace Host_IO {
+ 	#elif XMP_MacBuild
+ 		typedef DIR* FolderRef;
+ 		static const FolderRef noFolderRef = 0;
+-	#elif XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild
++	#elif XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 		typedef DIR* FolderRef;
+ 		static const FolderRef noFolderRef = 0;
+ 	#endif
+diff --git a/source/PerfUtils.cpp b/source/PerfUtils.cpp
+index f4636b2..0d55d00 100644
+--- a/source/PerfUtils.cpp
++++ b/source/PerfUtils.cpp
+@@ -75,7 +75,7 @@ double PerfUtils::GetElapsedSeconds ( PerfUtils::MomentValue start, PerfUtils::M
+ 
+ // =================================================================================================
+ 
+-#if XMP_UNIXBuild | XMP_AndroidBuild
++#if XMP_UNIXBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 
+ const char * PerfUtils::GetTimerInfo()
+ {
+diff --git a/source/PerfUtils.hpp b/source/PerfUtils.hpp
+index 5df1bc8..942f271 100644
+--- a/source/PerfUtils.hpp
++++ b/source/PerfUtils.hpp
+@@ -15,7 +15,7 @@
+ 	#include <CoreServices/CoreServices.h>
+ #elif XMP_WinBuild
+ 	#include <Windows.h>
+-#elif XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild
++#elif XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 	#include <time.h>
+ #endif
+ 
+@@ -25,7 +25,7 @@ namespace PerfUtils {
+ //		typedef LARGE_INTEGER MomentValue;
+ 		typedef LONGLONG MomentValue;
+ 		static const MomentValue kZeroMoment = 0;
+-	#elif XMP_UNIXBuild | XMP_AndroidBuild
++	#elif XMP_UNIXBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 		typedef struct timespec MomentValue;
+ 		static const MomentValue kZeroMoment = {0, 0};
+ 	#elif XMP_iOSBuild | XMP_MacBuild
+diff --git a/source/XMP_LibUtils.cpp b/source/XMP_LibUtils.cpp
+index bca3cb7..979b9eb 100644
+--- a/source/XMP_LibUtils.cpp
++++ b/source/XMP_LibUtils.cpp
+@@ -132,7 +132,7 @@ void XMP_ReadWriteLock::Release()
+ 
+ #if UseHomeGrownLock
+ 
+-	#if XMP_MacBuild | XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild
++	#if XMP_MacBuild | XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 
+ 		// -----------------------------------------------------------------------------------------
+ 
+diff --git a/source/XMP_LibUtils.hpp b/source/XMP_LibUtils.hpp
+index c9fd002..2a7f833 100644
+--- a/source/XMP_LibUtils.hpp
++++ b/source/XMP_LibUtils.hpp
+@@ -261,7 +261,7 @@ struct ErrorCallbackBox
+ 	#define AcquireBasicMutex(mutex)	{ int err = pthread_mutex_lock ( &mutex ); XMP_Enforce ( err == 0 ); }
+ 	#define ReleaseBasicMutex(mutex)	{ int err = pthread_mutex_unlock ( &mutex ); XMP_Enforce ( err == 0 ); }
+ 
+-#elif XMP_UNIXBuild || XMP_AndroidBuild
++#elif XMP_UNIXBuild || XMP_AndroidBuild || XMP_OHOSBuild
+ 
+ 	#include <pthread.h>
+ 
+@@ -390,7 +390,7 @@ private:
+ 	#define XMP_BasicRWLock_ReleaseFromRead(lck)	lck.ReleaseFromRead()
+ 	#define XMP_BasicRWLock_ReleaseFromWrite(lck)	lck.ReleaseFromWrite()
+ 	
+-	#if XMP_MacBuild | XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild
++	#if XMP_MacBuild | XMP_UNIXBuild | XMP_iOSBuild | XMP_AndroidBuild | XMP_OHOSBuild
+ 
+ 		#include <pthread.h>
+ 

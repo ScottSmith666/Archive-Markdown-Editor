@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "cpp-libucd",
+        "License": "GPL 2.0",
+        "License File": "LICENSE",
+        "Version Number": "d6ee722e8d7c0404bba9dfd73e7ad898ebf50599",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/yhfudev/cpp-libucd",
+        "Description": "cpp-libucd provides an object-oriented character encoding auto-detection feature that can intelligently recognize the encoding format of text files."
+    }
+]

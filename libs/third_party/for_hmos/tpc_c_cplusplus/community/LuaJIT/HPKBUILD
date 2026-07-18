@@ -1,0 +1,77 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=LuaJIT
+pkgver=v2.1.0-beta3
+pkgrel=0
+pkgdesc="A Just-In-Time Compiler for Lua."
+url="https://luajit.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=()
+makedepends=("gcc")
+
+source="https://github.com/LuaJIT/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+dynamic_cc=
+target_ld=
+static_cc=
+target_ar=
+target_strip=
+# luajit 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+# 如果编译环境为x86-64, 请安装32位开发环境，否则无法编译armeabi-v7a
+# sudo apt-get install build-essential module-assistant
+# sudo apt-get install gcc-multilib g++-multilib
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        dynamic_cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        target_ld=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        host_gcc="gcc -m32"
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        dynamic_cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        target_ld=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        host_gcc="gcc"
+    fi
+    static_cc=${dynamic_cc}
+    export target_ar="${OHOS_SDK}/native/llvm/bin/llvm-ar rcus 2>/dev/null"
+    target_strip=${OHOS_SDK}/native/llvm/bin/llvm-strip
+    cd $OLDPWD
+}
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE HOST_CC="$host_gcc" CFLAGS="-fPIC" DYNAMIC_CC=${dynamic_cc} \
+    TARGET_LD=${target_ld} STATIC_CC=${static_cc} TARGET_AR="${target_ar}" \
+    TARGET_STRIP=${target_strip} VERBOSE=1 > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install PREFIX=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    unset dynamic_cc target_ld static_cc target_ar target_strip
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

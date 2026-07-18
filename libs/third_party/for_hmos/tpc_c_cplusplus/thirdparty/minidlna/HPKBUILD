@@ -1,0 +1,92 @@
+# Contributor: TangShaoteng <tangshaoteng@163.com>
+# Maintainer: TangShaoteng <tangshaoteng@163.com>
+
+pkgname=minidlna
+pkgver=1.3.3
+pkgrel=0
+pkgdesc="MiniDLNA is a simple media server software, with the aim of being fully compliant with DLNA/UPnP-AV clients."
+url="https://sourceforge.net/projects/minidlna"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0")
+depends=("jpeg" "sqlite" "FFmpeg" "libexif" "libid3tag" "libogg" "libvorbis" "flac" "zlib")
+makedepends=()
+
+source="https://sourceforge.net/projects/$pkgname/files/$pkgname/$pkgver/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+patchflag=true
+
+source envset.sh
+host=
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # SDK 不支持sys/queue.h
+        patch -p1 < $PKGBUILD_ROOT/minidlna_oh_pkg.patch > $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+    # pkgconfig找不到头文件和库，使用CFLAGS方式
+    export CFLAGS="-I${LYCIUM_ROOT}/usr/FFmpeg/$ARCH/include -I${LYCIUM_ROOT}/usr/jpeg/$ARCH/include -I${LYCIUM_ROOT}/usr/sqlite/$ARCH/include -I${LYCIUM_ROOT}/usr/libexif/$ARCH/include -I${LYCIUM_ROOT}/usr/libid3tag/$ARCH/include -I${LYCIUM_ROOT}/usr/libogg/$ARCH/include -I${LYCIUM_ROOT}/usr/libvorbis/$ARCH/include -I${LYCIUM_ROOT}/usr/flac/$ARCH/include -I${LYCIUM_ROOT}/usr/zlib/$ARCH/include -L${LYCIUM_ROOT}/usr/jpeg/$ARCH/lib -L${LYCIUM_ROOT}/usr/libexif/$ARCH/lib -L${LYCIUM_ROOT}/usr/libid3tag/$ARCH/lib -L${LYCIUM_ROOT}/usr/libogg/$ARCH/lib -L${LYCIUM_ROOT}/usr/sqlite/$ARCH/lib -L${LYCIUM_ROOT}/usr/FFmpeg/$ARCH/lib -L${LYCIUM_ROOT}/usr/libvorbis/$ARCH/lib -L${LYCIUM_ROOT}/usr/flac/$ARCH/lib -L${LYCIUM_ROOT}/usr/zlib/$ARCH/lib $CFLAGS"
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    ./configure "$@" --host=$host > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install VERBOSE=1 >> $buildlog 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+    unset host
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # mkdir -p ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Music ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Pictures ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Videos
+    # cp /system/etc/graphic/bootsound.wav ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Music/
+    # cp /system/etc/wallpaperdefault.jpeg ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Pictures/
+    # cp /system/etc/graphic/bootvideo.mp4 ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Videos/
+    # echo -e "media_dir=A,${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Music\nmedia_dir=P,${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Pictures\nmedia_dir=V,${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/Videos\nfriendly_name=OHOSMedia\ndb_dir=${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/cache\nlog_dir=${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/log\ninotify=yes" > ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/minidlna.conf
+    # minidlnad -v -f ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/minidlna.conf -p 8080 -P ${LYCIUM_ROOT}/usr/${pkgname}/$ARCH/minidlna.pid
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build
+}

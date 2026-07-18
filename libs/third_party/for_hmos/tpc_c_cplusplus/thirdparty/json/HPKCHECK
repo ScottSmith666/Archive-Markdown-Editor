@@ -1,0 +1,28 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, wen fan <wenfan001@chinasoftinc.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+
+openharmonycheck() {
+    res=0
+    cd $builddir/${ARCH}-build
+    ctest -E "download_test_data|cmake_import_configure|cmake_import_build|cmake_import_minver_build|cmake_add_subdirectory_configure|cmake_add_subdirectory_build|cmake_fetch_content_configure|cmake_fetch_content_build|cmake_fetch_content2_configure|cmake_fetch_content2_build|cmake_target_include_directories_configure|cmake_target_include_directories_build|cmake_import_minver_configure" > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+    return $res
+}

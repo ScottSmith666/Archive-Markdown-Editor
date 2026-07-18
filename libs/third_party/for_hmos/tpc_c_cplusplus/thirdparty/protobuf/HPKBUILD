@@ -1,0 +1,65 @@
+# Contributor: liulihong <llh_01129@163.com>
+# Maintainer: liulihong <llh_01129@163.com>
+pkgname=protobuf
+pkgver=v4.23.2
+pkgrel=0
+pkgdesc="Protocol Buffers (a.k.a., protobuf) are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data."
+url="https://github.com/protocolbuffers/protobuf"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause license")
+depends=("abseil-cpp" "zlib" "googletest")
+makedepends=()
+source="https://github.com/protocolbuffers/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildhostprotoc=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $buildhostprotoc
+    then 
+        cp -rf $builddir $builddir-host-build
+        cd $builddir-host-build
+        cp $LYCIUM_ROOT/../community/abseil-cpp/abseil-cpp*.zip `pwd`/third_party/abseil-cpp/
+        unzip `pwd`/third_party/abseil-cpp/abseil-cpp*.zip -d `pwd`/third_party/abseil-cpp > /dev/null 2>&1
+        mv `pwd`/third_party/abseil-cpp/abseil-cpp-*/* `pwd`/third_party/abseil-cpp/
+        rm `pwd`/third_party/abseil-cpp/abseil-cpp*.zip
+        cmake . -L -Dprotobuf_BUILD_TESTS=OFF -DABSL_PROPAGATE_CXX_STD=ON > $buildlog 2>&1
+        make VERBOSE=1 -j4 >> `pwd`/build.log 2>&1
+        buildhostprotoc=false
+        cd $OLDPWD
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+}
+
+
+build() {
+    cd $builddir-$ARCH-build
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -Dprotobuf_WITH_ZLIB=ON \
+    -Dprotobuf_BUILD_TESTS=ON -Dprotobuf_ABSL_PROVIDER=package -Dprotobuf_USE_EXTERNAL_GTEST=ON \
+    -Dprotobuf_PROTOC_EXE=`pwd`/../$builddir-host-build/protoc \
+    -DOHOS_ARCH=$ARCH -B./ -S./ -L -DCMAKE_CXX_FLAGS="-munaligned-access" >> $buildlog 2>&1
+    make VERBOSE=1 -j4 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # ctest 测试，需要拷贝libz.so.1
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-host-build ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build #${PWD}/$packagename
+}

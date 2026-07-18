@@ -1,0 +1,1 @@
+CKEDITOR.plugins.setLang("nativewordpaste","zh-cn",{uploading:"正在上传图片",uploadingImages:"正在上传图片, {current}/{max}",uploaded:"图片处理完毕。",uploadFailed:"图片上传失败。",failedToCopy:"插件无响应，拷贝时出错。",dialogTitle:"注意",dialogText:"此功能需要下载并安装控件！",dialogCancel:"取消",dialogOK:"立即下载"});

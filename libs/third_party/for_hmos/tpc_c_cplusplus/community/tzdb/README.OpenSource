@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "tzdb",
+        "License": "BSD 3-clause",
+        "License File": "https://data.iana.org/time-zones/tzdb-2024a/LICENSE",
+        "Version Number": "2024a",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://data.iana.org/time-zones/releases/tzdb-2024a.tar.lz",
+        "Description": "tzdb(Time-Zone-Database) for accurate global date-time processing in software, updated regularly, universally adopted."
+    }
+]

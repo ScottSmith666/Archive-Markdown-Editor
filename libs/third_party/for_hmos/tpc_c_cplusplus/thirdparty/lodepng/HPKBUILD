@@ -1,0 +1,114 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+# Contributor: xianyindi <1833680962@qq.com>
+# Maintainer: xianyindi <1833680962@qq.com>
+
+pkgname=lodepng
+pkgver=master
+pkgrel=0
+pkgdesc="Lodepng is a PNG encoding and decoding library"
+url="https://github.com/lvandeve/lodepng" 
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Zlib license")
+depends=() 
+makedepends=()
+source="https://github.com/lvandeve/$pkgname.git"
+commitid=d398e0f10d152a5d17fa30463474dc9f56523f9c
+
+downloadpackage=false
+autounpack=false 
+buildtools="make"  
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+patchflag=true
+cloneflag=true
+
+cxx=
+# lodepng 采用makefile编译构建，为了保留构建环境(方便测试)。因此同一份源码在解压后分为两份,各自编译互不干扰
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone -b $pkgver $source $builddir > $publicbuildlog 2>&1
+        if [ $? != 0 ]
+        then
+            echo "$pkgname git clone $source error."
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid >> $publicbuildlog 2>&1
+        if [ $? != 0 ]
+        then
+            echo "$pkgname git reset error."
+            return -2
+        fi
+        cloneflag=false
+        cd $OLDPWD
+    fi
+
+    if [ $patchflag == true ]
+    then
+        cd $builddir
+        # benchmark、showpng依赖SDL,系统没有SDL,通过patch删除, 且需要主动生成lodepng.so
+        patch -p1 < `pwd`/../lodepng_ohos_pkg.patch >> /$publicbuildlog 2>&1
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang++
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang++
+    fi 
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE CXX=${cxx} VERBOSE=1 > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    cp lodepng.so  $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+    cp lodepng.h  $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/
+
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 拷贝测试资源
+    cp *.png $builddir-$ARCH-build
+    # 测试方式
+    # 进入构建目录
+    # 执行: ./unittest 和 ./pngdetail pngdetail.png
+}
+
+recoverpkgbuildenv() {
+    unset cxx
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packageName
+}

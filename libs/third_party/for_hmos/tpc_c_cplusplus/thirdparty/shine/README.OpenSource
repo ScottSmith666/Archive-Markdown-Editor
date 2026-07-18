@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "shine",
+        "License": "LGPL-2.1",
+        "License File": "https://github.com/toots/shine?tab=License-1-ov-file",
+        "Version Number": "3.1.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/toots/shine",
+        "Description": "Shine is a blazing fast mp3 encoding library implemented in fixed-point arithmetic"
+    }
+]

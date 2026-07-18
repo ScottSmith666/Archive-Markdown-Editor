@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "bctoolbox",
+        "License": "GPL-3.0",
+        "License File": "https://github.com/BelledonneCommunications/bctoolbox/blob/master/LICENSE.txt",
+        "Version Number": "5.2.91",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://codeload.github.com/BelledonneCommunications/bctoolbox/zip/refs/tags/5.2.91",
+        "Description": "Utilities library used by Belledonne Communications softwares like belle-sip, mediastreamer2 and liblinphone."
+    },
+    {
+        "Name": "mbedtls",
+        "License": "Apache-2.0 or GPL-2.0-or-later",
+        "License File": "https://github.com/Mbed-TLS/mbedtls/blob/development/LICENSE",
+        "Version Number": "mbedtls-2.4.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://codeload.github.com/Mbed-TLS/mbedtls/zip/refs/tags/mbedtls-2.4.2",
+        "Description": "Mbed TLS is a C library that implements cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols."
+    },
+    {
+        "Name": "bcunit",
+        "License": "LGPL-2.0",
+        "License File": "https://github.com/BelledonneCommunications/bcunit/blob/master/COPYING",
+        "Version Number": "5.2.62",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/BelledonneCommunications/bcunit/archive/refs/tags/5.2.62.tar.gz",
+        "Description": "BcUnit is a Unit testing framework"
+    },
+    {
+        "Name": "erlang-libdecaf",
+        "License": "MIT",
+        "License File": "https://github.com/potatosalad/erlang-libdecaf/blob/main/LICENSE.md",
+        "Version Number": "2.1.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/potatosalad/erlang-libdecaf/archive/refs/tags/2.1.1.tar.gz",
+        "Description": "The libdecaf library is for elliptic curve research and practical application."
+    }
+]

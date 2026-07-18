@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "iperf",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/esnet/iperf/blob/master/LICENSE",
+        "Version Number": "3.14",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/esnet/iperf/archive/refs/tags/3.14.tar.gz",
+        "Description": "iperf3: A TCP, UDP, and SCTP network bandwidth measurement tool"
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1u.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    }
+]

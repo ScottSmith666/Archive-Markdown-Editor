@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libterrain",
+        "License": "GNU Library General Public License",
+        "License File": "https://sourceforge.net/projects/libterrain/",
+        "Version Number": "master",
+        "Owner": "lixingyang15@h-partners.com",
+        "Upstream URL": "https://sourceforge.net/p/libterrain/code/ci/master/tree/",
+        "Description": "Libterrain is a terrain rendering library primarily used for efficient rendering and management of terrain in 3D scenes."
+    }
+]

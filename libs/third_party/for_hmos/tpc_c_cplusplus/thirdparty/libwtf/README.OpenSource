@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libwtf",
+        "License": "MIT License and GPL-2.0 and ICU58 and BSD-Like",
+        "License File": "webkitgtk-2.41.90/Source/WTF/LICENSE-LLVM.txt, webkitgtk-2.41.90/Source/WTF/LICENSE-libc++.txt, webkitgtk-2.41.90/Source/WTF/icu/LICENSE, webkitgtk-2.41.90/ource/WTF/wtf/dtoa/LICENSE, webkitgtk-2.41.90/Source/WTF/wtf/fast_float/LICENSE",
+        "Version Number": "webkitgtk-2.41.90",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/WebKit/webkit",
+        "Description": "Libwtf is a network template framework."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "FFmpge",
+        "License": "GPL2/GPL3/LGPL3 license",
+        "License File": "LICENSES",
+        "Version Number": "n6.0",
+        "Owner": "cmxud@isoftstone.com",
+        "Upstream URL": "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n6.0.tar.gz",
+        "Description": "FFmpeg is a collection of libraries and tools to process multimedia content such as audio, video, subtitles and related metadata."
+    }
+]

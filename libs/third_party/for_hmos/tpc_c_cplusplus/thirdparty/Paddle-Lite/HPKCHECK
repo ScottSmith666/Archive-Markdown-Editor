@@ -1,0 +1,37 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: 城meto<myxuan475@126.com>
+# Maintainer: 城meto<myxuan475@126.com>
+
+source HPKBUILD > /dev/null 2>&1    # 导入HPKBUILD文件
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+checkprepare() {
+    # libc++_shared.so 的路径加入环境变量
+    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:`pwd`/$builddir/$ARCH-build
+}
+
+# 在OH环境执行测试的接口
+openharmonycheck() {                          
+    res=0                  
+    cd ${builddir}/${ARCH}-build    
+    ctest > ${logfile} 2>&1             
+    res=$?      
+    if [ $res -ne 0 ];then
+        mkdir ${LYCIUM_FAULT_PATH}/${pkgname}
+        cp Testing/Temporary/LastTest.log ${LYCIUM_FAULT_PATH}/${pkgname}/     
+    fi                   
+    cd $OLDPWD                         
+    return $res                           
+}

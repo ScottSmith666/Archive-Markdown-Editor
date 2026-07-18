@@ -1,0 +1,124 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Xiao YangHang <168643834@qq.com>
+
+pkgname=libbacktrace
+pkgver=1.0
+pkgrel=0
+pkgdesc="A C library that may be linked into a C/C++ program to produce symbolic backtraces"
+url="https://github.com/ianlancetaylor/libbacktrace#"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=()
+depends=()
+makedepends=()
+
+# 原仓地址：source="https://github.com/ianlancetaylor/libbacktrace.git",由于网络原因使用镜像
+source="https://gitee.com/openharmony-tpc-incubate/libbacktrace.git"
+
+autounpack=false
+downloadpackage=false
+builddir=$pkgname-master
+packagename=
+buildtools="configure"
+
+source envset.sh
+host=
+
+cloneflag=true
+prepare() {
+    if $cloneflag
+    then
+        git clone $source $builddir
+        ret=$?
+        if [ $ret -ne 0 ]; then
+            echo "fail: git clone $source $builddir $ret"
+            return $ret
+        fi
+
+        cd  $builddir
+        git checkout -b b9e40069c0b47a722286b94eb5231f7f05c08713 b9e40069c0b47a722286b94eb5231f7f05c08713
+        ret=$?
+        if [ $ret -ne 0 ]; then
+            echo "fail: git checkout $pkgver $ret"
+            return $ret
+        fi
+
+        git submodule update --init --recursive
+        ret=$?
+        if [ $ret -ne 0 ]; then
+            echo "fail: git submodule update --init $ret"
+            return $ret
+        fi
+
+        cd $OLDPWD
+        cloneflag=false 
+    fi
+
+    mkdir -p $builddir/$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    if [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ../configure "$@" --host=$host --enable-shared --enable-static> $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    sed -i 's/xztest_alloc_LDADD = libbacktrace_alloc.la/xztest_alloc_LDADD = libbacktrace_alloc.la libbacktrace.la/g' Makefile
+    $MAKE check -i >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE VERBOSE=1 install  >> $buildlog 2>&1
+    cd $OLDPWD
+    unset host
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -1.
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+     rm -rf ${PWD}/$builddir
+}

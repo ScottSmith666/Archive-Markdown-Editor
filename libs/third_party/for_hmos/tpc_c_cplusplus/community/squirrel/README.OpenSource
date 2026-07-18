@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "squirrel",
+        "License": "MIT license",
+        "License File": "https://github.com/albertodemichelis/squirrel/blob/master/COPYRIGHT",
+        "Version Number": "v3.2",
+        "Owner": "2942375747.com",
+        "Upstream URL": "https://github.com/albertodemichelis/squirrel",
+        "Description": "Squirrel is a lightweight programming language commonly used for game development and application scripting,which is simpler and easier to embed into applications than C."
+    }
+]

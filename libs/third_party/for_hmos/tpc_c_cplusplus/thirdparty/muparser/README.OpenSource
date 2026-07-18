@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "muparser",
+        "License": "BSD 2-Clause",
+        "License File": "LICENSE",
+        "Version Number": "v2.3.4",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/beltoforion/muparser",
+        "Description": "A library of parsers for mathematical expressions"
+    }
+]

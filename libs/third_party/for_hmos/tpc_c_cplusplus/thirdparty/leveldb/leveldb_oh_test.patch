@@ -1,0 +1,10 @@
+--- env_posix_test.cc	2025-03-03 16:59:54.336203317 +0800
++++ env_posix_test_bak.cc	2025-03-03 17:00:08.984065571 +0800
+@@ -217,6 +217,7 @@
+ TEST_F(EnvPosixTest, TestCloseOnExecSequentialFile) {
+   std::unordered_set<int> open_fds;
+   GetOpenFileDescriptors(&open_fds);
++  GetOpenFileDescriptors(&open_fds);
+ 
+   std::string test_dir;
+   ASSERT_LEVELDB_OK(env_->GetTestDirectory(&test_dir));

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "webui",
+        "License": "MIT license",
+        "License File": "https://github.com/webui-dev/webui?tab=MIT-1-ov-file#readme",
+        "Version Number": "2.5.0-beta.3",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/webui-dev/webui",
+        "Description": "Use any web browser or WebView as GUI, with your preferred language in the backend and modern web technologies in the frontend, all in a lightweight portable library."
+    }
+]

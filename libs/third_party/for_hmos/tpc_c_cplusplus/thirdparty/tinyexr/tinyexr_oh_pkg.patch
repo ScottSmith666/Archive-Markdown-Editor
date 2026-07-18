@@ -1,0 +1,12 @@
+diff -rupN tinyexr-1.0.2/CMakeLists.txt tinyexr-1.0.2_patch/CMakeLists.txt
+--- tinyexr-1.0.2/CMakeLists.txt	2022-12-28 17:12:46.000000000 +0800
++++ tinyexr-1.0.2_patch/CMakeLists.txt	2023-04-21 17:06:43.275414969 +0800
+@@ -43,7 +43,7 @@ target_link_libraries(${BUILD_TARGET} ${
+ 
+ # Increase warning level for clang.
+ IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+-  set_source_files_properties(${TINYEXR_SOURCES} PROPERTIES COMPILE_FLAGS "-Weverything -Werror -Wno-padded -Wno-c++98-compat-pedantic -Wno-documentation -Wno-unused-member-function")
++  set_source_files_properties(${TINYEXR_SOURCES} PROPERTIES COMPILE_FLAGS "-Weverything -Wno-padded -Wno-c++98-compat-pedantic -Wno-documentation -Wno-unused-member-function")
+ ENDIF ()
+ 
+ if (TINYEXR_BUILD_SAMPLE)

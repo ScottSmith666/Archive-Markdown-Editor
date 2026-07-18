@@ -1,0 +1,22 @@
+---
+ mz_os_posix.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/mz_os_posix.c b/mz_os_posix.c
+index aefc1a4..9d95f8b 100644
+--- a/mz_os_posix.c
++++ b/mz_os_posix.c
+@@ -57,7 +57,11 @@ uint8_t *mz_os_utf8_string_create(const char *string, int32_t encoding) {
+     else if (encoding == MZ_ENCODING_CODEPAGE_932)
+         from_encoding = "CP932";
+     else if (encoding == MZ_ENCODING_CODEPAGE_936)
++#ifdef __OHOS__
++        from_encoding = "GB18030";
++#else
+         from_encoding = "CP936";
++#endif
+     else if (encoding == MZ_ENCODING_CODEPAGE_950)
+         from_encoding = "CP950";
+     else if (encoding == MZ_ENCODING_UTF8)
+-- 
+2.34.1

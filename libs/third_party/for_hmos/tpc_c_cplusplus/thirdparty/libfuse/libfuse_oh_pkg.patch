@@ -1,0 +1,60 @@
+diff -rupN libfuse-fuse-3.16.2/example/poll.c libfuse-fuse-3.16.2_patched/example/poll.c
+--- libfuse-fuse-3.16.2/example/poll.c	2023-10-10 15:38:49.000000000 +0800
++++ libfuse-fuse-3.16.2_patched/example/poll.c	2023-10-17 17:22:56.319775113 +0800
+@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
+ 
+ 	ret = fuse_main(argc, argv, &fsel_oper, NULL);
+ 
+-	pthread_cancel(producer);
++	// pthread_cancel(producer);
+ 	pthread_join(producer, NULL);
+ 
+ 	return ret;
+diff -rupN libfuse-fuse-3.16.2/lib/fuse.c libfuse-fuse-3.16.2_patched/lib/fuse.c
+--- libfuse-fuse-3.16.2/lib/fuse.c	2023-10-10 15:38:49.000000000 +0800
++++ libfuse-fuse-3.16.2_patched/lib/fuse.c	2023-10-17 17:23:16.116045267 +0800
+@@ -4871,7 +4871,7 @@ void fuse_stop_cleanup_thread(struct fus
+ {
+ 	if (lru_enabled(f)) {
+ 		pthread_mutex_lock(&f->lock);
+-		pthread_cancel(f->prune_thread);
++		// pthread_cancel(f->prune_thread);
+ 		pthread_mutex_unlock(&f->lock);
+ 		pthread_join(f->prune_thread, NULL);
+ 	}
+diff -rupN libfuse-fuse-3.16.2/lib/fuse_loop_mt.c libfuse-fuse-3.16.2_patched/lib/fuse_loop_mt.c
+--- libfuse-fuse-3.16.2/lib/fuse_loop_mt.c	2023-10-10 15:38:49.000000000 +0800
++++ libfuse-fuse-3.16.2_patched/lib/fuse_loop_mt.c	2023-10-17 17:23:12.399994877 +0800
+@@ -133,9 +133,9 @@ static void *fuse_do_work(void *data)
+ 		int isforget = 0;
+ 		int res;
+ 
+-		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
++		// pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+ 		res = fuse_session_receive_buf_int(mt->se, &w->fbuf, w->ch);
+-		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
++		// pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+ 		if (res == -EINTR)
+ 			continue;
+ 		if (res <= 0) {
+@@ -367,7 +367,7 @@ int err;
+ 
+ 		pthread_mutex_lock(&mt.lock);
+ 		for (w = mt.main.next; w != &mt.main; w = w->next)
+-			pthread_cancel(w->thread_id);
++			; // pthread_cancel(w->thread_id);
+ 		mt.exit = 1;
+ 		pthread_mutex_unlock(&mt.lock);
+ 
+diff -rupN libfuse-fuse-3.16.2/test/test_setattr.c libfuse-fuse-3.16.2_patched/test/test_setattr.c
+--- libfuse-fuse-3.16.2/test/test_setattr.c	2023-10-10 15:38:49.000000000 +0800
++++ libfuse-fuse-3.16.2_patched/test/test_setattr.c	2023-10-17 17:23:20.144099720 +0800
+@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
+     test_fs(fuse_opts.mountpoint);
+ 
+     /* Stop file system */
+-    assert(pthread_cancel(fs_thread) == 0);
++    // assert(pthread_cancel(fs_thread) == 0);
+ 
+     fuse_session_unmount(se);
+     assert(got_fh == 1);

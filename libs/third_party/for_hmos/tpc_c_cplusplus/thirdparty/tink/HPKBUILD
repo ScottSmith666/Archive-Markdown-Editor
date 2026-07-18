@@ -1,0 +1,122 @@
+# Contributor: wupingyuan <3415239542@qq.com>
+# Maintainer: wupingyuan <3415239542@qq.com>
+pkgname=tink
+pkgver=v1.7.0
+pkgrel=0
+pkgdesc="Tink is a multi-language, cross-platform, open source library that provides cryptographic APIs that are secure, easy to use correctly, and hard(er) to misuse."
+url="https://github.com/google/tink"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0")
+depends=("googletest" "openssl")
+makedepends=("go") #依赖golang编译器
+
+source="https://github.com/google/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+# 需要依赖protobuf linux编译
+protobufpkgname=protobuf
+protobufbuildhostflag=true
+protobufpkgver=v3.19.3
+protobufsource="https://github.com/protocolbuffers/$protobufpkgname/archive/refs/tags/$protobufpkgver.tar.gz"
+protobufbuilddir=$protobufpkgname-${protobufpkgver:1}
+protobufpackagename=$protobufbuilddir.tar.gz
+protoc=
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+# 下载protobuf
+downloadprotobuf() {
+    if [ ! -s $protobufpackagename ];then
+        curl -f -L -- $protobufsource > $protobufpackagename
+        if [ "$?" != "0" ];then
+            echo "download $protobufbuilddir fail"
+            return 1
+        fi
+    fi
+    echo "1c003e7cbc8eae6a038f46e688b401ee202ba47f502561e909df79770f6e8b7daf3dc1ccc727e31bfb5b52cd04cb4fef7d2d2a28d650c13f396872ad4aa076c6  protobuf-3.19.3.tar.gz" > protobufsha512sum
+    sha512sum -c protobufsha512sum
+    ret=$?
+    if [ $ret -ne 0 ];then
+        echo "请检查$protobufpackagename文件, 并重新下载src压缩包."
+        return 2
+    fi
+    rm -rf protobufsha512sum
+    tar -xvf $protobufpackagename > /dev/null 2>&1
+    return 0
+}
+
+# 编译protobuf
+buildprotobuf() {
+    mkdir -p $protobufbuilddir/cmake/host_build
+    cd $protobufbuilddir/cmake/host_build
+    cmake .. -Dprotobuf_BUILD_TESTS=OFF > `pwd`/build.log 2>&1
+    make -j4 VERBOSE=1 >> build.log 2>&1
+    ./protoc --version
+    if [ "$?" != "0" ];then
+        echo "compile linux protoc fail"
+        return 3
+    fi
+    protoc=`pwd`/protoc
+    cd $OLDPWD
+    return 0
+}
+
+prepare() {
+    downloadprotobuf
+    ret=$?
+    if [ "$ret" != "0" ];then
+        return $ret
+    fi
+    buildprotobuf
+    ret=$?
+    if [ "$ret" != "0" ];then
+        return $ret
+    fi
+    if $patchflag
+    then
+        cd $builddir
+        # 打补丁说明以下:
+        # 1、tink_test_aead__internal_ssl_aead_large_inputs_test用例会抛异常:C++ exception with description "std::bad_alloc" thrown in the test body,会crash导致系统重启因此屏蔽掉,已验证linux上原库此用例也会fail。
+        # 2、bn_util_test.cc编译报错cannot be narrowed to type 'unsigned int' [-Wc++11-narrowing],调整条件判断区分32位和64位的测试传值。
+        # 3、TinkBuildRules.cmake脚本中COMMAND protobuf::protoc编译会报错not found,调整protobuf::protoc改成变量通过参数形式传入。
+        # 4、cmake脚本中没有install命令。
+        patch -p1 < `pwd`/../tink_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DPROTOBUF_PROTOC_EXECUTABLE=$protoc \
+    -DTINK_USE_INSTALLED_GOOGLETEST=ON -DTINK_USE_SYSTEM_OPENSSL=ON -DTINK_BUILD_TESTS=ON \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    unset protoc
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # ctest
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $protobufbuilddir # ${PWD}/$packagename ${PWD}/$protobufpackagename
+}

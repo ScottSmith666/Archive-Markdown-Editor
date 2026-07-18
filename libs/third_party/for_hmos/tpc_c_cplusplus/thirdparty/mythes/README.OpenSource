@@ -1,0 +1,21 @@
+[
+    {
+        "Name": "mythes",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/hunspell/mythes/blob/master/COPYING",
+        "Version Number": "v1.2.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/hunspell/mythes/archive/refs/tags/v1.2.5.tar.gz",
+        "Description": "MyThes is a simple thesaurus that uses a structured text data file and an index file with binary search to lookup words and phrases and return information on part of speech, meanings, and synonyms"
+    },
+    {
+        "Name": "hunspell",
+        "License": "LGPL-2.1 and GPL-2.0 and MPL-1.1 and BSD-2-Clause",
+        "License File": ["https://github.com/hunspell/hunspell/blob/v1.7.2/COPYING.LESSER","https://github.com/hunspell/hunspell/blob/v1.7.2/COPYING",
+                         "https://github.com/hunspell/hunspell/blob/v1.7.2/COPYING.MPL","https://github.com/hunspell/hunspell/blob/v1.7.2/license.myspell"],
+        "Version Number": "v1.7.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/hunspell/hunspell/releases/download/v1.7.2/hunspell-1.7.2.tar.gz",
+        "Description": "Hunspell is a free spell checker and morphological analyzer library and command-line tool"
+    }
+]

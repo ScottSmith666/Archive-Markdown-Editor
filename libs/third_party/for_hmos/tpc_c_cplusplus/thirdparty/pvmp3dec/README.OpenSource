@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "pvmp3dec",
+        "License": "Apache-2.0 license",
+        "License File": "https://github.com/N22E114/pvmp3dec/blob/main/NOTICE",
+        "Version Number": "36ec11a",
+        "Owner": "cmxud@isoftstone.com",
+        "Upstream URL": "https://github.com/N22E114/pvmp3dec/archive/refs/tags/36ec11a.tar.gz",
+        "Description": "PacketVideo MP3 Decoder Library"
+    }
+]

@@ -1,0 +1,124 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhanghanyong <zhang_hanyong@h-partners.com>
+# Maintainer: zhanghanyong <zhang_hanyong@h-partners.com>
+
+pkgname=yara
+pkgver=4.5.0
+pkgrel=0
+pkgdesc="The pattern matching swiss knife"
+archs=("armeabi-v7a" "arm64-v8a")
+url="https://github.com/VirusTotal/yara"
+license=( "BSD-3-Clause license" )
+depends=()
+makedepends=()
+source="https://github.com/VirusTotal/${pkgname}/archive/refs/tags/v${pkgver}.tar.gz"
+
+
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+patchflag=true
+
+source envset.sh
+host=
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 部分测试用例无法通过，通过patch屏蔽
+        patch -p1 < `pwd`/../yara_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    cp -r $builddir $ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+}
+
+build() {
+    cd $ARCH-build
+    ./bootstrap.sh >> $buildlog 2>&1
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ./configure "$@" --host=$host \
+    --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH/ >> $buildlog 2>&1
+
+    # 修改Makefile文件，只编译测试用例不执行
+    sed -i.bak '/\($(srcdir)\/Makefile.in:\)/,/\($(am__aclocal_m4_deps):\)/{s/^/#/}' Makefile
+    sed -i.bak 's/\([a-zA-Z_]\.log:\)/\1 #/' Makefile
+    sed -i.bak 's/\(check-TESTS:\)/\1 #/' Makefile
+
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    $MAKE VERBOSE=1 test-arena test-alignment test-atoms test-api test-rules test-pe test-elf test-version test-bitmask test-math test-stack test-re-split test-async test-string test-exception test-dotnet >> $buildlog 2>&1
+
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+
+    ret=$?
+    if [ $ARCH == "arm64-v8a" ];then
+        unsetarm64ENV
+    elif [ $ARCH == "armeabi-v7a" ];then
+        unsetarm32ENV
+    else
+        echo "${ARCH} not support"
+        return -2
+    fi
+    unset host
+    return $ret
+}
+
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # make check-TESTS
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+cleanbuild() {
+  rm -rf ${PWD}/$builddir
+  rm -rf ${PWD}/armeabi-v7a-build
+  rm -rf ${PWD}/arm64-v8a-build
+}

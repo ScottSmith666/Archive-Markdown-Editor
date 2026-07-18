@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libmad",
+        "License": "GPL-2.0-only",
+        "License File": "COPYING",
+        "Version Number": "c2f96fa4166446ac99449bdf6905f4218fb7d6b5",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/markjeee/libmad.git",
+        "Description": "libmad - MPEG audio decoder library"
+    }
+]

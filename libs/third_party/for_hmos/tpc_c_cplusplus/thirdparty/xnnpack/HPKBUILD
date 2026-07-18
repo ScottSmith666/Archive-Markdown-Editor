@@ -1,0 +1,127 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=xnnpack
+pkgver=master
+pkgrel=0
+pkgdesc="a highly optimized solution for neural network inference"
+url="https://github.com/google/XNNPACK"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=()
+
+source="https://github.com/google/$pkgname.git"
+commitid=bc09d8f8b4681aaeaa82b9d9a078e7eae4838424
+
+autounpack=false
+downloadpackage=false
+builddir=$pkgname-${commitid}
+packagename=
+cloneflag=true
+patchflag=true
+
+prepare() {
+    if $cloneflag
+    then
+        mkdir -p $builddir
+        git clone -b $pkgver $source $builddir > $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+
+        cd $builddir
+        git reset --hard $commitid >> $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            return -2
+        fi
+
+        cd $OLDPWD
+        cloneflag=false
+    fi
+    
+    # issue about convert-nc-test and subgraph-fp16-test
+    # https://github.com/google/XNNPACK/issues/6191
+    # https://github.com/google/XNNPACK/pull/6200
+    # issue about f16-vcmul-test
+    # https://github.com/google/XNNPACK/issues/6201
+    # issue about static-reshape-test
+    # https://github.com/google/XNNPACK/issues/6208
+    # https://github.com/google/XNNPACK/commit/16fc28799e879bf2a4a2e9708061c375444253f5
+    # issue about static-slice-test
+    # https://github.com/google/XNNPACK/pull/6085
+    # issue about fully-connected-test
+    # https://github.com/google/XNNPACK/commit/82106bb534c693ce785acb8eabcc99f135171d90
+    
+    # patch文件中合并以上bug修复内容，并适配CMakeLists在OHOS平台编译
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../xnnpack_ohos_pkg.patch >> $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    CMAKE_ARGS=()
+    CMAKE_ARGS+=("-DCMAKE_POSITION_INDEPENDENT_CODE=ON")
+
+    if [ "$ARCH" == "armeabi-v7a" ]
+    then  
+        CMAKE_ARGS+=("-DXNNPACK_ENABLE_ARM_BF16=OFF")
+        CMAKE_ARGS+=("-DCMAKE_C_FLAGS=-mfpu=neon -mfloat-abi=softfp")
+        CMAKE_ARGS+=("-DCMAKE_CXX_FLAGS=-mfpu=neon -mfloat-abi=softfp")
+        CMAKE_ARGS+=("-DCMAKE_ASM_FLAGS=-mfpu=neon -mfloat-abi=softfp")
+    fi
+
+    CMAKE_ARGS+=("-DXNNPACK_LIBRARY_TYPE=static")
+    CMAKE_ARGS+=("-DXNNPACK_BUILD_BENCHMARKS=ON")
+    CMAKE_ARGS+=("-DXNNPACK_BUILD_TESTS=ON")
+
+    # Google Benchmark的交叉编译选项
+    CMAKE_ARGS+=("-DHAVE_POSIX_REGEX=0")
+    CMAKE_ARGS+=("-DHAVE_STEADY_CLOCK=0")
+    CMAKE_ARGS+=("-DHAVE_STD_REGEX=0")
+
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        "${CMAKE_ARGS[@]}" \
+        -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 进入编译目录，执行 ctest
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

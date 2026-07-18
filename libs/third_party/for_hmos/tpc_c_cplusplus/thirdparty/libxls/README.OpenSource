@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libxls",
+        "License": "BSD",
+        "License File": "LICENSE",
+        "Version Number": "v1.6.2",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://github.com/libxls/libxls/archive/refs/tags/v1.6.2.tar.gz",
+        "Description": "This is libxls, a C library for reading Excel files in the nasty old binary OLE format, plus a command-line tool for converting XLS to CSV (named, appropriately enough, xls2csv)."
+    }
+]

@@ -1,0 +1,112 @@
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+pkgname=HDiffPatch
+pkgver=v4.6.3
+pkgrel=0
+pkgdesc="HDiffPatch is a C++ library for comparing and merging text differences. It provides an efficient way to calculate the differences between two texts and apply these differences to a target text to produce a new merged text. HDiffPatch can be used in various applications, such as version control systems, text editors, automation build tools, etc.."
+url="https://github.com/sisong/HDiffPatch"
+archs=("armeabi-v7a" "arm64-v8a")
+
+license=("MIT")
+depends=()
+makedepends=()
+source="https://github.com/sisong/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+dependsname="bzip2 libmd5 zlib zstd"
+buildtools="make"
+
+source envset.sh
+c_cxxflag=""
+
+firstflag=true
+
+prepare() {
+    if $firstflag
+    then
+        git clone https://github.com/sisong/libmd5.git
+        if [ $ret -ne 0 ]; then
+            echo "fail: git clone libmd5 $ret"
+            return $ret
+        fi
+        git clone -b bzip2-1.0.8 https://github.com/sisong/bzip2.git
+        if [ $ret -ne 0 ]; then
+            echo "fail: git clone bzip2 $ret"
+            return $ret
+        fi
+        git clone -b v1.5.5 https://github.com/sisong/zstd.git
+        if [ $ret -ne 0 ]; then
+            echo "fail: git clone zstd $ret"
+            return $ret
+        fi
+        git clone -b v1.2.11 https://github.com/sisong/zlib.git
+        if [ $ret -ne 0 ]; then
+            echo "fail: git clone zlib $ret"
+            return $ret
+        fi
+        cd $builddir
+        # patch只需要打一次,关闭打patch
+        patch -p1 < ../HDiffPatch_oh_pkg.patch
+        cd $OLDPWD
+        firstflag=false
+    fi
+    mkdir $pkgname_$ARCH-build/
+    cp -r $builddir/ $pkgname_$ARCH-build/$builddir/ 
+    cp -r $dependsname $pkgname_$ARCH-build/ 
+
+    if [ $ARCH == "armeabi-v7a" ]; then
+        setarm32ENV
+        c_cxxflag="-mfloat-abi=softfp -I../bzip2/ -D_IS_NEED_DEFAULT_CompressPlugin=0"
+    elif [ $ARCH == "arm64-v8a" ]; then
+        setarm64ENV
+        c_cxxflag="-I../bzip2/ -D_IS_NEED_DEFAULT_CompressPlugin=0"
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+build() {
+    cd $pkgname_$ARCH-build/$builddir/
+    $MAKE VERBOSE=1 CC=$CC CXX=$CXX CFLAGS="$CFLAGS $c_cxxflag" CXXFLAGS="$CXXFLAGS $c_cxxflag" \
+        DESTDIR=$LYCIUM_ROOT/usr/$pkgname LZMA=0 ZSTD=1 MD5=1 > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $pkgname_$ARCH-build/$builddir/
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/bin
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    $MAKE VERBOSE=1 install INSTALL_BIN=$LYCIUM_ROOT/usr/$pkgname/$ARCH/bin >>$buildlog 2>&1
+    cp *.a $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    cp *.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include
+    cd $OLDPWD
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]; then
+        # 拷贝shared库到测试程序运行目录
+        cp $OHOS_SDK/native/llvm/lib/arm-linux-ohos/libc++_shared.so $pkgname_$ARCH-build/$builddir/
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        # 拷贝shared库到测试程序运行目录
+        cp $OHOS_SDK/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $pkgname_$ARCH-build/$builddir/
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+    # 编译生成目录$pkgname_$ARCH-build/$builddir/下执行./unit_test
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/arm64-v8a-build ${PWD}/armeabi-v7a-build ${PWD}/$dependsname
+}

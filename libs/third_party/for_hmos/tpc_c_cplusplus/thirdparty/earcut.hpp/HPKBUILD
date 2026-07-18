@@ -1,0 +1,83 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhangxin <zhangxin546@h-partners.com>
+# Maintainer:  zhangxin <zhangxin546@h-partners.com>
+
+pkgname=earcut.hpp
+pkgver=master
+pkgrel=0
+pkgdesc="A C++ port of earcut.js, a fast, header-only polygon triangulation library."
+url="https://github.com/mapbox/earcut.hpp"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("The ISC License")
+depends=()
+makedepsource=()
+
+source="https://github.com/mapbox/earcut.hpp.git"
+commitid=a299ad92b93b03aeab5d95195bb34bfc8f0b3263
+
+autounpack=false
+downloadpackage=false
+
+builddir=$pkgname-${pkgver}
+download_and_patch_flag=true
+
+prepare() {
+    if [ "$download_and_patch_flag" == true ]
+    then
+        git clone -b $pkgver $source $builddir > $publicbuildlog 2>&1
+	    if [ $? -ne 0 ]
+        then
+	      return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid > $publicbuildlog 2>&1
+	    if [ $? -ne 0 ]
+        then
+	      cd $OLDPWD
+	      return -2
+        fi
+        cd $OLDPWD
+        download_and_patch_flag=false
+    fi 
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    #"-ffp-contract=off" 禁用 floating-point expression contraction.否则会因为浮点精度问题造成64位的测试用例失败。
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DEARCUT_BUILD_VIZ=OFF -DCMAKE_C_FLAGS="-ffp-contract=off" \
+        -DCMAKE_CXX_FLAGS="-ffp-contract=off" -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

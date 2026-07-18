@@ -1,0 +1,77 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+pkgname=tremolo
+pkgver=008
+pkgrel=0
+pkgdesc="Tremolo is an ARM optimised version of the Tremor lib from xiph.org. For those that don't know, the Tremor lib is an integer only library for doing Ogg Vorbis decompression."
+url="http://wss.co.uk/pinknoise/tremolo/index.html"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=()
+makedepends=()
+
+unpackname=Tremolo$pkgver
+source="http://wss.co.uk/pinknoise/$pkgname/$unpackname.zip"
+
+autounpack=false
+downloadpackage=true
+buildtools="cmake"
+
+builddir=$unpackname
+packagename=$builddir.zip
+firstflag=true
+
+prepare() {
+    if $firstflag
+    then
+        mkdir $builddir 
+        unzip $packagename -d ./$builddir/
+        cd $builddir
+        # patch只需要打一次,关闭打patch
+        patch -p1 < ../tremolo_oh_pkg.patch
+        cd $OLDPWD
+        firstflag=false
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 编译生成目录$builddir/$ARCH-build下执行cat ./../../capture.ogg | ./test_example 1 > tremolo_test_out.pcm
+    # 可以使用audacity工具查看生成的音频，官网下载地址https://www.audacityteam.org/download/windows/ 查看步骤：打开软件->文件->导入->原始数据->
+    # 选择生成的文件->配置:编码(16bit pcm)-字节序(默认尾端)-声道(立体声)-偏移(0)-总计导入(100%)-采样率(44100HZ)->导入
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

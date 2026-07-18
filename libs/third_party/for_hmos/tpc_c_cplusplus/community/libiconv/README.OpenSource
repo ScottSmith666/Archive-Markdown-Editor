@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "iconv",
+        "License": "LGPLv3.0",
+        "License File": "COPYING",
+        "Version Number": "1.17",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://savannah.gnu.org/projects/libiconv/",
+        "Description": "GNU libiconv provides an implementation of the iconv() function and the iconv program for character set conversion."
+    }
+]

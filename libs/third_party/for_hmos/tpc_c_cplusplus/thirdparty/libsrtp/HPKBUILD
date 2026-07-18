@@ -1,0 +1,52 @@
+# Contributor: liulihong <llh_01129@163.com>
+# Maintainer: liulihong <llh_01129@163.com>
+
+pkgname=libsrtp 
+pkgver=v2.5.0 
+pkgrel=0
+pkgdesc="" 
+url="" 
+archs=("armeabi-v7a" "arm64-v8a") 
+license=("2001-2017 Cisco Systems, Inc")
+depends=("openssl" "libpcap") 
+makedepends=() 
+install= 
+source="https://github.com/cisco/$pkgname/archive/refs/tags/$pkgver.tar.gz" 
+patchflag=true 
+builddir=$pkgname-${pkgver:1} 
+packagename=$builddir.tar.gz 
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../libsrtp_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L -DBUILD_WITH_WARNINGS=OFF -DENABLE_OPENSSL=ON > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/packagename
+}

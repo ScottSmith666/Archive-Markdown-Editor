@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "Catch2",
+        "License": "BSL-1.0",
+        "License File": "https://github.com/catchorg/Catch2/blob/devel/LICENSE.txt",
+        "Version Number": "v2.13.8",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/catchorg/Catch2",
+        "Description": "Catch2 is mainly a unit testing framework for C++, but it also provides basic micro-benchmarking features, and simple BDD macros."
+    }
+]

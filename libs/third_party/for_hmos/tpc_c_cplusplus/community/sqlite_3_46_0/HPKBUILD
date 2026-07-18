@@ -1,0 +1,97 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, wen fan <wenfan001@chinasoftinc.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=sqlite_3_46_0
+pkgver=version-3.46.0
+pkgrel=
+pkgdesc="This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+url=https://github.com/sqlite/sqlite
+archs=(armeabi-v7a arm64-v8a)
+license=(blessing)
+depends=(tcl)
+makedepends=(tclsh8.6)
+source=https://github.com/sqlite/sqlite/archive/refs/tags/$pkgver.tar.gz
+
+autounpack=true
+downloadpackage=true
+buildtools=configure
+patchflag=true
+builddir=sqlite-${pkgver}
+packagename=$builddir.tar.gz
+source envset.sh
+host=
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../sqlite-3.46.0_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux        
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+}
+
+build() {
+    cd $builddir/$ARCH-build
+    PKG_CONFIG_PATH="${pkgconfigpath}" ../configure "$@" --host=$host --with-tcl=$LYCIUM_ROOT/usr/tcl/$ARCH/lib TCLLIBDIR=$LYCIUM_ROOT/usr/tcl/$ARCH/lib > `pwd`/build.log 2>&1
+    make -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+    return $ret    
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    make testprogs >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # make fuzztest
+    return $ret
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packageName
+}

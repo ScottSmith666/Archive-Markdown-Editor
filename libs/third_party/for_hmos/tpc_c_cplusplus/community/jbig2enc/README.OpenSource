@@ -1,0 +1,11 @@
+[
+    {
+        "Name"            : "jbig2enc",
+        "License"         : "Apache License",
+        "License File"    : "LICENSE",
+        "Version Number"  : "0.29",
+        "Owner"           : "huangminzhong2@huawei.com",
+        "Upstream URL"    : "https://github.com/agl/jbig2enc",
+        "Description"     : "This is an encoder for JBIG2."
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libwmskia",
+        "License": "GPL-3.0",
+        "License File": "https://skia.googlesource.com/skia/+/refs/tags/canvaskit/0.37.0/LICENSE",
+        "Version Number": "canvaskit/0.37.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://skia.googlesource.com/skia",
+        "Description": "Libwmskia is a core component of the OpenHarmony system graphics stack, providing 2D graphics rendering capabilities as a dynamic library specifically designed for the OpenHarmony window manager."
+    }
+]

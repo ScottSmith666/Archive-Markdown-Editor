@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "curl",
+        "License": "curl",
+        "License File": "https://github.com/curl/curl/blob/master/COPYING",
+        "Version Number": "curl-8_9_1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/curl/curl",
+        "Description": "Curl is a command-line tool for transferring data specified with URL syntax. Find out how to use curl by reading the curl.1 man page or the MANUAL document. Find out how to install Curl by reading the INSTALL document."
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1w",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1w.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    },
+    {
+        "Name": "zstd",
+        "License": "BSD-3-Clause or GPL-2.0",
+        "License File": ["https://github.com/facebook/zstd/blob/dev/LICENSE","https://github.com/facebook/zstd/blob/dev/COPYING"],
+        "Version Number": "v1.5.6",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://github.com/facebook/zstd/archive/refs/tags/v1.5.6.tar.gz",
+        "Description": "Zstandard, or zstd as short version, is a fast lossless compression algorithm, targeting real-time compression scenarios at zlib-level and better compression ratios."
+    },
+    {
+        "Name": "nghttp2",
+        "License": "MIT",
+        "License File": "https://github.com/nghttp2/nghttp2/blob/master/COPYING",
+        "Version Number": "v1.52.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/nghttp2/nghttp2/archive/refs/tags/v1.52.0.tar.gz",
+        "Description": "This is an implementation of the Hypertext Transfer Protocol version 2 in C."
+    }
+]

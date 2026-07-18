@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "libxslt",
+        "License": "MIT license",
+        "License File": "https://gitlab.gnome.org/GNOME/libxslt/-/blob/master/Copyright",
+        "Version Number": "1.1.38",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://download.gnome.org/sources/libxslt/1.1/libxslt-1.1.38.tar.xz",
+        "Description": "libxslt itself is a an XML language to define transformation for XML."
+    },
+    {
+        "Name": "libxml2",
+        "License": " MIT license",
+        "License File": "https://github.com/GNOME/libxml2/blob/master/Copyright",
+        "Version Number": "v2.11.3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/GNOME/libxml2/archive/refs/tags/v2.11.3.tar.gz",
+        "Description": "libxml2 is an XML toolkit implemented in C, originally developed for the GNOME Project."
+    }
+]

@@ -1,0 +1,43 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: kami_coder <kami_zk@163.com>
+# Maintainer: kami_coder <kami_zk@163.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+lunasvgtestfile=../../lunasvgtest.svg
+lunasvgpngfile=./lunasvgtest.svg.png
+lunasvgtestmd5="70773275c174867f27d901d21cb43030"
+lunasvgpngmd5="fd3c51c181b5e2b7e05c4d430e0cdd75"
+
+openharmonycheck() {
+    res=0
+    cd ${builddir}/${ARCH}-build
+    ./svg2png ${lunasvgtestfile} > ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]; then
+        cd $OLDPWD
+        return $res
+    fi
+
+    #转换后的png图片的md5值不等于Linux下同一svg文件转换后的png图片的md5值，异常
+    testfilemd5=$(md5sum ${lunasvgtestfile} | awk '{print $1}')
+    pngfilemd5=$(md5sum ${lunasvgpngfile} | awk '{print $1}')
+    if [ "$testfilemd5" = "$lunasvgtestmd5" ] && [ "$pngfilemd5" != "$lunasvgpngmd5" ]; then
+        res=-1
+    fi
+    
+    cd $OLDPWD
+    return $res
+}

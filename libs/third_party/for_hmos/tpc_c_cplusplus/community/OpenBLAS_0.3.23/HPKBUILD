@@ -1,0 +1,74 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhaoxu <357489213@qq.com>
+# Maintainer: zhaoxu <357489213@qq.com>
+
+pkgname=OpenBLAS_0.3.23
+pkgver=0.3.23
+pkgrel=0
+pkgdesc="OpenBLAS is an optimized BLAS (Basic Linear Algebra Subprograms) library based on GotoBLAS2 1.13 BSD version."
+url="https://www.openblas.net"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause license")
+depends=()
+makedepends=()
+
+source="https://github.com/xianyi/${pkgname:0:8}/archive/refs/tags/v$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+
+builddir=${pkgname:0:8}-${pkgver}
+packagename=$builddir.tar.gz
+patchflag=true
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # patch 增加使用软件浮点运算指令集
+        patch -p1 < `pwd`/../OpenBLAS_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DCMAKE_Fortran_COMPILER=OFF -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install VERBOSE=1 >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild() {
+    echo "Clean build diretory!"
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

@@ -1,0 +1,750 @@
+# Copyright (c) 2023, HiHope Community.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+declare_args() {
+  enable_behaviortree_test = false
+}
+
+config("public_config") {
+  ldflags = [
+    "-Wl",
+    "-lm",
+    "-lc",
+    "-lpthread",
+  ]
+}
+
+config("lexy_file_config") {
+  cflags_cc = [
+    "-O3",
+    "-DNDEBUG",
+    "-Wpedantic",
+    "-pedantic-errors",
+    "-Werror",
+    "-Wall",
+    "-Wextra",
+    "-Wconversion",
+    "-Wsign-conversion",
+    "-Wno-parentheses",
+    "-Wno-unused-local-typedefs",
+    "-Wno-array-bounds",
+    "-Wno-maybe-uninitialized",
+    "-Wno-restrict",
+    "-std=gnu++20",
+  ]
+}
+
+ohos_static_library("lexy_file") {
+  output_name = "lexy_file"
+
+  sources = [ "BehaviorTree.CPP/3rdparty/lexy/src/input/file.cpp" ]
+
+  defines = []
+
+  configs = [
+    ":lexy_file_config",
+    ":public_config",
+  ]
+
+  include_dirs = [ "BehaviorTree.CPP/3rdparty/lexy/include" ]
+
+  part_name = "behaviortree"
+}
+
+config("bt_sample_nodes_config") {
+  cflags_cc = [
+    "-O3",
+    "-DNDEBUG",
+    "-Wpedantic",
+    "-std=gnu++17",
+    "-fexceptions",
+    "-frtti",
+    "-Wno-unused-function",
+  ]
+}
+
+ohos_static_library("bt_sample_nodes") {
+  sources = [
+    "BehaviorTree.CPP/sample_nodes/crossdoor_nodes.cpp",
+    "BehaviorTree.CPP/sample_nodes/dummy_nodes.cpp",
+    "BehaviorTree.CPP/sample_nodes/movebase_node.cpp",
+  ]
+
+  defines = []
+
+  configs = [
+    ":bt_sample_nodes_config",
+    ":public_config",
+  ]
+
+  include_dirs = [
+    "BehaviorTree.CPP/include",
+    "BehaviorTree.CPP/sample_nodes",
+  ]
+
+  part_name = "behaviortree"
+}
+
+config("behaviortreecpp_config") {
+  cflags_cc = [
+    "-O3",
+    "-DNDEBUG",
+    "-fPIC",
+    "-Wpedantic",
+    "-Wall",
+    "-Wextra",
+    "-std=gnu++20",
+    "-fexceptions",
+    "-frtti",
+    "-Wno-deprecated-volatile",
+    "-Wno-unused-lambda-capture",
+  ]
+
+  include_dirs = [
+    "BehaviorTree.CPP/.",
+    "BehaviorTree.CPP/include",
+    "BehaviorTree.CPP/3rdparty",
+    "BehaviorTree.CPP/3rdparty/lexy/include",
+  ]
+}
+
+ohos_shared_library("behaviortree_cpp") {
+  output_name = "behaviortree_cpp"
+
+  sources = [
+    "BehaviorTree.CPP/3rdparty/minitrace/minitrace.cpp",
+    "BehaviorTree.CPP/3rdparty/tinyxml2/tinyxml2.cpp",
+    "BehaviorTree.CPP/src/action_node.cpp",
+    "BehaviorTree.CPP/src/actions/test_node.cpp",
+    "BehaviorTree.CPP/src/basic_types.cpp",
+    "BehaviorTree.CPP/src/behavior_tree.cpp",
+    "BehaviorTree.CPP/src/blackboard.cpp",
+    "BehaviorTree.CPP/src/bt_factory.cpp",
+    "BehaviorTree.CPP/src/condition_node.cpp",
+    "BehaviorTree.CPP/src/control_node.cpp",
+    "BehaviorTree.CPP/src/controls/fallback_node.cpp",
+    "BehaviorTree.CPP/src/controls/if_then_else_node.cpp",
+    "BehaviorTree.CPP/src/controls/parallel_node.cpp",
+    "BehaviorTree.CPP/src/controls/reactive_fallback.cpp",
+    "BehaviorTree.CPP/src/controls/reactive_sequence.cpp",
+    "BehaviorTree.CPP/src/controls/sequence_node.cpp",
+    "BehaviorTree.CPP/src/controls/sequence_star_node.cpp",
+    "BehaviorTree.CPP/src/controls/switch_node.cpp",
+    "BehaviorTree.CPP/src/controls/while_do_else_node.cpp",
+    "BehaviorTree.CPP/src/decorator_node.cpp",
+    "BehaviorTree.CPP/src/decorators/delay_node.cpp",
+    "BehaviorTree.CPP/src/decorators/inverter_node.cpp",
+    "BehaviorTree.CPP/src/decorators/repeat_node.cpp",
+    "BehaviorTree.CPP/src/decorators/retry_node.cpp",
+    "BehaviorTree.CPP/src/decorators/subtree_node.cpp",
+    "BehaviorTree.CPP/src/json_export.cpp",
+    "BehaviorTree.CPP/src/loggers/bt_cout_logger.cpp",
+    "BehaviorTree.CPP/src/loggers/bt_file_logger.cpp",
+    "BehaviorTree.CPP/src/loggers/bt_minitrace_logger.cpp",
+    "BehaviorTree.CPP/src/loggers/bt_observer.cpp",
+    "BehaviorTree.CPP/src/script_parser.cpp",
+    "BehaviorTree.CPP/src/shared_library.cpp",
+    "BehaviorTree.CPP/src/shared_library_UNIX.cpp",
+    "BehaviorTree.CPP/src/tree_node.cpp",
+    "BehaviorTree.CPP/src/xml_parsing.cpp",
+  ]
+
+  defines = [
+    "LEXY_HAS_UNICODE_DATABASE=1",
+    "behaviortree_cpp_EXPORTS",
+  ]
+
+  configs = [
+    ":behaviortreecpp_config",
+    ":public_config",
+  ]
+
+  deps = [ "//third_party/behaviortree:lexy_file" ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+config("dummy_nodes_dyn_config") {
+  cflags_cc = [
+    "-O3",
+    "-DNDEBUG",
+    "-fPIC",
+    "-Wpedantic",
+    "-std=gnu++17",
+    "-fexceptions",
+    "-frtti",
+    "-Wno-deprecated-volatile",
+    "-Wno-unused-lambda-capture",
+  ]
+
+  include_dirs = [
+    "BehaviorTree.CPP/include",
+    "BehaviorTree.CPP/sample_nodes",
+  ]
+}
+
+ohos_shared_library("dummy_nodes_dyn") {
+  output_name = "dummy_nodes_dyn"
+
+  sources = [ "BehaviorTree.CPP/sample_nodes/dummy_nodes.cpp" ]
+
+  defines = [
+    "BT_PLUGIN_EXPORT",
+    "dummy_nodes_dyn_EXPORTS",
+  ]
+
+  configs = [
+    ":dummy_nodes_dyn_config",
+    ":public_config",
+  ]
+
+  deps = [ "//third_party/behaviortree:behaviortree_cpp" ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+config("crossdoor_nodes_dyn_config") {
+  cflags_cc = [
+    "-O3",
+    "-DNDEBUG",
+    "-fPIC",
+    "-Wpedantic",
+    "-std=gnu++17",
+    "-fexceptions",
+    "-frtti",
+    "-Wno-deprecated-volatile",
+    "-Wno-unused-lambda-capture",
+  ]
+
+  include_dirs = [
+    "BehaviorTree.CPP/include",
+    "BehaviorTree.CPP/sample_nodes",
+  ]
+}
+
+ohos_shared_library("crossdoor_nodes_dyn") {
+  output_name = "crossdoor_nodes_dyn"
+
+  sources = [ "BehaviorTree.CPP/sample_nodes/crossdoor_nodes.cpp" ]
+
+  defines = [
+    "BT_PLUGIN_EXPORT",
+    "crossdoor_nodes_dyn_EXPORTS",
+  ]
+
+  configs = [
+    ":crossdoor_nodes_dyn_config",
+    ":public_config",
+  ]
+
+  deps = [ "//third_party/behaviortree:behaviortree_cpp" ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+config("movebase_node_dyn_config") {
+  cflags_cc = [
+    "-O3",
+    "-DNDEBUG",
+    "-fPIC",
+    "-Wpedantic",
+    "-std=gnu++17",
+    "-fexceptions",
+    "-frtti",
+    "-Wno-deprecated-volatile",
+    "-Wno-unused-lambda-capture",
+  ]
+
+  include_dirs = [
+    "BehaviorTree.CPP/include",
+    "BehaviorTree.CPP/sample_nodes",
+  ]
+}
+
+ohos_shared_library("movebase_node_dyn") {
+  output_name = "movebase_node_dyn"
+
+  sources = [ "BehaviorTree.CPP/sample_nodes/movebase_node.cpp" ]
+
+  defines = [
+    "BT_PLUGIN_EXPORT",
+    "movebase_node_dyn_EXPORTS",
+  ]
+
+  configs = [
+    ":movebase_node_dyn_config",
+    ":public_config",
+  ]
+
+  deps = [ "//third_party/behaviortree:behaviortree_cpp" ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+group("tests") {
+  if (enable_behaviortree_test) {
+    deps = [
+      ":ex01_wrap_legacy",
+      ":ex02_runtime_ports",
+      ":ex04_waypoints",
+      ":t01_build_your_first_tree",
+      ":t02_basic_ports",
+      ":t03_generic_ports",
+      ":t04_reactive_sequence",
+      ":t05_crossdoor",
+      ":t06_subtree_port_remapping",
+      ":t07_load_multiple_xml",
+      ":t08_additional_node_args",
+      ":t09_scripting",
+      ":t10_observer",
+      ":t11_replace_rules",
+    ]
+  } else {
+    deps = []
+  }
+}
+
+config("executable_public_config") {
+  cflags_cc = [
+    "-O3",
+    "-DNDEBUG",
+    "-Wpedantic",
+    "-std=gnu++17",
+    "-fexceptions",
+    "-frtti",
+    "-Wno-deprecated-volatile",
+    "-Wno-unused-lambda-capture",
+  ]
+
+  include_dirs = [
+    "BehaviorTree.CPP/include",
+    "BehaviorTree.CPP/sample_nodes",
+  ]
+}
+
+ohos_executable("t01_build_your_first_tree") {
+  output_name = "t01_build_your_first_tree"
+
+  sources = [ "BehaviorTree.CPP/examples/t01_build_your_first_tree.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("t02_basic_ports") {
+  output_name = "t02_basic_ports"
+
+  sources = [ "BehaviorTree.CPP/examples/t02_basic_ports.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("t03_generic_ports") {
+  output_name = "t03_generic_ports"
+
+  sources = [ "BehaviorTree.CPP/examples/t03_generic_ports.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("t04_reactive_sequence") {
+  output_name = "t04_reactive_sequence"
+
+  sources = [ "BehaviorTree.CPP/examples/t04_reactive_sequence.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("t05_crossdoor") {
+  output_name = "t05_crossdoor"
+
+  sources = [ "BehaviorTree.CPP/examples/t05_crossdoor.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("t06_subtree_port_remapping") {
+  output_name = "t06_subtree_port_remapping"
+
+  sources = [ "BehaviorTree.CPP/examples/t06_subtree_port_remapping.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("t07_load_multiple_xml") {
+  output_name = "t07_load_multiple_xml"
+
+  sources = [ "BehaviorTree.CPP/examples/t07_load_multiple_xml.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("t08_additional_node_args") {
+  output_name = "t08_additional_node_args"
+
+  sources = [ "BehaviorTree.CPP/examples/t08_additional_node_args.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("t09_scripting") {
+  output_name = "t09_scripting"
+
+  sources = [ "BehaviorTree.CPP/examples/t09_scripting.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+config("t10_observer_config") {
+  cflags_cc = [
+    "-O3",
+    "-DNDEBUG",
+    "-Wpedantic",
+    "-std=gnu++17",
+    "-fexceptions",
+    "-frtti",
+    "-Wno-deprecated-volatile",
+    "-Wno-unused-lambda-capture",
+    "-Wno-unused-variable",
+  ]
+
+  include_dirs = [
+    "BehaviorTree.CPP/include",
+    "BehaviorTree.CPP/sample_nodes",
+  ]
+}
+
+ohos_executable("t10_observer") {
+  output_name = "t10_observer"
+
+  sources = [ "BehaviorTree.CPP/examples/t10_observer.cpp" ]
+
+  configs = [
+    ":t10_observer_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("t11_replace_rules") {
+  output_name = "t11_replace_rules"
+
+  sources = [ "BehaviorTree.CPP/examples/t11_replace_rules.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("ex01_wrap_legacy") {
+  output_name = "ex01_wrap_legacy"
+
+  sources = [ "BehaviorTree.CPP/examples/ex01_wrap_legacy.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("ex02_runtime_ports") {
+  output_name = "ex02_runtime_ports"
+
+  sources = [ "BehaviorTree.CPP/examples/ex02_runtime_ports.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}
+
+ohos_executable("ex04_waypoints") {
+  output_name = "ex04_waypoints"
+
+  sources = [ "BehaviorTree.CPP/examples/ex04_waypoints.cpp" ]
+
+  configs = [
+    ":executable_public_config",
+    ":public_config",
+  ]
+
+  deps = [
+    "//third_party/behaviortree:behaviortree_cpp",
+    "//third_party/behaviortree:bt_sample_nodes",
+  ]
+
+  install_enable = true
+
+  install_images = [
+    "system",
+    "ramdisk",
+    "updater",
+  ]
+
+  part_name = "behaviortree"
+}

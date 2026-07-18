@@ -1,0 +1,156 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong2 <huangminzhong2@huawei.com> ，zhuangkun <zhuangkun05@chinasoftinc.com>
+# Maintainer: huangminzhong2 <huangminzhong2@huawei.com>
+
+pkgname=linux-pam
+pkgver=8562cb1b951e7bd807af6b43d85c71cedd7b10d7
+pkgrel=0
+pkgdesc="Linux-PAM offers flexible and scalable authentication solutions for Linux, allowing admins to configure authentication policies across apps via config files."
+url="https://github.com/linux-pam"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("BSD-3-Clause")
+depends=()
+makedepends=()
+
+source=https://github.com/linux-pam/linux-pam.git
+
+autounpack=false
+downloadpackage=false
+buildtools="configure"
+builddir=$pkgname-${pkgver}
+packagename=
+
+source envset.sh
+autogenflags=true
+patchflag=true
+cloneflag=true
+host=
+
+prepare() {
+    if $cloneflag
+    then
+        mkdir -p $builddir
+        git clone -b master $source $builddir > $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+
+        cd $builddir
+        git reset --hard $pkgver >> $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            return -2
+        fi
+
+        cd $OLDPWD
+        cloneflag=false
+    fi
+    
+    # 注释OHOS不支持的系统函数
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../linux-pam_oh_pkg.patch >> $publicbuildlog 2>&1
+        patchflag=false
+        cd $OLDPWD
+    fi
+    
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+	elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    
+    if $autogenflags
+    then
+        cd $builddir
+        ./autogen.sh >> $publicbuildlog 2>&1
+        cd ${OLDPWD}
+    fi
+    
+    cp -rf $builddir $builddir-$ARCH-build
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    CPPFLAGS="-DHELPER_COMPILE_R=1" ./configure "$@" --disable-doc --host=$host > $buildlog 2>&1
+    $MAKE >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    ret=$?
+    # 创建 security 目录并移动头文件
+    if [ $ret -eq 0 ]; then
+        mkdir -p ${LYCIUM_ROOT}/usr/linux-pam/${ARCH}/include/security
+        mv ${LYCIUM_ROOT}/usr/linux-pam/${ARCH}/include/*.h ${LYCIUM_ROOT}/usr/linux-pam/${ARCH}/include/security/
+    fi
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cd $builddir-$ARCH-build
+    # 注释掉测试部分
+    sed -i.bak 's|$(MAKE) $(AM_MAKEFLAGS) check-TESTS|# $(MAKE) $(AM_MAKEFLAGS) check-TESTS|g' tests/Makefile
+    $MAKE check >> $buildlog 2>&1
+    # 注释掉编译部分
+    sed -i '/^all: all-am$/,/^\t@:$/s/^/#/' tests/Makefile
+    sed -i 's|# $(MAKE) $(AM_MAKEFLAGS) check-TESTS|$(MAKE) $(AM_MAKEFLAGS) check-TESTS|g' tests/Makefile
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+recoverpkgbuildenv() {
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+	elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf $builddir $builddir-armeabi-v7a-build $builddir-arm64-v8a-build $builddir-x86_64-build
+}
+
+

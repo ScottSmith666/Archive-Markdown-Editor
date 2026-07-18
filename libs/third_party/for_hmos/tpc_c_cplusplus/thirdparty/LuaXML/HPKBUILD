@@ -1,0 +1,106 @@
+# Contributor: Chen Xu <chenxu.unix@gmail.com>
+# Maintainer: Chen Xu <chenxu.unix@gmail.com>
+pkgname=LuaXML
+pkgver=master
+pkgrel=0
+pkgdesc="A module that maps between Lua and XML without much ado."
+# url="https://viremo.eludi.net/LuaXML/" # The link is unavailable or cannot be accessed.
+url="https://github.com/n1tehawk/LuaXML" 
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT license")
+depends=("LuaJIT")
+makedepends=("make")
+
+source="https://github.com/n1tehawk/$pkgname.git"
+commitid=7cd4a7ab5db85222edb4c955d53e5674afd170b6
+
+autounpack=false
+downloadpackage=false
+buildtools="make"
+
+builddir=$pkgname-${commitid}
+cloneflag=true
+cc=
+
+prepare() {
+    if [ $cloneflag == true ]
+    then
+        mkdir $builddir
+        git clone -b $pkgver $source $builddir
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $commitid
+        if [ $? != 0 ]
+        then
+            return -1
+        fi
+        cd ..
+        cloneflag=false
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+    fi
+    cd $OLDPWD
+}
+build() {
+    cd $builddir-$ARCH-build
+    cp -f $LYCIUM_ROOT/usr/LuaJIT/$ARCH/lib/libluajit-5.1.so $LYCIUM_ROOT/usr/LuaJIT/$ARCH/lib/liblua.so
+    make INCDIR=-I$LYCIUM_ROOT/usr/LuaJIT/$ARCH/include/luajit-2.1 \
+        LIBDIR=-L$LYCIUM_ROOT/usr/LuaJIT/$ARCH/lib \
+        CC=${cc} -j4 VERBOSE=1 > `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    rm -rf $LYCIUM_ROOT/usr/LuaJIT/$ARCH/lib/liblua.so
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/include 
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib 
+    cp -f LuaXML_lib.h $LYCIUM_ROOT/usr/$pkgname/$ARCH/include/ 
+    ret=$?
+    if [ $ret != 0 ]
+    then
+        return -1
+    fi
+    cp -f LuaXML_lib.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/ 
+    ret=$?
+    cd $OLDPWD
+    unset cc
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 下载测试需要lua脚本
+    sure download "https://github.com/bluebird75/luaunit/archive/refs/tags/LUAUNIT_V3_4.tar.gz"  "luaunit-LUAUNIT_V3_4.tar.gz"
+    sure unpack "luaunit-LUAUNIT_V3_4.tar.gz"
+    cp luaunit-LUAUNIT_V3_4/luaunit.lua $builddir-$ARCH-build/
+    # 使用动态库链接，由于lua的原因LD_LIBRARY_PATH无效，需要将libluajit-5.1.so.2.1.0拷贝到系统默认so查找路径
+    # mount -o remount,rw /
+    # mkdir -p /usr/local/lib
+    # export ROOT_PATH=/data/local/tmp/lycium
+    # cp ${ROOT_PATH}/usr/LuaJIT/arm64-v8a/lib/libluajit-5.1.so.2.1.0 /usr/local/lib/libluajit-5.1.so.2
+    # cd ${ROOT_PATH}/main/LuaXML/LuaXML-7cd4a7ab5db85222edb4c955d53e5674afd170b6-arm64-v8a-build
+    # export LUAJIT_PATH=$ROOT_PATH/usr/LuaJIT/arm64-v8a/bin/luajit-2.1.0-beta3
+    # make test LUA=${LUAJIT_PATH} VERBOSE=1
+    # mount -o remount,ro /
+    # export LUAJIT_PATH=
+    # export ROOT_PATH=
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir $builddir-armeabi-v7a-build  $builddir-arm64-v8a-build #${PWD}/$packagename
+}

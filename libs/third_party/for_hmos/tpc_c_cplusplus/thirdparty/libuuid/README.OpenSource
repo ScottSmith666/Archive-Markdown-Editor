@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libuuid",
+        "License": " BSD license",
+        "License File": "COPYING",
+        "Version Number": "1.0.3",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://sourceforge.net/projects/libuuid/files/libuuid-1.0.3.tar.gz",
+        "Description": "The libuuid library is used to generate unique identifiers for objects that may be accessible beyond the local system."
+    }
+]

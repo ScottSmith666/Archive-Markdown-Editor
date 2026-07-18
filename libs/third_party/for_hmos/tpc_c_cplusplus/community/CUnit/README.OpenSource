@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "CUnit",
+        "License": "GNU Library General Public License",
+        "License File": "https://sourceforge.net/p/cunit/code/HEAD/tree/branches/mingw64/COPYING",
+        "Version Number": "2.1-3",
+        "Owner": "tianyong13@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/cunit/files/latest/download",
+        "Description": "CUnit is a Unit testing framework for C."
+    }
+]

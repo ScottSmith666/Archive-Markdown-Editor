@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "openfst",
+        "License": "Apache-2.0 license",
+        "License File": "https://www.openfst.org/twiki/bin/view/FST/DistCopying",
+        "Version Number": "1.8.2",
+        "Owner": "kanchengc@isoftstone.com",
+        "Upstream URL": "https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.8.2.tar.gz",
+        "Description": "OpenFst is a library for constructing, combining, optimizing, and searching weighted finite-state transducers (FSTs)."
+    }
+]

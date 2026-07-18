@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "lame",
+        "License": "LGPLv2/GPLv2 license",
+        "License File": "LICENSES",
+        "Version Number": "3.100",
+        "Owner": "cmxud@isoftstone.com",
+        "Upstream URL": "https://sourceforge.net/projects/lame/files/lame/3.100/lame-3.100.tar.gz",
+        "Description": "lame is A high quality MP3 encoder"
+    }
+]

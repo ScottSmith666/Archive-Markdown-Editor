@@ -1,0 +1,1 @@
+CKEDITOR.plugins.setLang("codesnippet","zh-cn",{button:"插入代码",codeContents:"代码内容",emptySnippetLangError:"必须设置代码语言",emptySnippetError:"插入的代码不能为空。",language:"语言选择",title:"插入代码",pathName:"代码段",codeNotNull:"代码块不能为空"});

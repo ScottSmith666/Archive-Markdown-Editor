@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "p7zip",
+        "License": " LGPL license",
+        "License File": "COPYING",
+        "Version Number": "v17.05",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "https://github.com/p7zip-project/p7zip/archive/refs/tags/v17.05.tar.gz",
+        "Description": "The original intention of p7zip is to make 7z run on unix-like systems. The latest 7zip already supports unix systems, so the new version of this project is not just a derivative of p7zip. "
+    }
+]

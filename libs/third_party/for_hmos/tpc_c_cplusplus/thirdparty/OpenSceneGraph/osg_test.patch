@@ -1,0 +1,411 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0ef2edd33..a29119b07 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -51,7 +51,15 @@ PROJECT(OpenSceneGraph)
+ # Additionally, OSG_WINDOWING_SYSTEM is set here for OSX since its
+ # value is needed to find the correct version of OpenGL (X11 or Cocoa).
+ 
+-IF(ANDROID)
++message(STATUS "CMAKE_SYSTEM_NAME = '${CMAKE_SYSTEM_NAME}'")
++set(OHOS_PLATFORM_NAME OHOS)
++if(CMAKE_SYSTEM_NAME STREQUAL ${OHOS_PLATFORM_NAME})
++    set(OHOS TRUE)
++    add_definitions(-DOHOS)
++    message(STATUS "OHOS platform detected, adding OHOS definition")
++endif()
++
++IF(ANDROID OR OHOS)
+     SET(OSG_WINDOWING_SYSTEM "None" CACHE STRING "Windowing system type for graphics window creation; options: None.")
+ ELSEIF(WIN32 OR MINGW)
+     SET(OSG_WINDOWING_SYSTEM "Win32" CACHE STRING "Windowing system type for graphics window creation; options: Win32 or None.")
+@@ -150,7 +158,7 @@ IF(NOT CMAKE_BUILD_TYPE)
+ ENDIF(NOT CMAKE_BUILD_TYPE)
+ 
+ 
+-IF(ANDROID)
++IF(ANDROID OR OHOS)
+     INCLUDE(OsgAndroidMacroUtils)
+ ENDIF()
+ 
+@@ -165,7 +173,7 @@ ENDIF()
+ # cases. With IRIX, we're going to hope explicit linking to the underlying
+ # library is not necessary. We currently don't case for pthreads on Windows
+ # which might be an issue on things like Cygwin. This may need to be fixed.
+-IF(NOT ANDROID)
++IF(NOT ANDROID AND NOT OHOS)
+     FIND_PACKAGE(Threads)
+ ENDIF()
+ IF(CMAKE_SYSTEM MATCHES IRIX)
+@@ -225,7 +233,7 @@ IF (OSG_MAINTAINER)
+ 
+ ENDIF(OSG_MAINTAINER)
+ 
+-IF(NOT ANDROID)
++IF(NOT ANDROID AND NOT OHOS)
+ IF(APPLE)
+ 
+     IF(OSG_BUILD_PLATFORM_IPHONE)
+@@ -281,7 +289,7 @@ ENDIF()
+ 
+ 
+ 
+-IF(UNIX AND NOT ANDROID)
++IF(UNIX AND NOT ANDROID AND NOT OHOS)
+     # Not sure what this will do on Cygwin and Msys
+     # Also, remember OS X X11 is a user installed option so it may not exist.
+     FIND_PACKAGE(X11)
+@@ -314,7 +322,7 @@ INCLUDE_DIRECTORIES(SYSTEM ${OPENGL_INCLUDE_DIR})
+ # Platform specific definitions
+ 
+ 
+-IF(WIN32 AND NOT ANDROID)
++IF(WIN32 AND NOT ANDROID AND NOT OHOS)
+     OPTION(OSG_DETERMINE_WIN_VERSION "Wheter to automatically determine current Windows version" ON)
+ 
+     IF(OSG_DETERMINE_WIN_VERSION)
+@@ -401,7 +409,7 @@ IF(WIN32 AND NOT ANDROID)
+             SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
+         ENDIF(NOT OSG_MSVC_DEBUG_INCREMENTAL_LINK)
+     ENDIF(MSVC)
+-ENDIF(WIN32 AND NOT ANDROID)
++ENDIF(WIN32 AND NOT ANDROID AND NOT OHOS)
+ 
+ ########################################################################################################
+ ##### these were settings located in SetupCommon.cmake used in Luigi builds.... find out what are useful
+@@ -460,6 +468,10 @@ OPTION(OSG_ENVVAR_SUPPORTED "Set to ON to build OpenSceneGraph with the #define
+ # Map the OPENGL_PROFILE to OSG_GL*_AVAILABLE settings
+ SET(OPENGL_PROFILE "GL2" CACHE STRING "OpenGL Profile to use, choose from GL1, GL2, GL3, GLES1, GLES2, GLES3")
+ 
++if(OHOS)
++    set(OPENGL_PROFILE "GLES2" CACHE STRING "OpenGL Profile for OHOS" FORCE)
++endif()
++
+ IF ((OPENGL_PROFILE STREQUAL "GL1") OR (OPENGL_PROFILE STREQUAL "GL2"))
+     OPTION(OSG_GL1_AVAILABLE "Set to OFF to disable use of OpenGL 1.x functions library." ON )
+ ELSE()
+@@ -502,7 +514,7 @@ ENDIF()
+ 
+ OPTION(OSG_GL_LIBRARY_STATIC "Set to ON to statically link with OpenGL/GLES library." OFF)
+ 
+-IF (OSG_BUILD_PLATFORM_IPHONE OR ANDROID)
++IF (OSG_BUILD_PLATFORM_IPHONE OR ANDROID OR OHOS)
+     OPTION(OSG_TEXT_USE_FONTCONFIG "Set to ON to enable attempt to use FontConfig in osgText." OFF)
+ ELSE ()
+     OPTION(OSG_TEXT_USE_FONTCONFIG "Set to OFF to disable attempt to use FontConfig in osgText." ON)
+@@ -560,7 +572,7 @@ IF (OSG_GL3_AVAILABLE)
+ 
+     ENDIF()
+ ELSEIF(OSG_GLES1_AVAILABLE)
+-    IF (APPLE AND NOT ANDROID)
++    IF (APPLE AND NOT ANDROID AND NOT OHOS)
+         SET(OPENGL_HEADER1 "#include \"TargetConditionals.h\"" CACHE STRING "#include<> line for OpenGL Header")
+         SET(OPENGL_HEADER2 "#include <OpenGLES/ES1/gl.h>" CACHE STRING "#include<> line for additional OpenGL Headers if required")
+     ELSE()
+@@ -568,7 +580,7 @@ ELSEIF(OSG_GLES1_AVAILABLE)
+         SET(OPENGL_HEADER2 "" CACHE STRING "#include<> line for additional OpenGL Headers if required")
+     ENDIF()
+ ELSEIF(OSG_GLES2_AVAILABLE)
+-    IF (APPLE AND NOT ANDROID)
++    IF (APPLE AND NOT ANDROID AND NOT OHOS)
+         SET(OPENGL_HEADER1 "#include \"TargetConditionals.h\"" CACHE STRING "#include<> line for OpenGL Header")
+         SET(OPENGL_HEADER2 "#include <OpenGLES/ES2/gl.h>" CACHE STRING "#include<> line for additional OpenGL Headers if required")
+     ELSE()
+@@ -576,7 +588,7 @@ ELSEIF(OSG_GLES2_AVAILABLE)
+         SET(OPENGL_HEADER2 "" CACHE STRING "#include<> line for additional OpenGL Headers if required")
+     ENDIF()
+ ELSEIF(OSG_GLES3_AVAILABLE)
+-    IF (APPLE AND NOT ANDROID)
++    IF (APPLE AND NOT ANDROID AND NOT OHOS)
+         SET(OPENGL_HEADER1 "#include \"TargetConditionals.h\"" CACHE STRING "#include<> line for OpenGL Header")
+         SET(OPENGL_HEADER2 "#include <OpenGLES/ES3/gl.h>" CACHE STRING "#include<> line for additional OpenGL Headers if required")
+     ELSE()
+@@ -656,6 +668,36 @@ IF(ANDROID)
+     ENDIF()
+ ENDIF()
+ 
++IF(OHOS)
++    IF(OSG_GLES1_AVAILABLE)
++        FIND_PATH(OPENGL_INCLUDE_DIR GLES/gl.h
++              PATHS
++              ${CMAKE_SYSROOT}/usr/include)
++        FIND_LIBRARY(OPENGL_gl_LIBRARY  GLESv1_CM
++                 PATHS
++                     ${CMAKE_SYSROOT}/usr/lib)
++    ELSEIF(OSG_GLES2_AVAILABLE)
++        FIND_PATH(OPENGL_INCLUDE_DIR GLES2/gl2.h
++              PATHS
++              ${CMAKE_SYSROOT}/usr/include)
++        FIND_LIBRARY(OPENGL_gl_LIBRARY  GLESv2
++                 PATHS
++                     ${CMAKE_SYSROOT}/usr/lib)
++        SET(OPENGL_HEADER1 "#include <GLES2/gl2.h>" CACHE STRING "OpenGL Header for OHOS" FORCE)
++        SET(OPENGL_HEADER2 "" CACHE STRING "Additional OpenGL Headers for OHOS" FORCE)
++    ELSEIF(OSG_GLES3_AVAILABLE)
++        FIND_PATH(OPENGL_INCLUDE_DIR GLES3/gl3.h
++              PATHS
++              ${CMAKE_SYSROOT}/usr/include)
++        FIND_LIBRARY(OPENGL_gl_LIBRARY  GLESv3
++                 PATHS
++                     ${CMAKE_SYSROOT}/usr/lib)
++        SET(OPENGL_HEADER1 "#include <GLES3/gl3.h>" CACHE STRING "OpenGL Header for OHOS" FORCE)
++        SET(OPENGL_HEADER2 "" CACHE STRING "Additional OpenGL Headers for OHOS" FORCE)
++    ELSE()
++        message(FATAL_ERROR "OHOS 没有可用的 OpenGL ES 版本!")
++    ENDIF()
++ENDIF()
+ 
+ ################################################################################
+ # Set Config header file
+@@ -723,7 +773,7 @@ OPTION(BUILD_OSG_PLUGINS "Build OSG Plugins - Disable for compile testing exampl
+ mark_as_advanced(BUILD_OSG_PLUGINS)
+ ################################################################################
+ # 3rd Party Dependency Stuff
+-IF(WIN32 AND NOT ANDROID)
++IF(WIN32 AND NOT ANDROID AND NOT OHOS)
+     INCLUDE(Find3rdPartyDependencies)
+ ENDIF()
+ 
+@@ -734,7 +784,7 @@ OPTION(OSG_USE_LOCAL_LUA_SOURCE "Enable to use local Lua source when building th
+ # you can use the following style of command line option when invoking Cmake (here illustrating ignoring PythonLibs) :
+ # cmake -DCMAKE_DISABLE_FIND_PACKAGE_PythonLibs=1 .
+ #
+-IF(ANDROID)
++IF(ANDROID OR OHOS)
+     ANDROID_3RD_PARTY()
+ ELSE()
+ # Common to all platforms except android:
+@@ -787,14 +837,14 @@ INCLUDE(OsgMacroUtils)
+ 
+ 
+ #optional example related dependencies
+-IF   (BUILD_OSG_EXAMPLES AND NOT ANDROID)
++IF   (BUILD_OSG_EXAMPLES AND NOT ANDROID AND NOT OHOS)
+ 
+ 
+     FIND_PACKAGE(FLTK)
+     FIND_PACKAGE(FOX)
+     FIND_PACKAGE(wxWidgets COMPONENTS base core gl net)
+ 
+-ENDIF(BUILD_OSG_EXAMPLES AND NOT ANDROID)
++ENDIF(BUILD_OSG_EXAMPLES AND NOT ANDROID AND NOT OHOS)
+ 
+ 
+ # Platform specific:
+@@ -1102,7 +1152,7 @@ ENDIF()
+ # OSG Core
+ ADD_SUBDIRECTORY(src)
+ 
+-IF   (BUILD_OSG_APPLICATIONS AND NOT ANDROID)
++IF   (BUILD_OSG_APPLICATIONS AND NOT ANDROID AND NOT OHOS)
+     ADD_SUBDIRECTORY(applications)
+ ENDIF()
+ 
+@@ -1111,7 +1161,7 @@ IF   (BUILD_OSG_EXAMPLES)
+ ENDIF()
+ 
+ 
+-IF(APPLE AND NOT ANDROID)
++IF(APPLE AND NOT ANDROID AND NOT OHOS)
+ 
+     IF(OSG_BUILD_PLATFORM_IPHONE)
+ 
+diff --git a/examples/CMakeLists.txt b/examples/CMakeLists.txt
+index 788e5075f..8abdc33b9 100644
+--- a/examples/CMakeLists.txt
++++ b/examples/CMakeLists.txt
+@@ -117,7 +117,9 @@ IF(DYNAMIC_OPENSCENEGRAPH)
+     ADD_SUBDIRECTORY(osgsimplifier)
+     ADD_SUBDIRECTORY(osgsimulation)
+     ADD_SUBDIRECTORY(osgsidebyside)
++    IF(NOT OHOS)
+     ADD_SUBDIRECTORY(osgslice)
++    ENDIF()
+     ADD_SUBDIRECTORY(osgspacewarp)
+     ADD_SUBDIRECTORY(osgspheresegment)
+     ADD_SUBDIRECTORY(osgspotlight)
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index d121eb00d..6b42e6b2c 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -1,6 +1,6 @@
+-IF(ANDROID)
++IF(ANDROID OR OHOS)
+     SET(MODULE_USER_STATIC_OR_DYNAMIC ${OPENSCENEGRAPH_USER_DEFINED_DYNAMIC_OR_STATIC})
+-ENDIF(ANDROID)
++ENDIF(ANDROID OR OHOS)
+ 
+ IF(MSVC80 OR MSVC90)
+   OPTION(OSG_MSVC_GENERATE_PLUGINS_AND_WRAPPERS_MANIFESTS "Generate or not manifests files under VS8 for dynamically loaded dlls" ON)
+diff --git a/src/OpenThreads/CMakeLists.txt b/src/OpenThreads/CMakeLists.txt
+index 9cd054381..02a1029e9 100644
+--- a/src/OpenThreads/CMakeLists.txt
++++ b/src/OpenThreads/CMakeLists.txt
+@@ -9,7 +9,7 @@ SET(OPENTHREADS_SOVERSION 21)
+ 
+ SET(OPENTHREADS_VERSION ${OPENTHREADS_MAJOR_VERSION}.${OPENTHREADS_MINOR_VERSION}.${OPENTHREADS_PATCH_VERSION})
+ 
+-IF(NOT ANDROID)
++IF(NOT ANDROID AND NOT OHOS)
+     INCLUDE(CheckAtomicOps)
+ ENDIF()
+ 
+@@ -73,7 +73,7 @@ SET(OpenThreads_PUBLIC_HEADERS
+     ${OPENTHREADS_CONFIG_HEADER}
+ )
+ 
+-IF(NOT ANDROID)
++IF(NOT ANDROID AND NOT OHOS)
+ # Use our modified version of FindThreads.cmake which has Sproc hacks.
+     FIND_PACKAGE(Threads)
+ ENDIF()
+@@ -84,7 +84,7 @@ IF(QT4_FOUND OR Qt5Widgets_FOUND)
+ ENDIF()
+ 
+ # Maybe we should be using the FindThreads.cmake module?
+-IF(ANDROID)
++IF(ANDROID OR OHOS)
+     SUBDIRS(pthreads)
+ ELSEIF(WIN32)
+     # So I think Cygwin wants to use pthreads
+diff --git a/src/OpenThreads/pthreads/CMakeLists.txt b/src/OpenThreads/pthreads/CMakeLists.txt
+index e18969c74..8c4a34061 100644
+--- a/src/OpenThreads/pthreads/CMakeLists.txt
++++ b/src/OpenThreads/pthreads/CMakeLists.txt
+@@ -25,7 +25,7 @@ IF(CYGWIN)  # define for pthread_{yield,getconcurrency,setconcurrency}
+     ADD_DEFINITIONS(-D_GNU_SOURCE)
+ ENDIF()
+ 
+-IF(ANDROID)
++IF(ANDROID OR OHOS)
+       ADD_DEFINITIONS(-D_GNU_SOURCE)
+       SET(CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS} -D_GNU_SOURCE")
+     SET(MODULE_USER_STATIC_OR_DYNAMIC ${OPENTHREADS_USER_DEFINED_DYNAMIC_OR_STATIC})
+diff --git a/src/OpenThreads/pthreads/PThread.cpp b/src/OpenThreads/pthreads/PThread.cpp
+index 7cac33085..60b1260bb 100644
+--- a/src/OpenThreads/pthreads/PThread.cpp
++++ b/src/OpenThreads/pthreads/PThread.cpp
+@@ -26,11 +26,11 @@
+ #endif
+ #include <limits.h>
+ 
+-#if defined __linux__ || defined __sun || defined __APPLE__ || ANDROID
++#if defined __linux__ || defined __sun || defined __APPLE__ || ANDROID || OHOS
+ #include <string.h>
+ #include <sys/time.h>
+ #include <sys/resource.h>
+-#if !defined ANDROID
++#if !defined ANDROID && !defined(OHOS)
+     #include <sys/unistd.h>
+ #endif
+ #endif
+diff --git a/src/osgDB/CMakeLists.txt b/src/osgDB/CMakeLists.txt
+index 340aae095..f2e4d6198 100644
+--- a/src/osgDB/CMakeLists.txt
++++ b/src/osgDB/CMakeLists.txt
+@@ -32,7 +32,7 @@ ELSE ()
+     ADD_DEFINITIONS(-DOSG_LIBRARY_STATIC)
+ ENDIF()
+ 
+-IF(APPLE AND NOT ANDROID)
++IF(APPLE AND NOT ANDROID AND NOT OHOS)
+      # compile FileUtils.cpp as objective-c++
+      SET_SOURCE_FILES_PROPERTIES(FileUtils.cpp
+        PROPERTIES COMPILE_FLAGS "-x objective-c++"
+@@ -125,7 +125,7 @@ SET(TARGET_SRC
+     ${OPENSCENEGRAPH_VERSIONINFO_RC}
+ )
+ 
+-IF(APPLE AND NOT ANDROID)
++IF(APPLE AND NOT ANDROID AND NOT OHOS)
+     IF(NOT OSG_BUILD_PLATFORM_IPHONE)
+         # Needs CoreFoundation calls and a Carbon function
+         SET(OSGDB_PLATFORM_SPECIFIC_LIBRARIES ${CARBON_LIBRARY} ${COCOA_LIBRARY})
+diff --git a/src/osgPlugins/CMakeLists.txt b/src/osgPlugins/CMakeLists.txt
+index 812550412..3d41af01e 100644
+--- a/src/osgPlugins/CMakeLists.txt
++++ b/src/osgPlugins/CMakeLists.txt
+@@ -182,7 +182,7 @@ ADD_PLUGIN_DIRECTORY(obj)
+ 
+ ADD_PLUGIN_DIRECTORY(pic)
+ ADD_PLUGIN_DIRECTORY(stl)
+-IF(NOT ANDROID)
++IF(NOT ANDROID AND NOT OHOS)
+     ADD_PLUGIN_DIRECTORY(3ds)
+ ENDIF()
+ ADD_PLUGIN_DIRECTORY(ac)
+@@ -225,7 +225,7 @@ ENDIF()
+ #    ADD_SUBDIRECTORY(OpenAL)
+ # ENDIF()
+ 
+-IF(APPLE AND NOT ANDROID)
++IF(APPLE AND NOT ANDROID AND NOT OHOS)
+     ADD_PLUGIN_DIRECTORY(imageio)
+ ENDIF()
+ 
+diff --git a/src/osgPlugins/cfg/CMakeLists.txt b/src/osgPlugins/cfg/CMakeLists.txt
+index 4f7062ba9..72f8bdb34 100644
+--- a/src/osgPlugins/cfg/CMakeLists.txt
++++ b/src/osgPlugins/cfg/CMakeLists.txt
+@@ -29,7 +29,7 @@ ENDIF()
+ # - http://gcc.gnu.org/bugzilla/show_bug.cgi?id=40836
+ # - http://gcc.gnu.org/bugzilla/show_bug.cgi?id=37987
+ #
+-if (ANDROID)
++if (ANDROID OR OHOS)
+     set_source_files_properties(ConfigParser.cpp
+         PROPERTY
+         COMPILE_FLAGS
+diff --git a/src/osgPlugins/ffmpeg/FFmpegDecoder.cpp b/src/osgPlugins/ffmpeg/FFmpegDecoder.cpp
+index 4de143d22..812440b11 100644
+--- a/src/osgPlugins/ffmpeg/FFmpegDecoder.cpp
++++ b/src/osgPlugins/ffmpeg/FFmpegDecoder.cpp
+@@ -66,7 +66,7 @@ bool FFmpegDecoder::open(const std::string & filename, FFmpegParameters* paramet
+ 
+         if (filename.compare(0, 5, "/dev/")==0)
+         {
+-#ifdef ANDROID
++#if !defined(ANDROID) && !defined(OHOS)
+             throw std::runtime_error("Device not supported on Android");
+ #else
+             avdevice_register_all();
+diff --git a/src/osgPlugins/ffmpeg/FFmpegHeaders.hpp b/src/osgPlugins/ffmpeg/FFmpegHeaders.hpp
+index fd9bd2c92..a4d42f37d 100644
+--- a/src/osgPlugins/ffmpeg/FFmpegHeaders.hpp
++++ b/src/osgPlugins/ffmpeg/FFmpegHeaders.hpp
+@@ -40,8 +40,8 @@ extern "C"
+ #endif
+ 
+-#ifndef ANDROID
++#if !defined(ANDROID) && !defined(OHOS)
+ #include <libavdevice/avdevice.h>
+ #endif
+ 
+ #include <libavutil/mathematics.h>
+ 
+diff --git a/src/osgPlugins/ffmpeg/FFmpegParameters.cpp b/src/osgPlugins/ffmpeg/FFmpegParameters.cpp
+index 5915ab850..a6ef76069 100644
+--- a/src/osgPlugins/ffmpeg/FFmpegParameters.cpp
++++ b/src/osgPlugins/ffmpeg/FFmpegParameters.cpp
+@@ -50,7 +50,7 @@ void FFmpegParameters::parse(const std::string& name, const std::string& value)
+     if (name == "format")
+     {
+-#ifndef ANDROID
++#if !defined(ANDROID) && !defined(OHOS)
+         avdevice_register_all();
+ #endif
+         m_format = av_find_input_format(value.c_str());
+         if (!m_format)
+diff --git a/src/osgPlugins/osc/CMakeLists.txt b/src/osgPlugins/osc/CMakeLists.txt
+index 0997edb13..876e150cc 100644
+--- a/src/osgPlugins/osc/CMakeLists.txt
++++ b/src/osgPlugins/osc/CMakeLists.txt
+@@ -29,7 +29,7 @@ SET(TARGET_H
+     OscSendingDevice.hpp
+ )
+ 
+-if(WIN32 AND NOT ANDROID)
++if(WIN32 AND NOT ANDROID AND NOT OHOS)
+     ADD_DEFINITIONS(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
+ 
+     SET(TARGET_SRC

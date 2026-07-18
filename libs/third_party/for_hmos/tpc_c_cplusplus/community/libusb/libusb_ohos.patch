@@ -1,0 +1,19 @@
+diff -Naur libusb-v1.0.26/libusb/os/linux_usbfs.c libusb-v1.0.26-patch/libusb/os/linux_usbfs.c
+--- libusb-v1.0.26/libusb/os/linux_usbfs.c	2022-04-10 01:57:16.000000000 -0700
++++ libusb-v1.0.26-patch/libusb/os/linux_usbfs.c	2024-03-29 18:51:18.926591750 -0700
+@@ -314,6 +314,15 @@
+ 		return -1;
+ 	}
+ 
++#ifdef __OHOS__
++        if (strcmp(uts.sysname, "Linux") != 0){
++	    ver->major = 5;
++            ver->minor = 10;
++            ver->sublevel = 0;
++            usbi_dbg(ctx, "ohos reported kernel version is 5.10.0");
++            return 0;
++	}
++#endif	
+ 	atoms = sscanf(uts.release, "%d.%d.%d", &ver->major, &ver->minor, &ver->sublevel);
+ 	if (atoms < 2) {
+ 		usbi_err(ctx, "failed to parse uname release '%s'", uts.release);

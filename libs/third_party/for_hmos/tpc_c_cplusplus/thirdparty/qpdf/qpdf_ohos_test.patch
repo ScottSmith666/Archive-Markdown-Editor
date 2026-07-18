@@ -1,0 +1,9 @@
+diff -Nura qpdf-11.6.3/qtest/bin/qtest-driver qpdf-patchdir/qtest/bin/qtest-driver
+--- qpdf-11.6.3/qtest/bin/qtest-driver  2023-10-15 07:49:29.000000000 +0800
++++ qpdf-patchdir/qtest/bin/qtest-driver        2024-08-23 14:32:19.452664258 +0800
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env perl
++#!/bin/env perl
+ #
+ # This file is part of qtest.
+ #

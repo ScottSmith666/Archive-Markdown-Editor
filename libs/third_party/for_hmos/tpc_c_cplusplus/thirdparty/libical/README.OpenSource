@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libical",
+        "License": "MPL v2.0 or LGPL v2.1",
+        "License File": "LICENSE,LICENSE.MPL2.txt,LICENSE.LGPL21.txt",
+        "Version Number": "v3.0.16",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/libical/libical/archive/refs/tags/v3.0.16.tar.gz",
+        "Description": "Libical is an Open Source implementation of the iCalendar protocols and protocol data units."
+    }
+]

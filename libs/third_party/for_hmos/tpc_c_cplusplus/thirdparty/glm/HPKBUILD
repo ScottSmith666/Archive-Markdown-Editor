@@ -1,0 +1,71 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=glm
+pkgver=0.9.9.8
+pkgrel=0
+pkgdesc="OpenGL Mathematics (GLM) is a header only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications."
+url="https://github.com/g-truc/glm"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("The Happy Buny License(Modified MIT License)" "MIT")
+depends=()
+makedepends=()
+
+source="https://github.com/g-truc/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if $patchflag
+    then
+        cd $builddir
+        # 由于编译test用例的时候报错:clang++: : error: argument unused during compilation: '--gcc-toolchain=/home/wu/openharmony/ohos-sdk/linux/native/llvm' [-Werror,-Wunused-command-line-argument]和没有install命令因此打patch    
+        patch -p1 < `pwd`/../glm_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    local LOCAL_CFLAGS="-O3 -fstack-protector-strong -fPIC"
+    local LOCAL_CXXFLAGS="-O3 -fstack-protector-strong -fPIC"
+    local LOCAL_LDFLAGS="-Wl,-z,relro,-z,now -Wl,--disable-new-dtags -s"
+
+    cd "$builddir"
+
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DBUILD_SHARED_LIBS=ON \
+        -DBUILD_STATIC_LIBS=ON \
+        -DCMAKE_C_FLAGS="${LOCAL_CFLAGS}" \
+        -DCMAKE_CXX_FLAGS="${LOCAL_CXXFLAGS}" \
+        -DCMAKE_SHARED_LINKER_FLAGS="${LOCAL_LDFLAGS}" \
+        -DCMAKE_EXE_LINKER_FLAGS="${LOCAL_LDFLAGS}" \
+        -B"$ARCH-build" -S./ -L > "$buildlog" 2>&1
+
+    $MAKE VERBOSE=1 -C "$ARCH-build" >> "$buildlog" 2>&1
+    local ret=$?
+    cd "$OLDPWD"
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # ctest
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

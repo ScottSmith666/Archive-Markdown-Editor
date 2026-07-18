@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "gc",
+        "License": "MIT License",
+        "License File": "https://github.com/mkirchner/gc/blob/master/LICENSE",
+        "Version Number": "master",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/mkirchner/$pkgname/archive/7f6f17c8b3425df6cd27d6f9385265b23034a793.zip",
+        "Description": "gc is an implementation of a conservative, thread-local, mark-and-sweep garbage collector. The implementation provides a fully functional replacement for the standard POSIX malloc(), calloc(), realloc(), and free() calls."
+    }
+]

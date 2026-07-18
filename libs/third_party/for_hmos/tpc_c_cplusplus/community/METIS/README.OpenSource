@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "METIS",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/KarypisLab/METIS/blob/master/LICENSE",
+        "Version Number": "v5.2.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/KarypisLab/METIS/archive/refs/tags/v5.2.1.tar.gz",
+        "Description": "METIS is a set of serial programs for partitioning graphs, partitioning finite element meshes, and producing fill reducing orderings for sparse matrices. The algorithms implemented in METIS are based on the multilevel recursive-bisection, multilevel k-way, and multi-constraint partitioning schemes developed in our lab."
+    },
+    {
+        "Name": "GKlib",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/KarypisLab/GKlib/blob/master/LICENSE.txt",
+        "Version Number": "METIS-v5.1.1-DistDGL-0.5",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/KarypisLab/GKlib/archive/refs/tags/METIS-v5.1.1-DistDGL-0.5.tar.gz",
+        "Description": "GKlib is a library for graphics programming that provides a series of functions and tools, which can be used to implement basic graphics operations and graphics processing functions."
+    }
+]

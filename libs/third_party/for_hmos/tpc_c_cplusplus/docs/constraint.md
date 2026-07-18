@@ -1,0 +1,2 @@
+- SDK版本 [Command Line Tools（5.0.3.706）及以上版本 (api12)](https://developer.huawei.com/consumer/cn/download)
+- IDE版本 [DevEco Studio NEXT Developer Beta6（5.0.3.706）及以上版本](https://developer.huawei.com/consumer/cn/download)

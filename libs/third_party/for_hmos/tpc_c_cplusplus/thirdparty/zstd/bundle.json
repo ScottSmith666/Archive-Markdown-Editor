@@ -1,0 +1,33 @@
+{
+    "name": "@ohos/zstd_lib",
+    "description": "Zstd, short for Zstandard, is a fast lossless compression algorithm, targeting real-time compression scenarios at zlib-level compression ratio.",
+    "version": "v1.5.4",
+    "license": "BSD and GPLv2",
+    "publishAs": "code-segment",
+    "segment": {
+        "destPath": "third_party/zstd"
+    },
+    "dirs": {},
+    "scripts": {},
+    "readmePath": {
+        "en": "README"
+    },
+    "component": {
+        "name": "zstd_lib",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/zstd:zstd_shared","//third_party/zstd:examples","//third_party/zstd:zstd_exe","//third_party/zstd:zst_regression"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

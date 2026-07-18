@@ -1,0 +1,74 @@
+# Contributor: 城meto <myxuan475@126.com>
+# Maintainer: 城meto <myxuan475@126.com>
+
+pkgname=oneDNN
+pkgver=v3.2
+pkgrel=0
+pkgdesc="oneDNN is an open-source cross-platform performance library of basic building blocks for deep learning applications."
+url="https://github.com/oneapi-src/oneDNN"
+archs=("arm64-v8a")
+license=("Apache-2.0 license")
+depends=("openmp")
+makedepends=()
+source="https://github.com/oneapi-src/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$pkgname-$pkgver.tar.gz
+
+source envset.sh
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+
+    # 1.平台差异无法使用同样的方式获取cpu cache信息
+    # 2.cmake 文件没有做OHOS兼容
+    if [ $patchflag == true ];then
+        cd $builddir
+        patch -p1 < `pwd`/../oneDNN_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    if [ $ARCH == "arm64-v8a" ];then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+    fi
+}
+
+build() {
+    cd $builddir
+    # 需要配置openmp 的动态库路径，否则无法找到路径
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DDNNL_BUILD_TESTS=ON \
+        -DCMAKE_C_FLAGS="${CFLAGS} -I${LYCIUM_ROOT}/usr/openmp/${ARCH}/include" \
+        -DCMAKE_CXX_FLAGS="${CXXFLAGS} -I${LYCIUM_ROOT}/usr/openmp/${ARCH}/include" \
+        -DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS} -L${LYCIUM_ROOT}/usr/openmp/${ARCH}/lib" \
+        -DCMAKE_EXE_LINKER_FLAGS="${LDFLAGS} -L${LYCIUM_ROOT}/usr/openmp/${ARCH}/lib" \
+        -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

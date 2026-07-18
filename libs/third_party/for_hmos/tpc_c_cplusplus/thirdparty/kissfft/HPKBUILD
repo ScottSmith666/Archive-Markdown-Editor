@@ -1,0 +1,53 @@
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=kissfft
+pkgver=131.1.0
+pkgrel=0 
+pkgdesc="a Fast Fourier Transform (FFT) library that tries to Keep it Simple, Stupid."
+url="https://github.com/mborgerding/kissfft"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=("libpng" "zlib")
+makedepends=()
+source="https://github.com/mborgerding/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # KISSFFT_TEST=OFF是因为Test模块依赖python，无法编译成功
+    PKG_CONFIG_PATH="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DKISSFFT_STATIC=ON -DCMAKE_INSTALL_INCLUDEDIR="$LYCIUM_ROOT/usr/$pkgname/$ARCH/include" -DKISSFFT_TEST=OFF -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    # 对最关键一步的退出码进行判断
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+# 安装打包
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+# 测试，需要在 ohos 设备上进行
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD
+    # ./fftconv-float
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

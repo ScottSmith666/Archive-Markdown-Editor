@@ -1,0 +1,90 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhuangkun <zhuangkun05@chinasoftinc.com>
+# Maintainer: huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=nanodbc
+pkgver=v2.13.0
+pkgrel=0
+pkgdesc="nanodbc is a lightweight, headline-driven ODBC library wrapper for C++ that provides a simple and modern interface to access ODBC databases"
+archs=("armeabi-v7a" "arm64-v8a")
+url="https://github.com/nanodbc/nanodbc/"
+license=("MIT")
+depends=("unixODBC")
+makedepends=()
+source="https://github.com/nanodbc/${pkgname}/archive/refs/tags/${pkgver}.tar.gz"
+
+
+downloadpackage=true
+autounpack=true
+patchflag=true
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    # 修改SONAME版本号为主版本号.2，IDE不支持使用.2.13.0版本号
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../nanodbc_oh_pkg.patch >> $publicbuildlog 2>&1
+        patchflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_CXX_FLAGS="-Wunused-command-line-argument -Wno-error=unused-command-line-argument \
+    -I${LYCIUM_ROOT}/usr/unixODBC/${ARCH}/include" \
+    -DNANODBC_DISABLE_TESTS=OFF \
+    -DNANODBC_DISABLE_EXAMPLES=OFF \
+    -DODBC_LINK_FLAGS="-L${LYCIUM_ROOT}/usr/unixODBC/${ARCH}/lib" \
+    -DOHOS_ARCH=$ARCH \
+    -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir/$ARCH-build
+    sed -i.bak '9s/^/#/' ./test/CTestTestfile.cmake
+    sed -i '10s/^/#/' ./test/CTestTestfile.cmake
+    sed -i '11s/^/#/' ./test/CTestTestfile.cmake
+    sed -i '12s/^/#/' ./test/CTestTestfile.cmake
+    sed -i '13s/^/#/' ./test/CTestTestfile.cmake
+    sed -i '14s/^/#/' ./test/CTestTestfile.cmake
+    sed -i '15s/^/#/' ./test/CTestTestfile.cmake
+    sed -i '16s/^/#/' ./test/CTestTestfile.cmake
+    sed -i '17s/^/#/' ./test/CTestTestfile.cmake
+    sed -i '18s/^/#/' ./test/CTestTestfile.cmake
+    cd $OLDPWD
+    #将测试用例使用的cmake改为CI工具的cmake
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}
+

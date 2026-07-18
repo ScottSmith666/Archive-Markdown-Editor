@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "pjsip",
+        "License": "GPL OSS",
+        "License File": "https://www.pjsip.org/licensing.htm",
+        "Version Number": "2.13.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/pjsip/pjproject/archive/refs/tags/2.13.1.tar.gz",
+        "Description": "pjsip is a free and open-source multimedia communication library that implements standards-based protocols such as SIP, SDP, RTP, STUN, TURN, and ICE. It integrates the signaling protocol SIP-based multimedia framework and NAT traversal capabilities into a high-level abstracted multimedia communication API."
+    },
+    {
+        "Name": "opus",
+        "License": "BSD-3-Clause",
+        "License File": "https://opus-codec.org/license",
+        "Version Number": "1.4",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://downloads.xiph.org/releases/opus/opus-1.4.tar.gz",
+        "Description": "OPUS is an open, royalty-free audio codec designed to provide high-fidelity audio transmission across various network environments."
+    }
+]

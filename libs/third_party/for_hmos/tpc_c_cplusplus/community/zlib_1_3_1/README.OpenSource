@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "zlib_1_3_1",
+        "License": "Zlib",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.3.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib",
+        "Description": "zlib 1.3.1 is a general purpose data compression library.All the code is thread safe."
+    }
+]

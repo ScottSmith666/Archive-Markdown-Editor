@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libssh2",
+        "License": "BSD",
+        "License File": "LICENSE",
+        "Version Number": "1.11.0",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/libssh2/libssh2/archive/refs/tags/libssh2-1.11.0.tar.gz",
+        "Description": "libssh2 is a library implementing the SSH2 protocol, available under the revised BSD license."
+    }
+]

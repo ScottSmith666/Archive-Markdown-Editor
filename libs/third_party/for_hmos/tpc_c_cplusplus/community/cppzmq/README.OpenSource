@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "cppzmq",
+        "License": "MIT",
+        "License File": "https://github.com/zeromq/cppzmq/blob/master/LICENSE",
+        "Version Number": "v4.8.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/zeromq/cppzmq/archive/refs/tags/v4.8.1.tar.gz",
+        "Description": "cppzmq is an open source C++ library based on ZeroMQ for building distributed and concurrent applications."
+    },
+    {
+        "Name": "libzmq",
+        "License": "MPL-2.0",
+        "License File": "https://github.com/zeromq/libzmq/blob/master/LICENSE",
+        "Version Number": "v4.8.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/zeromq/libzmq",
+        "Description": "A library which extends the standard socket interfaces with features traditionally provided by specialised messaging middleware products."
+    },
+    {
+        "Name": "Catch2",
+        "License": "BSL-1.0",
+        "License File": "https://github.com/catchorg/Catch2/blob/devel/LICENSE.txt",
+        "Version Number": "v2.13.8",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/catchorg/Catch2",
+        "Description": "Catch2 is mainly a unit testing framework for C++, but it also provides basic micro-benchmarking features, and simple BDD macros."
+    }
+]

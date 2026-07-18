@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "behaviortree",
+        "License": "MIT",
+        "License File": "LICENSE",
+        "Version Number": "4.1.1",
+        "Owner": "jia_jiahao@runkaihong.com.cn",
+        "Upstream URL": "https://github.com/BehaviorTree/BehaviorTree.CPP",
+        "Description": "This C++ library provides a framework to create BehaviorTrees. It is designed to be flexible, easy to use and fast."
+    }
+]

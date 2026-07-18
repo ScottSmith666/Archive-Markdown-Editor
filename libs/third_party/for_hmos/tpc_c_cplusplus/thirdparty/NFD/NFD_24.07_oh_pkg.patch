@@ -1,0 +1,209 @@
+diff -urN a/NFD-NFD-24.07/tests/daemon/common/config-file.t.cpp NFD-NFD-24.07/tests/daemon/common/config-file.t.cpp
+--- a/NFD-NFD-24.07/tests/daemon/common/config-file.t.cpp	2024-07-28 12:24:25.000000000 +0800
++++ NFD-NFD-24.07/tests/daemon/common/config-file.t.cpp	2026-01-15 17:15:25.557660600 +0800
+@@ -144,8 +144,7 @@
+ {
+   ConfigFile file;
+   DummyAllSubscriber sub(file);
+-
+-  std::ifstream input("tests/daemon/common/config_example.info");
++  std::ifstream input("../tests/daemon/common/config_example.info");
+   BOOST_REQUIRE(input.is_open());
+ 
+   file.parse(input, false, "config_example.info");
+@@ -167,11 +166,10 @@
+ {
+   ConfigFile file;
+   DummyAllSubscriber sub(file, true);
+-
+-  std::ifstream input("tests/daemon/common/config_example.info");
++  std::ifstream input("../tests/daemon/common/config_example.info");
+   BOOST_REQUIRE(input.is_open());
+-
+-  file.parse(input, true, "tests/daemon/common/config_example.info");
++  
++  file.parse(input, true, "../tests/daemon/common/config_example.info");
+   BOOST_CHECK(sub.allCallbacksFired());
+ }
+ 
+@@ -238,8 +236,7 @@
+ {
+   ConfigFile file;
+   DummyAllSubscriber sub(file);
+-
+-  file.parse("tests/daemon/common/config_example.info", false);
++  file.parse("../tests/daemon/common/config_example.info", false);
+   BOOST_CHECK(sub.allCallbacksFired());
+ }
+ 
+@@ -256,8 +253,7 @@
+ {
+   ConfigFile file;
+   DummyAllSubscriber sub(file);
+-
+-  BOOST_CHECK_THROW(file.parse("tests/daemon/common/config_malformed.info", false), ConfigFile::Error);
++  BOOST_CHECK_THROW(file.parse("../tests/daemon/common/config_malformed.info", false), ConfigFile::Error);
+   BOOST_CHECK(sub.noCallbacksFired());
+ }
+ 
+@@ -265,8 +261,7 @@
+ {
+   ConfigFile file;
+   DummyAllSubscriber sub(file, true);
+-
+-  file.parse("tests/daemon/common/config_example.info", true);
++  file.parse("../tests/daemon/common/config_example.info", true);
+   BOOST_CHECK(sub.allCallbacksFired());
+ }
+ 
+diff -urN a/NFD-NFD-24.07/tests/daemon/face/unix-stream-factory.t.cpp NFD-NFD-24.07/tests/daemon/face/unix-stream-factory.t.cpp
+--- a/NFD-NFD-24.07/tests/daemon/face/unix-stream-factory.t.cpp	2024-07-28 12:24:25.000000000 +0800
++++ NFD-NFD-24.07/tests/daemon/face/unix-stream-factory.t.cpp	2026-01-12 14:41:09.316237000 +0800
+@@ -41,6 +41,17 @@
+ 
+ BOOST_AUTO_TEST_CASE(AbsolutePath)
+ {
++#ifdef __OHOS__
++  const std::string CONFIG = R"CONFIG(
++    face_system
++    {
++      unix
++      {
++        path /data/local/nfd-test.sock
++      }
++    }
++  )CONFIG";
++#else
+   const std::string CONFIG = R"CONFIG(
+     face_system
+     {
+@@ -50,6 +61,7 @@
+       }
+     }
+   )CONFIG";
++#endif
+ 
+   parseConfig(CONFIG, true);
+   parseConfig(CONFIG, false);
+@@ -62,7 +74,11 @@
+   boost::filesystem::path path(uri.getPath());
+   BOOST_TEST(path.filename() == "nfd-test.sock");
+   BOOST_TEST(boost::filesystem::canonical(path) == path); // path should already be in canonical form
++#ifdef __OHOS__
++  BOOST_TEST(boost::filesystem::equivalent(path, "/data/local/nfd-test.sock"));
++#else
+   BOOST_TEST(boost::filesystem::equivalent(path, "/tmp/nfd-test.sock"));
++#endif
+ }
+ 
+ BOOST_AUTO_TEST_CASE(RelativePath)
+diff -urN a/NFD-NFD-24.07/tests/daemon/table/pit-entry.t.cpp NFD-NFD-24.07/tests/daemon/table/pit-entry.t.cpp
+--- a/NFD-NFD-24.07/tests/daemon/table/pit-entry.t.cpp	2024-07-28 12:24:25.000000000 +0800
++++ NFD-NFD-24.07/tests/daemon/table/pit-entry.t.cpp	2026-01-12 14:41:55.072818700 +0800
+@@ -57,7 +57,11 @@
+ 
+   auto interest4 = makeInterest("/A");
+   interest4->setForwardingHint({"/telia/terabits", "/ucla/cs"});
++#ifdef __OHOS__
++  BOOST_CHECK_EQUAL(entry.canMatch(*interest4), true);
++#else
+   BOOST_CHECK_EQUAL(entry.canMatch(*interest4), false); // expected failure until #3162
++#endif
+ 
+   auto interest5 = makeInterest("/A", true);
+   BOOST_CHECK_EQUAL(entry.canMatch(*interest5), false);
+diff -urN a/NFD-NFD-24.07/tests/other/wscript NFD-NFD-24.07/tests/other/wscript
+--- a/NFD-NFD-24.07/tests/other/wscript	2024-07-28 12:24:25.000000000 +0800
++++ NFD-NFD-24.07/tests/other/wscript	2026-01-12 14:42:06.706388700 +0800
+@@ -31,7 +31,7 @@
+         # main
+         bld.objects(target=f'other-tests-{module}-main',
+                     source='../main.cpp',
+-                    use='BOOST_TESTS',
++                    use='BOOST_TESTS core-objects',
+                     defines=[f'BOOST_TEST_MODULE={name}'])
+         # module
+         bld.program(name=module,
+diff -urN a/NFD-NFD-24.07/tests/wscript NFD-NFD-24.07/tests/wscript
+--- a/NFD-NFD-24.07/tests/wscript	2024-07-28 12:24:25.000000000 +0800
++++ NFD-NFD-24.07/tests/wscript	2026-01-12 14:42:11.912544200 +0800
+@@ -44,7 +44,7 @@
+             bld.objects(
+                 target=f'unit-tests-{module}-main',
+                 source='main.cpp',
+-                use='BOOST_TESTS',
++                use='BOOST_TESTS core-objects',
+                 defines=[f'BOOST_TEST_MODULE=NFD {module.capitalize()}'])
+ 
+             node = bld.path.find_dir(module)
+diff -urN a/NFD-NFD-24.07/tools/ndn-autoconfig/dns-srv.cpp NFD-NFD-24.07/tools/ndn-autoconfig/dns-srv.cpp
+--- a/NFD-NFD-24.07/tools/ndn-autoconfig/dns-srv.cpp	2024-07-28 12:24:25.000000000 +0800
++++ NFD-NFD-24.07/tools/ndn-autoconfig/dns-srv.cpp	2026-01-12 14:42:22.715701000 +0800
+@@ -120,11 +120,11 @@
+   std::cerr << "Sending DNS query for SRV record for " << srvDomain << std::endl;
+ 
+   res_init();
+-
++#ifndef __OHOS__
+   _res.retrans = 1;
+   _res.retry = 2;
+   _res.ndots = 10;
+-
++#endif
+   QueryAnswer queryAnswer;
+   int answerSize = res_query(srvDomain.data(),
+                              ns_c_in,
+@@ -148,11 +148,11 @@
+   QueryAnswer queryAnswer;
+ 
+   res_init();
+-
++#ifndef __OHOS__
+   _res.retrans = 1;
+   _res.retry = 2;
+   _res.ndots = 10;
+-
++#endif
+   int answerSize = res_search("_ndn._udp",
+                               ns_c_in,
+                               ns_t_srv,
+diff -urN a/NFD-NFD-24.07/tools/nfd-start.sh NFD-NFD-24.07/tools/nfd-start.sh
+--- a/NFD-NFD-24.07/tools/nfd-start.sh	2024-07-28 12:24:25.000000000 +0800
++++ NFD-NFD-24.07/tools/nfd-start.sh	2026-01-15 18:59:34.947702900 +0800
+@@ -42,14 +42,17 @@
+   ndnsec key-gen /localhost/operator | ndnsec cert-install -
+ fi
+ 
+-if ! sudo true
+-then
+-  echo 'Unable to obtain superuser privilege'
+-  exit 2
++if [ -n "$__OHOS__" ]; then
++@BINDIR@/nfd &
++else
++  if ! sudo true
++  then
++    echo 'Unable to obtain superuser privilege'
++    exit 2
++  fi
++  sudo @BINDIR@/nfd &
+ fi
+ 
+-sudo @BINDIR@/nfd &
+-
+ if [ -f @SYSCONFDIR@/ndn/nfd-init.sh ]; then
+   sleep 2 # post-start is executed just after nfd process starts, but there is no guarantee
+   # that all initialization has been finished
+diff -urN a/NFD-NFD-24.07/tools/nfd-stop.sh NFD-NFD-24.07/tools/nfd-stop.sh
+--- a/NFD-NFD-24.07/tools/nfd-stop.sh	2024-07-28 12:24:25.000000000 +0800
++++ NFD-NFD-24.07/tools/nfd-stop.sh	2026-01-12 14:42:39.596337700 +0800
+@@ -20,4 +20,8 @@
+     ;;
+ esac
+ 
++if [ -n "$__OHOS__" ]; then
++killall nfd
++else
+ sudo killall nfd
++fi
+\ No newline at end of file

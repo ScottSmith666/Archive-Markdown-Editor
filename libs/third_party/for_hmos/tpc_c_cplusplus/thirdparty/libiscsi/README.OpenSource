@@ -1,0 +1,30 @@
+[
+    {
+        "Name": "libiscsi",
+        "License": "GPL-2-or-later and LGPL-2.1-or-later",
+        "License File": ["https://github.com/sahlberg/libiscsi/blob/1.19.0/LICENCE-GPL-2.txt", "https://github.com/sahlberg/libiscsi/blob/1.19.0/LICENCE-LGPL-2.1.txt"],
+        "Version Number": "1.19.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/sahlberg/libiscsi/archive/refs/tags/1.19.0.tar.gz",
+        "Description": "Libiscsi is a client-side library to implement the iSCSI protocol that can be used to access the resources of an iSCSI target"
+    },
+    {
+        "Name": "libtool",
+        "License": "GPL-2.0",
+        "License File": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+        "Version Number": "2.4.6",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz",
+        "Description": "GNU Libtool is a generic library support script that hides the complexity of using shared libraries behind a consistent, portable interface."
+    },
+    {
+        "Name": "CUnit",
+        "License": "LGPL-2.0-only",
+        "License File": "https://sourceforge.net/p/cunit/code/HEAD/tree/branches/mingw64/COPYING",
+        "Version Number": "2.1-3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/cunit/files/latest/download",
+        "Description": "CUnit is a Unit testing framework for C."
+    }
+]
+

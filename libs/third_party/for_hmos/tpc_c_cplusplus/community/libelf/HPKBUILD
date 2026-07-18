@@ -1,0 +1,82 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Contributor: shann <swkec@isoftstone.com>
+# Maintainer: shann <swkec@isoftstone.com>
+pkgname=libelf
+pkgver=v0.189
+pkgrel=0
+pkgdesc="libelf is a library for manipulating ELF (Executable and Linkable Format) files. ELF is a common binary file format used to store a variety of information in a program or library, including the program's code, data, symbol tables, relocation tables, and so on."
+url="https://github.com/arachsys/libelf"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0")
+depends=("zstd")
+makedepends=()
+
+# 官方下载地址source="https://github.com/arachsys/$pkgname/archive/refs/tags/$pkgver.tar.gz"受网络影响可能存在下载失败的情况，现使用gitee镜像可以与官方仓库保持同步
+source="https://gitee.com/mirrors/$pkgname/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+buildtools="make"
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+source envset.sh
+host=
+prepare() {
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]; then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]; then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "Not support ${ARCH} yet"
+        return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    make CFLAGS="-Wno-int-conversion -I$LYCIUM_ROOT/usr/zstd/$ARCH/include $CFLAGS" LDFLAGS="-L$LYCIUM_ROOT/usr/zstd/$ARCH/lib $LDFLAGS" -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install DESTDIR=$LYCIUM_ROOT/usr/$pkgname/$ARCH/ >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]; then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]; then
+        unsetarm64ENV
+    else
+        echo "Not support ${ARCH} yet"
+        return -1
+    fi
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-arm64-v8a-build ${PWD}/$builddir-armeabi-v7a-build #${PWD}/$packagename
+}

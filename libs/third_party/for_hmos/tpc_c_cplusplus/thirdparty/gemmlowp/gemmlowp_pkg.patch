@@ -1,0 +1,11 @@
+--- old/CMakeLists.txt	2024-02-24 15:19:58.937738600 +0800
++++ new/CMakeLists.txt	2024-02-24 15:25:12.537738600 +0800
+@@ -50,7 +50,7 @@
+ file(GLOB fixedpoint_private_headers "${gemmlowp_src}/fixedpoint/*.h")
+ list(APPEND fixedpoint_private_headers "${gemmlowp_src}/internal/common.h")
+ 
+-add_library(eight_bit_int_gemm ${eight_bit_int_gemm_sources_with_no_headers})
++add_library(eight_bit_int_gemm SHARED ${eight_bit_int_gemm_sources_with_no_headers})
+ set_target_properties(eight_bit_int_gemm PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+ target_link_libraries(eight_bit_int_gemm ${EXTERNAL_LIBRARIES})
+ 

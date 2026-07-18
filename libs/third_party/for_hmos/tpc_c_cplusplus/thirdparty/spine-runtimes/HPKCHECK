@@ -1,0 +1,19 @@
+# Contributor: liucheng <1596268623@qq.com>
+# Maintainer: liucheng <1596268623@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    res=0
+    cd ${builddir}/${ARCH}-build/spine-cpp/spine-cpp-unit-tests
+    ./spine_cpp_unit_test > ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+        res=-1
+    fi
+    cd $OLDPWD
+
+    return $res
+}

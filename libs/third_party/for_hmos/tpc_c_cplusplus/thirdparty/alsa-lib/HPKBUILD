@@ -1,0 +1,161 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: luozhu <1393302983@qq.com>
+# Maintainer: luozhu <1393302983@qq.com>
+
+pkgname=alsa-lib
+pkgver=v1.1.3
+pkgrel=0
+pkgdesc="alsa-lib is a library for manipulating audio devices that provides a set of apis that allow applications to interact with audio devices."
+url="https://github.com/alsa-project/alsa-lib"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL-2.1")
+depends=()
+#need to install libool
+makedepends=("automake" "makeinfo")
+
+source="https://github.com/alsa-project/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+genconfigure=true
+autoconfbuild=true
+patchflag=true
+prefixpath=
+buildtools="configure"
+
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+# 编译gnu工具
+buildgnutool() {
+    toolname=$1
+    toolver=$2
+    toolpath=$toolname-$toolver
+    prefixpath=`pwd`/$toolpath/install_dir
+    down=0
+    rm -rf $toolpath
+    if [ ! -f  $toolname-$toolver.tar.xz ];then
+        wget -O $toolname-$toolver.tar.gz -c http://ftp.gnu.org/gnu/$toolname/$toolname-$toolver.tar.xz > $publicbuildlog 2>&1
+        down=$?
+    fi
+    if [ $down -ne 0 ];then
+        return -1
+    fi
+    tar -xf $toolname-$toolver.tar.gz
+    cd $toolpath
+    PKG_CONFIG_LIBDIR="{pkgconfigpath}" ./configure --prefix=$prefixpath >> $publicbuildlog 2>&1
+    $MAKE VERBOSE=1 >> $publicbuildlog 2>&1    
+    $MAKE install VERBOSE=1 >> $publicbuildlog 2>&1
+    if [ $? -ne 0 ];then
+        return -2
+    fi
+    cd $OLDPWD
+}
+
+prepare() {
+    if [ $autoconfbuild == true ];then
+        buildgnutool autoconf 2.71
+        if [ $? -ne 0 ];then
+            return -2
+        fi
+        export AUTOCONF=$prefixpath/bin/autoconf
+        export AUTORECONF=$prefixpath/bin/autoreconf
+        autoconfbuild=false
+        unset prefixpath
+
+    if [ $genconfigure == true ];then
+        cd $builddir
+        $AUTORECONF -v -i >> $publicbuildlog 2>&1
+        if [ $? -ne 0 ];then
+            return -3
+        fi
+        genconfigure=false
+        unset AUTOCONF AUTORECONF
+        cd $OLDPWD
+    fi
+
+    fi
+        if [ $patchflag == true ];then
+        cd $builddir
+        # 编译过程中PATH_MAX未定义，打patch添加头文件，versionsort接口libc.so里没有，打patch屏蔽掉接口
+        patch -p1 < `pwd`/../alsa-lib_oh_pkg.patch >> $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+
+    cp -r $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    PKG_CONFIG_LIBDIR="{pkgconfigpath}" ./configure "$@" ac_cv_header_wordexp_h=no --host=$host --disable-python > $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install VERBOSE=1 >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir-$ARCH-build/test/lsb
+    $MAKE VERBOSE=1 config midi_event >> $buildlog 2>&1
+    # 注释掉一些依赖，让测试在板端跳过编译
+    sed -i.bak '/\($(srcdir)\/Makefile.in:\)/,/\($(am__aclocal_m4_deps):\)/{s/^/#/}' Makefile
+    sed -i.bak 's/\([a-zA-Z_]\.log:\)/\1 #/' Makefile
+    sed -i.bak 's/\(check-TESTS:\)/\1 #/' Makefile
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # make check-TESTS
+}
+
+recoverpkgbuildenv(){
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+	return -1
+    fi
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build #${PWD}/$packagename
+}
+

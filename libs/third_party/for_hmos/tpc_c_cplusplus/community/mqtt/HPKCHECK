@@ -1,0 +1,31 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Eclipse Public License - v 2.0
+# This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v2.0
+# and Eclipse Distribution License v1.0 which accompany this distribution.
+# The Eclipse Public License is available at
+# https://www.eclipse.org/legal/epl-2.0/
+# and the Eclipse Distribution License is available at
+# http://www.eclipse.org/org/documents/edl-v10.php.
+# For an explanation of what dual-licensing means to you, see:
+# https://www.eclipse.org/legal/eplfaq.php#DUALLIC
+
+# Contributor: WangQing <wangqing@kaihong.com>
+# Maintainer: WangQing <wangqing@kaihong.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    cd $builddir/$ARCH-build
+    ctest > ${logfile} 2>&1
+    res=$?
+    if [ $res -ne 0 ]
+    then
+	mkdir -p $LYCIUM_FAULT_PATH/$pkgname
+	cp Testing/Temporary/LastTest.log $LYCIUM_FAULT_PATH/$pkgname
+    fi
+    cd $OLDPWD
+
+    return $res
+}

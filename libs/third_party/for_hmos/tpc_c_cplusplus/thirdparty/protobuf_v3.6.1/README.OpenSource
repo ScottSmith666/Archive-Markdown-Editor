@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "protobuf",
+        "License": "Protobuf License",
+        "License File": "https://github.com/protocolbuffers/protobuf/blob/main/LICENSE",
+        "Version Number": "v3.6.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/protocolbuffers/protobuf.git",
+        "Description": "Protocol Buffers (a.k.a., protobuf) are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data."
+    },
+    {
+        "Name": "abseil-cpp",
+        "License": "Apache-2.0 license",
+        "License File": "https://github.com/abseil/abseil-cpp/blob/master/LICENSE",
+        "Version Number": "20230802.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/abseil-cpp/repository/archive/20230802.0.zip",
+        "Description": "The repository contains the Abseil C++ library code. Abseil is an open-source collection of C++ code (compliant to C++14) designed to augment the C++ standard library."
+    },
+    {
+        "Name": "zlib",
+        "License": "zlib License",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.2.13",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz",
+        "Description": "A massively spiffy yet delicately unobtrusive compression library."
+    },
+    {
+        "Name": "googletest",
+        "License": "BSD-3-Clause license",
+        "License File": "https://github.com/google/googletest/blob/main/LICENSE",
+        "Version Number": "v1.13.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz",
+        "Description": "Google Testing and Mocking Framework"
+    }
+]

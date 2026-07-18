@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "cppcodec-0.1",
+        "License": "MIT License",
+        "License File": "https://github.com/tplgy/cppcodec/blob/master/LICENSE",
+        "Version Number": "v0.1",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/tplgy/cppcodec",
+        "Description": "It is a header-only C++11 library to encode/decode base64, base64url, base32, base32hex and hex as specified in RFC 4648, plus Crockford's base32."
+    }
+]

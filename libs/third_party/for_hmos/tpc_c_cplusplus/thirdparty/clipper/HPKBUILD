@@ -1,0 +1,77 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: leehom <llh_01129@163.com>
+# Maintainer: leehom <llh_01129@163.com>
+
+pkgname=clipper
+pkgver=ver6.4.2
+pkgrel=0
+pkgdesc=""
+url="https://sourceforge.net/projects/polyclipping/files/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSL-1.0 license")
+depends=()
+makedepends=()
+
+source="https://sourceforge.net/projects/polyclipping/files/$pkgname\_$pkgver.zip"
+
+# 自动解压后有多个目录，故不自动解压
+autounpack=false
+downloadpackage=true
+buildtools="cmake"
+patchflag=true
+
+builddir=$pkgname\_${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    if [ "$patchflag" == true ]
+    then
+        unzip -q -o $packagename -d $builddir
+        # 解压后有C# cpp delphi等语言，我们只编译cpp，故设置builddir/cpp目录
+        cd $builddir/cpp
+        patch -p2 < `pwd`/../../clipper_oh_test.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/cpp/$ARCH-build
+}
+
+build() {
+    cd $builddir/cpp
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir/cpp
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 测试方式
+    # 进入构建目录
+    # 执行: ./clipper_test
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "fmt",
+        "License": "MIT",
+        "License File": "https://github.com/fmtlib/fmt/blob/master/LICENSE.rst",
+        "Version Number": "8.1.1",
+        "Owner": "CHENGLIUQ@isoftstone.com",
+        "Upstream URL": "https://github.com/fmtlib/fmt/archive/refs/tags/8.1.1.tar.gz",
+        "Description": "fmt is an open-source formatting library providing a fast and safe alternative to C stdio and C++ iostreams."
+    }
+]

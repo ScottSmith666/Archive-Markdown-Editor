@@ -1,0 +1,130 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: <1321018403@qq.com>
+# Maintainer: <1321018403@qq.com>
+
+pkgname=NFD
+pkgver=v24.07
+pkgrel=0
+pkgdesc="NFD is a network forwarder that implements and evolves together with the Named Data Networking (NDN) protocol."
+url="https://github.com/named-data/NFD"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("GPL-3.0")
+depends=("ndn-cxx" "libpcap")
+makedepends=()
+source="https://github.com/named-data/$pkgname/archive/refs/tags/$pkgname-${pkgver:1}.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools=waf
+
+builddir=$pkgname-$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+patchflag=true
+websocketflag=true
+boostver=1.81.0
+
+source envset.sh
+prepare() {
+    echo "prepare"
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+
+    if [ $patchflag == true ];then
+        cd $builddir
+        # 修改用例失败项，用例继承功能代码的编译选项，针对OHOS修改工具生成内容
+        patch -p1 < ../NFD_24.07_oh_pkg.patch >> $publicbuildlog 2>&1
+        cd $OLDPWD
+        patchflag=false
+    fi
+
+    if [ $websocketflag == true ];then
+        cd $builddir
+        # websocketpp是子模块
+        mkdir -p websocketpp
+        curl -L https://github.com/cawka/websocketpp/archive/0.8.1-hotfix.tar.gz > websocketpp.tar.gz
+        if [ $? -eq 0 ]; then
+            tar xf websocketpp.tar.gz -C websocketpp/ --strip 1
+        else
+            cd $OLDPWD
+            return -1
+        fi
+        cd $OLDPWD
+        websocketflag=false
+    fi
+    export PKG_CONFIG_PATH=$LYCIUM_ROOT/usr/ndn-cxx/$ARCH/lib/pkgconfig
+}
+
+build() {
+    cd $builddir
+    mkdir -p $ARCH-build
+    ./waf configure --without-systemd --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH \
+    --with-libpcap=$LYCIUM_ROOT/usr/libpcap/$ARCH \
+    --boost-includes=$LYCIUM_ROOT/usr/boost/$ARCH/include \
+    --boost-libs=$LYCIUM_ROOT/usr/boost/$ARCH/lib --with-tests -o $ARCH-build > $buildlog 2>&1
+
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        cd $OLDPWD
+        return $ret
+    fi
+
+    ./waf -v >> $buildlog 2>&1
+    
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    ./waf install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then                                                                                                                                                              
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

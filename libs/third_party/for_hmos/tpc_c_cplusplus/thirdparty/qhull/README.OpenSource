@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "qhull",
+        "License": "Qhull Libre Software License",
+        "License File": "https://github.com/qhull/qhull/blob/master/COPYING.txt",
+        "Version Number": "v8.1-alpha3",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/qhull/qhull",
+        "Description": "qhull is a general dimension code for computing convex hulls, Delaunay triangulations, halfspace intersections about a point, Voronoi diagrams, furthest-site Delaunay triangulations, and furthest-site Voronoi diagrams. "
+    }
+]

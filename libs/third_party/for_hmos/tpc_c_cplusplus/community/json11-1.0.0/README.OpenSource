@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "json11-1.0.0",
+        "License": "MIT license",
+        "License File": "https://github.com/dropbox/json11/blob/master/LICENSE.txt",
+        "Version Number": "v1.0.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/dropbox/json11",
+        "Description": "json11 is a tiny JSON library for C++11, providing JSON parsing and serialization."
+    }
+]

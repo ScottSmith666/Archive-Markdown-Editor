@@ -1,0 +1,25 @@
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+openharmonycheck() {
+    res=0
+    testfile=("../asakusa.exr" "../test/unit/regression/日本語.exr" "../test/unit/regression/tiled_half_1x1_alpha.exr" "../test/unit/regression/piz-bug-issue-100.exr" "../.test/unit/regression/2by2.exr" "../test/unit/regression/issue-160-piz-decode.exr")
+    cd ${builddir}/${ARCH}-build
+    
+    rm -f $logfile
+    for file in $testfile
+    do
+        ./test_tinyexr $file >> $logfile 2>&1
+        res=$?
+        if [ $res -ne 0 ]
+        then
+            echo "test_tinyexr $file failed!!" >> $logfile
+            break
+        fi
+    done
+    cd $OLDPWD
+
+    return $res
+}

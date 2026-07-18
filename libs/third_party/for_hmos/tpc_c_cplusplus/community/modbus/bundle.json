@@ -1,0 +1,32 @@
+{
+    "name": "@ohos/modbus",
+    "description": "modbus is an Open Source library to communicate with Modbus devices: RTU (serial) and TCP (Ethernet) support, available for Linux (packaged), FreeBSD, Mac OS and Windows, written in C, great test coverage and documentation, security audits, no dependencies.",
+    "version": "3.1.10",
+    "license": "LGPL v2.1 or later",
+    "publishAs": "code-segment",
+    "segment": {
+        "destPath": "third_party/modbus"
+    },
+    "dirs": {},
+    "scripts": {},
+    "component": {
+        "name": "modbus",
+        "subsystem": "thirdparty",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": [
+                "//third_party/modbus:libmodbus"
+            ],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

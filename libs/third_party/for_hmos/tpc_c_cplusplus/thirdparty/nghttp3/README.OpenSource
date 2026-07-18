@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "nghttp3",
+        "License": "MIT",
+        "License File": "https://github.com/ngtcp2/nghttp3/blob/main/COPYING",
+        "Version Number": "v0.10.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/ngtcp2/nghttp3/archive/refs/tags/v0.10.0.tar.gz",
+        "Description": "nghttp3 is an implementation of RFC 9114 HTTP/3 mapping over QUIC and RFC 9204 QPACK in C."
+    },
+    {
+        "Name": "CUnit",
+        "License": "LGPL-2.0",
+        "License File": "https://sourceforge.net/p/cunit/code/HEAD/tree/branches/mingw64/COPYING",
+        "Version Number": "2.1-3",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/cunit/files/latest/download",
+        "Description": "CUnit is a Unit testing framework for C."
+    }
+]

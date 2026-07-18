@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "coturn",
+        "License": "BSD-3-Clause",
+        "License File": "https://github.com/coturn/coturn/blob/master/LICENSE",
+        "Version Number": "4.6.2",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/coturn/coturn.git",
+        "Description": "coturn is a free open source implementation of TURN and STUN Server. The TURN Server is a VoIP media traffic NAT traversal server and gateway."
+    },
+    {
+        "Name": "openssl",
+        "License": "OpenSSL License and Original SSLeay License",
+        "License File": "https://www.openssl-library.org/source/license/license-openssl-ssleay.txt",
+        "Version Number": "1.1.1u",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://gitee.com/mirrors/openssl/repository/archive/OpenSSL_1_1_1u.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    },
+    {
+        "Name": "libevent",
+        "License": "BSD-style license",
+        "License File": "https://libevent.org/LICENSE.txt",
+        "Version Number": "release-2.1.12-stable",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/libevent/libevent/releases/tag/release-2.1.12-stable",
+        "Description": "Libevent supports /dev/poll, kqueue(2), event ports, POSIX select(2), Windows select(), poll(2), and epoll(4). Libevent additionally provides a sophisticated framework for buffered network IO, with support for sockets, filters, rate-limiting, SSL, zero-copy file transmission, and IOCP. Libevent includes support for several useful protocols, including DNS, HTTP, and a minimal RPC framework."
+    },
+    {
+        "Name": "sqlite",
+        "License": "Public Domain",
+        "License File": "https://www.sqlite.org/copyright.html",
+        "Version Number": "version-3.42.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/sqlite/sqlite/archive/refs/tags/.tar.gz",
+        "Description": "This repository contains the complete source code for the SQLite database engine. Some test scripts are also included. However, many other test scripts and most of the documentation are managed separately."
+    }
+]

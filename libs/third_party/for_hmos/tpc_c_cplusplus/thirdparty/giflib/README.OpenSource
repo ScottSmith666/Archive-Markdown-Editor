@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "giflib",
+        "License": "MIT license",
+        "License File": "https://sourceforge.net/p/giflib/code/ci/5.2.1/tree/COPYING",
+        "Version Number": "5.2.1",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://sourceforge.net/projects/giflib/files/giflib-5.2.1.tar.gz/download",
+        "Description": "giflib is a library for reading and writing gif images."
+    }
+]

@@ -1,0 +1,24 @@
+# Contributor: lpzhong <278527840@qq.com>
+# Maintainer: lpzhong <278527840@qq.com>
+
+source HPKBUILD > /dev/null 2>&1
+
+linuxresult=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/testass.png   # 在linux执行生成的结果
+fontsfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/fonts.tar.gz
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+checkprepare () {
+    if [ -f $fontsfile ]
+    then
+        tar -zxf $fontsfile -C /
+    fi
+}
+
+openharmonycheck() {
+    res=0
+    cd ${builddir}/${ARCH}-build
+    ./test/test testass.png ../compare/test/sub1.ass 0.03 > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+
+    return $res
+}

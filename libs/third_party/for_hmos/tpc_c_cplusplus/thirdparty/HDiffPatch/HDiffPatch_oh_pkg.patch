@@ -1,0 +1,90 @@
+diff -Naur HDiffPatch-4.6.3_old/libParallel/parallel_import.cpp HDiffPatch-4.6.3/libParallel/parallel_import.cpp
+--- HDiffPatch-4.6.3_old/libParallel/parallel_import.cpp	2023-07-22 11:10:42.804788922 +0800
++++ HDiffPatch-4.6.3/libParallel/parallel_import.cpp	2023-07-22 11:13:27.139807279 +0800
+@@ -34,7 +34,7 @@
+ #       //define PTW32_STATIC_LIB  //for static pthread lib
+ #   endif
+ #   include <pthread.h>
+-#   ifdef __ANDROID__
++#   if defined(__ANDROID__) || defined(__OHOS__)
+ #       include <sched.h> // sched_yield()
+ #   endif
+ #endif
+@@ -141,7 +141,7 @@
+ #   ifdef WIN32
+     Sleep(0);
+ #   else
+-#       ifdef __ANDROID__
++#       if defined(__ANDROID__) || defined(__OHOS__)
+             sched_yield();
+ #       else
+             pthread_yield();
+diff -Naur HDiffPatch-4.6.3_old/Makefile HDiffPatch-4.6.3/Makefile
+--- HDiffPatch-4.6.3_old/Makefile	2023-07-22 15:37:29.261756730 +0800
++++ HDiffPatch-4.6.3/Makefile	2023-07-22 15:37:46.722039873 +0800
+@@ -2,8 +2,8 @@
+ DIR_DIFF := 1
+ MT       := 1
+ # 0: not need zlib;  1: compile zlib source code;  2: used -lz to link zlib lib;
+-ZLIB     := 2
+-LZMA     := 1
++ZLIB     := 1
++LZMA     := 0
+ ARM64ASM := 0
+ # 0: not need zstd;  1: compile zstd source code;  2: used -lzstd to link zstd lib;
+ ZSTD     := 1
+@@ -24,7 +24,7 @@
+   BZIP2 := 1
+ else
+   # 0: not need bzip2 (must BSD=0);  1: compile bzip2 source code;  2: used -lbz2 to link bzip2 lib;
+-  BZIP2 := 2
++  BZIP2 := 1
+ endif
+ ifeq ($(BZIP2),0)
+   ifeq ($(BSD),0)
+@@ -203,6 +203,16 @@
+     compress_parallel.o
+ endif
+ 
++HDIFF_SYNC_OBJ := \
++    libhsync/sync_client/dir_sync_client.o \
++    libhsync/sync_client/match_in_old.o \
++    libhsync/sync_client/sync_client.o \
++    libhsync/sync_client/sync_diff_data.o \
++    libhsync/sync_client/sync_info_client.o \
++    libhsync/sync_make/dir_sync_make.o \
++    libhsync/sync_make/match_in_new.o \
++    libhsync/sync_make/sync_info_make.o \
++    libhsync/sync_make/sync_make.o
+ 
+ DEF_FLAGS := \
+     -O3 -DNDEBUG -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
+@@ -334,7 +344,7 @@
+ 
+ .PHONY: all install clean
+ 
+-all: libhdiffpatch.a hpatchz hdiffz mostlyclean
++all: libhdiffpatch.a hpatchz hdiffz unit_test mostlyclean
+ 
+ libhdiffpatch.a: $(HDIFF_OBJ)
+ 	$(AR) rcs $@ $^
+@@ -343,6 +353,8 @@
+ 	$(CC) hpatchz.c $(HPATCH_OBJ) $(CFLAGS) $(PATCH_LINK) -o hpatchz
+ hdiffz: libhdiffpatch.a
+ 	$(CXX) hdiffz.cpp libhdiffpatch.a $(CXXFLAGS) $(DIFF_LINK) -o hdiffz
++unit_test: libhdiffpatch.a $(HDIFF_SYNC_OBJ)
++	$(CXX) ./test/unit_test.cpp libhdiffpatch.a $(HDIFF_SYNC_OBJ) $(DIFF_LINK) -o unit_test
+ 
+ ifeq ($(OS),Windows_NT) # mingw?
+   RM := del /Q /F
+@@ -352,8 +364,8 @@
+   DEL_HDIFF_OBJ := $(HDIFF_OBJ)
+ endif
+ INSTALL_X := install -m 0755
+-INSTALL_BIN := $(DESTDIR)/usr/local/bin
+-
++#INSTALL_BIN := $(DESTDIR)/usr/local/bin
++INSTALL_BIN := $(DESTDIR)
+ mostlyclean: hpatchz hdiffz
+ 	$(RM) $(DEL_HDIFF_OBJ)
+ clean:

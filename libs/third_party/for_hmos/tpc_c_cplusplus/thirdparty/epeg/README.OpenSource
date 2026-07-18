@@ -1,0 +1,29 @@
+[
+    {
+        "Name": "epeg",
+        "License": "BSD 3-Clause License",
+        "License File": "COPYING",
+        "Version Number": "v0.9.3",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/mattes/epeg/archive/refs/tags/v0.9.3.tar.gz",
+        "Description": "It's a convenience library API to using libjpeg to load JPEG images destined to be turned into thumbnails of the original, saving information with these thumbnails, retreiving it and managing to load the image ready for scaling with the minimum of fuss and CPU overhead."
+    },
+    {
+        "Name": "jpeg",
+        "License": "LGPL-2.1 license",
+        "License File": "README",
+        "Version Number": "v9e",
+        "Owner": "hanjinfei@foxmail.com",
+        "Upstream URL": "http://www.ijg.org/files/jpegsrc.v9e.tar.gz",
+        "Description": "IJG is an informal group that writes and distributes a widely used free library for JPEG image compression"
+    },
+    {
+        "Name": "libexif",
+        "License": "LGPLv2.1",
+        "License File": "https://github.com/libexif/libexif/blob/master/COPYING",
+        "Version Number": "0.6.24",
+        "Owner": "1393302983@qq.com",
+        "Upstream URL": "https://github.com/libexif/libexif/releases/download/v0.6.24/libexif-0.6.24.tar.bz2",
+        "Description": "libexif is a library for parsing, editing, and saving EXIF data."
+    }
+]

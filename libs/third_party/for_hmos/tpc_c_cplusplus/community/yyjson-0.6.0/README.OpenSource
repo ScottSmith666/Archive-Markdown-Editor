@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "yyjson-0.6.0",
+        "License": "MIT License",
+        "License File": "https://github.com/ibireme/yyjson/blob/master/LICENSE",
+        "Version Number": "0.6.0",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/ibireme/yyjson",
+        "Description": "yyjson is a high performance JSON library written in ANSI C."
+    }
+]

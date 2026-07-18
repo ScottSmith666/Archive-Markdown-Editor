@@ -1,0 +1,210 @@
+# Copyright (c) 2019-2022 Huawei Device Co., Ltd. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/ohos/ndk/ndk.gni")
+
+declare_args() {
+  enable_xz_test = false
+}
+
+config("xz_config") {
+  cflags = [
+    "-DHAVE_CONFIG_H",
+    "-DTUKLIB_SYMBOL_PREFIX=lzma_",
+    "-fvisibility=hidden",
+    "-fno-builtin",
+    "-Wall",
+    "-Wextra",
+    "-Wvla",
+    "-Wformat=2",
+    "-Winit-self",
+    "-Wmissing-include-dirs",
+    "-Wstrict-aliasing",
+    "-Wfloat-equal",
+    "-Wundef",
+    "-Wshadow",
+    "-Wpointer-arith",
+    "-Wbad-function-cast",
+    "-Wwrite-strings",
+    "-Waggregate-return",
+    "-Wstrict-prototypes",
+    "-Wold-style-definition",
+    "-Wmissing-prototypes",
+    "-Wmissing-declarations",
+    "-Wmissing-noreturn",
+    "-Wredundant-decls",
+    "-Wno-incompatible-pointer-types",
+    "-fPIC",
+    "-DPIC",
+  ]
+}
+
+ohos_shared_library("xz_shared") {
+  sources = [
+    "xz/src/common/tuklib_cpucores.c",
+    "xz/src/common/tuklib_physmem.c",
+    "xz/src/liblzma/check/check.c",
+    "xz/src/liblzma/check/crc32_fast.c",
+    "xz/src/liblzma/check/crc32_table.c",
+    "xz/src/liblzma/check/crc64_fast.c",
+    "xz/src/liblzma/check/crc64_table.c",
+    "xz/src/liblzma/check/sha256.c",
+    "xz/src/liblzma/common/alone_decoder.c",
+    "xz/src/liblzma/common/alone_encoder.c",
+    "xz/src/liblzma/common/auto_decoder.c",
+    "xz/src/liblzma/common/block_buffer_decoder.c",
+    "xz/src/liblzma/common/block_buffer_encoder.c",
+    "xz/src/liblzma/common/block_decoder.c",
+    "xz/src/liblzma/common/block_encoder.c",
+    "xz/src/liblzma/common/block_header_decoder.c",
+    "xz/src/liblzma/common/block_header_encoder.c",
+    "xz/src/liblzma/common/block_util.c",
+    "xz/src/liblzma/common/common.c",
+    "xz/src/liblzma/common/easy_buffer_encoder.c",
+    "xz/src/liblzma/common/easy_decoder_memusage.c",
+    "xz/src/liblzma/common/easy_encoder.c",
+    "xz/src/liblzma/common/easy_encoder_memusage.c",
+    "xz/src/liblzma/common/easy_preset.c",
+    "xz/src/liblzma/common/filter_buffer_decoder.c",
+    "xz/src/liblzma/common/filter_buffer_encoder.c",
+    "xz/src/liblzma/common/filter_common.c",
+    "xz/src/liblzma/common/filter_decoder.c",
+    "xz/src/liblzma/common/filter_encoder.c",
+    "xz/src/liblzma/common/filter_flags_decoder.c",
+    "xz/src/liblzma/common/filter_flags_encoder.c",
+    "xz/src/liblzma/common/hardware_cputhreads.c",
+    "xz/src/liblzma/common/hardware_physmem.c",
+    "xz/src/liblzma/common/index.c",
+    "xz/src/liblzma/common/index_decoder.c",
+    "xz/src/liblzma/common/index_encoder.c",
+    "xz/src/liblzma/common/index_hash.c",
+    "xz/src/liblzma/common/outqueue.c",
+    "xz/src/liblzma/common/stream_buffer_decoder.c",
+    "xz/src/liblzma/common/stream_buffer_encoder.c",
+    "xz/src/liblzma/common/stream_decoder.c",
+    "xz/src/liblzma/common/stream_encoder.c",
+    "xz/src/liblzma/common/stream_encoder_mt.c",
+    "xz/src/liblzma/common/stream_flags_common.c",
+    "xz/src/liblzma/common/stream_flags_decoder.c",
+    "xz/src/liblzma/common/stream_flags_encoder.c",
+    "xz/src/liblzma/common/vli_decoder.c",
+    "xz/src/liblzma/common/vli_encoder.c",
+    "xz/src/liblzma/common/vli_size.c",
+    "xz/src/liblzma/delta/delta_common.c",
+    "xz/src/liblzma/delta/delta_decoder.c",
+    "xz/src/liblzma/delta/delta_encoder.c",
+    "xz/src/liblzma/lz/lz_decoder.c",
+    "xz/src/liblzma/lz/lz_encoder.c",
+    "xz/src/liblzma/lz/lz_encoder_mf.c",
+    "xz/src/liblzma/lzma/fastpos_table.c",
+    "xz/src/liblzma/lzma/lzma2_decoder.c",
+    "xz/src/liblzma/lzma/lzma2_encoder.c",
+    "xz/src/liblzma/lzma/lzma_decoder.c",
+    "xz/src/liblzma/lzma/lzma_encoder.c",
+    "xz/src/liblzma/lzma/lzma_encoder_optimum_fast.c",
+    "xz/src/liblzma/lzma/lzma_encoder_optimum_normal.c",
+    "xz/src/liblzma/lzma/lzma_encoder_presets.c",
+    "xz/src/liblzma/rangecoder/price_table.c",
+    "xz/src/liblzma/simple/arm.c",
+    "xz/src/liblzma/simple/armthumb.c",
+    "xz/src/liblzma/simple/ia64.c",
+    "xz/src/liblzma/simple/powerpc.c",
+    "xz/src/liblzma/simple/simple_coder.c",
+    "xz/src/liblzma/simple/simple_decoder.c",
+    "xz/src/liblzma/simple/simple_encoder.c",
+    "xz/src/liblzma/simple/sparc.c",
+    "xz/src/liblzma/simple/x86.c",
+  ]
+
+  include_dirs = [
+    "//third_party/xz/xz",
+    "//third_party/xz/adapted",
+    "//third_party/xz/xz/src/liblzma",
+    "//third_party/xz/xz/src/liblzma/api",
+    "//third_party/xz/xz/src/liblzma/lzma",
+    "//third_party/xz/xz/src/liblzma/common",
+    "//third_party/xz/xz/src/liblzma/check",
+    "//third_party/xz/xz/src/liblzma/lz",
+    "//third_party/xz/xz/src/liblzma/rangecoder",
+    "//third_party/xz/xz/src/liblzma/api/lzma",
+    "//third_party/xz/xz/src/liblzma/delta",
+    "//third_party/xz/xz/src/liblzma/simple",
+    "//third_party/xz/xz/src/common",
+  ]
+
+  configs = [ ":xz_config" ]
+
+  part_name = "xz"
+
+  subsystem_name = "thirdparty"
+}
+
+ohos_executable("xz_test") {
+  sources = [
+    "xz//src/xz/message.c",
+    "xz/src/common/tuklib_exit.c",
+    "xz/src/common/tuklib_mbstr_fw.c",
+    "xz/src/common/tuklib_mbstr_width.c",
+    "xz/src/common/tuklib_open_stdxxx.c",
+    "xz/src/common/tuklib_progname.c",
+    "xz/src/xz/args.c",
+    "xz/src/xz/coder.c",
+    "xz/src/xz/file_io.c",
+    "xz/src/xz/hardware.c",
+    "xz/src/xz/list.c",
+    "xz/src/xz/main.c",
+    "xz/src/xz/mytime.c",
+    "xz/src/xz/options.c",
+    "xz/src/xz/signals.c",
+    "xz/src/xz/suffix.c",
+    "xz/src/xz/util.c",
+  ]
+  include_dirs = [
+    "xz/src/common/",
+    "xz/src/liblzma/api",
+    "//third_party/xz/adapted",
+  ]
+  configs = [ ":xz_config" ]
+  deps = [ ":xz_shared" ]
+  cflags = [ "-DLOCALEDIR=\"./\"" ]
+  part_name = "xz"
+}
+
+ohos_executable("xzdec") {
+  sources = [
+    "xz/src/common/tuklib_exit.c",
+    "xz/src/common/tuklib_progname.c",
+    "xz/src/xzdec/xzdec.c",
+  ]
+  include_dirs = [
+    "xz/src/common/",
+    "xz/src/liblzma/api",
+    "//third_party/xz/adapted",
+  ]
+  configs = [ ":xz_config" ]
+  deps = [ ":xz_shared" ]
+
+  part_name = "xz"
+}
+
+group("xz") {
+  deps = [ ":xz_shared" ]
+
+  if (enable_xz_test == true) {
+    deps += [
+      ":xz_test",
+      ":xzdec",
+    ]
+  }
+}

@@ -1,0 +1,94 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=boost
+pkgver=1.81.0
+pkgrel=0
+pkgdesc="Boost provides free peer-reviewed portable C++ source libraries."
+url="https://www.boost.org/"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("Boost Software License")
+depends=()
+makedepends=()
+
+source="https://archives.boost.io/release/${pkgver}/source/${pkgname}_1_81_0.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools=jamfile
+
+builddir=$pkgname'_1_81_0'
+packagename=$builddir.tar.gz
+
+compileflags=
+prepare() {
+    cp -rf $builddir $builddir-$ARCH-build
+    cd $builddir-$ARCH-build
+    # without boost_python boost_locale.这两个库无法用 ohos sdk 编译
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        compileflags="\"-march=armv7a\""
+        ./bootstrap.sh --with-toolset=gcc --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH --without-libraries=python,locale > $buildlog 2>&1
+        if [ $LYCIUM_BUILD_OS == "Darwi" ] #Darwin
+        then
+            sed -i '' "s|using gcc ;|using gcc : arm : ${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang ;|g" project-config.jam
+            ret=$?
+        else
+            sed -i '/.*using gcc ;/c\    using gcc : arm : '"${OHOS_SDK}"'/native/llvm/bin/arm-linux-ohos-clang ; ' project-config.jam
+            ret=$?
+        fi
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        compileflags="\"\""
+        ./bootstrap.sh --with-toolset=gcc --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH --without-libraries=python,locale > $buildlog 2>&1
+        if [ $LYCIUM_BUILD_OS == "Darwi" ] #Darwin
+        then
+            sed -i '' "s|using gcc ;|using gcc : aarch64 : ${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang ;|g" project-config.jam
+            ret=$?
+        else
+            sed -i '/.*using gcc ;/c\    using gcc : aarch64 : '"${OHOS_SDK}"'/native/llvm/bin/aarch64-linux-ohos-clang ; ' project-config.jam
+            ret=$?
+        fi
+    elif [ $ARCH == "x86_64" ]
+    then
+        compileflags="\"\""
+        ./bootstrap.sh --with-toolset=gcc --prefix=$LYCIUM_ROOT/usr/$pkgname/$ARCH --without-libraries=python,locale > $buildlog 2>&1
+        if [ $LYCIUM_BUILD_OS == "Darwi" ] #Darwin
+        then
+            sed -i '' "s|using gcc ;|using gcc : x86 : ${OHOS_SDK}/native/llvm/bin/x86_64-linux-ohos-clang ;|g" project-config.jam
+            ret=$?
+        else
+            sed -i '/.*using gcc ;/c\    using gcc : x86 : '"${OHOS_SDK}"'/native/llvm/bin/x86_64-linux-ohos-clang ; ' project-config.jam
+            ret=$?
+        fi
+    fi
+    cd $OLDPWD
+    return $ret
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    ./b2 cxxflags="$compileflags -fPIC -fstack-protector-strong" \
+          cflags="$compileflags -fPIC -fstack-protector-strong" \
+          linkflags="-s" \
+          variant=release >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    ./b2 install >> $buildlog 2>&1
+    cd $OLDPWD
+    unset compileflags
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir"-arm64-v8a-build" ${PWD}/$builddir"-armeabi-v7a-build" #${PWD}/$packagename
+    rm -rf ${PWD}/$builddir"-x86_64-build"
+}

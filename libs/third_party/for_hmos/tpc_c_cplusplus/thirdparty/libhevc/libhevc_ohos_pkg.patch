@@ -1,0 +1,24 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 590f117..d3248c7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -41,5 +41,5 @@ include("${HEVC_ROOT}/encoder/libhevcenc.cmake")
+ include("${HEVC_ROOT}/test/decoder/hevcdec.cmake")
+ include("${HEVC_ROOT}/test/encoder/hevcenc.cmake")
+ 
+-include("${HEVC_ROOT}/fuzzer/hevc_dec_fuzzer.cmake")
+-include("${HEVC_ROOT}/fuzzer/hevc_enc_fuzzer.cmake")
++#include("${HEVC_ROOT}/fuzzer/hevc_dec_fuzzer.cmake")
++#include("${HEVC_ROOT}/fuzzer/hevc_enc_fuzzer.cmake")
+diff --git a/common/common.cmake b/common/common.cmake
+index 839bd78..e0af60c 100644
+--- a/common/common.cmake
++++ b/common/common.cmake
+@@ -60,6 +60,7 @@ list(
+   "${HEVC_ROOT}/common/ihevc_weighted_pred.c")
+ 
+ include_directories(${HEVC_ROOT}/common)
++include_directories(${HEVC_ROOT}/common/arm)
+ 
+ # arm/x86 sources
+ if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")

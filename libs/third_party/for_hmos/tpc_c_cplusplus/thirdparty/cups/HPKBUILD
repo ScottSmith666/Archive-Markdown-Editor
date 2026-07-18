@@ -1,0 +1,105 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: zhangxin <zhangxin546@h-partners.com>
+# Maintainer:  zhangxin <zhangxin546@h-partners.com>
+
+pkgname=cups
+pkgver=2.3.6
+pkgrel=0
+pkgdesc="CUPS is a standards-based, open source printing system developed by Apple Inc.for macOS® and other UNIX®-like operating systems."
+url="https://www.cups.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache LICENSE")
+depends=("zlib")
+makedepends=()
+
+source="https://github.com/apple/$pkgname/archive/refs/tags/v$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+buildtools="configure"
+
+patch_flag=true
+
+source envset.sh
+host=
+
+prepare() {
+    if [ "$patch_flag" == true ]
+    then
+        cd $builddir
+        patch -p1 < ../cups_ohos_pkg.patch > $buildlog 2>&1  #引入musl的crypt函数
+        cd $OLDPWD
+        patch_flag=false
+    fi
+    cp $builddir $builddir-$ARCH-build -rf
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+          setarm32ENV
+          host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+          setarm64ENV
+          host=aarch64-linux
+    else
+          echo "${ARCH} not support"
+          return -1
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    export CFLAGS="$CFLAGS -Wno-int-conversion"
+    export CXXFLAGS="$CXXFLAGS -Wno-int-conversion"
+    ./configure "$@" --host=$host --disable-gssapi ac_cv_header_shadow_h=no >> $buildlog 2>&1
+    $MAKE VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    #./run-stp-tests.sh
+}
+
+recoverpkgbuildenv() {
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    else
+        echo "${ARCH} not support"
+        return -1
+    fi
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+    rm -rf ${PWD}/$builddir-armeabi-v7a-build
+    rm -rf ${PWD}/$builddir-arm64-v8a-build
+}

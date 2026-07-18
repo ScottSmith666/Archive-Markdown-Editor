@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "Dobby",
+        "License": "Apache-2.0 license",
+        "License File": "https://github.com/jmpews/Dobby?tab=Apache-2.0-1-ov-file#readme",
+        "Version Number": "",
+        "Owner": "panjinling@huawei.com",
+        "Upstream URL": "https://github.com/jmpews/Dobby",
+        "Description": "a lightweight, multi-platform, multi-architecture hook framework."
+    }
+]

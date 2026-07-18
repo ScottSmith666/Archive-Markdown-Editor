@@ -1,0 +1,84 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: xiafeng <xiafeng@huawei.com>
+# Maintainer: xiafeng <xiafeng@huawei.com>
+
+pkgname=physfs
+pkgver=3.2.0
+pkgrel=0
+pkgdesc="PhysicsFS is a library to provide abstract access to various archives"
+url="https://github.com/icculus/physfs"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=()
+depends=()
+makedepends=()
+source="https://github.com/icculus/${pkgname}/archive/refs/tags/release-${pkgver}.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools=cmake
+
+builddir=$pkgname-release-${pkgver}
+packagename=$builddir.tar.gz
+
+patchflag=true
+
+prepare() {
+  mkdir -p $builddir/$ARCH-build
+  if $patchflag; then
+    cd $builddir
+	#本patch为了防止在鸿蒙化后原库初始化加载默认路径导致的失败问题
+    patch -p1 < `pwd`/../physfs_platform_posix_test.patch
+    patchflag=false
+  fi
+  return $?
+}
+
+build() {
+  cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    elif [ $ARCH == "x86_64" ]
+    then
+        cp ${OHOS_SDK}/native/llvm/lib/x86_64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/
+    else
+        echo "${ARCH} not support"
+        return -1.
+    fi
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+  rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

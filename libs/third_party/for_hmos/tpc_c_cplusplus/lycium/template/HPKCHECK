@@ -1,0 +1,24 @@
+# This is an example HPKCHECK file. Use this as a start to creating your own,
+# and remove these comments.
+
+# Contributor: Your Name <youremail@domain.com>
+# Maintainer: Your Name <youremail@domain.com>
+
+source HPKBUILD > /dev/null 2>&1    # 导入HPKBUILD文件
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+# 测试前的准备, 如果不需要可以不写。
+checkprepare(){
+    return 0
+}
+
+# 在OH环境执行测试的接口
+openharmonycheck() {
+    res=0                               # 记录返回值
+    cd ${builddir}/${ARCH}-build        # 进入到测试目录
+    ctest > ${logfile} 2>&1             # 执行测试命令并将测试结果导出到${logfile}，测试命令根据每个库的真实情况填写
+    res=$?                              # 记录测试结果返回值
+    cd $OLDPWD                          # 返回上一次目录
+
+    return $res                         # 返回测试值
+}

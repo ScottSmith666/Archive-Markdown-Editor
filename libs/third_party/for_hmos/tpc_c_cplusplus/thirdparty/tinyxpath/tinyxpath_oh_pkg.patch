@@ -1,0 +1,129 @@
+diff -uprN tinyxpath/cmake/PackageConfig.cmake.in tinyxpath-1.3.1/cmake/PackageConfig.cmake.in
+--- tinyxpath/cmake/PackageConfig.cmake.in	1969-12-31 16:00:00.000000000 -0800
++++ tinyxpath-1.3.1/cmake/PackageConfig.cmake.in	2023-02-20 23:38:20.888215070 -0800
+@@ -0,0 +1,11 @@
++@PACKAGE_INIT@
++
++#set(@PROJECT_NAME@_INCLUDE_DIRS @CMAKE_INSTALL_PREFIX@/@TARGET_INSTALL_INCLUDEDIR@/@TARGET_NAME@)
++#set(@PROJECT_NAME@_LIBRARIES @TARGET_NAME@)
++set(@PROJECT_NAME@_INCLUDE_DIRS ${PACKAGE_PREFIX_DIR}/include)
++set(@PROJECT_NAME@_LIBRARIES ${PACKAGE_PREFIX_DIR}/lib/lib@TARGET_NAME@.a)
++
++include(CMakeFindDependencyMacro)
++
++include(${CMAKE_CURRENT_LIST_DIR}/@TARGET_NAME@Targets.cmake)
++check_required_components(@TARGET_NAME@)
+diff -uprN tinyxpath/CMakeLists.txt tinyxpath-1.3.1/CMakeLists.txt
+--- tinyxpath/CMakeLists.txt	1969-12-31 16:00:00.000000000 -0800
++++ tinyxpath-1.3.1/CMakeLists.txt	2023-03-13 19:30:44.305558572 -0700
+@@ -0,0 +1,109 @@
++cmake_minimum_required (VERSION 3.12)
++
++project(TINYXPATH VERSION 1.3.0)
++enable_language(CXX C ASM)
++enable_testing()
++option(BUILD_SAMPLE "Build sample" OFF)
++set(BUILD_SHARED_LIBS FALSE CACHE BOOL "If TRUE, tinyxpath is built as a shared library, otherwise as a static library")
++
++set(TARGET_NAME tinyxpath)
++set(TARGET_SAMPLE_NAME tinyxpath_test)
++
++set(TARGET_INSTALL_INCLUDEDIR include)
++set(TARGET_INSTALL_BINDIR bin)
++set(TARGET_INSTALL_LIBDIR lib)
++
++set(TARGET_SRC_PATH ${CMAKE_CURRENT_SOURCE_DIR})
++set(TARGET_SRC ${TARGET_SRC_PATH}/tinystr.cpp
++                    ${TARGET_SRC_PATH}/tinyxml.cpp
++                    ${TARGET_SRC_PATH}/tinyxmlerror.cpp
++                    ${TARGET_SRC_PATH}/tinyxmlparser.cpp
++                    ${TARGET_SRC_PATH}/action_store.cpp
++                    ${TARGET_SRC_PATH}/lex_util.cpp
++                    ${TARGET_SRC_PATH}/node_set.cpp
++                    ${TARGET_SRC_PATH}/tokenlist.cpp
++                    ${TARGET_SRC_PATH}/xml_util.cpp
++                    ${TARGET_SRC_PATH}/xpath_expression.cpp
++                    ${TARGET_SRC_PATH}/xpath_processor.cpp
++                    ${TARGET_SRC_PATH}/xpath_stack.cpp
++                    ${TARGET_SRC_PATH}/xpath_stream.cpp
++                    ${TARGET_SRC_PATH}/xpath_syntax.cpp
++                    ${TARGET_SRC_PATH}/xpath_static.cpp)
++if(BUILD_SAMPLE)
++    set(TARGET_SAMPLE_SRC ${TARGET_SRC_PATH}/htmlutil.cpp ${TARGET_SRC_PATH}/main.cpp)
++endif()
++
++set(TARGET_INCLUDE ${TARGET_SRC_PATH})
++
++add_library(${TARGET_NAME} ${TARGET_SRC})
++target_include_directories(${TARGET_NAME} PRIVATE ${TARGET_INCLUDE})
++
++if(BUILD_SHARED_LIBS)
++    SET_TARGET_PROPERTIES(${TARGET_NAME} PROPERTIES VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} 
++                                                    SOVERSION ${PROJECT_VERSION_MAJOR})
++endif()
++
++if(BUILD_SAMPLE)
++    add_executable(${TARGET_SAMPLE_NAME} ${TARGET_SAMPLE_SRC})
++    target_include_directories(${TARGET_SAMPLE_NAME} PRIVATE ${TARGET_INCLUDE})
++    target_link_libraries(${TARGET_SAMPLE_NAME} PUBLIC ${TARGET_NAME})
++endif()
++
++install(TARGETS ${TARGET_NAME}
++        EXPORT ${TARGET_NAME}
++        PUBLIC_HEADER DESTINATION ${TARGET_INSTALL_INCLUDEDIR}
++        PRIVATE_HEADER DESTINATION ${TARGET_INSTALL_INCLUDEDIR}
++        RUNTIME DESTINATION ${TARGET_INSTALL_BINDIR}
++        LIBRARY DESTINATION ${TARGET_INSTALL_LIBDIR}
++        ARCHIVE DESTINATION ${TARGET_INSTALL_LIBDIR})
++        
++install(FILES ${TARGET_SRC_PATH}/xpath_processor.h
++            ${TARGET_SRC_PATH}/action_store.h
++            ${TARGET_SRC_PATH}/byte_stream.h
++            ${TARGET_SRC_PATH}/lex_token.h
++            ${TARGET_SRC_PATH}/lex_util.h
++            ${TARGET_SRC_PATH}/node_set.h
++            ${TARGET_SRC_PATH}/tinystr.h
++            ${TARGET_SRC_PATH}/tinyxml.h
++            ${TARGET_SRC_PATH}/tinyxpath_conf.h
++            ${TARGET_SRC_PATH}/tokenlist.h
++            ${TARGET_SRC_PATH}/xml_util.h
++            ${TARGET_SRC_PATH}/xpath_expression.h
++            ${TARGET_SRC_PATH}/xpath_processor.h
++            ${TARGET_SRC_PATH}/xpath_stack.h
++            ${TARGET_SRC_PATH}/xpath_static.h
++            ${TARGET_SRC_PATH}/xpath_stream.h
++            ${TARGET_SRC_PATH}/xpath_syntax.h
++        DESTINATION ${TARGET_INSTALL_INCLUDEDIR}/${TARGET_NAME})
++
++install(
++    EXPORT ${TARGET_NAME}
++    FILE ${TARGET_NAME}Targets.cmake
++    DESTINATION ${TARGET_INSTALL_LIBDIR}/cmake/${TARGET_NAME}
++)
++
++include(CMakePackageConfigHelpers)
++
++write_basic_package_version_file(
++    ${TARGET_NAME}ConfigVersion.cmake
++    VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}
++    COMPATIBILITY SameMajorVersion
++)
++
++configure_package_config_file(
++    cmake/PackageConfig.cmake.in ${TARGET_NAME}Config.cmake
++    INSTALL_DESTINATION ${TARGET_INSTALL_LIBDIR}/cmake/${TARGET_NAME}
++)
++
++install(FILES
++            ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}Config.cmake
++            ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}ConfigVersion.cmake
++        DESTINATION
++            ${TARGET_INSTALL_LIBDIR}/cmake/${TARGET_NAME}
++)
++
++if (BUILD_SAMPLE)
++    add_test(NAME test
++         WORKING_DIRECTORY ${TARGET_SRC_PATH}
++         COMMAND ${TARGET_SAMPLE_NAME})   
++endif()
+\ No newline at end of file

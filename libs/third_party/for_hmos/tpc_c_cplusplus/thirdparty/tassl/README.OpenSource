@@ -1,0 +1,30 @@
+[
+    {
+        "Name": "tassl",
+        "License": "OpenSSL",
+        "License File": "https://github.com/jntass/TASSL-1.1.1/blob/master/LICENSE",
+        "Version Number": "a30d107669fdf7d6909b10f1e179de4aaff38ff5",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/jntass/TASSL-1.1.1",
+        "Description": "TASSL is an SSL/TLS protocol implementation that supports national secret algorithms"
+    }
+	{
+        "Name": "openssl",
+        "License": "Apache-2.0",
+        "License File": "https://github.com/openssl/openssl/blob/master/LICENSE.txt",
+        "Version Number": "OpenSSL_1_1_1t",
+        "Owner": "llh_01129@163.com",
+        "Upstream URL": "https://github.com/openssl/openssl/archive/refs/tags/OpenSSL_1_1_1t.zip",
+        "Description": "OpenSSL is a robust, commercial-grade, full-featured Open Source Toolkit for the Transport Layer Security (TLS) protocol formerly known as the Secure Sockets Layer (SSL) protocol."
+    }
+    
+    {
+        "Name": "zlib_1_3_1",
+        "License": "Zlib",
+        "License File": "https://github.com/madler/zlib/blob/master/LICENSE",
+        "Version Number": "v1.3.1",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://github.com/madler/zlib",
+        "Description": "zlib 1.3.1 is a general purpose data compression library.All the code is thread safe."
+    }
+]

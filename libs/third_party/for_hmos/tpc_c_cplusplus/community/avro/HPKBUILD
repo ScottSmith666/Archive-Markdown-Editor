@@ -1,0 +1,72 @@
+# Contributor: 小肉头君 <chenbaodi@huawei.com>
+# Maintainer: 小肉头君 <chenbaodi@huawei.com>
+
+pkgname=avro
+pkgver=release-1.11.1
+pkgrel=0
+pkgdesc="Apache Avro is a data serialization system."
+url="https://github.com/apache/avro"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0 license")
+depends=("jansson" "xz")
+makedepends=()
+source="https://github.com/apache/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 运行ctest时，会再去触发cmake去复制一份文件，这样会导致在设备上测试不通过
+        # 并且测试套件已经在所在目录，所以打patch去掉cmake操作
+        patch -p1 < `pwd`/../avro_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # 编译avro c的版本
+    PKG_CONFIG_PATH="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -Slang/c -L \
+        -DCMAKE_C_FLAGS_RELEASE="-O3 -DNDEBUG -flto" -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG -flto" > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir
+    cp -rf lang/c/tests/schema_tests $ARCH-build/tests
+    cp lang/c/tests/avro-1237-bad-union-discriminant.avro $ARCH-build/tests
+    cp lang/c/tests/avro-1237-good.avro $ARCH-build/tests
+    cp lang/c/tests/avro-1238-good.avro $ARCH-build/tests
+    cp lang/c/tests/avro-1238-truncated.avro $ARCH-build/tests
+    cp lang/c/tests/avro-1279-codec.avro $ARCH-build/tests
+    cp lang/c/tests/avro-1279-no-codec.avro $ARCH-build/tests
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

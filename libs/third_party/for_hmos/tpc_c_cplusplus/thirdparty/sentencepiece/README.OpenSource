@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "sentencepiece",
+        "License": "Apache-2.0 license",
+        "License File": "LICENSE",
+        "Version Number": "0.2.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/google/sentencepiece/archive/refs/tags/v0.2.0.tar.gz",
+        "Description": "Unsupervised text tokenizer for Neural Network-based text generation."
+    }
+]

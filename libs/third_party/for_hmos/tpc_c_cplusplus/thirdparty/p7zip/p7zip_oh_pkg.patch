@@ -1,0 +1,25 @@
+diff -rupN p7zip-17.05/C/hashes/hash.h p7zip-17.05_patch/C/hashes/hash.h
+--- p7zip-17.05/C/hashes/hash.h	2023-02-06 10:37:46.000000000 +0000
++++ p7zip-17.05_patch/C/hashes/hash.h	2023-03-02 06:00:15.551535246 +0000
+@@ -48,7 +48,9 @@ typedef UInt32 uint32_t;
+ #endif
+ 
+ #ifndef _UINT64_T_DECLARED
++#ifndef __DEFINED_uint64_t
+ typedef UInt64 uint64_t;
++#endif
+ #define _UINT64_T_DECLARED
+ #endif
+ 
+diff -rupN p7zip-17.05/CPP/myWindows/config.h p7zip-17.05_patch/CPP/myWindows/config.h
+--- p7zip-17.05/CPP/myWindows/config.h	2023-02-06 10:37:46.000000000 +0000
++++ p7zip-17.05_patch/CPP/myWindows/config.h	2023-03-02 03:00:54.546168454 +0000
+@@ -38,7 +38,7 @@
+ 		
+   
+   
+-  #if !defined(ENV_BEOS) && !defined(ANDROID_NDK)
++  #if !defined(ENV_BEOS) && !defined(ANDROID_NDK) && !defined(__OHOS__)
+ 
+     #define ENV_HAVE_GETPASS
+ 

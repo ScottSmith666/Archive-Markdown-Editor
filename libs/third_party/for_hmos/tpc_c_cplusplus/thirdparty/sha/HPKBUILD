@@ -1,0 +1,80 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=sha
+pkgver=df4ed74db83ea9ebc1486c247d3855dde8224481
+pkgrel=0
+pkgdesc=""
+url="https://github.com/BrianGladman/sha"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("the sha license")
+depends=()
+makedepends=()
+
+source="https://github.com/BrianGladman/sha.git"
+
+autounpack=false
+downloadpackage=false
+
+builddir=$pkgname-${pkgver}
+download_and_patch_flag=true
+
+prepare() {
+    if [ "$download_and_patch_flag" == true ]
+    then
+        git clone $source $builddir
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+        cd $builddir
+        git reset --hard $pkgver
+        if [ $? -ne 0 ]
+        then
+            cd $OLDPWD
+            return -2
+        fi
+        patch -p1 < ../sha_ohos.patch
+        cd $OLDPWD
+        download_and_patch_flag=false
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

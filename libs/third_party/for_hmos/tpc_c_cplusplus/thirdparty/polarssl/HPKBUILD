@@ -1,0 +1,53 @@
+# Contributor: chengkan <kanchengc@isoftstone.com>
+# Maintainer: chengkan <kanchengc@isoftstone.com>
+pkgname=polarssl
+pkgver=1.4
+pkgrel=0
+pkgdesc="The PolarSSL library is an implementation of the SSL and TLS protocols and the respective cryptographic algorithms."
+url="https://github.com/Linphone-sync/polarssl"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-2.0 license")
+depends=("pkcs11-helper" "zlib" "openssl") 
+makedepends=()
+
+source="https://github.com/Linphone-sync/polarssl/archive/refs/heads/$pkgname-$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+builddir=$pkgname-$pkgname-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+                                -DCMAKE_INTERNAL_PLATFORM_INFO=0 \
+                                -DOHOS_ARCH=$ARCH -DUSE_SHARED_POLARSSL_LIBRARY="ON" \
+                                -DUSE_PKCS11_HELPER_LIBRARY="ON" -DENABLE_ZLIB_SUPPORT="ON" \
+                                -DCMAKE_EXE_LINKER_FLAGS="${LDFLAGS} -L${LYCIUM_ROOT}/usr/pkcs11-helper/${ARCH}/lib"  \
+                                -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make VERBOSE=1 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 设置LD_LIBRARY_PATH环境变量
+    # ctest 测试
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir 
+}

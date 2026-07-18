@@ -1,0 +1,26 @@
+diff -Naur poly1305-donna/CMakeLists.txt poly1305-donna-new/CMakeLists.txt
+--- poly1305-donna/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
++++ poly1305-donna-new/CMakeLists.txt	2024-06-25 17:58:04.174891785 +0800
+@@ -0,0 +1,22 @@
++cmake_minimum_required(VERSION 3.12)
++
++project(POLY1305)
++
++file(GLOB POLY1305_INCLUDE_FILES "*.h") 
++file(GLOB POLY1305_SOURCE_FILES  "*.c") 
++
++include_directories($POLY1305_INCLUDE_FILES)
++
++add_library(poly1305 STATIC poly1305-donna.c)
++add_library(poly1305_shared SHARED poly1305-donna.c)
++
++add_executable(example-poly1305 ${POLY1305_SOURCE_FILES})
++
++set(TARGET_INSTALL_BINDIR "bin")  
++set(TARGET_INSTALL_LIBDIR "lib")  
++set(TARGET_INSTALL_INCLUDEDIR "include")
++
++install(TARGETS example-poly1305 RUNTIME DESTINATION ${TARGET_INSTALL_BINDIR})
++install(TARGETS poly1305 ARCHIVE DESTINATION ${TARGET_INSTALL_LIBDIR}) 
++install(TARGETS poly1305_shared LIBRARY DESTINATION ${TARGET_INSTALL_LIBDIR})
++install(FILES ${POLY1305_INCLUDE_FILES}  DESTINATION ${TARGET_INSTALL_INCLUDEDIR})

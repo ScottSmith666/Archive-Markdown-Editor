@@ -1,0 +1,247 @@
+--- libmediasoupclient-3.4.0/deps/catch/CMakeLists.txt	2022-06-14 18:28:27.000000000 +0800
++++ catch_CMakeLists.txt	2023-08-11 11:48:39.454980680 +0800
+@@ -26,7 +26,7 @@
+ option(CATCH_USE_VALGRIND "Perform SelfTests with Valgrind" OFF)
+ option(CATCH_BUILD_TESTING "Build SelfTest project" ON)
+ option(CATCH_BUILD_EXAMPLES "Build documentation examples" OFF)
+-option(CATCH_BUILD_EXTRA_TESTS "Build extra tests" OFF)
++option(CATCH_BUILD_EXTRA_TESTS "Build extra tests" ON)
+ option(CATCH_ENABLE_COVERAGE "Generate coverage for codecov.io" OFF)
+ option(CATCH_ENABLE_WERROR "Enable all warnings as errors" ON)
+ option(CATCH_INSTALL_DOCS "Install documentation alongside library" ON)
+--- libmediasoupclient-3.4.0-old/deps/catch/include/internal/catch_fatal_condition.cpp	2022-06-14 18:28:27.000000000 +0800
++++ libmediasoupclient-3.4.0/deps/catch/include/internal/catch_fatal_condition.cpp	2023-08-11 11:50:22.846527308 +0800
+@@ -94,7 +94,8 @@
+         int id;
+         const char* name;
+     };
+-    
++    #undef MINSIGSTKSZ
++    #define MINSIGSTKSZ 16384
+     // 32kb for the alternate stack seems to be sufficient. However, this value
+     // is experimentally determined, so that's not guaranteed.
+     static constexpr std::size_t sigStackSize = 32768 >= MINSIGSTKSZ ? 32768 : MINSIGSTKSZ;
+--- libmediasoupclient-3.4.0-old/deps/catch/single_include/catch2/catch.hpp	2022-06-14 18:28:27.000000000 +0800
++++ libmediasoupclient-3.4.0/deps/catch/single_include/catch2/catch.hpp	2023-08-11 11:51:39.030193656 +0800
+@@ -10729,7 +10729,8 @@
+         int id;
+         const char* name;
+     };
+-
++    #undef MINSIGSTKSZ
++    #define MINSIGSTKSZ 16384
+     // 32kb for the alternate stack seems to be sufficient. However, this value
+     // is experimentally determined, so that's not guaranteed.
+     static constexpr std::size_t sigStackSize = 32768 >= MINSIGSTKSZ ? 32768 : MINSIGSTKSZ;
+--- libmediasoupclient-3.4.0-old/deps/libsdptransform/test/include/catch.hpp	2022-06-14 18:28:27.000000000 +0800
++++ libmediasoupclient-3.4.0/deps/libsdptransform/test/include/catch.hpp	2023-08-11 11:53:10.313794327 +0800
+@@ -10711,7 +10711,8 @@
+         int id;
+         const char* name;
+     };
+-
++    #undef MINSIGSTKSZ
++    #define MINSIGSTKSZ 16384 
+     // 32kb for the alternate stack seems to be sufficient. However, this value
+     // is experimentally determined, so that's not guaranteed.
+     static constexpr std::size_t sigStackSize = 32768 >= MINSIGSTKSZ ? 32768 : MINSIGSTKSZ;
+
+--- libmediasoupclient-3.4.0/test/CMakeLists.txt	2022-06-14 18:28:27.000000000 +0800
++++ test_CMakeLists.txt	2023-08-14 10:59:36.339720845 +0800
+@@ -1,17 +1,22 @@
++option(SUPPORT_WEBRTC_TEST   "Enable WebRtc support" OFF)
++message(STATUS "LIBWEBRTC_SUPPORT TEST       : " ${SUPPORT_WEBRTC_TEST})
++
+ set(
+ 	SOURCE_FILES
++    if (${SUPPORT_WEBRTC_TEST})
+ 	src/Device.test.cpp
+ 	src/Handler.test.cpp
+ 	src/PeerConnection.test.cpp
+-	src/RemoteSdp.test.cpp
+ 	src/SdpUtils.test.cpp
+ 	src/mediasoupclient.test.cpp
+ 	src/MediaStreamTrackFactory.cpp
+ 	src/ortc.test.cpp
+-	src/fakeParameters.cpp
+ 	src/scalabilityMode.test.cpp
+-	src/tests.cpp
+ 	include/FakeTransportListener.hpp
++    endif()
++	src/tests.cpp
++	src/RemoteSdp.test.cpp
++	src/fakeParameters.cpp 
+ 	include/MediaStreamTrackFactory.hpp
+ 	include/helpers.hpp
+ 	include/fakeParameters.hpp
+@@ -62,9 +67,11 @@
+ target_link_libraries(test_mediasoupclient PRIVATE ${CMAKE_DL_LIBS})
+ 
+ # Source Dependencies.
+-add_subdirectory(deps/libwebrtc "${CMAKE_CURRENT_BINARY_DIR}/libwebrtc")
++if (${SUPPORT_WEBRTC_TEST})
++    add_subdirectory(deps/libwebrtc "${CMAKE_CURRENT_BINARY_DIR}/libwebrtc")
+ 
+-# Public (interface) dependencies.
+-target_link_libraries(test_mediasoupclient PUBLIC
+-	webrtc
+-)
++    # Public (interface) dependencies.
++    target_link_libraries(test_mediasoupclient PUBLIC
++ 	   webrtc
++    )
++endif()
+--- libmediasoupclient-3.4.0/CMakeLists.txt	2022-06-14 18:28:27.000000000 +0800
++++ lib_CMakeLists.txt	2023-08-14 11:50:50.621458901 +0800
+@@ -21,17 +21,20 @@
+ option(MEDIASOUPCLIENT_BUILD_TESTS "Build unit tests" OFF)
+ option(MEDIASOUPCLIENT_LOG_TRACE   "Enable MSC_LOG_TRACE (See Logger.hpp)" OFF)
+ option(MEDIASOUPCLIENT_LOG_DEV     "Enable MSC_LOG_DEV (See Logger.hpp)" OFF)
++option(MEDIASOUPCLIENT_SUPPORT_WEBRTC   "Enable WebRtc support" OFF)
+ 
+-# Project configuration.
+-set(LIBWEBRTC_INCLUDE_PATH "" CACHE STRING "libwebrtc include path")
+-set(LIBWEBRTC_BINARY_PATH "" CACHE STRING "libwebrtc binary path")
++if (${MEDIASOUPCLIENT_SUPPORT_WEBRTC})
++    # Project configuration.
++    set(LIBWEBRTC_INCLUDE_PATH "" CACHE STRING "libwebrtc include path")
++    set(LIBWEBRTC_BINARY_PATH "" CACHE STRING "libwebrtc binary path")
++
++    if(NOT LIBWEBRTC_INCLUDE_PATH)
++        message(FATAL_ERROR "LIBWEBRTC_INCLUDE_PATH not provided")
++    endif()
+ 
+-if(NOT LIBWEBRTC_INCLUDE_PATH)
+-	message(FATAL_ERROR "LIBWEBRTC_INCLUDE_PATH not provided")
+-endif()
+-
+-if(NOT LIBWEBRTC_BINARY_PATH)
++    if(NOT LIBWEBRTC_BINARY_PATH)
+ 	message(FATAL_ERROR "LIBWEBRTC_BINARY_PATH not provided")
++    endif()
+ endif()
+ 
+ message("\n=========== libmediasoupclient Build Configuration ===========\n")
+@@ -40,6 +43,7 @@
+ message(STATUS "MEDIASOUPCLIENT_LOG_DEV     : " ${MEDIASOUPCLIENT_LOG_DEV})
+ message(STATUS "LIBWEBRTC_INCLUDE_PATH      : " ${LIBWEBRTC_INCLUDE_PATH})
+ message(STATUS "LIBWEBRTC_BINARY_PATH       : " ${LIBWEBRTC_BINARY_PATH})
++message(STATUS "LIBWEBRTC_SUPPORT           : " ${MEDIASOUPCLIENT_SUPPORT_WEBRTC})
+ message("")
+ 
+ # GCC >= 4.9 is required due to std::regex use.
+@@ -56,10 +60,20 @@
+ set(HEADER_FILES
+ 	include/mediasoupclient.hpp
+ )
+-
+-set(
+-	SOURCE_FILES
+-	src/Consumer.cpp
++if (${MEDIASOUPCLIENT_SUPPORT_WEBRTC})
++    set(
++        SUPPORT_WEBRTC_SOURCE_FILES
++	src/scalabilityMode.cpp
++	src/sdp/MediaSection.cpp
++	src/sdp/RemoteSdp.cpp
++	include/Logger.hpp
++	include/MediaSoupClientErrors.hpp
++	include/mediasoupclient.hpp
++	include/scalabilityMode.hpp
++	include/sdp/MediaSection.hpp
++	include/sdp/RemoteSdp.hpp
++	include/sdp/Utils.hpp
++        src/Consumer.cpp
+ 	src/DataConsumer.cpp
+ 	src/DataProducer.cpp
+ 	src/Device.cpp
+@@ -70,28 +84,36 @@
+ 	src/Transport.cpp
+ 	src/mediasoupclient.cpp
+ 	src/ortc.cpp
+-	src/scalabilityMode.cpp
+-	src/sdp/MediaSection.cpp
+-	src/sdp/RemoteSdp.cpp
+-	src/sdp/Utils.cpp
++        src/sdp/Utils.cpp
+ 	include/Consumer.hpp
+ 	include/Device.hpp
+ 	include/Handler.hpp
+-	include/Logger.hpp
+-	include/MediaSoupClientErrors.hpp
+-	include/PeerConnection.hpp
++        include/PeerConnection.hpp
+ 	include/Producer.hpp
+ 	include/Transport.hpp
+-	include/mediasoupclient.hpp
+ 	include/ortc.hpp
+-	include/scalabilityMode.hpp
+-	include/sdp/MediaSection.hpp
+-	include/sdp/RemoteSdp.hpp
+-	include/sdp/Utils.hpp
++    )
++endif()
++set (
++        SOURCE_FILES
++        src/scalabilityMode.cpp
++        src/sdp/MediaSection.cpp
++        src/sdp/RemoteSdp.cpp
++        include/Logger.hpp
++        include/MediaSoupClientErrors.hpp
++        include/mediasoupclient.hpp
++        include/scalabilityMode.hpp
++        include/sdp/MediaSection.hpp
++        include/sdp/RemoteSdp.hpp
++        include/sdp/Utils.hpp
+ )
+-
+ # Create target.
+-add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
++
++if (${MEDIASOUPCLIENT_SUPPORT_WEBRTC})
++    add_library(${PROJECT_NAME} STATIC ${SUPPORT_WEBRTC_SOURCE_FILES})
++else()
++    add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
++endif()
+ 
+ if(${MEDIASOUPCLIENT_LOG_TRACE})
+ 	target_compile_definitions(${PROJECT_NAME}
+@@ -107,7 +129,7 @@
+ 
+ # Source Dependencies.
+ add_subdirectory(deps/libsdptransform "${CMAKE_CURRENT_BINARY_DIR}/libsdptransform")
+-
++add_subdirectory(deps/catch "${CMAKE_CURRENT_BINARY_DIR}/catch")
+ # Add some compile flags to our source files.
+ if(MSVC)
+ 	set_source_files_properties(${SOURCE_FILES}
+@@ -130,17 +152,21 @@
+ # Public (interface) dependencies.
+ target_link_libraries(${PROJECT_NAME} PUBLIC
+ 	sdptransform
+-	${LIBWEBRTC_BINARY_PATH}/libwebrtc${CMAKE_STATIC_LIBRARY_SUFFIX}
++	if (${MEDIASOUPCLIENT_SUPPORT_WEBRTC})
++	   ${LIBWEBRTC_BINARY_PATH}/libwebrtc${CMAKE_STATIC_LIBRARY_SUFFIX}
++        endif()
+ )
+ 
+ # Compile definitions for libwebrtc.
+-target_compile_definitions(${PROJECT_NAME} PUBLIC
+-	$<$<NOT:$<PLATFORM_ID:Windows>>:WEBRTC_POSIX>
+-	$<$<PLATFORM_ID:Windows>:WEBRTC_WIN>
+-	$<$<PLATFORM_ID:Windows>:NOMINMAX>
+-	$<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>
+-	$<$<PLATFORM_ID:Darwin>:WEBRTC_MAC>
+-)
++if (${MEDIASOUPCLIENT_SUPPORT_WEBRTC})
++    target_compile_definitions(${PROJECT_NAME} PUBLIC
++	    $<$<NOT:$<PLATFORM_ID:Windows>>:WEBRTC_POSIX>
++	    $<$<PLATFORM_ID:Windows>:WEBRTC_WIN>
++	    $<$<PLATFORM_ID:Windows>:NOMINMAX>
++	    $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>
++	    $<$<PLATFORM_ID:Darwin>:WEBRTC_MAC>
++    )
++endif()
+ 
+ install(TARGETS mediasoupclient DESTINATION lib)
+ install(FILES ${HEADER_FILES} DESTINATION include/mediasoupclient)

@@ -1,0 +1,108 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>,li-santian <2372581223@qq.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=aubio
+pkgver=master
+pkgvel=0
+pkgdesc="aubio is a library to label music and sounds. It listens to audio signals and attempts to detect events."
+url="https://github.com/aubio/aubio"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("GPL-3.0-only")
+depends=()
+makedepends=()
+source="https://gitee.com/lycium_pkg_mirror/$pkgname.git"
+commitid=152d6819b360c2e7b379ee3f373d444ab3df0895
+builddir=${pkgname}-${commitid}
+packagename=
+autounpack=false
+downloadpackage=false
+clonesrcflag=true
+buildtools="make"
+patchflag=true
+
+cc=
+ar=
+
+source envset.sh
+#编译前要建立python的软链接，sudo ln -s /usr/bin/python3 /usr/bin/python
+prepare() {
+    if [ $clonesrcflag == true ]; then
+        mkdir -p $builddir
+        git clone -b $pkgver $source $builddir > $publicbuildlog 2>&1 
+        if [ $? -ne 0 ]; then
+            return -1
+        fi
+
+        cd $builddir
+        git reset --hard $commitid >> $publicbuildlog 2>&1
+        if [ $? -ne 0 ]
+        then
+            return -1
+        fi
+        cd $OLDPWD
+        clonesrcflag=false
+    fi
+
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../aubio_oh_pkg.patch >> $publicbuildlog 2>&1
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    
+    cp -rf ${builddir} $builddir-${ARCH}-build
+    if [ $ARCH == "armeabi-v7a" ]; then
+        cc=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+    if [ $ARCH == "arm64-v8a" ]; then
+        cc=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+}
+
+build() {
+    cd $builddir-${ARCH}-build
+    $MAKE build LIB="$ar cr" CC="$cc" > $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-${ARCH}-build
+    $MAKE install >> $buildlog 2>&1
+    ret=$?
+    
+    install_dir=${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}
+    mkdir -p ${install_dir}
+    cp -rf build/dist/usr/local/lib ${install_dir}
+    cp -rf build/dist/usr/local/include ${install_dir}
+    cd ${OLDPWD}
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    unset cc
+    unset ar
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/${builddir} ${PWD}/${builddir}-armeabi-v7a-build ${PWD}/${builddir}-arm64-v8a-build
+}

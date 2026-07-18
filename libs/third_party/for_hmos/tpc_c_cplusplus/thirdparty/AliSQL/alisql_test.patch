@@ -1,0 +1,639 @@
+diff --git a/extra/CMakeLists.txt b/extra/CMakeLists.txt
+index 886691a0..533a7f0c 100644
+--- a/extra/CMakeLists.txt
++++ b/extra/CMakeLists.txt
+@@ -35,7 +35,7 @@ ENDIF()
+ 
+ ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/include/mysqld_error.h 
+                    ${PROJECT_BINARY_DIR}/sql/share/english/errmsg.sys
+-                   COMMAND comp_err
++                   COMMAND ${PROJECT_SOURCE_DIR}/comp_err
+                     --charset=${PROJECT_SOURCE_DIR}/sql/share/charsets 
+                     --out-dir=${PROJECT_BINARY_DIR}/sql/share/
+                     --header_file=${PROJECT_BINARY_DIR}/include/mysqld_error.h 
+diff --git a/mysql-test/mysql-test-run.pl b/mysql-test/mysql-test-run.pl
+index d6000907..839f8a05 100644
+--- a/mysql-test/mysql-test-run.pl
++++ b/mysql-test/mysql-test-run.pl
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/bin/perl
+ # -*- cperl -*-
+
+ # Copyright (c) 2004, 2016, Oracle and/or its affiliates. All rights reserved.
+@@ -29,6 +29,64 @@
+ #
+ ##############################################################################
+ 
++# 加载必要的模块
++use Socket;
++use strict;
++use warnings;
++
++BEGIN {
++  # 保存原函数的引用
++  my $orig_gethostbyname = \&CORE::gethostbyname;
++
++  # 重定义全局 gethostbyname
++  *CORE::GLOBAL::gethostbyname = sub {
++    my $host = shift;
++
++    # 强制 localhost/127.0.0.1 解析为 127.0.0.1
++    if (lc($host) eq 'localhost' || $host eq '127.0.0.1') {
++      my $ip_bin = pack('C4', 127, 0, 0, 1); # 127.0.0.1 的二进制形式
++      return (
++        'localhost', # 主机名
++        '',          # 别名
++        AF_INET,     # 地址类型（IPv4）
++        4,           # 地址长度（4 字节）
++        $ip_bin      # IP 二进制数据
++      );
++    }
++
++    # 其他主机名调用原函数
++    return $orig_gethostbyname->($host);
++  };
++
++  # 重写 inet_aton 函数（确保 Socket 模块解析正常）
++  my $orig_inet_aton = \&Socket::inet_aton;
++  *Socket::inet_aton = sub {
++    my $host = shift;
++    if (lc($host) eq 'localhost' || $host eq '127.0.0.1') {
++      return pack('C4', 127, 0, 0, 1);
++    }
++    return $orig_inet_aton->($host);
++  };
++
++  # 重写 gethostbyaddr 函数（兜底，防止反向解析失败）
++  my $orig_gethostbyaddr = \&CORE::gethostbyaddr;
++  *CORE::GLOBAL::gethostbyaddr = sub {
++    my ($addr, $addrtype) = @_;
++    my $ip = inet_ntoa($addr);
++    if ($ip eq '127.0.0.1') {
++      return (
++        'localhost',
++        '',
++        AF_INET,
++        4,
++        $addr
++      );
++    }
++    return $orig_gethostbyaddr->($addr, $addrtype);
++  };
++}
++
++
+ use strict;
+ use warnings;
+ 
+@@ -100,11 +158,11 @@ use mtr_results;
+ use IO::Socket::INET;
+ use IO::Select;
+ 
+-require "lib/mtr_process.pl";
+-require "lib/mtr_io.pl";
+-require "lib/mtr_gcov.pl";
+-require "lib/mtr_gprof.pl";
+-require "lib/mtr_misc.pl";
++do "mtr_process.pl" or die "Load mtr_misc.pl failed: $! $@";
++do "mtr_io.pl" or die "Load mtr_misc.pl failed: $! $@";
++do "mtr_gcov.pl" or die "Load mtr_misc.pl failed: $! $@";
++do "mtr_gprof.pl" or die "Load mtr_misc.pl failed: $! $@";
++do "mtr_misc.pl" or die "Load mtr_misc.pl failed: $! $@";
+ 
+ $SIG{INT}= sub { mtr_error("Got ^C signal"); };
+ 
+@@ -272,7 +330,7 @@ my $opt_sleep;
+ my $opt_testcase_timeout= $ENV{MTR_TESTCASE_TIMEOUT} ||  15; # minutes
+ my $opt_suite_timeout   = $ENV{MTR_SUITE_TIMEOUT}    || 300; # minutes
+ my $opt_shutdown_timeout= $ENV{MTR_SHUTDOWN_TIMEOUT} ||  10; # seconds
+-my $opt_start_timeout   = $ENV{MTR_START_TIMEOUT}    || 180; # seconds
++my $opt_start_timeout   = $ENV{MTR_START_TIMEOUT}    || 300; # seconds
+ 
+ sub suite_timeout { return $opt_suite_timeout * 60; };
+ 
+diff --git a/mysql-test/r/mysql.result b/mysql-test/r/mysql.result
+index 7339bd1f..83c4f3a8 100644
+--- a/mysql-test/r/mysql.result
++++ b/mysql-test/r/mysql.result
+@@ -1,8 +1,8 @@
+ drop table if exists t1;
+ create table t1(a int);
+ insert into t1 values(1);
+-ERROR at line 9: DELIMITER must be followed by a 'delimiter' character or string
+ 
++ERROR at line 9: DELIMITER must be followed by a 'delimiter' character or string
+ Test default delimiter ;
+ a
+ 1
+@@ -392,11 +392,8 @@ WARNING: --server-arg option not supported in this configuration.
+ 8: 8
+ 9: 9
+ 0: 0
+-+---+
+-| 1 |
+-+---+
+-| 1 |
+-+---+
++*************************** 1. row ***************************
++1: 1
+ SET @@global.sql_mode='';
+ Warning (Code 1286): Unknown storage engine 'nonexistent'
+ Warning (Code 1266): Using storage engine MyISAM for table 't2'
+diff --git a/mysql-test/r/mysql_upgrade.result b/mysql-test/r/mysql_upgrade.result
+index 5c1616a0..537f76d5 100644
+--- a/mysql-test/r/mysql_upgrade.result
++++ b/mysql-test/r/mysql_upgrade.result
+@@ -444,7 +444,6 @@ user	plugin
+ root	mysql_native_password
+ root	mysql_native_password
+ root	mysql_native_password
+-root	mysql_native_password
+ B20023823_empty	
+ B20023823_def	mysql_native_password
+ B20023823_41hash	
+@@ -492,7 +491,6 @@ user	plugin
+ root	mysql_native_password
+ root	mysql_native_password
+ root	mysql_native_password
+-root	mysql_native_password
+ B20023823_empty	mysql_native_password
+ B20023823_def	mysql_native_password
+ B20023823_41hash	mysql_native_password
+diff --git a/mysql-test/r/plugin_auth_sha256_server_default_tls.result b/mysql-test/r/plugin_auth_sha256_server_default_tls.result
+index 0a4a920f..1598bec2 100644
+--- a/mysql-test/r/plugin_auth_sha256_server_default_tls.result
++++ b/mysql-test/r/plugin_auth_sha256_server_default_tls.result
+@@ -6,7 +6,6 @@ user	plugin
+ root	mysql_native_password
+ root	mysql_native_password
+ root	mysql_native_password
+-root	mysql_native_password
+ kristofer	sha256_password
+ SELECT USER(),CURRENT_USER();
+ USER()	CURRENT_USER()
+diff --git a/mysql-test/r/timezone.result b/mysql-test/r/timezone.result
+index 1223fff3..e5a35a88 100644
+--- a/mysql-test/r/timezone.result
++++ b/mysql-test/r/timezone.result
+@@ -1,7 +1,7 @@
+ DROP TABLE IF EXISTS t1;
+ show variables like "system_time_zone";
+ Variable_name	Value
+-system_time_zone	MET
++system_time_zone	CEST
+ select @a:=FROM_UNIXTIME(1);
+ @a:=FROM_UNIXTIME(1)
+ 1970-01-01 01:00:01
+diff --git a/mysql-test/std_data/checkDBI_DBD-mysql.pl b/mysql-test/std_data/checkDBI_DBD-mysql.pl
+index f001e471..c4b75af5 100644
+--- a/mysql-test/std_data/checkDBI_DBD-mysql.pl
++++ b/mysql-test/std_data/checkDBI_DBD-mysql.pl
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/bin/perl
+
+ # Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ #
+diff --git a/mysql-test/t/mysql.test b/mysql-test/t/mysql.test
+index 40a01a2b..d6eb1494 100644
+--- a/mysql-test/t/mysql.test
++++ b/mysql-test/t/mysql.test
+@@ -185,7 +185,7 @@ insert into t17583 select a from t17583;
+ insert into t17583 select a from t17583;
+ # Close to the minimal data needed to exercise bug.
+ select count(*) from t17583;
+---exec echo "select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; " |$MYSQL test >&-
++--exec echo "select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; select count(*) from t17583; " |$MYSQL -C test > /dev/null 2>&1
+ drop table t17583;
+ 
+ #
+diff --git a/mysys/my_rdtsc.c b/mysys/my_rdtsc.c
+index 028c7f81..5045fa33 100644
+--- a/mysys/my_rdtsc.c
++++ b/mysys/my_rdtsc.c
+@@ -326,7 +326,16 @@ ulonglong my_timer_microseconds(void)
+ 
+ ulonglong my_timer_milliseconds(void)
+ {
+-#if defined(HAVE_SYS_TIMEB_H) && defined(HAVE_FTIME)
++#if defined(__OHOS__)  // 鸿蒙系统专属宏定义，优先匹配
++  struct timespec ts;
++  if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == 0) {
++    // 秒转换为毫秒 + 纳秒转换为毫秒（1秒=1000毫秒，1纳秒=1e-6毫秒）
++    return (ulonglong)ts.tv_sec * 1000 + (ulonglong)ts.tv_nsec / 1000000;
++  } else {
++    return 0;
++  }
++#elif defined(HAVE_SYS_TIMEB_H) && defined(HAVE_FTIME)
++  printf("linux clock_gettime\n");
+   /* ftime() is obsolete but maybe the platform is old */
+   struct timeb ft;
+   ftime(&ft);
+diff --git a/mysys_ssl/my_aes_openssl.cc b/mysys_ssl/my_aes_openssl.cc
+index fa3c0162..8f269e73 100644
+--- a/mysys_ssl/my_aes_openssl.cc
++++ b/mysys_ssl/my_aes_openssl.cc
+@@ -108,7 +108,7 @@ int my_aes_encrypt(const unsigned char *source, uint32 source_length,
+                    const unsigned char *key, uint32 key_length,
+                    enum my_aes_opmode mode, const unsigned char *iv)
+ {
+-  EVP_CIPHER_CTX ctx;
++  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new(); // 用指针创建对象
+   const EVP_CIPHER *cipher= aes_evp_type(mode);
+   int u_len, f_len;
+   /* The real key to be used for encryption */
+@@ -118,23 +118,25 @@ int my_aes_encrypt(const unsigned char *source, uint32 source_length,
+   if (!cipher || (EVP_CIPHER_iv_length(cipher) > 0 && !iv))
+     return MY_AES_BAD_DATA;
+ 
+-  if (!EVP_EncryptInit(&ctx, cipher, rkey, iv))
++  if (!EVP_EncryptInit(ctx, cipher, rkey, iv))
+     goto aes_error;                             /* Error */
+-  if (!EVP_CIPHER_CTX_set_padding(&ctx, 1))
++  if (!EVP_CIPHER_CTX_set_padding(ctx, 1))
+     goto aes_error;                             /* Error */
+-  if (!EVP_EncryptUpdate(&ctx, dest, &u_len, source, source_length))
++  if (!EVP_EncryptUpdate(ctx, dest, &u_len, source, source_length))
+     goto aes_error;                             /* Error */
+ 
+-  if (!EVP_EncryptFinal(&ctx, dest + u_len, &f_len))
++  if (!EVP_EncryptFinal(ctx, dest + u_len, &f_len))
+     goto aes_error;                             /* Error */
+ 
+-  EVP_CIPHER_CTX_cleanup(&ctx);
++  EVP_CIPHER_CTX_reset(ctx);
++  EVP_CIPHER_CTX_free(ctx);
+   return u_len + f_len;
+ 
+ aes_error:
+   /* need to explicitly clean up the error if we want to ignore it */
+   ERR_clear_error();
+-  EVP_CIPHER_CTX_cleanup(&ctx);
++  EVP_CIPHER_CTX_reset(ctx);
++  EVP_CIPHER_CTX_free(ctx);
+   return MY_AES_BAD_DATA;
+ }
+ 
+@@ -145,7 +147,7 @@ int my_aes_decrypt(const unsigned char *source, uint32 source_length,
+                    enum my_aes_opmode mode, const unsigned char *iv)
+ {
+ 
+-  EVP_CIPHER_CTX ctx;
++  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+   const EVP_CIPHER *cipher= aes_evp_type(mode);
+   int u_len, f_len;
+ 
+@@ -156,24 +158,23 @@ int my_aes_decrypt(const unsigned char *source, uint32 source_length,
+   if (!cipher || (EVP_CIPHER_iv_length(cipher) > 0 && !iv))
+     return MY_AES_BAD_DATA;
+ 
+-  EVP_CIPHER_CTX_init(&ctx);
+ 
+-  if (!EVP_DecryptInit(&ctx, aes_evp_type(mode), rkey, iv))
++  if (!EVP_DecryptInit(ctx, aes_evp_type(mode), rkey, iv))
+     goto aes_error;                             /* Error */
+-  if (!EVP_CIPHER_CTX_set_padding(&ctx, 1))
++  if (!EVP_CIPHER_CTX_set_padding(ctx, 1))
+     goto aes_error;                             /* Error */
+-  if (!EVP_DecryptUpdate(&ctx, dest, &u_len, source, source_length))
++  if (!EVP_DecryptUpdate(ctx, dest, &u_len, source, source_length))
+     goto aes_error;                             /* Error */
+-  if (!EVP_DecryptFinal_ex(&ctx, dest + u_len, &f_len))
++  if (!EVP_DecryptFinal_ex(ctx, dest + u_len, &f_len))
+     goto aes_error;                             /* Error */
+ 
+-  EVP_CIPHER_CTX_cleanup(&ctx);
++  EVP_CIPHER_CTX_free(ctx);
+   return u_len + f_len;
+ 
+ aes_error:
+   /* need to explicitly clean up the error if we want to ignore it */
+   ERR_clear_error();
+-  EVP_CIPHER_CTX_cleanup(&ctx);
++  EVP_CIPHER_CTX_free(ctx);
+   return MY_AES_BAD_DATA;
+ }
+ 
+diff --git a/plugin/daemon_example/CMakeLists.txt b/plugin/daemon_example/CMakeLists.txt
+index 1623c302..dc746c92 100644
+--- a/plugin/daemon_example/CMakeLists.txt
++++ b/plugin/daemon_example/CMakeLists.txt
+@@ -16,4 +16,16 @@
+ MYSQL_ADD_PLUGIN(daemon_example daemon_example.cc
+   MODULE_ONLY MODULE_OUTPUT_NAME "libdaemon_example")
+ 
++TARGET_LINK_LIBRARIES(daemon_example
++  PRIVATE
++  # AliSQL 核心库
++  ${CMAKE_BINARY_DIR}/mysys/libmysys.a
++  ${CMAKE_BINARY_DIR}/dbug/libdbug.a
++  ${CMAKE_BINARY_DIR}/strings/libstrings.a
++  ${CMAKE_BINARY_DIR}/libservices/libmysqlservices.a
++  # 系统库（加 -l 前缀表示链接系统动态库）
++  -lpthread
++  -lm
++)
++
+ INSTALL(FILES daemon_example.ini DESTINATION ${INSTALL_PLUGINDIR})
+diff --git a/plugin/daemon_example/daemon_example.cc b/plugin/daemon_example/daemon_example.cc
+index 8b5d52c5..31ac1f06 100644
+--- a/plugin/daemon_example/daemon_example.cc
++++ b/plugin/daemon_example/daemon_example.cc
+@@ -160,7 +160,7 @@ static int daemon_example_plugin_deinit(void *p)
+   struct tm tm_tmp;
+   void *dummy_retval;
+ 
+-  pthread_cancel(con->heartbeat_thread);
++//  pthread_cancel(con->heartbeat_thread);
+ 
+   localtime_r(&result, &tm_tmp);
+   my_snprintf(buffer, sizeof(buffer),
+@@ -177,7 +177,8 @@ static int daemon_example_plugin_deinit(void *p)
+     Need to wait for the hearbeat thread to terminate before closing
+     the file it writes to and freeing the memory it uses
+   */
+-  pthread_join(con->heartbeat_thread, &dummy_retval);
++  // pthread_join(con->heartbeat_thread, &dummy_retval);
++  pthread_detach(con->heartbeat_thread);
+ 
+   my_close(con->heartbeat_file, MYF(0));
+ 
+diff --git a/plugin/password_validation/CMakeLists.txt b/plugin/password_validation/CMakeLists.txt
+index d72f8578..ff899d92 100644
+--- a/plugin/password_validation/CMakeLists.txt
++++ b/plugin/password_validation/CMakeLists.txt
+@@ -14,4 +14,10 @@
+ # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+ 
+ MYSQL_ADD_PLUGIN(validate_password validate_password.cc
+-    MODULE_ONLY)
++    MODULE_ONLY
++    LINK_LIBRARIES
++        mysys
++        ${CMAKE_BINARY_DIR}/sql/libsql.a  # 直接链接libsql.a静态库
++        pthread
++        m
++)
+diff --git a/scripts/CMakeLists.txt b/scripts/CMakeLists.txt
+index dafd3101..35d2f518 100644
+--- a/scripts/CMakeLists.txt
++++ b/scripts/CMakeLists.txt
+@@ -47,12 +47,12 @@ ENDIF()
+ ADD_CUSTOM_COMMAND(
+   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mysql_fix_privilege_tables_sql.c
+   ${CAT_COMMAND}
+-  COMMAND comp_sql
++  COMMAND ${CMAKE_SOURCE_DIR}/comp_sql
+   mysql_fix_privilege_tables
+   mysql_fix_privilege_tables.sql
+   mysql_fix_privilege_tables_sql.c
+   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+-  DEPENDS comp_sql
++  DEPENDS ${CMAKE_SOURCE_DIR}/comp_sql
+   ${CMAKE_CURRENT_SOURCE_DIR}/mysql_system_tables.sql
+   ${CMAKE_CURRENT_SOURCE_DIR}/mysql_system_tables_fix.sql
+ )
+diff --git a/sql-common/client_authentication.cc b/sql-common/client_authentication.cc
+index d0d03971..a2f49dd7 100644
+--- a/sql-common/client_authentication.cc
++++ b/sql-common/client_authentication.cc
+@@ -84,7 +84,7 @@ RSA *rsa_init(MYSQL *mysql)
+ 
+   if (mysql->options.extension != NULL &&
+       mysql->options.extension->server_public_key_path != NULL &&
+-      mysql->options.extension->server_public_key_path != '\0')
++      *mysql->options.extension->server_public_key_path != '\0')
+   {
+     pub_key_file= fopen(mysql->options.extension->server_public_key_path,
+                         "r");
+diff --git a/sql/CMakeLists.txt b/sql/CMakeLists.txt
+index b4e3c832..dbcbc77c 100644
+--- a/sql/CMakeLists.txt
++++ b/sql/CMakeLists.txt
+@@ -43,8 +43,8 @@ ADD_DEPENDENCIES(gen_lex_token GenServerSource)
+ 
+ ADD_CUSTOM_COMMAND(
+   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lex_token.h
+-  COMMAND gen_lex_token > lex_token.h
+-  DEPENDS gen_lex_token
++  COMMAND ${CMAKE_SOURCE_DIR}/gen_lex_token > lex_token.h
++  DEPENDS ${CMAKE_SOURCE_DIR}/gen_lex_token
+ )
+ 
+ ADD_DEFINITIONS(-DMYSQL_SERVER -DHAVE_EVENT_SCHEDULER) 
+@@ -408,8 +408,8 @@ ADD_EXECUTABLE(gen_lex_hash gen_lex_hash.cc)
+ 
+ ADD_CUSTOM_COMMAND(
+   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lex_hash.h
+-  COMMAND gen_lex_hash > lex_hash.h
+-  DEPENDS gen_lex_hash
++  COMMAND ${CMAKE_SOURCE_DIR}/gen_lex_hash > lex_hash.h
++  DEPENDS ${CMAKE_SOURCE_DIR}/gen_lex_hash
+ )
+ 
+ MYSQL_ADD_EXECUTABLE(mysql_tzinfo_to_sql tztime.cc)
+diff --git a/sql/sql_acl.cc b/sql/sql_acl.cc
+index e4b2593a..f3d91145 100644
+--- a/sql/sql_acl.cc
++++ b/sql/sql_acl.cc
+@@ -2291,7 +2291,8 @@ bool change_password(THD *thd, const char *host, const char *user,
+   }
+   mysql_mutex_assert_owner(&acl_cache->lock);
+   table->use_all_columns();
+-  DBUG_ASSERT(host != '\0');
++  //  DBUG_ASSERT(host != '\0');
++  DBUG_ASSERT(host != NULL);
+   table->field[MYSQL_USER_FIELD_HOST]->store(host, strlen(host),
+                                              system_charset_info);
+   table->field[MYSQL_USER_FIELD_USER]->store(user, strlen(user),
+@@ -2709,7 +2710,8 @@ update_user_table(THD *thd, TABLE *table,
+   if (!is_user_table_positioned)
+   {
+     table->use_all_columns();
+-    DBUG_ASSERT(host != '\0');
++    // DBUG_ASSERT(host != '\0');
++    DBUG_ASSERT(host != NULL);
+     table->field[MYSQL_USER_FIELD_HOST]->store(host, (uint) strlen(host),
+ 					       system_charset_info);
+     table->field[MYSQL_USER_FIELD_USER]->store(user, (uint) strlen(user),
+@@ -2848,7 +2850,7 @@ static int replace_user_table(THD *thd, TABLE *table, LEX_USER *combo,
+   }
+  
+   table->use_all_columns();
+-  DBUG_ASSERT(combo->host.str != '\0');
++  DBUG_ASSERT(combo->host.str != NULL);
+   table->field[MYSQL_USER_FIELD_HOST]->store(combo->host.str,combo->host.length,
+                                              system_charset_info);
+   table->field[MYSQL_USER_FIELD_USER]->store(combo->user.str,combo->user.length,
+@@ -2939,7 +2941,7 @@ static int replace_user_table(THD *thd, TABLE *table, LEX_USER *combo,
+ 
+     old_row_exists = 0;
+     restore_record(table,s->default_values);
+-    DBUG_ASSERT(combo->host.str != '\0');
++    DBUG_ASSERT(combo->host.str != NULL);
+     table->field[MYSQL_USER_FIELD_HOST]->store(combo->host.str,combo->host.length,
+                                                system_charset_info);
+     table->field[MYSQL_USER_FIELD_USER]->store(combo->user.str,combo->user.length,
+@@ -3068,7 +3070,7 @@ static int replace_user_table(THD *thd, TABLE *table, LEX_USER *combo,
+       * An empty password is considered to be of mysql_native type.
+     */
+     
+-    if (combo->plugin.str == NULL || combo->plugin.str == '\0')
++    if (combo->plugin.str == NULL || combo->plugin.str[0] == '\0')
+     {
+       if (combo->uses_identified_by_password_clause)
+       {
+diff --git a/storage/innobase/read/read0read.cc b/storage/innobase/read/read0read.cc
+index fdeaf8b1..b073d3e7 100644
+--- a/storage/innobase/read/read0read.cc
++++ b/storage/innobase/read/read0read.cc
+@@ -24,6 +24,7 @@ Created 2/16/1997 Heikki Tuuri
+ *******************************************************/
+ 
+ #include "read0read.h"
++#include "os0sync.h"
+ 
+ #ifdef UNIV_NONINL
+ #include "read0read.ic"
+@@ -188,8 +189,9 @@ read_view_create_low(
+ 	if (view == NULL) {
+ 		view = static_cast<read_view_t*>(
+ 			ut_malloc(sizeof(read_view_t)));
+-		os_atomic_increment_ulint(&srv_read_views_memory,
+-					  sizeof(read_view_t));
++        //	os_atomic_increment_ulint(&srv_read_views_memory,
++        //				  sizeof(read_view_t));
++                __atomic_add_fetch(&srv_read_views_memory, sizeof(read_view_t), __ATOMIC_ACQ_REL);
+ 		view->max_descr = 0;
+ 		view->descriptors = NULL;
+ 	}
+@@ -198,10 +200,10 @@ read_view_create_low(
+ 
+ 		/* avoid frequent re-allocations by extending the array to the
+ 		desired size + 10% */
+-		os_atomic_increment_ulint(&srv_read_views_memory,
+-					  (n + n / 10 - view->max_descr) *
+-					  sizeof(trx_id_t));
+-
++        //	os_atomic_increment_ulint(&srv_read_views_memory,
++        //				  (n + n / 10 - view->max_descr) *
++        //				  sizeof(trx_id_t));
++                 __atomic_add_fetch(&srv_read_views_memory, (n + n / 10 - view->max_descr) * sizeof(trx_id_t), __ATOMIC_ACQ_REL);
+ 		view->max_descr = n + n / 10;
+ 		view->descriptors = static_cast<trx_id_t*>(
+ 			ut_realloc(view->descriptors,
+@@ -598,9 +600,11 @@ read_view_free(
+ 		mutex_exit(&trx_sys->mutex);
+ 	}
+ 
+-	os_atomic_decrement_lint(&srv_read_views_memory,
+-				 sizeof(read_view_t) +
+-				 view->max_descr * sizeof(trx_id_t));
++//	os_atomic_decrement_lint(&srv_read_views_memory,
++//				 sizeof(read_view_t) +
++//				 view->max_descr * sizeof(trx_id_t));
++
++	__atomic_sub_fetch(&srv_read_views_memory, sizeof(read_view_t) + view->max_descr * sizeof(trx_id_t), __ATOMIC_ACQ_REL);
+ 
+ 	if (view->descriptors != NULL) {
+ 		ut_free(view->descriptors);
+diff --git a/storage/innobase/srv/srv0srv.cc b/storage/innobase/srv/srv0srv.cc
+index 21ac1aee..67672f91 100644
+--- a/storage/innobase/srv/srv0srv.cc
++++ b/storage/innobase/srv/srv0srv.cc
+@@ -1493,10 +1493,12 @@ srv_export_innodb_status(void)
+ 	export_vars.innodb_column_decompressed = srv_column_decompressed;
+ 
+ 	export_vars.innodb_read_views_memory =
+-		os_atomic_increment_lint(&srv_read_views_memory, 0);
++                //os_atomic_increment_lint(&srv_read_views_memory, 0);
++		__atomic_fetch_add(&srv_read_views_memory, 0, __ATOMIC_ACQ_REL);
+ 
+ 	export_vars.innodb_descriptors_memory =
+-		os_atomic_increment_lint(&srv_descriptors_memory, 0);
++                //os_atomic_increment_lint(&srv_descriptors_memory, 0);
++		__atomic_fetch_add(&srv_descriptors_memory, 0, __ATOMIC_ACQ_REL);
+ 
+ #ifdef UNIV_DEBUG
+ 	rw_lock_s_lock(&purge_sys->latch);
+diff --git a/storage/myisam/mi_dynrec.c b/storage/myisam/mi_dynrec.c
+index eb83b3cd..8697220a 100644
+--- a/storage/myisam/mi_dynrec.c
++++ b/storage/myisam/mi_dynrec.c
+@@ -22,6 +22,19 @@
+   The reson for the max block size is to not have too many different types
+   of blocks.  For the differnet block types, look at _mi_get_block_info()
+ */
++// 补充 mmap64 所需的头文件和声明（适配鸿蒙musl）
++#ifndef _GNU_SOURCE
++#define _GNU_SOURCE 1
++#endif
++#include <sys/mman.h>
++#include <sys/types.h>
++#include <unistd.h>
++#include <stdint.h>
++
++// 显式声明 mmap64，避免隐式函数声明警告
++#ifndef mmap64
++void *mmap64(void *addr, size_t length, int prot, int flags, int fd, off64_t offset);
++#endif
+ 
+ #include "myisamdef.h"
+ 
+@@ -167,19 +180,24 @@ size_t mi_mmap_pread(MI_INFO *info, uchar *Buffer,
+                     size_t Count, my_off_t offset, myf MyFlags)
+ {
+   DBUG_PRINT("info", ("mi_read with mmap %d\n", info->dfile));
++
+   if (info->s->concurrent_insert)
+     mysql_rwlock_rdlock(&info->s->mmap_lock);
+ 
+-  /*
+-    The following test may fail in the following cases:
+-    - We failed to remap a memory area (fragmented memory?)
+-    - This thread has done some writes, but not yet extended the
+-    memory mapped area.
+-  */
+-
+   if (info->s->mmaped_length >= offset + Count)
+   {
+-    memcpy(Buffer, info->s->file_map + offset, Count);
++    // 关键1：强转size_t，兼容32/64
++    uchar *src = info->s->file_map + (size_t)offset;
++
++    // 关键2：对齐判断，不破坏32位
++    if (((uintptr_t)Buffer & 7) || ((uintptr_t)src & 7)) {
++      // 非对齐逐字节拷（musl aarch64 需要）
++      for (size_t i=0; i<Count; i++)
++          Buffer[i] = src[i];
++    } else {
++      memcpy(Buffer, src, Count);
++    }
++
+     if (info->s->concurrent_insert)
+       mysql_rwlock_unlock(&info->s->mmap_lock);
+     return 0;
+@@ -234,7 +252,21 @@ size_t mi_mmap_pwrite(MI_INFO *info, const uchar *Buffer,
+ 
+   if (info->s->mmaped_length >= offset + Count)
+   {
+-    memcpy(info->s->file_map + offset, Buffer, Count); 
++    // 关键1：强转size_t，避免64位地址运算符号扩展错误（兼容32/64位）
++    uchar *dst = info->s->file_map + (size_t)offset;
++    const uchar *src = Buffer;
++
++    // 关键2：对齐检查，musl aarch64要求8字节对齐，非对齐时逐字节拷贝
++    if (((uintptr_t)dst & 7) || ((uintptr_t)src & 7)) {
++      // 非对齐场景：逐字节拷贝（32位无感知）
++      for (size_t i = 0; i < Count; i++) {
++        dst[i] = src[i];
++      }
++    } else {
++      // 对齐场景：正常memcpy（32/64位都高效）
++      memcpy(dst, src, Count);
++    }
++
+     if (info->s->concurrent_insert)
+       mysql_rwlock_unlock(&info->s->mmap_lock);
+     return 0;

@@ -1,0 +1,73 @@
+# Contributor: wlxuz <wlxuz@isoftstone.com>
+# Maintainer: wlxuz <wlxuz@isoftstone.com>
+
+pkgname=avrocpp
+pkgver=release-1.11.1
+pkgrel=0
+pkgdesc="Apache Avro is a data serialization system."
+url="https://github.com/apache/avro"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("Apache-2.0 license")
+depends=("zlib" "boost" "snappy")
+makedepends=()
+source="https://github.com/apache/avro/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+buildhost=true
+
+builddir=avro-$pkgver
+packagename=avro-$pkgver.tar.gz
+
+prepare() {
+    # 源码本身存在不正确的数据类型转换，以及交叉编译需要指定路径，因此需要打patch
+    if [ $patchflag == true ];then
+        cd $builddir
+        patch -p1 < `pwd`/../avro_oh_pkg.patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+    
+    # 需要优先编译linux版本的avrogencpp， 否则无法生成中间文件
+    if [ $buildhost == true ];then
+        mkdir -p $builddir/host-build
+        cd $builddir
+        cmake -Bhost-build -Slang/c++ -L > `pwd`/host-build/build.log 2>&1
+        make -j4 -C host-build avrogencpp VERBOSE=1 >> `pwd`/host-build/build.log 2>&1
+        cd $OLDPWD
+        buildhost=false
+    fi
+}
+
+build() {
+    # 编译avro c++的版本
+    cd $builddir
+    PKG_CONFIG_PATH="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DCMAKE_CXX_FLAGS="${LYCIUM_ROOT}/usr/zlib/${ARCH}/lib/libz.a" \
+        -DAVROGENCPPCMD=$(pwd)/host-build/avrogencpp -DOHOS_ARCH=$ARCH -B$ARCH-build \
+        -Slang/c++ -L  > `pwd`/$ARCH-build/build.log 2>&1
+    make -j4 -C $ARCH-build VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install VERBOSE=1 >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # real test
+    # ctest
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

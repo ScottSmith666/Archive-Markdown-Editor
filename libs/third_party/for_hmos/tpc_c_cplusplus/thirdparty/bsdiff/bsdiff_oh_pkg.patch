@@ -1,0 +1,101 @@
+diff -Naur bsdiff-b817e9491cf7b8699c8462ef9e2657ca4ccd7667/cmake/PackageConfig.cmake.in bsdiff-b817e9491cf7b8699c8462ef9e2657ca4ccd7667_new/cmake/PackageConfig.cmake.in
+--- bsdiff-b817e9491cf7b8699c8462ef9e2657ca4ccd7667/cmake/PackageConfig.cmake.in	1970-01-01 08:00:00.000000000 +0800
++++ bsdiff-b817e9491cf7b8699c8462ef9e2657ca4ccd7667_new/cmake/PackageConfig.cmake.in	2023-07-13 16:49:45.055150743 +0800
+@@ -0,0 +1,11 @@
++@PACKAGE_INIT@
++
++set(@PROJECT_NAME@_INCLUDE_DIRS ${PACKAGE_PREFIX_DIR}/include ${PACKAGE_PREFIX_DIR}/include/@TARGET_NAME@)
++
++set(@PROJECT_NAME@_SHARED_LIBRARIES ${PACKAGE_PREFIX_DIR}/lib/lib@TARGET_NAME@.so)
++set(@PROJECT_NAME@_STATIC_LIBRARIES ${PACKAGE_PREFIX_DIR}/lib/lib@TARGET_NAME@.a)
++
++include(CMakeFindDependencyMacro)
++
++include(${CMAKE_CURRENT_LIST_DIR}/@TARGET_NAME@Targets.cmake)
++check_required_components(@TARGET_NAME@)
+diff -Naur bsdiff-b817e9491cf7b8699c8462ef9e2657ca4ccd7667/CMakeLists.txt bsdiff-b817e9491cf7b8699c8462ef9e2657ca4ccd7667_new/CMakeLists.txt
+--- bsdiff-b817e9491cf7b8699c8462ef9e2657ca4ccd7667/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
++++ bsdiff-b817e9491cf7b8699c8462ef9e2657ca4ccd7667_new/CMakeLists.txt	2023-07-13 17:52:48.781806835 +0800
+@@ -0,0 +1,82 @@
++cmake_minimum_required (VERSION 3.12)
++
++project(BSDIFF VERSION )
++enable_language(C)
++
++option(BUILD_SAMPLE "Build sample" OFF)
++set(BUILD_SHARED_LIBS FALSE CACHE BOOL "If TRUE, BSDIFF is built as a shared library, otherwise as a static library")
++
++set(TARGET_NAME bsdiff_bspatch)
++set(TARGET_SAMPLE_NAME_BSDIFF bsdiff)
++set(TARGET_SAMPLE_NAME_BSPATCH bspatch)
++
++set(TARGET_INSTALL_INCLUDEDIR include)
++set(TARGET_INSTALL_BINDIR bin)
++set(TARGET_INSTALL_LIBDIR lib)
++
++find_package(BZip2 MODULE REQUIRED)
++
++set(TARGET_SRC_PATH ${CMAKE_CURRENT_SOURCE_DIR})
++set(TARGET_SRC ${TARGET_SRC_PATH}/bspatch.c
++	       ${TARGET_SRC_PATH}/bsdiff.c)
++
++set(TARGET_INCLUDE ${TARGET_SRC_PATH})
++
++add_library(${TARGET_NAME} ${TARGET_SRC})
++target_include_directories(${TARGET_NAME} PRIVATE ${TARGET_INCLUDE})
++
++if(BUILD_SAMPLE)
++    add_executable(${TARGET_SAMPLE_NAME_BSDIFF} ${TARGET_SRC_PATH}/bsdiff.c)
++    target_compile_definitions(${TARGET_SAMPLE_NAME_BSDIFF} PRIVATE -DBSDIFF_EXECUTABLE)
++    target_include_directories(${TARGET_SAMPLE_NAME_BSDIFF} PRIVATE ${TARGET_INCLUDE})
++    target_link_libraries(${TARGET_SAMPLE_NAME_BSDIFF} PRIVATE ${TARGET_NAME} ${BZIP2_LIBRARIES})
++    target_include_directories(${TARGET_SAMPLE_NAME_BSDIFF} PRIVATE ${BZIP2_INCLUDE_DIR})
++    
++    add_executable(${TARGET_SAMPLE_NAME_BSPATCH} ${TARGET_SRC_PATH}/bspatch.c)
++    target_compile_definitions(${TARGET_SAMPLE_NAME_BSPATCH} PRIVATE -DBSPATCH_EXECUTABLE)
++    target_include_directories(${TARGET_SAMPLE_NAME_BSPATCH} PRIVATE ${TARGET_INCLUDE})
++    target_link_libraries(${TARGET_SAMPLE_NAME_BSPATCH} PRIVATE ${TARGET_NAME} ${BZIP2_LIBRARIES})
++    target_include_directories(${TARGET_SAMPLE_NAME_BSPATCH} PRIVATE ${BZIP2_INCLUDE_DIR})
++endif()
++
++install(
++    TARGETS ${TARGET_NAME}
++    EXPORT ${TARGET_NAME}
++    PUBLIC_HEADER DESTINATION ${TARGET_INSTALL_INCLUDEDIR}
++    PRIVATE_HEADER DESTINATION ${TARGET_INSTALL_INCLUDEDIR}
++    RUNTIME DESTINATION ${TARGET_INSTALL_BINDIR}
++    LIBRARY DESTINATION ${TARGET_INSTALL_LIBDIR}
++    ARCHIVE DESTINATION ${TARGET_INSTALL_LIBDIR})
++        
++install(FILES ${TARGET_SRC_PATH}/bspatch.h 
++              ${TARGET_SRC_PATH}/bsdiff.h
++    DESTINATION ${TARGET_INSTALL_INCLUDEDIR})
++
++install(
++    FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_SAMPLE_NAME_BSPATCH}
++          ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_SAMPLE_NAME_BSDIFF}
++    DESTINATION ${TARGET_INSTALL_BINDIR})
++
++install(
++    EXPORT ${TARGET_NAME}
++    FILE ${TARGET_NAME}Targets.cmake
++    DESTINATION ${TARGET_INSTALL_LIBDIR}/cmake/${TARGET_NAME}
++)
++
++include(CMakePackageConfigHelpers)
++
++write_basic_package_version_file(
++    ${TARGET_NAME}ConfigVersion.cmake
++    VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}
++    COMPATIBILITY SameMajorVersion
++)
++
++configure_package_config_file(
++    cmake/PackageConfig.cmake.in ${TARGET_NAME}Config.cmake
++    INSTALL_DESTINATION ${TARGET_INSTALL_LIBDIR}/cmake/${TARGET_NAME}
++)
++
++install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}Config.cmake 
++	      ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}ConfigVersion.cmake
++    DESTINATION ${TARGET_INSTALL_LIBDIR}/cmake/${TARGET_NAME}
++)

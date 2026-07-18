@@ -1,0 +1,51 @@
+[binaries]
+c = 'ohos_sdk/native/llvm/bin/arm-linux-ohos-clang'
+cpp = 'ohos_sdk/native/llvm/bin/arm-linux-ohos-clang++'
+ar = 'ohos_sdk/native/llvm/bin/llvm-ar'
+strip = 'ohos_sdk/native/llvm/bin/llvm-strip'
+ld = 'ohos_sdk/native/llvm/bin/ld.lld'
+
+pkgconfig = '/usr/bin/pkg-config'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'armeabi-v7a'
+endian = 'little'
+
+[properties]
+needs_exe_wrapper = true
+skip_sanity_check = true
+sys_root = ''
+platform = 'generic'
+pkg_config_libdir = 'lycium_root/usr/json-c/armeabi-v7a/lib/pkgconfig:lycium_root/usr/speexdsp/armeabi-v7a/lib/pkgconfig:lycium_root/usr/libatomic_ops/armeabi-v7a/lib/pkgconfig:lycium_root/usr/libsndfile/armeabi-v7a/lib/pkgconfig:lycium_root/usr/lib/armeabi-v7a/lib/pkgconfig:lycium_root/usr/fftw3/armeabi-v7a/lib/pkgconfig:lycium_root/usr/check/armeabi-v7a/lib/pkgconfig'
+
+[built-in options]
+c_args = [
+    '-D__MUSL__=1',
+    '-Wno-int-conversion',
+    '-fPIC',
+    '-march=armv7a',
+    '-mfpu=neon',
+    '-mfloat-abi=softfp',
+    '-Ilycium_root/usr/gettext/armeabi-v7a/include',
+    ]
+cpp_args = [
+    '-D__MUSL__=1',
+    '-Wno-int-conversion',
+    '-fPIC',
+    '-march=armv7a',
+    '-mfpu=neon',
+    '-mfloat-abi=softfp',
+    '-Ilycium_root/usr/gettext/armeabi-v7a/include',
+    ]
+
+c_link_args = [
+    '-Llycium_root/usr/gettext/armeabi-v7a/lib', 
+    '-lintl',
+    ]
+cpp_link_args = [
+    '-Llycium_root/usr/gettext/armeabi-v7a/lib', 
+    '-lintl',
+    ]
+

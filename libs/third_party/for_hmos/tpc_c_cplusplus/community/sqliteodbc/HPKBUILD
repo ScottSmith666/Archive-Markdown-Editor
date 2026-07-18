@@ -1,0 +1,92 @@
+# Contributor: TangShaoteng <sttangc@isoftstone.com>
+# Maintainer: TangShaoteng <sttangc@isoftstone.com>
+pkgname=sqliteodbc
+pkgver=0.9998
+pkgrel=0
+pkgdesc="SQLite Database Engine provides a lightweight C library to access database files"
+url="http://www.ch-werner.de/sqliteodbc"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD")
+depends=("sqlite" "unixODBC" "libxml2")
+makedepends=("wget")
+
+# 请保持网络通畅
+source="http://www.ch-werner.de/$pkgname/$pkgname-$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+buildtools="configure"
+downloadconfigflag=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+source envset.sh
+host=
+
+prepare() {
+    if [ $downloadconfigflag == true ];then
+        # 获取最新的config.sub和config.guess以支持aarch64架构编译
+        wget -O $builddir/config.sub "git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" > $builddir/build.log 2>&1
+        ret=$?
+        if [ $ret -ne 0 ]
+        then
+            return -1
+        fi
+        wget -O $builddir/config.guess "git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" >> $builddir/build.log 2>&1
+        ret=$?
+        if [ $ret -ne 0 ]
+        then
+            return -1
+        fi
+        downloadconfigflag=false
+    fi
+    cp -arf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    fi
+    export CFLAGS="${CFLAGS} -L$LYCIUM_ROOT/usr/xz/$ARCH/lib"
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    ./configure "$@" --host=$host --with-sqlite3=$LYCIUM_ROOT/usr/sqlite/$ARCH --with-odbc=$LYCIUM_ROOT/usr/unixODBC/$ARCH --with-libxml2=$LYCIUM_ROOT/usr/libxml2/$ARCH/bin/xml2-config >> `pwd`/build.log 2>&1
+    make -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    # 此库的安装目录需要手动创建
+    mkdir -p $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    # 安装sqlite3驱动
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-${archs[0]}-build ${PWD}/$builddir-${archs[1]}-build
+}

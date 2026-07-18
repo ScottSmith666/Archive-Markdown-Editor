@@ -1,0 +1,30 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: changzhenjie4 <changzhenjie4@h-partners.com>
+# Maintainer: changzhenjie4 <changzhenjie4@h-partners.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+openharmonycheck() {
+    echo "===================== $LYCIUM_ROOT/usr/AliSQL/$ARCH/mysql-test ===================="
+    cd $LYCIUM_ROOT/usr/AliSQL/$ARCH/mysql-test
+    ./mtr --suite=main --nowarnings --parallel=1 --build-thread=50 --suite-timeout=360 --max-test-fail=0 --testcase-timeout=60 \
+    --skip-test='^subselect_notembedded$|^invisible_indexes_tokudb$|^events_bugs$|^sp_notembedded$|^ssl_ca$|^not_embedded_server$|^events_1$|^execution_constants$|^feature_tls12_issue588_1$|^feature_tls12_issue588_2$|^file_contents$|^information_schema$|^information_schema_db$|^insert_select$|^mysqld--help-notwin$|^openssl_1$|^sp-error$|^ssl$|^mysqldump$|^mysqlshow$' \
+    --force \
+    > ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+    return $res
+}

@@ -1,0 +1,54 @@
+# Contributor: chengkan <kanchengc@isoftstone.com>
+# Maintainer: chengkan <kanchengc@isoftstone.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+# 判断ping是否成功函数
+function ping_success() {
+    ping -c 1 localhost >> ${logfile} 2>&1 && return 0 || return -1
+}
+
+checkprepare(){
+    res = 0
+    mount -o remount,rw /
+    # 判断是否需要创建hosts文件
+    if ! ping_success; then
+        echo "Hosts file not found. Creating hosts file..." >> ${logfile} 2>&1
+        
+        # 创建hosts文件并添加内容
+        echo "127.0.0.1 localhost localhost.localdomain" | tee /etc/hosts > /dev/null
+        
+        # 验证是否成功创建hosts文件
+        if [ -f "/etc/hosts" ]; then
+            echo "Hosts file created successfully." >> ${logfile} 2>&1
+        else
+            echo "Failed to create hosts file." >> ${logfile} 2>&1
+            res = -1
+        fi
+
+        # 再次检测ping情况
+        if [ $res -ne 0 ]; then    
+            # 再次判断ping是否成功
+            if ping_success; then
+                echo "Success: localhost is pingable."  >> ${logfile} 2>&1
+            else
+                echo "Error: localhost is not pingable." >> ${logfile} 2>&1
+                res = -2
+            fi
+        fi 
+
+    fi
+
+    return $res
+
+}
+openharmonycheck() {
+    res=0
+    cd $builddir/$ARCH-build
+    make test >> ${logfile} 2>&1
+    res=$?
+    cd $OLDPWD
+    
+    return $res
+}

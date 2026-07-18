@@ -1,0 +1,630 @@
+diff -Naur old/CMakeLists.txt new/CMakeLists.txt
+--- old/CMakeLists.txt	2024-03-17 11:22:28.637204400 +0800
++++ new/CMakeLists.txt	2024-03-21 11:03:04.227204400 +0800
+@@ -68,7 +68,7 @@
+   SET(XNNPACK_TARGET_PROCESSOR "x86")
+ ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
+   SET(XNNPACK_TARGET_PROCESSOR "x86_64")
+-ELSEIF(CMAKE_SYSTEM_PROCESSOR MATCHES "^armv[5-8]")
++ELSEIF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv[5-8]|arm.*)$")
+   SET(XNNPACK_TARGET_PROCESSOR "arm")
+ ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+   SET(XNNPACK_TARGET_PROCESSOR "arm64")
+@@ -161,7 +161,7 @@
+ # ---[ Build flags
+ IF(NOT CMAKE_SYSTEM_NAME)
+   MESSAGE(FATAL_ERROR "CMAKE_SYSTEM_NAME not defined")
+-ELSEIF(NOT CMAKE_SYSTEM_NAME MATCHES "^(Android|Darwin|iOS|Linux|Windows|CYGWIN|MSYS|QURT)$")
++ELSEIF(NOT CMAKE_SYSTEM_NAME MATCHES "^(Android|Darwin|iOS|Linux|Windows|CYGWIN|MSYS|QURT|OHOS)$")
+   MESSAGE(FATAL_ERROR "Unrecognized CMAKE_SYSTEM_NAME value \"${CMAKE_SYSTEM_NAME}\"")
+ ENDIF()
+ IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
+@@ -666,7 +666,7 @@
+   # Related links:
+   #   https://github.com/android/ndk/issues/910
+   #   https://reviews.llvm.org/D58477
+-  IF(ANDROID_NDK_MAJOR AND ANDROID_NDK_MAJOR LESS 21)
++  IF((ANDROID_NDK_MAJOR AND ANDROID_NDK_MAJOR LESS 21) OR OHOS)
+     SET_PROPERTY(SOURCE ${ALL_NEONV8_MICROKERNEL_SRCS} APPEND_STRING PROPERTY COMPILE_FLAGS " -mfloat-abi=softfp ")
+     SET_PROPERTY(SOURCE ${PROD_NEONV8_MICROKERNEL_SRCS} APPEND_STRING PROPERTY COMPILE_FLAGS " -mfloat-abi=softfp ")
+     SET_PROPERTY(SOURCE ${ALL_FP16ARITH_MICROKERNEL_SRCS} APPEND_STRING PROPERTY COMPILE_FLAGS " -mfloat-abi=softfp ")
+diff -Naur old/cmake/DownloadCpuinfo.cmake new/cmake/DownloadCpuinfo.cmake
+--- old/cmake/DownloadCpuinfo.cmake	2024-03-17 12:16:57.667204400 +0800
++++ new/cmake/DownloadCpuinfo.cmake	2024-03-17 12:16:04.017204400 +0800
+@@ -22,7 +22,7 @@
+   SOURCE_DIR "${CMAKE_BINARY_DIR}/cpuinfo-source"
+   BINARY_DIR "${CMAKE_BINARY_DIR}/cpuinfo"
+   CONFIGURE_COMMAND ""
+-  PATCH_COMMAND ""
++  PATCH_COMMAND patch -p1 < ${CMAKE_BINARY_DIR}/../../cpuinfo_ohos_pkg.patch
+   BUILD_COMMAND ""
+   INSTALL_COMMAND ""
+   TEST_COMMAND ""
+diff -Naur old/src/amalgam/gen/neonfp16arith.c new/src/amalgam/gen/neonfp16arith.c
+--- old/src/amalgam/gen/neonfp16arith.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/amalgam/gen/neonfp16arith.c	2024-03-21 16:48:09.937204400 +0800
+@@ -8022,8 +8022,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+@@ -9274,8 +9274,8 @@
+       vacci_lo = vget_high_f16(vacci);
+     }
+     if (batch & (2 * sizeof(uint16_t))) {
+-      vst1_lane_u32((uint32_t*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
+-      vst1_lane_u32((uint32_t*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
++      vst1_lane_u32((void*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
++      vst1_lane_u32((void*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
+       vaccr_lo = vext_f16(vaccr_lo, vaccr_lo, 2);
+       vacci_lo = vext_f16(vacci_lo, vacci_lo, 2);
+     }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc1.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc1.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc1.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc1.c	2024-03-21 11:36:19.767204400 +0800
+@@ -60,8 +60,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc2.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc2.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc2.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc2.c	2024-03-21 11:59:35.977204400 +0800
+@@ -62,8 +62,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc2.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc2.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc2.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc2.c	2024-03-21 12:00:40.757204400 +0800
+@@ -64,8 +64,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc3.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc3.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc3.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc3.c	2024-03-21 12:01:55.587204400 +0800
+@@ -66,8 +66,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24.c	2024-03-21 12:03:07.287204400 +0800
+@@ -62,8 +62,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc2.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc2.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc2.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc2.c	2024-03-21 12:04:10.027204400 +0800
+@@ -66,8 +66,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc4.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc4.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc4.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc4.c	2024-03-21 12:05:55.037204400 +0800
+@@ -70,8 +70,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32.c	2024-03-21 12:07:03.867204400 +0800
+@@ -64,8 +64,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc2.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc2.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc2.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc2.c	2024-03-21 12:08:04.377204400 +0800
+@@ -74,8 +74,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc4.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc4.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc4.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc4.c	2024-03-21 12:09:16.397204400 +0800
+@@ -78,8 +78,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64.c	2024-03-21 12:10:34.377204400 +0800
+@@ -72,8 +72,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u8.c new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u8.c
+--- old/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u8.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rmin-neonfp16arith-u8.c	2024-03-21 12:11:42.247204400 +0800
+@@ -53,8 +53,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+ }
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc1.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc1.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc1.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc1.c	2024-03-21 12:12:49.817204400 +0800
+@@ -68,8 +68,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc2.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc2.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc2.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc2.c	2024-03-21 12:14:14.327204400 +0800
+@@ -72,8 +72,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc2.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc2.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc2.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc2.c	2024-03-21 12:15:26.387204400 +0800
+@@ -75,8 +75,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc3.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc3.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc3.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc3.c	2024-03-21 12:16:43.317204400 +0800
+@@ -79,8 +79,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24.c	2024-03-21 12:17:44.447204400 +0800
+@@ -71,8 +71,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc2.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc2.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc2.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc2.c	2024-03-21 12:18:44.557204400 +0800
+@@ -78,8 +78,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc4.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc4.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc4.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc4.c	2024-03-21 12:19:57.827204400 +0800
+@@ -86,8 +86,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32.c	2024-03-21 12:21:07.297204400 +0800
+@@ -74,8 +74,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc2.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc2.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc2.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc2.c	2024-03-21 12:22:10.277204400 +0800
+@@ -90,8 +90,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc4.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc4.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc4.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc4.c	2024-03-21 12:23:08.277204400 +0800
+@@ -98,8 +98,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64.c	2024-03-21 12:24:08.167204400 +0800
+@@ -86,8 +86,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u8.c new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u8.c
+--- old/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u8.c	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u8.c	2024-03-21 12:25:17.537204400 +0800
+@@ -59,8 +59,8 @@
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+     *((__fp16*) o) = vminv_f16(vmin_lo);
+   #else
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-    vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++    vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+     vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+   #endif
+   #if XNN_ARCH_ARM64 && defined(__GNUC__)
+diff -Naur old/src/f16-rminmax/neonfp16arith.c.in new/src/f16-rminmax/neonfp16arith.c.in
+--- old/src/f16-rminmax/neonfp16arith.c.in	2024-03-21 11:31:38.277204400 +0800
++++ new/src/f16-rminmax/neonfp16arith.c.in	2024-03-21 12:26:29.717204400 +0800
+@@ -104,8 +104,8 @@
+     #if XNN_ARCH_ARM64 && defined(__GNUC__)
+       *((__fp16*) o) = vminv_f16(vmin_lo);
+     #else
+-      vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
+-      vmin_lo = vpmax_f16(vmin_lo, vmin_lo);
++      vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
++      vmin_lo = vpmin_f16(vmin_lo, vmin_lo);
+       vst1_lane_u16(o, vreinterpret_u16_f16(vmin_lo), 0);
+     #endif
+     $if $EMIT_MAX:
+diff -Naur old/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u16.c new/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u16.c
+--- old/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u16.c	2024-03-21 16:53:42.987204400 +0800
++++ new/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u16.c	2024-03-21 16:56:29.097204400 +0800
+@@ -95,8 +95,8 @@
+       vacci_lo = vget_high_f16(vacci);
+     }
+     if (batch & (2 * sizeof(uint16_t))) {
+-      vst1_lane_u32((uint32_t*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
+-      vst1_lane_u32((uint32_t*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
++      vst1_lane_u32((void*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
++      vst1_lane_u32((void*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
+       vaccr_lo = vext_f16(vaccr_lo, vaccr_lo, 2);
+       vacci_lo = vext_f16(vacci_lo, vacci_lo, 2);
+     }
+diff -Naur old/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u32.c new/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u32.c
+--- old/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u32.c	2024-03-21 16:53:42.987204400 +0800
++++ new/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u32.c	2024-03-22 09:09:21.447204400 +0800
+@@ -115,8 +115,8 @@
+       vacci_lo = vget_high_f16(vacci);
+     }
+     if (batch & (2 * sizeof(uint16_t))) {
+-      vst1_lane_u32((uint32_t*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
+-      vst1_lane_u32((uint32_t*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
++      vst1_lane_u32((void*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
++      vst1_lane_u32((void*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
+       vaccr_lo = vext_f16(vaccr_lo, vaccr_lo, 2);
+       vacci_lo = vext_f16(vacci_lo, vacci_lo, 2);
+     }
+diff -Naur old/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u8.c new/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u8.c
+--- old/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u8.c	2024-03-21 16:53:42.987204400 +0800
++++ new/src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u8.c	2024-03-21 16:55:24.907204400 +0800
+@@ -70,8 +70,8 @@
+       vacci_lo = vget_high_f16(vacci);
+     }
+     if (batch & (2 * sizeof(uint16_t))) {
+-      vst1_lane_u32((uint32_t*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
+-      vst1_lane_u32((uint32_t*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
++      vst1_lane_u32((void*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
++      vst1_lane_u32((void*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
+       vaccr_lo = vext_f16(vaccr_lo, vaccr_lo, 2);
+       vacci_lo = vext_f16(vacci_lo, vacci_lo, 2);
+     }
+diff -Naur old/src/f16-vcmul/neon.c.in new/src/f16-vcmul/neon.c.in
+--- old/src/f16-vcmul/neon.c.in	2024-03-21 16:53:42.987204400 +0800
++++ new/src/f16-vcmul/neon.c.in	2024-03-22 09:10:05.417204400 +0800
+@@ -90,8 +90,8 @@
+       vacci_lo = vget_high_f16(vacci);
+     }
+     if (batch & (2 * sizeof(uint16_t))) {
+-      vst1_lane_u32((uint32_t*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
+-      vst1_lane_u32((uint32_t*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
++      vst1_lane_u32((void*) or, vreinterpret_u32_f16(vaccr_lo), 0); or += 2;
++      vst1_lane_u32((void*) oi, vreinterpret_u32_f16(vacci_lo), 0); oi += 2;
+       vaccr_lo = vext_f16(vaccr_lo, vaccr_lo, 2);
+       vacci_lo = vext_f16(vacci_lo, vacci_lo, 2);
+     }
+diff -Naur old/test/fully-connected.cc new/test/fully-connected.cc
+--- old/test/fully-connected.cc	2024-03-24 16:26:46.587204400 +0800
++++ new/test/fully-connected.cc	2024-03-24 16:27:42.057204400 +0800
+@@ -30,7 +30,7 @@
+ using testing::ElementsAreArray;
+ 
+ template <class InputType, class KernelType = InputType,
+-          class BiasType = InputType, class OutputType = InputType>
++          class BiasType = InputType, class OutputType = InputType, bool even_channels = false>
+ class FullyConnectedTestBase : public ::testing::Test {
+  protected:
+   FullyConnectedTestBase()
+@@ -55,6 +55,11 @@
+     assert(input_dims.size() >= 2);
+     output_channels = dim_dist(rng);
+     input_channels = input_dims.back();
++    // Adjust number of kernel elements for QC4W. input_channels should be padded to byte boundary, hence even.
++    if (even_channels) {
++	    input_channels = round_up_po2(input_channels, 2);
++	    input_dims.back() = input_channels;
++    }
+     kernel_dims = {output_channels, input_channels};
+     kernel_dims_tranposed = {input_channels, output_channels};
+     output_dims = input_dims;
+@@ -1923,7 +1928,7 @@
+       subgraph, output_min, output_max, input_id, kernel_id, bias_id, output_id, XNN_FLAG_TRANSPOSE_WEIGHTS));
+ }
+ 
+-class FullyConnectedTestQD8F16QC4W : public FullyConnectedTestBase<int8_t, int8_t, float, uint16_t> {
++class FullyConnectedTestQD8F16QC4W : public FullyConnectedTestBase<int8_t, int8_t, float, uint16_t, true> {
+ };
+ 
+ TEST_F(FullyConnectedTestQD8F16QC4W, define)
+@@ -2411,7 +2416,7 @@
+   EXPECT_THAT(subgraph_output, ElementsAreArray(operator_output));
+ }
+ 
+-class FullyConnectedTestQD8F32QC4W : public FullyConnectedTestBase<int8_t, uint8_t, float, float> {
++class FullyConnectedTestQD8F32QC4W : public FullyConnectedTestBase<int8_t, uint8_t, float, float, true> {
+ };
+ 
+ TEST_F(FullyConnectedTestQD8F32QC4W, define)
+diff -Naur old/test/static-reshape.cc new/test/static-reshape.cc
+--- old/test/static-reshape.cc	2024-03-24 16:27:06.347204400 +0800
++++ new/test/static-reshape.cc	2024-03-24 16:32:27.897204400 +0800
+@@ -19,6 +19,7 @@
+ 
+ #include "subgraph-unary-tester.h"
+ #include <gtest/gtest.h>
++#include <stdio.h>
+ 
+ template <typename InputType, typename OutputType = InputType,
+           size_t min_dim = 0, size_t max_dim = XNN_MAX_TENSOR_DIMS,
+@@ -34,6 +35,9 @@
+   std::vector<size_t> RandomSetOneDimsionToZero(
+       const std::vector<size_t> given_dims) {
+     std::vector<size_t> result = given_dims;
++    if (result.empty()) {
++	    return result;
++    }
+     // Randomly set one dimension to zero.
+     auto dynamic_axis_dist =
+         std::uniform_int_distribution<size_t>(0, result.size() - 1);
+@@ -365,7 +369,6 @@
+   std::vector<size_t> output_dims = dims;
+   std::shuffle(output_dims.begin(), output_dims.end(), rng);
+   new_dims_hint = RandomSetOneDimsionToZero(output_dims);
+-
+   // Call subgraph API.
+   xnn_subgraph_t subgraph = nullptr;
+   ASSERT_EQ(xnn_status_success, xnn_create_subgraph(/*external_value_ids=*/2,
+@@ -407,22 +410,28 @@
+   ASSERT_EQ(xnn_status_success, xnn_invoke_runtime(runtime));
+ 
+   // Change the input shape (make it large enough to trigger a reallocation).
+-  dims.front() *= 2;
+-  dims.back() *= 3;
++  if (!dims.empty()) {
++      dims.front() *= 2;
++      dims.back() *= 3;
++  }
+   ASSERT_EQ(xnn_status_success,
+             xnn_reshape_external_value(runtime, input_id, dims.size(),
+                                        dims.data()));
+   const struct xnn_node* node = &subgraph->nodes[0];
+-  ASSERT_EQ(node->reshape(&runtime->opdata[0], runtime->values,
+-                          runtime->num_values, /*threadpool=*/nullptr),
+-            xnn_status_reallocation_required);
++  xnn_status status =
++      node->reshape(&runtime->opdata[0], runtime->values, runtime->num_values,
++		    /*threadpool=*/nullptr);
++  ASSERT_EQ(status, dims.empty() ? xnn_status_success
++		  		 : xnn_status_reallocation_required);
+   const xnn_shape* output_shape = &runtime->values[node->outputs[0]].shape;
+   EXPECT_EQ(xnn_shape_multiply_all_dims(output_shape),
+             std::accumulate(dims.begin(), dims.end(), size_t(1),
+                             std::multiplies<size_t>()));
+ 
+   // Change the input shape (make it a bit smaller again).
+-  dims.front() /= 2;
++  if (!dims.empty()) {
++      dims.front() /= 2;
++  }
+   ASSERT_EQ(xnn_status_success,
+             xnn_reshape_external_value(runtime, input_id, dims.size(),
+                                        dims.data()));
+diff -Naur old/test/static-slice.cc new/test/static-slice.cc
+--- old/test/static-slice.cc	2024-03-24 16:26:54.957204400 +0800
++++ new/test/static-slice.cc	2024-03-24 16:25:59.187204400 +0800
+@@ -409,22 +409,42 @@
+   ASSERT_EQ(xnn_status_success, xnn_setup_runtime(runtime, external.size(), external.data()));
+   ASSERT_EQ(xnn_status_success, xnn_invoke_runtime(runtime));
+ 
++  bool dynamic = false;
+   dims[0] += 2;
+-  dims[1] += 4;
++  if (dims.size() > 1) {
++  	dims[1] += 4;
++  }
++  for (size_t i = 0; i < dims.size(); ++i) {
++	dynamic |= (inferrable_sizes[i] == 0 && sizes[i] != dims[i]);
++  }
+   ASSERT_EQ(xnn_reshape_external_value(runtime, input_id, dims.size(), dims.data()), xnn_status_success);
+   const struct xnn_node* node = &subgraph->nodes[0];
+-  ASSERT_EQ(node->reshape(&runtime->opdata[0], runtime->values, runtime->num_values, /*threadpool=*/nullptr), xnn_status_success);
++  if (dynamic) {
++	ASSERT_EQ(node->reshape(&runtime->opdata[0], runtime->values, runtime->num_values, /*threadpool=*/nullptr), xnn_status_reallocation_required);
++  } else {
++  	ASSERT_EQ(node->reshape(&runtime->opdata[0], runtime->values, runtime->num_values, /*threadpool=*/nullptr), xnn_status_success);
++  }
+   const xnn_shape* output_shape = &runtime->values[node->outputs[0]].shape;
+ 
+   for (size_t i = 0; i < dims.size(); ++i) {
+-    ASSERT_EQ(sizes[i], output_shape->dim[i]);
++	  if (inferrable_sizes[i] == 0) {
++		ASSERT_EQ(dims[i], output_shape->dim[i]);
++	  } else {
++    		ASSERT_EQ(sizes[i], output_shape->dim[i]);
++	  }
+   }
+ 
+   dims[0] -= 1;
+-  dims[1] -= 3;
++  if (dims.size() > 1) {
++  	dims[1] -= 3;
++  }
+   ASSERT_EQ(xnn_reshape_external_value(runtime, input_id, dims.size(), dims.data()), xnn_status_success);
+   ASSERT_EQ(node->reshape(&runtime->opdata[0], runtime->values, runtime->num_values, /*threadpool=*/nullptr), xnn_status_success);
+   for (size_t i = 0; i < dims.size(); ++i) {
+-    ASSERT_EQ(sizes[i], output_shape->dim[i]);
++	  if (inferrable_sizes[i] == 0) {
++		  ASSERT_EQ(dims[i], output_shape->dim[i]);
++	  } else {
++    		ASSERT_EQ(sizes[i], output_shape->dim[i]);
++	  }
+   }
+ }

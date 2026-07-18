@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "chrono",
+        "License": "BSD-3-Clause license",
+        "License File": "https://github.com/projectchrono/chrono/blob/main/LICENSE",
+        "Version Number": "8.0.0",
+        "Owner": "cmxud@isoftstone.com",
+        "Upstream URL": "https://github.com/projectchrono/chrono/archive/refs/tags/8.0.0.tar.gz",
+        "Description": "High-performance C++ library for multiphysics and multibody dynamics simulations"
+    }
+]

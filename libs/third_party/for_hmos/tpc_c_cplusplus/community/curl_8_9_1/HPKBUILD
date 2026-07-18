@@ -1,0 +1,80 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=curl_8_9_1
+pkgver=curl-8_9_1
+pkgrel=0
+pkgdesc="A command line tool and library for transferring data with URL syntax, supporting DICT, FILE, FTP, FTPS, GOPHER, GOPHERS, HTTP, HTTPS, IMAP, IMAPS, LDAP, LDAPS, MQTT, POP3, POP3S, RTMP, RTMPS, RTSP, SCP, SFTP, SMB, SMBS, SMTP, SMTPS, TELNET, TFTP, WS and WSS. libcurl offers a myriad of powerful features"
+url="https://curl.se/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("curl")
+depends=("openssl_1_1_1w" "zstd_1_5_6" "nghttp2") # QUICHE/WEBSOCKETS
+makedepends=()
+
+source="https://gitee.com/lycium_pkg_mirror/${pkgname:0:4}/repository/archive/$pkgver.zip"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+
+builddir=${pkgname:0:4}-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        # 编译识别 OpenHarmony 系统
+        patch -p1 < `pwd`/../curl_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DCURL_CA_BUNDLE="/etc/ssl/certs/cacert.pem" -DCURL_CA_PATH="/etc/ssl/certs/" -DCURL_ZSTD=ON -DENABLE_WEBSOCKETS=ON -DUSE_NGHTTP2=ON -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    ${MAKE} -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return ${ret}
+}
+
+check() {
+    cd "$builddir"
+    ${MAKE} -C $ARCH-build testdeps >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    echo "The test must be on an OpenHarmony device!"
+    return ${ret}
+    # real test CMD
+    # TODO test 
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

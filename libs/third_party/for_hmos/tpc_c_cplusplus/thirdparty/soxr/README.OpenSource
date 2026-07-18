@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "soxr",
+        "License": "LGPL v2.1 or later",
+        "License File": "https://sourceforge.net/p/soxr/code/ci/0.1.3/tree/LICENCE",
+        "Version Number": "0.1.3",
+        "Owner": "sttangc@isoftstone.com",
+        "Upstream URL": "https://sourceforge.net/projects/soxr/files/soxr-0.1.3-Source.tar.xz",
+        "Description": "The SoX Resampler library 'libsoxr' performs one-dimensional sample-rate conversion—it may be used, for example, to resample PCM-encoded audio."
+    }
+]

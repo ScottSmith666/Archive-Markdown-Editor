@@ -1,0 +1,74 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: liujiannfeg <199451633@qq.com>
+# Maintainer: liujiannfeg <199451633@qq.com>
+
+pkgname=ncnn # 库名
+pkgver=20250503 # 库版本
+pkgrel=0 # 发布号
+pkgdesc="ncnn is a high-performance neural network inference framework optimized for the mobile platform." # 库描述
+url="https://github.com/Tencent/ncnn" # 官网链接
+archs=("armeabi-v7a" "arm64-v8a") # cpu 架构
+license=("BSD-3-Clause license" "BSD 2-clause license" "zlib License")
+depends=("openmp")
+makedepends=()
+source="https://gitee.com/lycium_pkg_mirror/$pkgname/repository/archive/$pkgver.zip"
+
+downloadpackage=true
+autounpack=true
+buildtools=cmake
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.zip
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    #debug模式下test_innerproduct,test_matmul,test_multiheadattention这三个测试能passed
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DNCNN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    # 修改编译生成目录，匹配鸿蒙设备上的目录
+    cmakepatch=$OHOS_SDK/native/build-tools/cmake
+    cmakepatch=$(echo $cmakepatch | sed 's/\//\\\//g')
+    cd $builddir/$ARCH-build/tests/
+    sed -i "s/$cmakepatch/\/usr/g" CTestTestfile.cmake
+    sed -i "s#$cmakepatch/bin/cmake#/data/CIusr/bin/cmake#g" CTestTestfile.cmake
+    sed -i 's/\/usr\/bin/\/data\/CIusr\/bin/g' CTestTestfile.cmake
+    echo "The test must be on an OpenHarmony device!"
+    cd $OLDPWD
+    # 测试方式
+    # 进入构建目录下tests目录
+    # 执行: ctest
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}
+

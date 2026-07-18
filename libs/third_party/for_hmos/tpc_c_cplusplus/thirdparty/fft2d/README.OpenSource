@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "fft2d",
+        "License": "Free Software License",
+        "License File": "LICENSE",
+        "Version Number": "v2",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://www.kurims.kyoto-u.ac.jp/~ooura/fft.html ",
+        "Description": "This is a package to calculate Discrete Fourier/Cosine/Sine Transforms of 1-dimensional sequences of length 2^N. This package contains C and Fortran FFT codes."
+    }
+]

@@ -1,0 +1,127 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: lujiakang <851520508@qq.com>
+# Maintainer: lujiakang <851520508@qq.com>
+
+pkgname=shine
+pkgver=3.1.1
+pkgrel=0
+pkgdesc="Shine is a blazing fast mp3 encoding library implemented in fixed-point arithmetic"
+url="https://github.com/savonet/shine"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("LGPL-2.1")
+depends=()
+makedepends=("autoconf" "automake")
+
+source="https://github.com/savonet/shine/archive/refs/tags/$pkgver.tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=false
+buildtools="configure"
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+source envset.sh
+host=
+
+prepare() {
+    build_target_dir="${builddir}-${ARCH}-build"
+
+    # 复制源码目录到目标构建目录
+    cp -rf "$builddir" "$build_target_dir"
+
+    # 进入构建目录
+    cd "$build_target_dir"
+
+    # 设置环境变量
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=aarch64-linux
+    elif [ $ARCH == "x86_64" ]
+    then
+        setx86_64ENV
+        host=x86_64-linux
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+
+    # 运行bootstrap脚本并保存返回值
+    ./bootstrap >> `pwd`/build.log 2>&1
+    local bootstrap_result=$?
+
+    cd $OLDPWD
+    return $bootstrap_result
+}
+
+build() {
+    build_target_dir="${builddir}-${ARCH}-build"
+
+    cd "$build_target_dir"
+
+    PKG_CONFIG_PATH="${pkgconfigpath}" ./configure "$@" \
+        --host=$host \
+        --enable-shared \
+        --disable-static \
+        >> `pwd`/build.log 2>&1
+
+    # 编译并保存返回值
+    make V=1 -j4 >> `pwd`/build.log 2>&1
+    local make_result=$?
+
+    cd $OLDPWD
+    return $make_result
+}
+
+package() {
+    build_target_dir="${builddir}-${ARCH}-build"
+
+    cd "$build_target_dir"
+
+    make install >> `pwd`/build.log 2>&1
+    local install_result=$?
+
+    cd $OLDPWD
+
+    # 清理环境变量
+    unset host
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    elif [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    elif [ $ARCH == "x86_64" ]
+    then
+        unsetx86_64ENV
+    else
+        echo "$ARCH not support!"
+        return -1
+    fi
+
+    return $install_result
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/${builddir} ${PWD}/${builddir}-armeabi-v7a-build ${PWD}/${builddir}-arm64-v8a-build ${PWD}/${builddir}-x86_64-build
+}

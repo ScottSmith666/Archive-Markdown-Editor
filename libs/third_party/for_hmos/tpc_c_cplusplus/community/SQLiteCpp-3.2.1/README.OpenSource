@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "SQLiteCpp-3.2.1",
+        "License": "MIT license",
+        "License File": "https://github.com/SRombauts/SQLiteCpp/blob/master/LICENSE.txt",
+        "Version Number": "3.2.1",
+        "Owner": "2942375747@qq.com",
+        "Upstream URL": "https://github.com/SRombauts/SQLiteCpp",
+        "Description": "SQLiteCpp offers an encapsulation around the native C APIs of SQLite, with a few intuitive and well documented C++ classes."
+    }
+]

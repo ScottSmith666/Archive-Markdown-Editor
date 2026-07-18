@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "breakpad",
+        "License": "BSD-3-Clause",
+        "License File": "LICENSE.md",
+        "Version Number": "v2024.02.16",
+        "Owner": "fujiadong05@chinasoftinc.com",
+        "Upstream URL": "https://github.com/c-ares/c-ares/archive/refs/tags/cares-1_19_0.tar.gz",
+        "Description": "A C library for asynchronous DNS requests"
+        "Dependencies": ["googletest"]
+    }
+]

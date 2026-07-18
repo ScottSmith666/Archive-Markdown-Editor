@@ -1,0 +1,63 @@
+diff -Nura realm-core-14.12.0/CMakeLists.txt realm-core-14.12.0-other/CMakeLists.txt
+--- realm-core-14.12.0/CMakeLists.txt	2024-08-10 06:04:49.000000000 +0800
++++ realm-core-14.12.0-other/CMakeLists.txt	2024-09-10 11:05:24.693192917 +0800
+@@ -289,13 +289,13 @@
+ 
+ if(REALM_ENABLE_SYNC)
+     option(REALM_FORCE_OPENSSL "Always use OpenSSL for SSL needs, regardless of target platform." OFF)
+-    if(CMAKE_SYSTEM_NAME MATCHES "^Windows|Linux|Android")
++    if(CMAKE_SYSTEM_NAME MATCHES "^Windows|Linux|Android|OHOS")
+         set(REALM_NEEDS_OPENSSL TRUE)
+     endif()
+     if(REALM_NEEDS_OPENSSL OR REALM_FORCE_OPENSSL)
+         option(REALM_INCLUDE_CERTS "Include a list of trust certificates in the build for OpenSSL certificate verification" ON)
+     endif()
+-elseif(REALM_ENABLE_ENCRYPTION AND CMAKE_SYSTEM_NAME MATCHES "Linux|Android")
++elseif(REALM_ENABLE_ENCRYPTION AND CMAKE_SYSTEM_NAME MATCHES "Linux|Android|OHOS")
+     set(REALM_NEEDS_OPENSSL TRUE)
+ endif()
+ 
+diff -Nura realm-core-14.12.0/src/realm/util/features.h realm-core-14.12.0-other/src/realm/util/features.h
+--- realm-core-14.12.0/src/realm/util/features.h	2024-08-10 06:04:49.000000000 +0800
++++ realm-core-14.12.0-other/src/realm/util/features.h	2024-09-10 11:06:07.818574026 +0800
+@@ -212,6 +212,10 @@
+ #if defined ANDROID || defined __ANDROID_API__
+ #define REALM_ANDROID 1
+ #define REALM_LINUX 0
++#elif defined __OHOS__
++#define REALM_ANDROID 0
++#define REALM_LINUX 0
++#define REALM_OHOS 1
+ #elif defined(__linux__)
+ #define REALM_ANDROID 0
+ #define REALM_LINUX 1
+@@ -275,7 +279,7 @@
+ #define REALM_APPLE_DEVICE 0
+ #endif
+ 
+-#if REALM_ANDROID || REALM_IOS || REALM_WATCHOS || REALM_TVOS || REALM_UWP
++#if REALM_ANDROID || REALM_IOS || REALM_WATCHOS || REALM_TVOS || REALM_UWP || REALM_OHOS
+ #define REALM_MOBILE 1
+ #else
+ #define REALM_MOBILE 0
+diff -Nura realm-core-14.12.0/src/realm/util/thread.cpp realm-core-14.12.0-other/src/realm/util/thread.cpp
+--- realm-core-14.12.0/src/realm/util/thread.cpp	2024-08-10 06:04:49.000000000 +0800
++++ realm-core-14.12.0-other/src/realm/util/thread.cpp	2024-09-10 11:08:00.768780585 +0800
+@@ -45,13 +45,17 @@
+ #if _POSIX_THREADS >= 200809L
+ #ifdef __GNU_LIBRARY__
+ #if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 12 && !REALM_ANDROID
++#ifndef REALM_OHOS
+ #define REALM_HAVE_ROBUST_PTHREAD_MUTEX
+ #endif
++#endif
+ #elif !REALM_ANDROID
++#ifndef REALM_OHOS
+ #define REALM_HAVE_ROBUST_PTHREAD_MUTEX
+ #endif
+ #endif
+ #endif
++#endif
+ #endif
+ 
+ 

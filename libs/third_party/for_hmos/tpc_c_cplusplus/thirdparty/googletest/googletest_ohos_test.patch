@@ -1,0 +1,11 @@
+diff -Nura googletest-v1.13.0/googletest/src/gtest-port.cc googletest-patchdir/googletest/src/gtest-port.cc
+--- googletest-v1.13.0/googletest/src/gtest-port.cc     2023-01-18 02:36:43.000000000 +0800
++++ googletest-patchdir/googletest/src/gtest-port.cc    2024-08-05 17:34:12.795325534 +0800
+@@ -1089,7 +1089,7 @@
+     if (name_template.back() != GTEST_PATH_SEP_[0])
+       name_template.push_back(GTEST_PATH_SEP_[0]);
+ #else
+-    name_template = "/tmp/";
++    name_template = "/data/local/tmp/";
+ #endif
+     name_template.append("gtest_captured_stream.XXXXXX");

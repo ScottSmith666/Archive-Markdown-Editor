@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "boost",
+        "License": "Boost Software License",
+        "License File": "https://www.boost.org/LICENSE_1_0.txt",
+        "Version Number": "1.81.0",
+        "Owner": "xiafeng@huawei.com",
+        "Upstream URL": "https://archives.boost.io/release/1.81.0/source/boost_1_81_0.tar.gz",
+        "Description": "Boost provides free peer-reviewed portable C++ source libraries."
+    }
+]

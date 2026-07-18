@@ -1,0 +1,69 @@
+# Contributor: wupingyuan <wupingyuan@huawei.com>
+# Maintainer: wupingyuan <wupingyuan@huawei.com>
+pkgname=miniini
+pkgver=0.9
+pkgrel=0
+pkgdesc=""
+url=""
+archs=("armeabi-v7a" "arm64-v8a")
+license=("MIT")
+depends=()
+makedepends=()
+
+source="https://launchpadlibrarian.net/51884621/"$pkgname"-"$pkgver".tar.gz"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+buildtools="make"
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+cxx=
+ar=
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../miniini_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        # 移动 time.h 头文件解决编译时系统头文件和源码头文件冲突问题
+        mv miniini/include/time.h miniini/src/
+        cd $OLDPWD
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/arm-linux-ohos-clang++
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        cxx=${OHOS_SDK}/native/llvm/bin/aarch64-linux-ohos-clang++
+        ar=${OHOS_SDK}/native/llvm/bin/llvm-ar
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    $MAKE CXX=${cxx} AR=${ar} VERBOSE=1 > $buildlog 2>&1
+    cd $OLDPWD
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    $MAKE install DESTDIR=$LYCIUM_ROOT/usr/$pkgname/$ARCH >> $buildlog 2>&1
+    cd $OLDPWD
+    unset cxx ar
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build  ${PWD}/$builddir-arm64-v8a-build #${PWD}/$packagename
+}

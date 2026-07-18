@@ -1,0 +1,128 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: luohao <luohao155@h-partners.com>
+# Maintainer: luohao <luohao155@h-partners.com>
+
+pkgname=bmf
+pkgver=v0.2.0
+pkgrel=1
+pkgdesc="Babit Multimedia Framework (BMF) - A cross-platform, multi-language, customizable multimedia processing framework"
+url="https://github.com/BabitMF/bmf"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("Apache-2.0")
+depends=("openssl" "FFmpeg")
+makedepends=()
+# source="https://codeload.github.com/BabitMF/$pkgname/tar.gz/refs/tags/v$pkgver" 因网络原因使用镜像
+source="https://gitee.com/mirrors/bmf/repository/archive/$pkgver.zip"
+
+buildtools="cmake"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+
+builddir=${pkgname}-${pkgver}
+packagename=${pkgname}-${pkgver}.zip
+
+prepare() {
+    cd $builddir
+    rm -rf custom_deps/libuuid-cmake-build 2>/dev/null || true
+    rm -rf custom_deps/*-build 2>/dev/null || true
+    if $patchflag; then
+        patch -p1 < "$OLDPWD/bmf_oh_pkg.patch" >> $buildlog 2>&1 # 编译原库需要添加ohos相关的宏，不构建ffuzztest，替换下载依赖的链接
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to apply bmf_oh_pkg.patch" >> $buildlog 2>&1
+            cd $OLDPWD
+            return 1
+        fi
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+    fi 
+    cd $OLDPWD
+    cp -arf $builddir $builddir-$ARCH-build
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    # 设置环境变量
+    # DBMF_ENABLE_PYTHON=OFF原因：编译本库不需要和Python强绑定，简化构建过程，避免Python相关的兼容性问题
+    # BMF_ENABLE_CUDA=OFF原因：（armeabi-v7a、arm64-v8a）这些设备通常没有NVIDIA GPU，x86_64上也不需要CUDA 加速，减少构建依赖
+    # DBMF_ENABLE_TORCH=OFF原因：PyTorch是深度学习框架，OpenHarmony上不需要，避免PyTorch相关的兼容性问题
+    # BMF_ENABLE_JNI=OFF原因：Java与native代码的交互，OpenHarmony上不需要，避免JNI相关的兼容性问题
+    export BMF_BUILD_VERSION=${pkgver}
+    export BMF_BUILD_COMMIT="unknown"
+    # 下载 breakpad 依赖
+    if [ ! -d "3rd_party/breakpad" ]; then
+        (cd 3rd_party/ && wget -q https://github.com/BabitMF/bmf/releases/download/files/breakpad.tar.xz && tar xf breakpad.tar.xz) >> $buildlog 2>&1
+    else
+        echo "breakpad dependency already exists, skipping download" >> $buildlog 2>&1
+    fi
+    source ./version.sh >> $buildlog 2>&1
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DOHOS_ARCH=$ARCH \
+        -B$ARCH-build \
+        -S./ \
+        -DBMF_ENABLE_PYTHON=OFF \
+        -DBMF_ENABLE_CUDA=OFF \
+        -DBMF_ENABLE_TORCH=OFF \
+        -DBMF_ENABLE_TEST=ON \
+        -DBMF_ENABLE_FFMPEG=ON \
+        -DBMF_ENABLE_JNI=OFF \
+        -DBMF_LOCAL_DEPENDENCIES=ON \
+        -DBMF_BUILD_VERSION=${BMF_BUILD_VERSION} \
+        -DBMF_BUILD_COMMIT=${BMF_BUILD_COMMIT} \
+        -DCMAKE_CXX_FLAGS="${CXXFLAGS} -Wno-unused-command-line-argument -I${LYCIUM_ROOT}/usr/openssl/${ARCH}/include -I${LYCIUM_ROOT}/usr/FFmpeg/${ARCH}/include" \
+        -DCMAKE_EXE_LINKER_FLAGS="-L${LYCIUM_ROOT}/usr/openssl/${ARCH}/lib -L${LYCIUM_ROOT}/usr/FFmpeg/${ARCH}/lib" >> $buildlog 2>&1
+
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        cd $OLDPWD
+        return $ret
+    fi
+    $MAKE -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        echo "Build failed!" >> $buildlog 2>&1
+    else
+        echo "Build succeeded!" >> $buildlog 2>&1
+    fi
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    local OUTPUT_DIR="${ARCH}-build/output/bmf"
+    local INSTALL_DIR="${LYCIUM_ROOT}/usr/${pkgname}/${ARCH}"
+
+    mkdir -p ${INSTALL_DIR}/lib ${INSTALL_DIR}/bin ${INSTALL_DIR}/include
+    cp -rf ${OUTPUT_DIR}/lib/*.so* ${INSTALL_DIR}/lib/ 2>/dev/null || true
+    cp -rf ${OUTPUT_DIR}/lib/*.a ${INSTALL_DIR}/lib/ 2>/dev/null || true
+    cp -rf ${OUTPUT_DIR}/include/* ${INSTALL_DIR}/include/ 2>/dev/null || true
+    cp -rf ${OUTPUT_DIR}/bin/* ${INSTALL_DIR}/bin/ 2>/dev/null || true
+    
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir 
+    rm -rf ${PWD}/$builddir-arm64-v8a-build
+    rm -rf ${PWD}/$builddir-armeabi-v7a-build
+    rm -rf ${PWD}/$builddir-x86_64-build
+}

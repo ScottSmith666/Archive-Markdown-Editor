@@ -1,0 +1,124 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: xiafeng <xiafeng@huawei.com>
+# Maintainer: xiafeng <xiafeng@huawei.com>
+
+pkgname=libsentences
+pkgver=master
+pkgrel=0
+pkgdesc="libsentences is a C++ library that splits text into sentences"
+url="https://github.com/fsaric/libsentences"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=()
+depends=("boost" "libunistring")
+makedepends=()
+source="https://github.com/fsaric/${pkgname}/archive/refs/heads/${pkgver}.zip"
+
+downloadpackage=true
+autounpack=true
+buildtools=cmake
+
+builddir=$pkgname-master
+packagename=$builddir.zip
+
+prepare() {
+  # 创建构建目录
+  mkdir -p $builddir/$ARCH-build
+  
+  # 设置依赖库路径
+  export BOOST_ROOT="$LYCIUM_ROOT/usr/boost/$ARCH"
+  export UNISTRING_ROOT="$LYCIUM_ROOT/usr/libunistring/$ARCH"
+  
+  # 添加operator-=运算符重载
+  cd $builddir || return 1
+  
+  # 检查并添加operator-=运算符重载
+  if ! grep -q "operator-=" libsentences/standard_tokenizer.rr.cpp; then
+    sed -i '/utf8_remapper &operator--() {/,/^[[:space:]]*}/ {
+      /^[[:space:]]*}/a\
+    utf8_remapper &operator-=(int x) {\
+        if (x != 1) {\
+            throw;\
+        }\
+        --i;\
+        return *this;\
+    }
+    }' libsentences/standard_tokenizer.rr.cpp
+  fi
+  
+  cd ..
+  return 0
+}
+
+build() {
+  cd $builddir || return 1
+  
+  ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH \
+    -DCMAKE_CXX_FLAGS="-Wno-unused-command-line-argument -Wno-unqualified-std-cast-call -Wno-deprecated-declarations" \
+    -DCMAKE_FIND_ROOT_PATH="$LYCIUM_ROOT/usr/boost/$ARCH;$LYCIUM_ROOT/usr/libunistring/$ARCH" \
+    -B$ARCH-build -S./ -L > ${buildlog} 2>&1
+  
+  ${MAKE} -C $ARCH-build >> ${buildlog} 2>&1
+  
+  ret=$?
+  
+  cd $OLDPWD
+  return $ret
+}
+
+package() {
+  local install_dir="$LYCIUM_ROOT/usr/$pkgname/$ARCH"
+  mkdir -p $install_dir/lib
+  mkdir -p $install_dir/bin
+  mkdir -p $install_dir/include
+  
+  # 复制库文件
+  if [ -f "$builddir/$ARCH-build/libsentences.a" ]; then
+    cp "$builddir/$ARCH-build/libsentences.a" "$install_dir/lib/"
+  fi
+  
+  # 复制可执行文件
+  for binary in sbd_util sentence_splitter eval_sbd; do
+    if [ -f "$builddir/$ARCH-build/$binary" ]; then
+      cp "$builddir/$ARCH-build/$binary" "$install_dir/bin/"
+    fi
+  done
+  
+  # 复制头文件
+  if [ -d "$builddir/libsentences" ]; then
+    find "$builddir/libsentences" -name "*.h" -exec cp --parents {} "$install_dir/include/" \; 2>/dev/null
+  fi
+  
+  return 0
+}
+
+check() {
+  case $ARCH in
+    "armeabi-v7a")
+      cp ${OHOS_SDK}/native/llvm/lib/arm-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/ 2>/dev/null || true
+      ;;
+    "arm64-v8a")
+      cp ${OHOS_SDK}/native/llvm/lib/aarch64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/ 2>/dev/null || true
+      ;;
+    "x86_64")
+      cp ${OHOS_SDK}/native/llvm/lib/x86_64-linux-ohos/libc++_shared.so $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib/ 2>/dev/null || true
+      ;;
+  esac
+  echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+  rm -rf ${PWD}/$builddir
+}

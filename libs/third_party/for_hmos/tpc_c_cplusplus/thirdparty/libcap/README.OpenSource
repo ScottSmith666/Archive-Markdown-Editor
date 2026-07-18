@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "libcap",
+        "License": "GPL-2.0 or BSD-3-Clause",
+        "License File": "License",
+        "Version Number": "2.69",
+        "Owner": "huangminzhong2@huawei.com",
+        "Upstream URL": "https://mirrors.edge.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.69.tar.gz",
+        "Description": "This is a library for getting and setting POSIX.1e (formerly POSIX 6) draft 15 capabilities."
+    }
+]

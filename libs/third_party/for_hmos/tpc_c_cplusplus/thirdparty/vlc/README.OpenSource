@@ -1,0 +1,10 @@
+[
+    {
+        "Name": "vlc",
+        "License": "GNU General Public License v2.0",
+        "License File": "https://gitee.com/mirrors/vlc.gitmaster/LICENSE",
+        "Version Number": "v3.0.21",
+        "Upstream URL": "https://gitee.com/mirrors/vlc.git",
+        "Description": "VLC is a free, open-source, cross-platform multimedia player and framework that can play most multimedia files, as well as DVDs, audio CDs, VCDs, and various streaming protocols.."
+    },
+]

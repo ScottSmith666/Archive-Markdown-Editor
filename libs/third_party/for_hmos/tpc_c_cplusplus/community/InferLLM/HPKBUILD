@@ -1,0 +1,61 @@
+# Copyright (c) 2023, HiHope Community.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: jiajiahao <jia_jiahao@runkaihong.com.cn>
+# Maintainer: jiajiajiao <jia_jiahao@runkaihong.com.cn>
+
+pkgname=InferLLM
+pkgver=405d866e4c11b884a8072b4b30659c63555be41d # InferLLM main之前的branches分支不能正常通过编译，故使用指定commterID的版本。
+pkgrel=0 
+pkgdesc="InferLLM is a lightweight LLM model inference framework that mainly references and borrows from the llama.cpp project."
+url="https://github.com/MegEngine/InferLLM" 
+archs=("armeabi-v7a" "arm64-v8a") 
+license=("Apache License")
+depends=() 
+makedepends=() 
+
+source="https://codeload.github.com/MegEngine/$pkgname/zip/$pkgver"
+
+downloadpackage=true 
+autounpack=true 
+builddir=$pkgname-${pkgver} 
+packagename=$builddir.zip 
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1 # 此处使用$MAKE，在lycium/build.sh中定义，变量值为make -j32。日志路径使用变量build.log
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1# 此处使用$MAKE，在lycium/build.sh中定义，变量值为make -j32。日志路径使用变量build.log
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+# 清理环境
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

@@ -1,0 +1,66 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: Jeff Han <hanjinfei@foxmail.com>, Sunjiamei<939650669@qq.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+
+pkgname=SuiteSparse
+pkgver=v7.7.0
+pkgrel=0
+pkgdesc="SuiteSparse is an excellent sparse matrix computing toolkit, which provides a wealth of algorithms and functions to deal with a variety of sparse matrix problems."
+url="https://github.com/DrTimothyAldenDavis/SuiteSparse"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("LGPL-2.1-or-later")
+depends=("OpenBLAS_0.3.23" "clapack" "gmp" "mpfr")
+makedepends=()
+install=
+source="https://github.com/DrTimothyAldenDavis/$pkgname/archive/refs/tags/$pkgver.tar.gz"
+
+downloadpackage=true
+autounpack=true
+patchflag=true
+buildtools="cmake"
+builddir=$pkgname-${pkgver:1}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # 把需要python的用例排除
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake -DSUITESPARSE_ENABLE_PROJECTS="suitesparse_config;amd;btf;camd;ccolamd;colamd;cholmod;cxsparse;ldl;klu;umfpack;paru;rbio;spqr;spex;graphblas;lagraph" "$@" -B$ARCH-build -S./ -L >  $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >>  $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    cd $builddir
+    #修改python解释器路径与鸿蒙环境一致
+    sed -i.bak "s|\/usr\/bin\/python3.10|\/bin\/python3.10|g" $ARCH-build/Mongoose/CTestTestfile.cmake
+    cd $OLDPWD
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}

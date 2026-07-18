@@ -1,0 +1,80 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: changxiaofeng <changxiaofeng3@h-partners.com>
+# Maintainer: changxiaofeng <changxiaofeng3@h-partners.com>
+
+pkgname=OpenSceneGraph
+pkgver=3.6.5
+pkgrel=0
+pkgdesc="The OpenSceneGraph is an open source high performance 3D graphics toolkit, used by application developers in fields such as visual simulation, games, virtual reality, scientific visualization and modelling."
+url="https://github.com/openscenegraph/OpenSceneGraph"
+archs=("armeabi-v7a" "arm64-v8a" "x86_64")
+license=("LGPL")
+depends=()
+makedepends=()
+
+source="https://codeload.github.com/$pkgname/$pkgname/tar.gz/refs/tags/$pkgname-$pkgver"
+
+autounpack=true
+downloadpackage=true
+patchflag=true
+buildtools="cmake"
+
+builddir=$pkgname-$pkgname-${pkgver}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+    if $patchflag
+    then
+        cd $builddir
+        #  OSG不同平台不同的编译选项，参考android配置ohso，需要合入此patch   
+        patch -p1 < ../osg_test.patch || exit 1
+        patchflag=false
+        cd $OLDPWD
+    fi
+}
+
+build() { 
+    cd $builddir 
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build \
+    -DBUILD_OSG_EXAMPLES=ON \
+    -DBUILD_OSG_APPLICATIONS=ON \
+    -DBUILD_OSG_PLUGINS=ON \
+    -DBUILD_OSG_DEPRECATED_SERIALIZERS=ON \
+    -DOSG_CPP_EXCEPTIONS_AVAILABLE=ON \
+    -S./ -L > $buildlog 2>&1 
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1 
+    ret=$? 
+    cd $OLDPWD 
+    return $ret 
+}
+
+package() {
+    cd $builddir
+    $MAKE VERBOSE=1 -C $ARCH-build install >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # 在OpenHarmony开发板中执行用例
+    # ctest
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

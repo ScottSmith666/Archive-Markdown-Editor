@@ -1,0 +1,51 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: wangjialun <2271411@stu.neu.edu.cn>, zhangqian<2371418@stu.neu.edu.cn>, wangyihao<2471389@stu.neu.edu.cn> , wangying<wangying@swc.neu.edu.cn>
+# Maintainer: wangyihao<2471389@stu.neu.edu.cn>, wangjialun<2271411@stu.neu.edu.cn>, zhangqian<2371418@stu.neu.edu.cn>, wangying<wangying@swc.neu.edu.cn>
+
+source HPKBUILD > /dev/null 2>&1    # 导入HPKBUILD文件
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+
+# 在OH环境执行测试的接口
+openharmonycheck() {
+    res=0                               
+    cd ${builddir}/${ARCH}-build/example  # 进入到对应架构目录下的/example目录
+    # 该库没有测试用例，因此执行一个demo：该库构建目录下的/sample文件夹里放有对应功能的二进制文件，验证该库功能：
+    #执行 ./suftest test.txt。（test.txt文件是自行准备的，内容：AGCTATAG）
+    #./suftest test.txt 功能为：计算test.txt文件包含的字节数、构建后缀数组，并对其构建的后缀数组进行检查。 
+    #检查后缀数组构建成功的标志为：输出“sufcheck: Done."
+    ./suftest test.txt >> $logfile 2>&1
+    res=$?      
+    # 检查是否有输出
+    if [ -s $logfile ]; then
+        # 检查日志文件中是否包含 "sufcheck: Done."
+        if grep -q "sufcheck: Done." $logfile; then
+            echo "Test passed: 'sufcheck: Done.' found in the log." >> $logfile
+        else
+            echo "Test failed: 'sufcheck: Done.' not found in the log." >> $logfile
+            res=1 
+        fi
+    else
+        # 若无输出，则测试失败
+        echo "Test failed: No output from the test." >> $logfile
+        res=1
+    fi
+    #保存测试失败日志
+    if [ $res -ne 0 ]; then
+        mkdir -p ${LYCIUM_FAULT_PATH}/${pkgname}
+	cp Testing/Temporary/LastTest.log ${LYCIUM_FAULT_PATH}/${pkgname}/test_failed.log
+    fi
+    cd $OLDPWD
+    return $res                       
+}

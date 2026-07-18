@@ -1,0 +1,89 @@
+# Contributor: Jeff Han <hanjinfei@foxmail.com>
+# Maintainer: Jeff Han <hanjinfei@foxmail.com>
+pkgname=xmlrpc-c
+pkgver=1.54.06
+pkgrel=0
+pkgdesc="XML-RPC is a quick-and-easy way to make procedure calls over the Internet. It converts the procedure call into an XML document, sends it to a remote server using HTTP, and gets back the response as XML."
+url="https://xmlrpc-c.sourceforge.net/"
+archs=("armeabi-v7a" "arm64-v8a")
+# mainly base on BSD-style license
+license=("XML-RPC For C/C++ License" "MIT" "ABYSS Web Server License" "Python 1.5.2 License")
+depends=("openssl" "curl")
+makedepends=()
+
+source="https://sourceforge.net/projects/$pkgname/files/Xmlrpc-c%20Super%20Stable/$pkgver/$pkgname-$pkgver.tgz"
+
+downloadpackage=true
+autounpack=true
+buildtools="configure"
+patchflag=true
+
+builddir=$pkgname-${pkgver}
+packagename=$builddir.tgz
+
+source envset.sh
+host=
+
+prepare() {
+    if $patchflag
+    then
+        cd $builddir
+        patch -p1 < `pwd`/../xmlrpc-c_oh_pkg.patch
+        # patch只需要打一次,关闭打patch
+        patchflag=false
+        cd $OLDPWD
+    fi
+    cp -rf $builddir $builddir-$ARCH-build
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        setarm32ENV
+        host=arm-linux
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        setarm64ENV
+        host=arm-linux
+    fi
+}
+
+build() {
+    cd $builddir-$ARCH-build
+    # 默认采用 curl client 通信,如果不采用curl, 可以删除 CURL_CONFIG=xxx, 并--disable-curl-client
+    PKG_CONFIG_PATH="${pkgconfigpath}" CURL_CONFIG=${LYCIUM_ROOT}/usr/curl/$ARCH/bin/curl-config ./configure "$@" --host=$host > `pwd`/build.log 2>&1
+    make CC_FOR_BUILD=gcc CFLAGS_FOR_BUILD="" LDFLAGS_FOR_BUILD="" CFLAGS="-I $LYCIUM_ROOT/usr/openssl/$ARCH/include" LDFLAGS="-L $LYCIUM_ROOT/usr/openssl/$ARCH/lib" -j4 >> `pwd`/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir-$ARCH-build
+    make install >> `pwd`/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    cd $builddir-$ARCH-build
+    make -C test test cgitest1 >> `pwd`/build.log 2>&1
+    make -C test/cpp test >> `pwd`/build.log 2>&1
+    cd $OLDPWD    
+    if [ $ARCH == "armeabi-v7a" ]
+    then
+        unsetarm32ENV
+    fi
+    if [ $ARCH == "arm64-v8a" ]
+    then
+        unsetarm64ENV
+    fi
+    unset host
+
+    echo "The test must be on an OpenHarmony device!"
+    # real test CMD 手动运行测试用例,可尝试 make check 命令
+    # cd test; ./test; cd -
+    # cd test/cpp; ./test; cd -
+}
+
+# 清理环境
+cleanbuild(){
+    rm -rf ${PWD}/$builddir ${PWD}/$builddir-armeabi-v7a-build ${PWD}/$builddir-arm64-v8a-build #${PWD}/$packagename
+}

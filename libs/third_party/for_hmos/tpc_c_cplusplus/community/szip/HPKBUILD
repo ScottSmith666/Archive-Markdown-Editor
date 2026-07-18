@@ -1,0 +1,54 @@
+# Contributor: huangminzhong <huangminzhong2@huawei.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+pkgname=szip
+pkgver=2.1.1
+pkgrel=0
+pkgdesc="Szip compression software, providing lossless compression of scientific data, has been provided with HDF software products as of HDF5 Release 1.6.0 and HDF4 Release 2.0."
+url="https://support.hdfgroup.org/doc_resource/SZIP"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("szip license")
+depends=()
+makedepends=()
+source="https://support.hdfgroup.org/ftp/lib-external/$pkgname/$pkgver/src/$pkgname-$pkgver.tar.gz"
+downloadpackage=true
+autounpack=true
+
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # 该库直接交叉编译会失败，提示部分变量必须配置成"advanced"
+    PKG_CONFIG_LIBDIR="${pkgconfigpath}" \
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" \
+    -DOHOS_ARCH=$ARCH -B$ARCH-build -DBUILD_TESTING=ON \
+    -DCMAKE_C_FLAGS="-s" -DCMAKE_CXX_FLAGS="-s" \
+    -DHAVE_DEFAULT_SOURCE_RUN="advanced" -DHAVE_DEFAULT_SOURCE_RUN__TRYRUN_OUTPUT="advanced" \
+    -DTEST_LFS_WORKS_RUN="advanced" -DTEST_LFS_WORKS_RUN__TRYRUN_OUTPUT="advanced" -S./ -L > $buildlog 2>&1
+    $MAKE -C $ARCH-build VERBOSE=1 >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd "$builddir"
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+    cd $LYCIUM_ROOT/usr/$pkgname/$ARCH/lib
+    ln -s libszip.a libsz.a
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # ctest
+}
+
+cleanbuild(){
+    rm -rf ${PWD}/$builddir # ${PWD}/$packagename
+}

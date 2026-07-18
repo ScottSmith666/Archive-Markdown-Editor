@@ -1,0 +1,26 @@
+# Contributor: Chen Xu <chenxu.unix@gamil.com>
+# Maintainer: Chen Xu <chenxu.unix@gamil.com>
+
+source HPKBUILD > /dev/null 2>&1
+logfile=${LYCIUM_THIRDPARTY_ROOT}/${pkgname}/${pkgname}_${ARCH}_${OHOS_SDK_VER}_test.log
+LUAJIT_PATH=
+
+checkprepare() {
+    mount -o remount,rw /
+    mkdir -p /usr/local/lib
+    cp ${LYCIUM_ROOT}/usr/LuaJIT/${ARCH}/lib/libluajit-5.1.so.2.1.0 /usr/local/lib/libluajit-5.1.so.2
+    LUAJIT_PATH=${LYCIUM_ROOT}/usr/LuaJIT/${ARCH}/bin/luajit-2.1.0-beta3
+}
+
+openharmonycheck() {
+    # 使用动态库链接，由于lua的原因LD_LIBRARY_PATH无效，需要将libluajit-5.1.so.2.1.0拷贝到系统默认so查找路径
+    res=0
+    cd $builddir-$ARCH-build
+    make test LUA=${LUAJIT_PATH} VERBOSE=1 > ${logfile} 2>&1
+    res=$?
+    unset LUAJIT_PATH
+    rm -rf /usr/local/lib/libluajit-5.1.so.2
+    mount -o remount,ro /
+    cd $OLDPWD
+    return $res
+}

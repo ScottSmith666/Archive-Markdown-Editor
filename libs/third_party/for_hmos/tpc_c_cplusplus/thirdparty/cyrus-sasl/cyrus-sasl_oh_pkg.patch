@@ -1,0 +1,64 @@
+diff -rupN cyrus-sasl-2.1.28/include/saslutil.h cyrus-sasl-2.1.28_patch/include/saslutil.h
+--- cyrus-sasl-2.1.28/include/saslutil.h	2022-02-19 05:50:42.000000000 +0800
++++ cyrus-sasl-2.1.28_patch/include/saslutil.h	2023-08-24 16:44:40.036379983 +0800
+@@ -90,6 +90,8 @@ LIBSASL_API void sasl_config_done(void);
+ LIBSASL_API int getopt(int argc, char **argv, char *optstring);
+ #endif
+ LIBSASL_API char * getpass(const char *prompt);
++#elif defined(__OHOS__)
++LIBSASL_API char * getpass(const char *prompt);
+ #endif /* WIN32 */
+ 
+ #ifdef __cplusplus
+diff -rupN cyrus-sasl-2.1.28/lib/saslutil.c cyrus-sasl-2.1.28_patch/lib/saslutil.c
+--- cyrus-sasl-2.1.28/lib/saslutil.c	2022-02-19 05:50:42.000000000 +0800
++++ cyrus-sasl-2.1.28_patch/lib/saslutil.c	2023-08-24 16:44:40.036379983 +0800
+@@ -785,6 +785,17 @@ const char *prompt;
+ 	return(pbuf);
+ }
+ 
+-
++#elif defined(__OHOS__)
++// The getpass function is not supported on the OHOS platform, so define it here
++char *getpass(const char *prompt) {
++    static char password[128];
++    printf("%s", prompt);
++    fflush(stdout);  // Flush the output buffer to avoid password echo
++    if (fgets(password, sizeof(password), stdin) == NULL) {
++        return NULL;  // Return NULL on end-of-file or error
++    }
++    password[strcspn(password, "\n")] = '\0';  // Remove the newline character at the end
++    return password;
++}
+ 
+ #endif /* WIN32 */
+diff -rupN cyrus-sasl-2.1.28/sample/client.c cyrus-sasl-2.1.28_patch/sample/client.c
+--- cyrus-sasl-2.1.28/sample/client.c	2022-02-19 05:50:42.000000000 +0800
++++ cyrus-sasl-2.1.28_patch/sample/client.c	2023-08-24 16:44:40.036379983 +0800
+@@ -61,6 +61,7 @@
+ 
+ #include <sasl.h>
+ #include <saslplug.h>
++#include <saslutil.h>
+ 
+ #include "common.h"
+ 
+@@ -129,6 +130,7 @@ static int simple(void *context __attrib
+     default:
+ 	return SASL_BADPARAM;
+     }
++    fflush(stdout);
+ 
+     fgets(b, 1024, stdin);
+     chop(b);
+diff -rupN cyrus-sasl-2.1.28/sample/http_digest_client.c cyrus-sasl-2.1.28_patch/sample/http_digest_client.c
+--- cyrus-sasl-2.1.28/sample/http_digest_client.c	2022-02-19 05:50:42.000000000 +0800
++++ cyrus-sasl-2.1.28_patch/sample/http_digest_client.c	2023-08-24 16:44:40.036379983 +0800
+@@ -19,6 +19,7 @@
+ #include <netdb.h>
+ 
+ #include <sasl.h>
++#include <saslutil.h>
+ 
+ #define SUCCESS 0
+ #define ERROR   1

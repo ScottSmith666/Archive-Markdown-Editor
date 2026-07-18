@@ -1,0 +1,30 @@
+{
+    "name": "@ohos/busybox",
+    "description": "BusyBox combines tiny versions of many common UNIX utilities into a single small executable.",
+    "version": "1.36.0",
+    "license": "GPL license",
+    "publishAs": "code-segment",
+    "segment": {
+        "destPath": "third_party/busybox"
+    },
+    "dirs": {},
+    "scripts": {},
+    "component": {
+        "name": "busybox",
+        "subsystem": "",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": ["//third_party/busybox:busybox_cmd"],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}

@@ -1,0 +1,49 @@
+# Contributor: TangShaoteng <tangshaoteng@163.com>
+# Maintainer: TangShaoteng <tangshaoteng@163.com>
+
+pkgname=flac
+pkgver=1.4.3
+pkgrel=0
+pkgdesc="Free Lossless Audio Codec"
+url="https://www.xiph.org/"
+archs=("armeabi-v7a" "arm64-v8a")
+license=("BSD-3-Clause")
+depends=("libogg")
+makedepends=()
+
+source="https://github.com/xiph/flac/releases/download/$pkgver/$pkgname-$pkgver.tar.xz"
+
+autounpack=true
+downloadpackage=true
+buildtools="cmake"
+builddir=$pkgname-$pkgver
+packagename=$builddir.tar.xz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    # OHOS-SDK中的cmake已更新至3.28
+    $OHOS_SDK/native/build-tools/cmake/bin/cmake "$@" -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ -L > `pwd`/$ARCH-build/build.log 2>&1
+    make VERBOSE=1 -j4 -C $ARCH-build >> `pwd`/$ARCH-build/build.log 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    make -C $ARCH-build install >> `pwd`/$ARCH-build/build.log 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    echo "The test must be on an OpenHarmony device!"
+    # TODO
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir #${PWD}/$packagename
+}

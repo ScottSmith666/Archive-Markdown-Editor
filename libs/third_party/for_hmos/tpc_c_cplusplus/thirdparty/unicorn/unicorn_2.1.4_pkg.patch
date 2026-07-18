@@ -1,0 +1,142 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 033db096..d566a832 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -197,6 +197,17 @@ else()
+                 set(UNICORN_TARGET_ARCH "i386")
+             endif()
+         endif()
++    elseif(OHOS_ARCH)
++        if (${OHOS_ARCH} STREQUAL "arm64-v8a")
++            message(STATUS "compile ohos arm64-v8a...")
++            set(UNICORN_TARGET_ARCH "aarch64")
++        elseif (${OHOS_ARCH} STREQUAL "armeabi-v7a")
++            message(STATUS "compile ohos armeabi-v7a...")
++            set(UNICORN_TARGET_ARCH "arm")
++        elseif(${OHOS_ARCH} STREQUAL "x86_64")
++            message(STATUS "compile ohos x86_64...")
++            set(UNICORN_TARGET_ARCH "i386")
++        endif()
+     else()
+         execute_process(COMMAND ${CMAKE_C_COMPILER} -dM -E -
+             INPUT_FILE /dev/null
+@@ -320,6 +331,10 @@ else()
+         set(EXTRA_CFLAGS "${EXTRA_CFLAGS} --target=${CMAKE_C_COMPILER_TARGET}")
+         set(EXTRA_CFLAGS "${EXTRA_CFLAGS} --sysroot=${CMAKE_SYSROOT}")
+     endif()
++    if(OHOS_ARCH)
++        set(EXTRA_CFLAGS "${EXTRA_CFLAGS} --target=${CMAKE_C_COMPILER_TARGET}")
++        set(EXTRA_CFLAGS "${EXTRA_CFLAGS} --sysroot=${CMAKE_SYSROOT}")
++    endif()
+     if(UNICORN_FUZZ)
+         set(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${CMAKE_C_FLAGS}")
+     endif()
+diff --git a/qemu/include/qemu/cpuid.h b/qemu/include/qemu/cpuid.h
+index 9c09dd1b..ae318874 100644
+--- a/qemu/include/qemu/cpuid.h
++++ b/qemu/include/qemu/cpuid.h
+@@ -14,8 +14,10 @@
+ #ifdef _MSC_VER
+ #include <intrin.h>
+ #else
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+ #include <cpuid.h>
+ #endif
++#endif
+ 
+ /* Cover the uses that we have within qemu.  */
+ /* ??? Irritating that we have the same information in target/i386/.  */
+diff --git a/qemu/tcg/i386/tcg-target.inc.c b/qemu/tcg/i386/tcg-target.inc.c
+index 15cc1c05..c8ec57ae 100644
+--- a/qemu/tcg/i386/tcg-target.inc.c
++++ b/qemu/tcg/i386/tcg-target.inc.c
+@@ -3729,22 +3729,30 @@ static void tcg_target_init(TCGContext *s)
+ 
+ #ifdef _MSC_VER
+     int cpu_info[4];
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+     __cpuid(cpu_info, 0);
++#endif
+     max = cpu_info[0];
+ #else
+-    max = __get_cpuid_max(0, 0);
++#if defined(__x86_64__) && defined(ENABLE_XCR)
++    __cpuid(cpu_info, 0);
++#endif
+ #endif
+ 
+     if (max >= 7) {
+         /* BMI1 is available on AMD Piledriver and Intel Haswell CPUs.  */
+ #ifdef _MSC_VER
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+         __cpuid(cpu_info, 7);
++#endif
+         a = cpu_info[0];
+         b7 = cpu_info[1];
+         c = cpu_info[2];
+         d = cpu_info[3];
+ #else
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+         __cpuid_count(7, 0, a, b7, c, d);
++#endif
+ #endif
+         have_bmi1 = (b7 & bit_BMI) != 0;
+         have_bmi2 = (b7 & bit_BMI2) != 0;
+@@ -3752,14 +3760,18 @@ static void tcg_target_init(TCGContext *s)
+ 
+     if (max >= 1) {
+ #ifdef _MSC_VER
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+         __cpuid(cpu_info, 1);
++#endif
+         a = cpu_info[0];
+         b = cpu_info[1];
+         c = cpu_info[2];
+         d = cpu_info[3];
+ #else
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+         __cpuid(1, a, b, c, d);
+ #endif
++#endif
+ #ifndef have_cmov
+         /* For 32-bit, 99% certainty that we're running on hardware that
+            supports cmov, but we still need to check.  In case cmov is not
+@@ -3780,7 +3792,9 @@ static void tcg_target_init(TCGContext *s)
+              * the assembler, so we encode the instruction manually.
+              */
+ #ifndef _MSC_VER
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+             asm(".byte 0x0f, 0x01, 0xd0" : "=a" (xcrl), "=d" (xcrh) : "c" (0));
++#endif
+ #else
+             unsigned long long bv = _xgetbv(0);
+             xcrl = bv & 0xFFFFFFFF;
+@@ -3794,20 +3808,28 @@ static void tcg_target_init(TCGContext *s)
+     }
+ 
+ #ifdef _MSC_VER
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+     __cpuid(cpu_info, 0x80000000);
++#endif
+     max = cpu_info[0];
+ #else
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+     max = __get_cpuid_max(0x8000000, 0);
++#endif
+ #endif
+     if (max >= 1) {
+ #ifdef _MSC_VER
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+         __cpuid(cpu_info, 0x80000001);
++#endif
+         a = cpu_info[0];
+         b = cpu_info[1];
+         c = cpu_info[2];
+         d = cpu_info[3];
+ #else
++#if defined(__x86_64__) && defined(ENABLE_XCR)
+         __cpuid(0x80000001, a, b, c, d);
++#endif
+ #endif
+         /* LZCNT was introduced with AMD Barcelona and Intel Haswell CPUs.  */
+         have_lzcnt = (c & bit_LZCNT) != 0;

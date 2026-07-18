@@ -1,0 +1,63 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Contributor: chenyajie <chenyajie5@huawei-partners.com>
+# Maintainer:  huangminzhong <huangminzhong2@huawei.com>
+
+pkgname=libgd
+pkgver=2.3.3
+pkgrel=0
+pkgdesc="GD is an open source code library for the dynamic creation of images by programmers."
+archs=("armeabi-v7a" "arm64-v8a")
+url="https://github.com/libgd/libgd"
+license=("permissive license")
+depends=()
+makedepends=()
+source="https://github.com/libgd/${pkgname}/archive/refs/tags/gd-${pkgver}.tar.gz"
+
+downloadpackage=true
+autounpack=true
+buildtools="cmake"
+
+builddir=$pkgname-gd-${pkgver}
+packagename=$builddir.tar.gz
+
+prepare() {
+    mkdir -p $builddir/$ARCH-build
+}
+
+build() {
+    cd $builddir
+    ${OHOS_SDK}/native/build-tools/cmake/bin/cmake "$@" -DBUILD_TEST=ON -DOHOS_ARCH=$ARCH -B$ARCH-build -S./ > $buildlog 2>&1
+    $MAKE VERBOSE=1 -C $ARCH-build >> $buildlog 2>&1
+    ret=$?
+    cd $OLDPWD
+    return $ret
+}
+
+package() {
+    cd $builddir
+    $MAKE -C $ARCH-build install >> $buildlog 2>&1
+    cd $OLDPWD
+}
+
+check() {
+    #将测试用例使用的cmake改为CI工具的cmake
+    sed -i "s/\".*\/cmake\"/\"cmake\"/g" $builddir/$ARCH-build/CTestTestfile.cmake
+    echo "The test must be on an OpenHarmony device!"
+}
+
+cleanbuild() {
+    rm -rf ${PWD}/$builddir
+}
+

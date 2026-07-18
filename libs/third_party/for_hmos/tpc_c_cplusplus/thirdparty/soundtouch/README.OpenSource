@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "soundtouch",
+        "License": "LGPLv2.1",
+        "License File": "COPYING.TXT",
+        "Version Number": "2.3.2",
+        "Owner": "wupingyuan@huawei.com",
+        "Upstream URL": "https://www.surina.net/soundtouch/soundtouch-2.3.2.tar.gz",
+        "Description": "SoundTouch is an open-source audio processing library for changing the Tempo, Pitch and Playback Rates of audio streams or audio files. The library additionally supports estimating stable beats-per-minute rates for audio tracks."
+    }
+]
