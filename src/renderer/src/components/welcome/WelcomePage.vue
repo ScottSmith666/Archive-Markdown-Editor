@@ -50,6 +50,7 @@ const deleteHistory = (hsId) => {
 };
 
 const openHistoryFile = (filePath, fileName) => {
+    store.dispatch('getHarmonyPerms');
     store.dispatch('openFileFromHistoryAction', {
         'filePath': filePath,
         'fileName': fileName
@@ -91,12 +92,13 @@ const sortHistory = computed(() => {
                 <!--New File-->
                 <div
                     @click="store.commit('addTabPage', {'pageType': 'file',
-                    'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false})"
+                    'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false});
+                    store.dispatch('getHarmonyPerms');"
                     class="options" id="new"><span class="options-icon">㊢</span>
                     {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.new }}
                 </div>
                 <!--Open-->
-                <div class="options" id="open" @click="store.dispatch('activateOpenFileDialogAction')"><span
+                <div class="options" id="open" @click="store.dispatch('activateOpenFileDialogAction'); store.dispatch('getHarmonyPerms');"><span
                     class="options-icon">㊠</span>
                     {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.open }}
                 </div>
@@ -125,7 +127,7 @@ const sortHistory = computed(() => {
                             </svg>
                         </div>
                         <div style="width: 5px;"></div>
-                        <div class="powered-text">7-Zip</div>
+                        <div class="powered-text">7-Zip/p7zip</div>
                     </div>
                     <div class="powered-item">
                         <div>

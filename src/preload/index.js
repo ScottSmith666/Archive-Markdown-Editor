@@ -43,6 +43,9 @@ const api = {
         confirmClose: (canClose, mdzPaths) => ipcRenderer.send('confirm-close', canClose, mdzPaths),
         tryClose: () => ipcRenderer.send('try-close'),
     },
+    'permissionsPreload': {
+        getPermissions: (callback) => ipcRenderer.invoke('get-rw-permission'),
+    },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
@@ -64,6 +67,8 @@ if (process.contextIsolated) {
         contextBridge.exposeInMainWorld('loadLangPreload', api.loadLangPreload);
         // 剪切板相关
         contextBridge.exposeInMainWorld('clipboardPreload', api.clipboardPreload);
+        // 权限申请相关（仅鸿蒙系统）
+        contextBridge.exposeInMainWorld('permissionsPreload', api.permissionsPreload);
     } catch (error) {
         console.error(error);
     }

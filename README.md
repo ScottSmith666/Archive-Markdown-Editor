@@ -2,18 +2,24 @@
 
 ## I. Installation
 
-> [!caution]
->
-> CAUTION: DON'T use `npm install -g archive-markdown-editor`, it's useless. you just run `npm install archive-markdown-editor --ignore-script` to get source code.
+1. Method 1: You can download the installation package corresponding to your system from GitHub Release or the official website and install it.
+2. Method 2: Git clone this repo, then run `npm install`, and last run `node ./utils/compile.mjs`.
 
-1. You can download the installation package corresponding to your system from GitHub Release or the official website and install it.
-2. Git clone this repo, and run `npm install`.
-
-> The installation just cover Windows x64, macOS arm64, and Linux x64.
+> The `node ./utils/compile.mjs` installation method just cover macOS arm64 and Linux x64.
 > 
-> If you are using another system, please refer to utils/compile.js to compile it yourself.
+> If you are using another OS, please refer to utils/compile.mjs to compile it yourself.
 
-## I. Special features and AME-specific syntax
+If you encounter the following error during compilation on the Windows platform:
+
+```text
+C:\path\to\bit7z\src\internal\xxx.cpp(1,1): warning C4819: This file contains characters that cannot be represented in the current code page (936). Please save this file in Unicode format to prevent data loss.
+```
+
+Open the xxx.cpp file in the bit7z project using Visual Studio, navigate to the menu bar `File` > `Advanced Save Options`, set the file encoding to `Unicode (UTF-8 with signature) - code page 65001` and save.
+
+Then continue compiling, and there will be no more errors.
+
+## II. Special features and AME-specific syntax
 
 > CAUTION: If you need to write Markdown across different software, please <u>do not save as an mdz file</u> and <u>do not use AME-specific syntax</u>. Saving the mdz file as an md file will solve most of the problems that occur when writing Markdown across different software.
 
@@ -167,7 +173,7 @@ The next step is simply to eliminate malicious code.
 
 ![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/pause-render.png)
 
-## II. Archive Markdown Editor Hotkey Table
+## III. Archive Markdown Editor Hotkey Table
 
 | Operation       | Windows/Linux    | macOS         |
 |:---------|:-------------------|:----------------|

@@ -74,6 +74,8 @@ onBeforeRouteUpdate((to, from) => {
     }
     monacoInstance.focus();
     update(monacoInstance, to.query.pageid);
+
+    console.log("route变动啦！！")
 });
 
 onMounted(() => {

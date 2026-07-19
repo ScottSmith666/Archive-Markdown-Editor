@@ -1,18 +1,16 @@
 import {app, dialog} from "electron";
 import path from "path";
-import {electronApp, optimizer, is} from "@electron-toolkit/utils";
 
 let Sqlite3;
-if (is.dev) {
-    // 在开发环境
-    Sqlite3 = require("better-sqlite3");
+if (!app.isPackaged) {
+    // 在开发环境或者已经打包为鸿蒙应用
+    Sqlite3 = process.platform === 'openharmony'
+        ? require(path.join(__dirname, `..${path.sep}..${path.sep}node_modules${path.sep}better-sqlite3`))
+        : require("better-sqlite3");
 } else {
     // 在生产环境
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
-    Sqlite3 = require(path.join(
-        unpackedRoot,
-        `node_modules${path.sep}better-sqlite3`)
-    );
+    Sqlite3 = require(path.join(unpackedRoot, `node_modules${path.sep}better-sqlite3`));
 }
 
 import {ipc} from "./ipc";
@@ -67,7 +65,9 @@ if (!gotTheLock) {  // 当前打开多个实例
 
     app.whenReady().then(() => {
         // 创建一个Sqlite连接
-        let settings_dir_path = path.join(os.homedir(), ".ame_conf");  // 配置文件置于$HOME目录的.ame_conf隐藏文件夹内
+        let settings_dir_path = process.platform === 'openharmony'
+            ? path.join(app.getPath('appData'), ".ame_conf")  // 鸿蒙系统只能存在appData目录内，其他地方没有权限
+            : path.join(os.homedir(), ".ame_conf");  // 其它系统内，配置文件置于$HOME目录的.ame_conf隐藏文件夹内
         try {
             const stats = fs.statSync(settings_dir_path);
             if (!stats.isDirectory()) {  // 确认路径存在，但不是文件夹
@@ -87,16 +87,6 @@ if (!gotTheLock) {  // 当前打开多个实例
         }
 
         menu();
-
-        // Set app user model id for windows
-        electronApp.setAppUserModelId("com.scottsmith.ame");
-
-        // Default open or close DevTools by F12 in development
-        // and ignore CommandOrControl + R in production.
-        // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
-        app.on("browser-window-created", (_, window) => {
-            optimizer.watchWindowShortcuts(window);
-        });
 
         ipc(Sqlite3, path.join(settings_dir_path, "ame.sqlite"));
 

@@ -12,7 +12,8 @@ const closeCurrentPage = () => {
 };
 
 const openOfficialWebsite = () => {
-    window.openURLPreload.openURL('https://scottsmith666.github.io/');
+    // https://scottsmith666.github.io/
+    window.openURLPreload.openURL('https://archive-markdown-editor-ss.pages.dev/#/archive-markdown-editor');
 };
 
 const save = () => {
@@ -43,6 +44,7 @@ const openUsageByHotkey = (e) => {
     // Ctrl/Command + O打开文件
     if ((e.ctrlKey || e.metaKey) && (e.key === 'o' || e.key === 'O')) {
         e.preventDefault();
+        store.dispatch('getHarmonyPerms');
         store.dispatch('activateOpenFileDialogAction');
     }
 
@@ -144,11 +146,14 @@ onMounted(() => {
                                  @click="store.commit('addTabPage',
                                  {'pageType': 'file',
                                  'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false});
+                                 store.dispatch('getHarmonyPerms');
                                  store.commit('mainManuAllHide');">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.new }}</p>
                             </div>
                             <div class="menu-element" id="main-menu-open"
-                                 @click="store.dispatch('activateOpenFileDialogAction'); store.commit('mainManuAllHide');">
+                                 @click="store.dispatch('activateOpenFileDialogAction');
+                                 store.dispatch('getHarmonyPerms');
+                                 store.commit('mainManuAllHide');">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.open }}</p>
                             </div>
                             <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)

@@ -79,10 +79,6 @@ const props = defineProps({
                 path: '',
             };
         }
-    },
-    isViewerScrollEnabled: {  // 当鼠标在Editor区域滚动时，该变量就为false，以禁用Viewer滚动事件防止滚动状态混乱
-        type: Boolean,
-        default: () => true,
     }
 });
 
@@ -356,6 +352,14 @@ watch(confirmContentSafe, (newValue, oldValue) => {
     }
 });
 
+watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("isExistFile"), (newVal, oldVal) => {
+    // 当新值和旧值不一样且新值为true时，肯定是另存为的时候，刷新渲染器，防止意外报错
+    if (newVal === true && newVal !== oldVal) {
+        console.log("已经另存为了哦");
+        render(props.mdPiece);
+    }
+});
+
 </script>
 
 <template>
@@ -452,7 +456,7 @@ watch(confirmContentSafe, (newValue, oldValue) => {
     </Transition>
 
     <div class="viewer-area fonts"
-         :class="store.state.settings.editorMode === 'preview' ? 'viewer-upper' : ''"
+         :class="store.state.settings.editorMode === 'preview' && (!props.enableDocumentMediaPath.isEnabled) ? 'viewer-upper' : ''"
          id="viewer-container"
          tabindex="-1"
          v-bind="$attrs"

@@ -1,33 +1,35 @@
 import {dialog, ipcMain, shell, app, clipboard} from "electron";
 import {Dialogs} from "../dialogs";
-import {is} from "@electron-toolkit/utils";
 import path from "path";
 import fs from 'fs';
 import {rm} from 'fs/promises';
 import {sqliteIpc} from "./modules/sqliteipc.js";
 import {SqliteMan} from "../sqlite-man";
 import os from "os";
+import {harmonyPermissionIpc} from "./modules/harmonyPermissionIpc.js";
 
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
+console.log("isPackaged：", app.isPackaged);
+console.log("目前的系统类型：", process.platform);
+
 let mdzUtils;
 let docRootPath;
 let XLSX;
-if (is.dev) {
-    // 在开发环境
-    mdzUtils = require(path.join(__dirname, "..", "..", "libs", "napi_cpp", "mdz_utils"));
+if (!app.isPackaged) {
+    // 在开发环境或者已经打包为鸿蒙应用
+    mdzUtils = process.platform === 'openharmony'
+        ? require(path.join(__dirname, `..${path.sep}..${path.sep}napi_cpp${path.sep}mdz_utils`))
+        : require(path.join(__dirname, "..", "..", "libs", "napi_cpp", "mdz_utils"));
     docRootPath = path.join(__dirname, "..", "..", "document");
-    XLSX = require("xlsx");
+    XLSX = process.platform === 'openharmony' ? require(path.join(__dirname, `..${path.sep}..${path.sep}node_modules${path.sep}xlsx`)) : require("xlsx");
 } else {
     // 在生产环境
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
     mdzUtils = require(path.join(unpackedRoot, "libs", "napi_cpp", "mdz_utils"));
     XLSX = require(path.join(unpackedRoot, "node_modules", "xlsx"));
-    docRootPath = path.join(
-        unpackedRoot,
-        `document`
-    );
+    docRootPath = path.join(unpackedRoot, `document`);
 }
 
 const dialogs = new Dialogs();
@@ -104,6 +106,32 @@ const stox = (wb) => {
 
     return out;
 }
+
+const copyOnHarmony = async (src, dest) => {
+    // 开始流式写入
+    return new Promise((resolve) => {
+        // 使用 Node.js 的 Stream (文件流) 异步分块写入
+        const readStream = fs.createReadStream(src);
+        const writeStream = fs.createWriteStream(dest);
+
+        readStream.on('error', (err) => {
+            resolve({ success: false, message: `读取失败: ${err.message}` }); // 用 resolve 代替 return
+        });
+
+        writeStream.on('error', (err) => {
+            resolve({ success: false, message: `写入失败: ${err.message}` });
+        });
+
+        writeStream.on('finish', () => {
+            resolve({
+                success: true,
+                message: '写入成功',
+            });
+        });
+
+        readStream.pipe(writeStream);
+    });
+};
 
 export const ipc = (Sqlite3, dbPath) => {
     const sqliteMan = new SqliteMan(Sqlite3, dbPath);
@@ -251,7 +279,11 @@ export const ipc = (Sqlite3, dbPath) => {
     ipcMain.handle("copy-mdz-media-files", async (event, filePathArray) => {
         for (let i = 0; i < filePathArray.length; i++) {
             try {
-                await fs.promises.copyFile(decodeURI(filePathArray[i][0]), decodeURI(filePathArray[i][1]));
+                if (process.platform === 'openharmony') {
+                    await copyOnHarmony(decodeURI(filePathArray[i][0]), decodeURI(filePathArray[i][1]));
+                } else {
+                    await fs.promises.copyFile(decodeURI(filePathArray[i][0]), decodeURI(filePathArray[i][1]));
+                }
             } catch (e) {
                 // 有时候用户写的Markdown文档中会发现找不到媒体文件，就跳过拷贝这个文件
                 if (!e.message.includes('ENOENT: no such file or directory, copyfile')) {
@@ -310,15 +342,11 @@ export const ipc = (Sqlite3, dbPath) => {
         let savePath = dialogs.saveMediaDialog(title, (os.homedir() + path.sep + fileName));  // 获得打开的文件路径
         if (savePath) {
             // 开始保存文件
-            fs.copyFile(filePath, savePath, (err) => {
-                if (err) {
-                    dialog.showMessageBoxSync({
-                        type: 'error',
-                        message: '保存失败 Save failed!',
-                        buttons: ['OK'],
-                        defaultId: 0,
-                    });
-                    return console.error(err);
+            try {
+                if (process.platform === 'openharmony') {
+                    await copyOnHarmony(filePath, savePath);
+                } else {
+                    await fs.promises.copyFile(filePath, savePath);
                 }
                 dialog.showMessageBoxSync({
                     type: 'info',
@@ -326,7 +354,16 @@ export const ipc = (Sqlite3, dbPath) => {
                     buttons: ['OK'],
                     defaultId: 0,
                 });
-            });
+                return 0;
+            } catch (err) {
+                dialog.showMessageBoxSync({
+                    type: 'error',
+                    message: '保存失败 Save failed!',
+                    buttons: ['OK'],
+                    defaultId: 0,
+                });
+                return -1;
+            }
         } else {
             // 用户中途取消打开文件，直接关闭了saveFileDialog
             dialog.showMessageBoxSync({
@@ -335,6 +372,7 @@ export const ipc = (Sqlite3, dbPath) => {
                 buttons: ['OK'],
                 defaultId: 0,
             });
+            return -1;
         }
     });
 
@@ -378,7 +416,7 @@ export const ipc = (Sqlite3, dbPath) => {
 
     ipcMain.handle("media-paster", async (event) => {
         const formats = clipboard.availableFormats();
-        // console.log("formats: ", formats);
+        console.log("paste-formats: ", formats);
         let fileURLs, type;
         // 常见视频文件的扩展名
         const videoExts = ["mp4", "mov", "webm", "avi", "wmv", "flv", "mkv", "m4v", "mpeg", "ts"];
@@ -389,7 +427,7 @@ export const ipc = (Sqlite3, dbPath) => {
         // 优先检查是否存在文件专用格式
         // 只要存在，说明最近一次操作绝对是“复制了文件”
         const isFile = formats.some(format =>
-            format === 'text/uri-list' ||  // Windows
+            format === 'text/uri-list' ||  // Windows & HarmonyOS
             format === 'public.file-url'  // macOS
         ) || clipboard.read('x-special/gnome-copied-files').includes("file://");  // Linux（注意这个mime不是通用的，不同的发行版可能有不同的mime，后续开发注意补充）
         // 如果直接复制已有多媒体文件，则返回文件路径
@@ -401,6 +439,7 @@ export const ipc = (Sqlite3, dbPath) => {
                 // console.log(buffer);
                 // Windows 剪贴板中的 MULTI_SZ 格式使用 UTF-16LE 编码 (ucs2)
                 const raw = buffer.toString('ucs2').replaceAll("\\", "/");
+                console.log("raw:", raw);
                 // 多个文件路径以 \0 分隔，结尾会有两个 \0，过滤掉空字符串即可
                 fileURLs = raw.split('\0').filter(p => p.length > 0);
             } else if (process.platform === 'darwin') {
@@ -421,6 +460,15 @@ export const ipc = (Sqlite3, dbPath) => {
                     .map(url => {
                         return url.replace('file://', '');
                     });
+            } else if (process.platform === 'openharmony') {
+                const raw = clipboard.read('text/uri-list');
+                console.log("buffer:::", raw);
+                fileURLs = raw.split('\n')
+                    .map(url => url.trim())
+                    .map(url => {
+                        return url.replace('file://', '');
+                    });
+                console.log("fileURLs", fileURLs);
             }
             let result = "";
             for (let i = 0; i < fileURLs.length; i++) {
@@ -468,7 +516,11 @@ export const ipc = (Sqlite3, dbPath) => {
         let mediaFilePath = decodeURI(mediaFilePaths[0]);
         let mediaFileName = mediaFilePath.split(path.sep).pop();
         try {
-            await fs.promises.copyFile(mediaFilePath, `${destinationPath}/${mediaFileName}`);
+            if (process.platform === 'openharmony') {
+                await copyOnHarmony(mediaFilePath, `${destinationPath}/${mediaFileName}`);
+            } else {
+                await fs.promises.copyFile(mediaFilePath, `${destinationPath}/${mediaFileName}`);
+            }
             return {
                 'success': true,
                 'message': ["媒体导入成功/Successfully Imported", mediaFileName],
@@ -494,6 +546,7 @@ export const ipc = (Sqlite3, dbPath) => {
     ipcMain.handle('get-system-lang', (event) => {
         // 检测操作系统的语言设置并返回
         let locale = app.getLocale();
+        console.log("语言ipc：", locale);
         if (['zh-CN', 'zh', 'zh-Hans'].includes(locale)) {
             // 加载简体中文
             return 'zh-CN';
@@ -510,4 +563,7 @@ export const ipc = (Sqlite3, dbPath) => {
 
     // sqlite ipc
     sqliteIpc(Sqlite3, dbPath);
+
+    // get harmony os permissions
+    harmonyPermissionIpc();
 };

@@ -1,8 +1,6 @@
-import {BrowserWindow, ipcMain, shell} from "electron";
+import {app, BrowserWindow, ipcMain, shell} from "electron";
 import icon from "../../../resources/icon.png";
-import {join} from "path";
 import path from "path";
-import {is} from "@electron-toolkit/utils";
 import fs from "fs";
 
 const packedRoot = path.join(process.resourcesPath, 'app.asar')
@@ -17,11 +15,11 @@ export const mainWindow = () => {
         autoHideMenuBar: true,
         ...(process.platform === "linux" ? {icon} : {}),
         webPreferences: {
-            preload: is.dev
-                // 开发环境
-                ? join(__dirname, `..${path.sep}..${path.sep}out${path.sep}preload${path.sep}index.js`)
+            preload: (!app.isPackaged)
+                // 开发环境或已被打包为鸿蒙应用
+                ? path.join(__dirname, `..${path.sep}..${path.sep}out${path.sep}preload${path.sep}index.js`)
                 // 生产环境
-                : join(packedRoot, `out${path.sep}preload${path.sep}index.js`),
+                : path.join(packedRoot, `out${path.sep}preload${path.sep}index.js`),
             sandbox: false,
             contextIsolation: true,
             // 允许从 file:// 协议加载本地资源
@@ -67,14 +65,15 @@ export const mainWindow = () => {
 
     // HMR for renderer base on electron-vite cli.
     // Load the remote URL for development or the local html file for production.
-    if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    if (!app.isPackaged && process.env["ELECTRON_RENDERER_URL"]) {
         main.loadURL(process.env["ELECTRON_RENDERER_URL"]);
     } else {
-        main.loadFile(is.dev
-            // 开发环境
-            ? join(__dirname, `..${path.sep}..${path.sep}out${path.sep}renderer${path.sep}index.html`)
+        main.loadFile(!app.isPackaged
+            // 开发环境或已被打包为鸿蒙应用
+            ? path.join(__dirname, `..${path.sep}..${path.sep}out${path.sep}renderer${path.sep}index.html`)
             // 生产环境
-            : join(packedRoot, `out${path.sep}renderer${path.sep}index.html`));
+            : path.join(packedRoot, `out${path.sep}renderer${path.sep}index.html`)
+        );
     }
     return main;
 };

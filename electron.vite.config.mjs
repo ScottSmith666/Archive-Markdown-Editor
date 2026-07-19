@@ -5,12 +5,12 @@ import vue from "@vitejs/plugin-vue";
 export default defineConfig({
     main: {
         build: {
-            bytecode: true,
+            bytecode: false,
         }
     },
     preload: {
         build: {
-            bytecode: true,
+            bytecode: false,
         }
     },
     renderer: {

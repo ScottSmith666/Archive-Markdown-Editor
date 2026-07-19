@@ -53,6 +53,7 @@ const expandPreviewDialog = () => {
             :start-line-number="parentFirstLineNumber"
             :middle-line-number="parentMiddleLineNumber"
             :enableToc="false"
+            :enable-document-media-path="{'isEnabled': false, 'path': ''}"
             ref="goToTopOrBottom"
             @click="expandPreviewDialog"
         />

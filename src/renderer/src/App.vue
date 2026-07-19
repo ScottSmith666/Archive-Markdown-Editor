@@ -128,11 +128,9 @@ const vFocus = {
             </div>
             <div id="pwd-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em"></div>
         </div>
-
         <div style="height: 15px;"></div>
-
         <div style="display: flex; flex-direction: column; width: 100%;">
-            <div style="display: flex; flex-direction: column; width: 100%;" v-if="saveExt === 'mdz'">
+            <div style="display: flex; flex-direction: column; width: 100%;">
                 <div class="wrapper-info fonts-info info-border info-bg">
                     <div id="pwd-msg" style="margin-left: 5px;"></div>
                 </div>

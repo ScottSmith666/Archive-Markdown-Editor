@@ -367,6 +367,7 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                                 break;
                             }
                         } catch (e) {
+                            console.log(e);
                             hdLoading(rootState);
                             tgModel(rootState, {kind: "none"});
                             actModel(rootState, {

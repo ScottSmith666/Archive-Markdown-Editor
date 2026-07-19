@@ -6,6 +6,7 @@ import {settingsMan} from "./modules/settings-man";
 import {tMan} from "./modules/tab-man";
 import {i18n} from "./modules/i18n";
 import {commonExts} from "./modules/common-exts";
+import {harmonyPerms} from "./modules/harmony-perms";
 
 export default createStore({
     modules: {
@@ -16,5 +17,6 @@ export default createStore({
         'tab': tMan,
         'i18n': i18n,
         'exts': commonExts,
+        'hmos': harmonyPerms,
     }
 });
