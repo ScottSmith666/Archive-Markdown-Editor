@@ -21,10 +21,13 @@ export const mainWindow = (sqlite3, dbPath) => {
         ...(process.platform === "linux" ? {icon} : {}),
         webPreferences: {
             preload: (!app.isPackaged)
-                // 开发环境或已被打包为鸿蒙应用
+                // 开发环境
                 ? path.join(__dirname, `..${path.sep}..${path.sep}out${path.sep}preload${path.sep}index.js`)
                 // 生产环境
-                : path.join(packedRoot, `out${path.sep}preload${path.sep}index.js`),
+                : ( process.platform === "openharmony"
+                    ? path.join(__dirname, `..${path.sep}..${path.sep}out${path.sep}preload${path.sep}index.js`)
+                    : path.join(packedRoot, `out${path.sep}preload${path.sep}index.js`)
+                ),
             sandbox: false,
             contextIsolation: true,
             // 允许从 file:// 协议加载本地资源
@@ -86,10 +89,14 @@ export const mainWindow = (sqlite3, dbPath) => {
         main.loadURL(process.env["ELECTRON_RENDERER_URL"]);
     } else {
         main.loadFile(!app.isPackaged
-            // 开发环境或已被打包为鸿蒙应用
+            // 开发环境
             ? path.join(__dirname, `..${path.sep}..${path.sep}out${path.sep}renderer${path.sep}index.html`)
             // 生产环境
-            : path.join(packedRoot, `out${path.sep}renderer${path.sep}index.html`)
+            : (
+                process.platform === "openharmony"
+                    ? path.join(__dirname, `..${path.sep}..${path.sep}out${path.sep}renderer${path.sep}index.html`)
+                    : path.join(packedRoot, `out${path.sep}renderer${path.sep}index.html`)
+            )
         );
     }
     return main;

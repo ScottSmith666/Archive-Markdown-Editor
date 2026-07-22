@@ -8,14 +8,16 @@ import fs from "fs";
 
 let Sqlite3;
 if (!app.isPackaged) {
-    // 在开发环境或者已经打包为鸿蒙应用
+    // 在开发环境
     Sqlite3 = process.platform === 'openharmony'
         ? require(path.join(__dirname, `..${path.sep}..${path.sep}node_modules${path.sep}better-sqlite3`))
         : require("better-sqlite3");
 } else {
     // 在生产环境
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
-    Sqlite3 = require(path.join(unpackedRoot, `node_modules${path.sep}better-sqlite3`));
+    Sqlite3 = process.platform === 'openharmony'
+        ? require(path.join(__dirname, `..${path.sep}..${path.sep}node_modules${path.sep}better-sqlite3`))
+        : require(path.join(unpackedRoot, `node_modules${path.sep}better-sqlite3`));
 }
 
 let main;

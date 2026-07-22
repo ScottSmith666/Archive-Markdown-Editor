@@ -15,18 +15,26 @@ let mdzUtils;
 let docRootPath;
 let XLSX;
 if (!app.isPackaged) {
-    // 在开发环境或者已经打包为鸿蒙应用
+    // 在开发环境
     mdzUtils = process.platform === 'openharmony'
         ? require(path.join(__dirname, `..${path.sep}..${path.sep}napi_cpp${path.sep}mdz_utils`))
         : require(path.join(__dirname, "..", "..", "libs", "napi_cpp", "mdz_utils"));
     docRootPath = path.join(__dirname, "..", "..", "document");
-    XLSX = process.platform === 'openharmony' ? require(path.join(__dirname, `..${path.sep}..${path.sep}node_modules${path.sep}xlsx`)) : require("xlsx");
+    XLSX = process.platform === 'openharmony'
+        ? require(path.join(__dirname, `..${path.sep}..${path.sep}node_modules${path.sep}xlsx`))
+        : require("xlsx");
 } else {
     // 在生产环境
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
-    mdzUtils = require(path.join(unpackedRoot, "libs", "napi_cpp", "mdz_utils"));
-    XLSX = require(path.join(unpackedRoot, "node_modules", "xlsx"));
-    docRootPath = path.join(unpackedRoot, `document`);
+    mdzUtils = process.platform === 'openharmony'
+        ? require(path.join(__dirname, `..${path.sep}..${path.sep}napi_cpp${path.sep}mdz_utils`))
+        : require(path.join(unpackedRoot, "libs", "napi_cpp", "mdz_utils"));
+    XLSX = process.platform === 'openharmony'
+        ? require(path.join(__dirname, `..${path.sep}..${path.sep}node_modules${path.sep}xlsx`))
+        : require(path.join(unpackedRoot, "node_modules", "xlsx"));
+    docRootPath = process.platform === 'openharmony'
+        ? path.join(__dirname, "..", "..", "document")
+        : path.join(unpackedRoot, `document`);
 }
 
 const dialogs = new Dialogs();
