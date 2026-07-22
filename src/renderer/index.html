@@ -12,17 +12,14 @@
 <script>
     MathJax = {
         tex: {
-            inlineMath: [
+            inlineMath: [  // 行内公式选择符
                 ["$", "$"],
-                // ["\\(", "\\)"],
-                // ["\(", "\)"],
-                // ["\\[", "\\]"],
-            ], // 行内公式选择符
-            displayMath: [
+                ["\(", "\)"],
+            ],
+            displayMath: [  // 段内公式选择符
                 ["$$", "$$"],
-                // ["\\[", "\\]"],
-                // ['?', '?'],
-            ], // 段内公式选择符
+                ["\[", "\]"],
+            ],
             packages: {'[+]': ['base', 'action', 'mhchem', 'ams']},
             processEscapes: true,
             processEnvironments: true // 允许识别 \begin{aligned} 等环境

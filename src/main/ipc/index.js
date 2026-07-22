@@ -545,7 +545,9 @@ export const ipc = (Sqlite3, dbPath) => {
 
     ipcMain.handle('get-system-lang', (event) => {
         // 检测操作系统的语言设置并返回
-        let locale = app.getLocale();
+        let locale = process.platform === 'openharmony'
+            ? app.getPreferredSystemLanguages()[0]
+            : app.getLocale();
         console.log("语言ipc：", locale);
         if (['zh-CN', 'zh', 'zh-Hans'].includes(locale)) {
             // 加载简体中文

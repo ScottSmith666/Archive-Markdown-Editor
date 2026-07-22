@@ -58,6 +58,13 @@ export const mainWindow = () => {
         main.close();
     });
 
+    // 返回窗口的宽高和坐标
+    ipcMain.handle('get-window-wh-and-pos', (event) => {
+        let wh = main.getSize();
+        let xy = main.getPosition();
+        return wh.concat(xy);  // w, h, x, y
+    });
+
     main.webContents.setWindowOpenHandler((details) => {
         shell.openExternal(details.url);
         return {action: "deny"};

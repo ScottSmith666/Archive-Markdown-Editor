@@ -1,5 +1,10 @@
 import {app, dialog} from "electron";
 import path from "path";
+import {ipc} from "./ipc";
+import {menu} from "./menu";
+import {mainWindow} from "./window";
+import os from "os";
+import fs from "fs";
 
 let Sqlite3;
 if (!app.isPackaged) {
@@ -12,12 +17,6 @@ if (!app.isPackaged) {
     const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
     Sqlite3 = require(path.join(unpackedRoot, `node_modules${path.sep}better-sqlite3`));
 }
-
-import {ipc} from "./ipc";
-import {menu} from "./menu";
-import {mainWindow} from "./window";
-import os from "os";
-import fs from "fs";
 
 let main;
 // 当应用启动前双击文件时，app.on("open-file")会比app.whenReady()先运行
@@ -104,6 +103,10 @@ if (!gotTheLock) {  // 当前打开多个实例
         }
 
         main = mainWindow();
+
+        console.log("获得窗口宽高：", main.getSize());
+        console.log("获得窗口坐标：", main.getPosition());
+
         // 针对冷启动打开文件
         main.webContents.on('did-finish-load', () => {
             if (globalFilePath) {

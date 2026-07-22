@@ -22,7 +22,17 @@ onMounted(async () => {
     await store.dispatch('initUserSettingsAction');  // 启动App时即加载user settings相关store变量
     await store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
 
-    window.confirmPreload.onAskForClose(() => {
+    window.confirmPreload.onAskForClose(async () => {
+        // 在这里获得关闭前窗口的大小和坐标
+        let whXyArray
+        try {
+            whXyArray = await window.windowManPreload.getWindowWhAndPos();
+        } catch (e) {
+            whXyArray = [1600, 800, 0, 0];
+        }
+        // 将获得的窗口的大小和坐标保存至sqlite数据库
+
+
         // 遍历所有标签页查看是否存在未保存文件
         let isSaved = true;
         for (let [key, value] of store.state.tab.tabList) {

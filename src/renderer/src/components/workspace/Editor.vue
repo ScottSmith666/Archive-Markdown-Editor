@@ -298,6 +298,24 @@ const getLineNumsOfVisualPage = (editor) => {
     }
 };
 
+const processLatex = (originContent) => {
+    // 1. 处理 $$ ... $$ 块
+    originContent = originContent.replaceAll(/\$\$([\s\S]*?)\$\$/g, (match, content) => {
+        const newContent = content.replaceAll(/(?<!\\)\\\\(?!\\)/g, '\\\\\\\\');
+        return '$$' + newContent + '$$';
+    });
+
+    // 2. 处理 \[ ... \] 块
+    originContent = originContent.replaceAll(/\\\[([\s\S]*?)\\\]/g, (match, content) => {
+        const newContent = content.replaceAll(/(?<!\\)\\\\(?!\\)/g, '\\\\\\\\');
+        return '\\[' + newContent + '\\]';
+    });
+
+    // 3. 处理转义$
+    originContent = originContent.replaceAll("\\$", "\\\\$")
+    return originContent;
+};
+
 const getPlanPiece = (monacoInstance, pageId) => {
     let fileTotalLines = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getLineCount();  // 编辑器内的文本总行数
     let vt = getLineNumsOfVisualPage(monacoInstance);
@@ -346,7 +364,7 @@ const getPlanPiece = (monacoInstance, pageId) => {
         }
     }
     emit('update', [
-        pieceContent, // 传内容片段过去
+        processLatex(pieceContent), // 传内容片段过去，并处理latex时所需
         rangeFirstLineNumber,  // 传选区第一行数据，目的是通过这个来计算HTML片段内实际对应原始Markdown代码第几行
         vt.lineNumAtPageCenter,  // 传可视页面中间行数，目的是通过滚动编辑区使渲染区内容自动滚到对应编辑区的内容等高位置
     ]);

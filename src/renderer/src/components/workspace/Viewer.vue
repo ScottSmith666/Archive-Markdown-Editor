@@ -37,8 +37,6 @@ import SafeModeInfo from "./SafeModeInfo.vue";
 
 const store = useStore();
 
-const emit = defineEmits(["scroll-in-viewer"]);
-
 // props
 const props = defineProps({
     mdPiece: {
@@ -204,7 +202,7 @@ const mermaidRender = () => {
             .querySelectorAll('.mermaid');
         if (nodes.length !== 0) {
             nodes.forEach(node => {
-                // 关键：移除该属性，否则 Mermaid 会跳过这些节点
+                // 移除该属性，否则 Mermaid 会跳过这些节点
                 node.removeAttribute('data-processed');
             });
         }
@@ -292,7 +290,6 @@ const goToTop = () => {
     try {
         if (document.getElementById('write').children.length !== 0) {
             setTimeout(() => {
-                // document.getElementById('viewer-container').scrollTo(0, 0);
                 document.getElementById('write').firstElementChild.scrollIntoView({
                     behavior: 'auto',
                     block: 'center',
@@ -355,7 +352,6 @@ watch(confirmContentSafe, (newValue, oldValue) => {
 watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("isExistFile"), (newVal, oldVal) => {
     // 当新值和旧值不一样且新值为true时，肯定是另存为的时候，刷新渲染器，防止意外报错
     if (newVal === true && newVal !== oldVal) {
-        console.log("已经另存为了哦");
         render(props.mdPiece);
     }
 });

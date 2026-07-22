@@ -1,9 +1,20 @@
 export class SqliteMan {
-    #Sqlite3;  // 私有属性
+    // 私有属性
+    #Sqlite3;
     #dbPath;
+    #windowW;
+    #windowH;
+    #windowX;
+    #windowY;
     constructor(Sqlite3, dbPath) {
         this.#Sqlite3 = Sqlite3;
         this.#dbPath = dbPath;
+
+        // 定义初始化打开时的窗口宽高和坐标
+        this.#windowW = 1600;
+        this.#windowH = 1000;
+        this.#windowX = 0;
+        this.#windowY = 0;
     }
 
     // 私有方法
@@ -16,15 +27,31 @@ export class SqliteMan {
                 `openTime${needType ? ' INT' : ""}`,
             ],
         };
-    };
+    }
+
+    #windowHwAndPosTable(needType = true) {
+        return {
+            'AME_WINDOW_HW_POS': [
+                `w${needType ? ' INTEGER' : ""}`,
+                `h${needType ? ' INTEGER' : ""}`,
+                `x${needType ? ' INTEGER' : ""}`,
+                `y${needType ? ' INTEGER' : ""}`,
+            ],
+        };
+    }
 
     // 公有方法
     init() {
         // 检查设置相关和历史记录相关的表存不存在，如不存在就新建
         let hsTable = Object.keys(this.#historiesTable())[0];
         let cols = `(${this.#historiesTable()[hsTable].join(", ")})`;
+        let wdTable = Object.keys(this.#windowHwAndPosTable())[0];
+        let wdCols = `(${this.#windowHwAndPosTable()[hsTable].join(", ")})`;
         let connection = new this.#Sqlite3(this.#dbPath);
         connection.prepare(`CREATE TABLE IF NOT EXISTS ${hsTable} ${cols};`).run();
+
+        // 检查窗口属性相关的表存不存在，如不存在就新建并插入默认值
+
         connection.close();
     }
 
@@ -75,5 +102,11 @@ export class SqliteMan {
         let connection = new this.#Sqlite3(this.#dbPath);
         connection.prepare(`DELETE FROM ${hsTable};`).run();
         connection.close();
+    }
+
+    getLastExitWhAndPos() {
+        // 获得上次关闭时窗口的宽高和坐标
+        let w, h, x, y;
+        return [w, h, x, y];
     }
 }
