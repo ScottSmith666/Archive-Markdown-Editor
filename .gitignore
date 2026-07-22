@@ -4,7 +4,7 @@ __MACOSX
 out
 dist
 node_modules
-test.js
+test
 # 屏蔽 7z 编译产生的所有输出文件夹
 libs/third_party/7z2600-src/CPP/7zip/Bundles/Format7zF/o/
 libs/third_party/7z2600-src/CPP/7zip/Bundles/Format7zF/b/

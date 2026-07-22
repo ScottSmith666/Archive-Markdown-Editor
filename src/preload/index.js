@@ -48,6 +48,7 @@ const api = {
     },
     'windowManPreload': {
         getWindowWhAndPos: () => ipcRenderer.invoke('get-window-wh-and-pos'),
+        setWindowWhAndPos: (whXyArray) => ipcRenderer.send('set-window-wh-and-pos', whXyArray),
     }
 };
 

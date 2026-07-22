@@ -20,18 +20,13 @@ export class SqliteMan {
     // 私有方法
     #historiesTable(needType = true) {
         return {
-            'AME_OPEN_HISTORIES': [
+            'AME_OPEN_HISTORIES': [  // 打开文件历史记录相关的表
                 `hsId${needType ? ' TEXT' : ""}`,
                 `fileName${needType ? ' TEXT' : ""}`,
                 `filePath${needType ? ' TEXT' : ""}`,
                 `openTime${needType ? ' INT' : ""}`,
             ],
-        };
-    }
-
-    #windowHwAndPosTable(needType = true) {
-        return {
-            'AME_WINDOW_HW_POS': [
+            'AME_WINDOW_HW_POS': [  // 窗口属性相关的表
                 `w${needType ? ' INTEGER' : ""}`,
                 `h${needType ? ' INTEGER' : ""}`,
                 `x${needType ? ' INTEGER' : ""}`,
@@ -45,13 +40,19 @@ export class SqliteMan {
         // 检查设置相关和历史记录相关的表存不存在，如不存在就新建
         let hsTable = Object.keys(this.#historiesTable())[0];
         let cols = `(${this.#historiesTable()[hsTable].join(", ")})`;
-        let wdTable = Object.keys(this.#windowHwAndPosTable())[0];
-        let wdCols = `(${this.#windowHwAndPosTable()[hsTable].join(", ")})`;
         let connection = new this.#Sqlite3(this.#dbPath);
         connection.prepare(`CREATE TABLE IF NOT EXISTS ${hsTable} ${cols};`).run();
 
         // 检查窗口属性相关的表存不存在，如不存在就新建并插入默认值
+        let wdTable = Object.keys(this.#historiesTable())[1];
+        let wdCols = `(${this.#historiesTable()[wdTable].join(", ")})`;
+        let wdColsWithoutType = `(${this.#historiesTable(false)[wdTable].join(", ")})`;
+        connection.prepare(`CREATE TABLE IF NOT EXISTS ${wdTable} ${wdCols};`).run();
 
+        // 当窗口属性表内存在数据，则不插入
+        connection.prepare(
+            `INSERT INTO ${wdTable} ${wdColsWithoutType} SELECT ${this.#windowW}, ${this.#windowH}, ${this.#windowX}, ${this.#windowY} WHERE NOT EXISTS (SELECT 1 FROM ${wdTable});`
+        ).run();
         connection.close();
     }
 
@@ -105,8 +106,25 @@ export class SqliteMan {
     }
 
     getLastExitWhAndPos() {
-        // 获得上次关闭时窗口的宽高和坐标
-        let w, h, x, y;
-        return [w, h, x, y];
+        // 读取窗口属性
+        let connection = new this.#Sqlite3(this.#dbPath);
+        let wdTable = Object.keys(this.#historiesTable())[1];
+        let res = connection.prepare(`SELECT *
+                                         FROM ${wdTable};`).all();
+        connection.close();
+        return res;
+    }
+
+    setLastExitWhAndPos(whXyArray) {
+        // 在退出应用前写入窗口的宽高和坐标
+        let connection = new this.#Sqlite3(this.#dbPath);
+        let wdTable = Object.keys(this.#historiesTable())[1];
+        let wdColsWithoutType = this.#historiesTable(false)[wdTable];
+        let assign = "";
+        for (let i = 0; i < whXyArray.length; i++) {
+            assign = assign + `${wdColsWithoutType[i]} = ${whXyArray[i]},`;
+        }
+        connection.prepare(`UPDATE ${wdTable} SET ${assign.substring(0, assign.length - 1)};`).run();
+        connection.close();
     }
 }

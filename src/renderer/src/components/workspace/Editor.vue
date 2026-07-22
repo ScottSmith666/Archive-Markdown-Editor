@@ -74,8 +74,6 @@ onBeforeRouteUpdate((to, from) => {
     }
     monacoInstance.focus();
     update(monacoInstance, to.query.pageid);
-
-    console.log("route变动啦！！")
 });
 
 onMounted(() => {
@@ -312,7 +310,8 @@ const processLatex = (originContent) => {
     });
 
     // 3. 处理转义$
-    originContent = originContent.replaceAll("\\$", "\\\\$")
+    originContent = originContent.replaceAll("\\$", "\\\\$");
+    // console.log("处理后的内容：\n", originContent);
     return originContent;
 };
 

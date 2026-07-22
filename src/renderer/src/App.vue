@@ -30,8 +30,9 @@ onMounted(async () => {
         } catch (e) {
             whXyArray = [1600, 800, 0, 0];
         }
+        console.log(whXyArray);
         // 将获得的窗口的大小和坐标保存至sqlite数据库
-
+        window.windowManPreload.setWindowWhAndPos(whXyArray);
 
         // 遍历所有标签页查看是否存在未保存文件
         let isSaved = true;

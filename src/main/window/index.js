@@ -2,13 +2,18 @@ import {app, BrowserWindow, ipcMain, shell} from "electron";
 import icon from "../../../resources/icon.png";
 import path from "path";
 import fs from "fs";
+import {SqliteMan} from "../sqlite-man";
 
 const packedRoot = path.join(process.resourcesPath, 'app.asar')
 
-export const mainWindow = () => {
+export const mainWindow = (sqlite3, dbPath) => {
+    const sqliteMan = new SqliteMan(sqlite3, dbPath);
+    let windowProps = sqliteMan.getLastExitWhAndPos()[0];
     const main = new BrowserWindow({
-        width: 1600,
-        height: 1000,
+        width: windowProps.w,
+        height: windowProps.h,
+        x: windowProps.x,
+        y: windowProps.y,
         minWidth: 800,
         minHeight: 660,
         show: false,
@@ -63,6 +68,11 @@ export const mainWindow = () => {
         let wh = main.getSize();
         let xy = main.getPosition();
         return wh.concat(xy);  // w, h, x, y
+    });
+
+    // 关闭应用前设置窗口的宽高和坐标
+    ipcMain.on('set-window-wh-and-pos', (event, whXyArray) => {
+        sqliteMan.setLastExitWhAndPos(whXyArray);
     });
 
     main.webContents.setWindowOpenHandler((details) => {

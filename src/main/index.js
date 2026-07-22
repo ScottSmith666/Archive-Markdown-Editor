@@ -102,10 +102,7 @@ if (!gotTheLock) {  // 当前打开多个实例
             }
         }
 
-        main = mainWindow();
-
-        console.log("获得窗口宽高：", main.getSize());
-        console.log("获得窗口坐标：", main.getPosition());
+        main = mainWindow(Sqlite3, path.join(settings_dir_path, "ame.sqlite"));
 
         // 针对冷启动打开文件
         main.webContents.on('did-finish-load', () => {
