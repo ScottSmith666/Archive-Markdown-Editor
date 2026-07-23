@@ -298,6 +298,19 @@ onMounted(() => {
                 </div>
             </div>
         </div>
+        <div class="preview-edit-toggle-toolbar" v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
+                        ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
+                        : false">
+            <div class="preview" @click="store.commit('changeEditorMode', 'preview');">
+                <svg style="width: 30px; height: 19px;" t="1784782063682" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7462" width="200" height="200"><path d="M810.666667 128H213.333333a85.333333 85.333333 0 0 0-85.333333 85.333333v597.333334a85.333333 85.333333 0 0 0 85.333333 85.333333h597.333334c46.933333 0 85.333333-38.4 85.333333-85.333333V213.333333a85.333333 85.333333 0 0 0-85.333333-85.333333z m0 682.666667H213.333333V298.666667h597.333334v512z m-234.666667-256c0 35.413333-28.586667 64-64 64s-64-28.586667-64-64 28.586667-64 64-64 64 28.586667 64 64zM512 384c-116.48 0-215.893333 70.826667-256 170.666667 40.106667 99.84 139.52 170.666667 256 170.666666s215.893333-70.826667 256-170.666666c-40.106667-99.84-139.52-170.666667-256-170.666667z m0 277.333333a106.666667 106.666667 0 0 1 0-213.333333 106.666667 106.666667 0 0 1 0 213.333333z" p-id="7463" data-spm-anchor-id="a313x.search_index.0.i3.4bf33a815TC9fn" class="selected" fill="#707070"></path></svg>
+            </div>
+            <div class="edit" @click="store.commit('changeEditorMode', 'edit');">
+                <svg style="width: 30px; height: 19px;" t="1784781999914" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5590" width="200" height="200"><path d="M768 160l-32 0L736 128c0-19.2-12.8-32-32-32s-32 12.8-32 32l0 32-128 0L544 128c0-19.2-12.8-32-32-32s-32 12.8-32 32l0 32-128 0L352 128c0-19.2-12.8-32-32-32S288 108.8 288 128l0 32L256 160C220.8 160 192 188.8 192 224l0 640c0 35.2 28.8 64 64 64l512 0c35.2 0 64-28.8 64-64L832 224C832 188.8 803.2 160 768 160zM768 864 256 864 256 224l512 0L768 864z" p-id="5591" fill="#8a8a8a"></path><path d="M672 352 352 352c-19.2 0-32 12.8-32 32s12.8 32 32 32l320 0c19.2 0 32-12.8 32-32S691.2 352 672 352z" p-id="5592" fill="#8a8a8a"></path><path d="M672 512 352 512c-19.2 0-32 12.8-32 32s12.8 32 32 32l320 0c19.2 0 32-12.8 32-32S691.2 512 672 512z" p-id="5593" fill="#8a8a8a"></path><path d="M672 672 352 672c-19.2 0-32 12.8-32 32s12.8 32 32 32l320 0c19.2 0 32-12.8 32-32S691.2 672 672 672z" p-id="5594" fill="#8a8a8a"></path></svg>
+            </div>
+            <div class="preview-edit" @click="store.commit('changeEditorMode', 'mix');">
+                <svg style="width: 30px; height: 19px;" t="1784782119406" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="8756" width="200" height="200"><path d="M512 0C230.912 0 0 228.864 0 508.928s230.912 508.928 512 508.928 512-228.864 512-508.928S794.112 0 512 0z m0 933.376c-234.496 0-427.008-190.464-427.008-424.448S276.48 84.992 512 84.992s427.008 190.464 427.008 424.448-192.512 423.936-427.008 423.936z" p-id="8757" fill="#8a8a8a"></path><path d="M511.488 53.248v927.744L814.08 870.4l128.512-265.216V296.96L742.4 107.008 511.488 53.248z" p-id="8758" fill="#8a8a8a"></path></svg>
+            </div>
+        </div>
     </div>
 </template>
 <style scoped>

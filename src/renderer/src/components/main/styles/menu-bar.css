@@ -16,7 +16,9 @@ p {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    padding-left: 1%;
+    padding-right: 1%;
 }
 
 .menu {
@@ -96,7 +98,6 @@ p {
 }
 
 .nav-ico-position {
-    width: 98%;
     height: 100%;
     display: flex;
     align-items: center;
@@ -113,4 +114,23 @@ p {
 
 .main-menu-separator {
     width: 25px;
+}
+
+.preview-edit-toggle-toolbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview {
+    cursor: pointer;
+}
+
+.edit {
+    cursor: pointer;
+}
+
+.preview-edit {
+    cursor: pointer;
 }

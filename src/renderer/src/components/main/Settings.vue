@@ -10,6 +10,8 @@ const store = useStore();
  * 界面显示语言：surface_lang："zh-CN" || "zh-TW" || "en"，"zh-CN"代表简体中文，"zh-TW"代表繁体中文，"en"代表英语
  * 根据用户的操作系统语言自行切换，如果用户操作系统语言不是这三种语言，则默认切换为英文
  * 语言无需自己设置
+ * -----外观-----
+ * 设置界面主题：ame_theme: ""
  * -----编辑器-----
  * 编辑区Tab缩进长度：editor_tab_size: <number>，初始化默认为4
  * 编辑区字体大小：editor_font_size: <number>，初始化默认为14

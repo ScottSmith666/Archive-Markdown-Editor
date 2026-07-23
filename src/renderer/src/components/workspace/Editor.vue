@@ -11,6 +11,9 @@ import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/inli
 import '../../../../../libs/third_party/monaco-editor/esm/vs/editor/contrib/find/browser/findController.js';
 import './suggestions.js';
 
+// import monaco editor themes
+import Themes from "../../../../../libs/third_party/monaco-editor-themes";
+
 // get Vue API
 import {nextTick, onMounted, ref} from "vue";
 import {useStore} from 'vuex';
@@ -57,6 +60,9 @@ const updateMonacoEditorTheme = (monacoInstance) => {
             enabled: store.state.settings.userSettings.display_code_scale === 1,
         },
         cursorSmoothCaretAnimation: store.state.settings.userSettings.display_editor_animation === 1,
+        // theme: 'vs-dark',
+        // theme: 'vs',
+        // theme: 'monokai-pro',
     });
 };
 
@@ -77,7 +83,22 @@ onBeforeRouteUpdate((to, from) => {
 });
 
 onMounted(() => {
-    monacoInstance = monaco.editor.create(document.getElementById("editor"), {
+
+    let monacoEditorObj = monaco.editor;
+
+    // 注册编辑器样式
+    Themes.register("github-light", Themes.themes.light.github, monacoEditorObj);
+    Themes.register("atom-light", Themes.themes.light.atom, monacoEditorObj);
+    Themes.register("material-light", Themes.themes.light.material, monacoEditorObj);
+
+    Themes.register("darcula", Themes.themes.dark.darcula, monacoEditorObj);
+    Themes.register("material-dark", Themes.themes.dark.material, monacoEditorObj);
+    Themes.register("atom-dark", Themes.themes.dark.atom, monacoEditorObj);
+    Themes.register("github-dark", Themes.themes.dark.github, monacoEditorObj);
+    Themes.register("one-dark-pro", Themes.themes.dark["one-dark-pro"], monacoEditorObj);
+    Themes.register("monokai-pro", Themes.themes.dark["monokai-pro"], monacoEditorObj);
+
+    monacoInstance = monacoEditorObj.create(document.getElementById("editor"), {
         automaticLayout: true,
     });
     updateMonacoEditorTheme(monacoInstance);
