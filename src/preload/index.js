@@ -45,6 +45,7 @@ const api = {
     },
     'permissionsPreload': {
         getPermissions: (callback) => ipcRenderer.invoke('get-rw-permission'),
+        getOS: () => ipcRenderer.invoke('get-os'),
     },
     'windowManPreload': {
         getWindowWhAndPos: () => ipcRenderer.invoke('get-window-wh-and-pos'),

@@ -53,7 +53,7 @@ const store = useStore();
 </svg>
     </div>
     <!--打开帮助快捷键提示-->
-    <div>
+    <div v-if="!store.state.hmos.isHarmonyOS">
         <div class="container fonts">
             <div class="explain">
                 {{ store.state.i18n.langPackage[store.state.settings.lang].defaultPage.activateHotKey }}

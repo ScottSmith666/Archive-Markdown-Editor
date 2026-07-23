@@ -10,6 +10,11 @@
         "editor",
         "archive markdown editor"
     ],
+    "files": [
+        "README.md",
+        "LICENSE",
+        "package.json"
+    ],
     "homepage": "https://scottsmith666.github.io/",
     "license": "MIT",
     "scripts": {

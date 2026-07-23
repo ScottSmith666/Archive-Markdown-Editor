@@ -21,6 +21,7 @@ onMounted(async () => {
     // dispatch
     await store.dispatch('initUserSettingsAction');  // 启动App时即加载user settings相关store变量
     await store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
+    await store.dispatch('setIsHarmonyOS');  // 检测是否是HarmonyOS
 
     window.confirmPreload.onAskForClose(async () => {
         // 在这里获得关闭前窗口的大小和坐标

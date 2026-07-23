@@ -13,4 +13,6 @@ export const harmonyPermissionIpc = () => {
             await systemPreferences.requestDirectoryPermission(desktopPath);
         }
     });
+
+    ipcMain.handle("get-os",  (event) => process.platform);
 };

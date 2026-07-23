@@ -273,13 +273,13 @@ onMounted(() => {
                                  'docName': `about${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); store.commit('mainManuAllHide');">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.about }}</p>
                             </div>
-                            <div class="menu-element" id="about"
+                            <div class="menu-element" id="usage" v-if="!store.state.hmos.isHarmonyOS"
                                  @click="store.commit('addTabPage', {'pageType': 'document',
                                  'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.usage, 'isExistFile': false,
                                  'docName': `usage${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); store.commit('mainManuAllHide');">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.usage }}</p>
                             </div>
-                            <div class="menu-element" id="syntax"
+                            <div class="menu-element" id="syntax" v-if="!store.state.hmos.isHarmonyOS"
                                  @click="store.commit('addTabPage', {'pageType': 'document',
                                  'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.syntax, 'isExistFile': false,
                                  'docName': `syntax${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); store.commit('mainManuAllHide');">
@@ -289,7 +289,7 @@ onMounted(() => {
                                  @click="store.commit('toggleModal', {'kind': 'donate'}); store.commit('mainManuAllHide');">
                                 <p class="fonts" style="color: red;">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.donate }}</p>
                             </div>
-                            <div class="menu-element" id="learn-more"
+                            <div class="menu-element" id="learn-more" v-if="!store.state.hmos.isHarmonyOS"
                                  @click="openOfficialWebsite(); store.commit('mainManuAllHide');">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.officialSite }}</p>
                             </div>

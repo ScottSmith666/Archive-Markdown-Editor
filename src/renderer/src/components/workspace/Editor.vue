@@ -19,7 +19,7 @@ import {nextTick, onMounted, ref} from "vue";
 import {useStore} from 'vuex';
 import {useRoute, onBeforeRouteUpdate} from 'vue-router';
 
-import {exampleContent} from "./example.js";
+import {exampleContent, exampleContentForHarmonyOS} from "./example.js";
 
 const route = useRoute();
 const store = useStore();
@@ -158,7 +158,7 @@ onMounted(() => {
                 {
                     // 如果使用 selection，当有文本被选中时会替换它；否则在光标处插入
                     range: selection,
-                    text: exampleContent,
+                    text: store.state.hmos.isHarmonyOS ? exampleContentForHarmonyOS : exampleContent,
                     forceMoveMarkers: true // 通常设置为 true
                 }
             ]);
