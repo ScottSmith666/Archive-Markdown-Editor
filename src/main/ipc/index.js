@@ -138,6 +138,16 @@ const copyOnHarmony = async (src, dest) => {
     });
 };
 
+const fileNameIsContainsIllegalChar = (fileName) => {
+    const fileForbiddenChars = [">", "<", ":", "'", "|", "*", "?", "(", ")"];
+    for (let i = 0; i < fileForbiddenChars.length; i++) {
+        if (fileName.includes(fileForbiddenChars[i])) {
+            return true;
+        }
+    }
+    return false;
+};
+
 export const ipc = (Sqlite3, dbPath) => {
     const sqliteMan = new SqliteMan(Sqlite3, dbPath);
     sqliteMan.init();  // 检查相关sqlite表是否存在，如不存在就新建
@@ -419,7 +429,7 @@ export const ipc = (Sqlite3, dbPath) => {
         }
     });
 
-    ipcMain.handle("media-paster", async (event) => {
+    ipcMain.handle("media-paster", async (event, errorMsg) => {
         const formats = clipboard.availableFormats();
         let fileURLs, type;
         // 常见视频文件的扩展名
@@ -427,7 +437,7 @@ export const ipc = (Sqlite3, dbPath) => {
         // 常见音频文件的扩展名
         const audioExts = ["mp3", "wav", "flac", "ogg", "wma", "aac", "m4a"];
         // 常见图片文件的扩展名
-        const imageExts = ["jpg", "jpeg", "tif", "tiff", "gif", "bmp", "svg", "png"];
+        const imageExts = ["jpg", "jpeg", "tif", "tiff", "gif", "bmp", "svg", "png", "webp"];
         // 优先检查是否存在文件专用格式
         // 只要存在，说明最近一次操作绝对是“复制了文件”
         const isFile = formats.some(format =>
@@ -470,20 +480,25 @@ export const ipc = (Sqlite3, dbPath) => {
                         return url.replace('file://', '');
                     });
             }
+
             let result = "";
             for (let i = 0; i < fileURLs.length; i++) {
-                let fileURL = encodeURI(fileURLs[i]);
-                let ext = fileURL.split(".").pop().toLowerCase();
-                if (videoExts.includes(ext)) {
-                    type = "${video}:";
-                } else if (audioExts.includes(ext)) {
-                    type = "${audio}:";
-                } else if (imageExts.includes(ext)) {
-                    type = "";
+                if (fileNameIsContainsIllegalChar(fileURLs[i].split("/").pop())) {
+                    result = result + `${errorMsg}\n`;
                 } else {
-                    type = "${file}:";
+                    let fileURL = encodeURI(fileURLs[i]);
+                    let ext = fileURL.split(".").pop().toLowerCase();
+                    if (videoExts.includes(ext)) {
+                        type = "${video}:";
+                    } else if (audioExts.includes(ext)) {
+                        type = "${audio}:";
+                    } else if (imageExts.includes(ext)) {
+                        type = "";
+                    } else {
+                        type = "${file}:";
+                    }
+                    result = result + ("![" + type + "](" + fileURL + ")\n");
                 }
-                result = result + ("![" + type + "](" + fileURL + ")\n");
             }
             return result;
         } else {
@@ -506,7 +521,7 @@ export const ipc = (Sqlite3, dbPath) => {
         }
     });
 
-    ipcMain.handle("import-media-into-mdz", async (event, title, destinationPath) => {
+    ipcMain.handle("import-media-into-mdz", async (event, title, destinationPath, errorMsg) => {
         // 打开“选择打开文件”的操作系统组件，以向渲染端（前端）返回计划打开的文件路径
         let mediaFilePaths = dialogs.openFileDialog(title, true);  // 获得打开的文件路径
         if (!mediaFilePaths) {
@@ -515,6 +530,9 @@ export const ipc = (Sqlite3, dbPath) => {
         }
         let mediaFilePath = decodeURI(mediaFilePaths[0]);
         let mediaFileName = mediaFilePath.split(path.sep).pop();
+        if (fileNameIsContainsIllegalChar(mediaFileName)) {
+            return {"success": false, "message": [errorMsg]};
+        }
         try {
             if (process.platform === 'openharmony') {
                 await copyOnHarmony(mediaFilePath, `${destinationPath}/${mediaFileName}`);

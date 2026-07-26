@@ -17,7 +17,7 @@ const api = {
         deleteRecentOpenedHistory: (hsId) => ipcRenderer.invoke('delete-recent-opened-history', hsId),
     },
     "clipboardPreload": {
-        mediaPaster: () => ipcRenderer.invoke('media-paster'),
+        mediaPaster: (errorMsg) => ipcRenderer.invoke('media-paster', errorMsg),
     },
     'fileManPreload': {
         activateOpenFileDialog: (title, content) => ipcRenderer.invoke('activate-open-file-dialog', title, content),
@@ -36,7 +36,7 @@ const api = {
         getFileBuffer: (filePath, isXlsx = false) => ipcRenderer.invoke('get-file-buffer', filePath, isXlsx),
         getFileAsText: (filePath) => ipcRenderer.invoke('get-file-as-txt', filePath),
         deleteMediaInMdz: (mediaPath) => ipcRenderer.invoke('delete-media-in-mdz', mediaPath),
-        importMediaIntoMdz: (title, destinationPath) => ipcRenderer.invoke('import-media-into-mdz', title, destinationPath),
+        importMediaIntoMdz: (title, destinationPath, errorMsg) => ipcRenderer.invoke('import-media-into-mdz', title, destinationPath, errorMsg),
     },
     'confirmPreload': {
         onAskForClose: (callback) => ipcRenderer.on('ask-for-close', callback),

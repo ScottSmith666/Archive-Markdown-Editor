@@ -5,7 +5,7 @@ export const commonExts = {
             // 常见音频文件的扩展名
             audioExts: ["mp3", "wav", "flac", "ogg", "wma", "aac", "m4a"],
             // 常见图片文件的扩展名
-            imageExts: ["jpg", "jpeg", "tif", "tiff", "gif", "bmp", "svg", "png"],
+            imageExts: ["jpg", "jpeg", "tif", "tiff", "gif", "bmp", "svg", "png", "webp"],
         };
     }
 }

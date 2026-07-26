@@ -178,7 +178,8 @@ onMounted(() => {
         ],
         contextMenuGroupId: '9_cutcopypaste',
         run: async function () {
-            let mediaMdFromClipboard = await window.clipboardPreload.mediaPaster();
+            let mediaMdFromClipboard = await window.clipboardPreload
+                .mediaPaster(store.state.i18n.langPackage[store.state.settings.lang].editorPlace.pasteErrorMsg);
             const selection = monacoInstance.getSelection();
             monacoInstance.executeEdits('media-md', [
                 {

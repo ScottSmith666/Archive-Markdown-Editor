@@ -108,7 +108,8 @@ const addMediaIntoMdz = () => {
     let destinationMediaHomePath = `${mdzHomePath}/._mdz_content.${mdzNameRemoveExt}/mdz_contents/media_src`;
     window.fileManPreload.importMediaIntoMdz(
         store.state.i18n.langPackage[store.state.settings.lang].dialog.systemDialogImportMdzMedia,
-        destinationMediaHomePath
+        destinationMediaHomePath,
+        store.state.i18n.langPackage[store.state.settings.lang].editorPlace.pasteErrorMsg
     ).then((result) => {
         if (result.success) {
             mediaListInMdz.value.push(result.message[1]);

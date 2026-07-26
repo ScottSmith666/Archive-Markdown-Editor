@@ -1,4 +1,4 @@
-import {app, dialog} from "electron";
+import {app, dialog, Tray} from "electron";
 import path from "path";
 import {ipc} from "./ipc";
 import {menu} from "./menu";
@@ -65,6 +65,18 @@ if (!gotTheLock) {  // 当前打开多个实例
     });
 
     app.whenReady().then(() => {
+        console.log("when ready");
+        const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
+        let pngPath = process.platform === "openharmony"
+            ? path.join(__dirname, `..${path.sep}..${path.sep}resources${path.sep}icon.png`)
+            : (
+                !app.isPackaged
+                    ? path.join(__dirname, `..${path.sep}..${path.sep}resources${path.sep}icon.png`)
+                    : path.join(unpackedRoot, `resources`, `icon.png`)
+            );
+        console.log(pngPath);
+        let tray = new Tray(pngPath);
+        console.log("tray", tray);
         // 创建一个Sqlite连接
         let settings_dir_path = process.platform === 'openharmony'
             ? path.join(app.getPath('appData'), ".ame_conf")  // 鸿蒙系统只能存在appData目录内，其他地方没有权限

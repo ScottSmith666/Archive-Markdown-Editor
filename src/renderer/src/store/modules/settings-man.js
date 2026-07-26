@@ -1,7 +1,3 @@
-const initLangFunc = (state) => {
-
-};
-
 export const settingsMan = {
     state: () => {
         return {

@@ -291,6 +291,9 @@ export const i18n = {
                             "notDirectPreview": ['当前媒体文件不支持直接预览，请另存至本地处理', '或', '以文本形式预览部分内容'],
                         },
                     },
+                    "editorPlace": {
+                        "pasteErrorMsg": '计划插入的多媒体文件内部包含敏感符号，请修改文件名后再重新插入',
+                    },
                     "renderPlaceholder": 'Markdown渲染区',
                 },
                 "zh-TW": {
@@ -582,6 +585,9 @@ export const i18n = {
                             "notDirectPreview": ['目前媒體不支援直接預覽，請另存至本地處理', '或', '以文字形式預覽部分內容'],
                         },
                     },
+                    "editorPlace": {
+                        "pasteErrorMsg": '計劃插入的多媒體文件內部包含敏感符號，請修改檔案名稱後再重新插入',
+                    },
                     "renderPlaceholder": 'Markdown渲染區',
                 },
                 "en": {
@@ -872,6 +878,9 @@ export const i18n = {
                             "saveButton": 'Save As',
                             "notDirectPreview": ['The current media file does not support direct preview; please save it locally for processing.', 'Or ', 'preview part of the content in text format'],
                         },
+                    },
+                    "editorPlace": {
+                        "pasteErrorMsg": 'The multimedia file contains sensitive characters. Please rename the file.',
                     },
                     "renderPlaceholder": 'Markdown Rendering Area',
                 },
