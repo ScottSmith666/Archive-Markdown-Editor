@@ -38,7 +38,7 @@ const updateMonacoEditorTheme = (monacoInstance) => {
         contextmenu: true,
         language: 'markdown',
         automaticLayout: true,
-        scrollBeyondLastLine: true,
+        scrollBeyondLastLine: false,
         autoIndent: "advanced",
         formatOnPaste: true,
         dragAndDrop: false,
