@@ -214,24 +214,32 @@ const mermaidRender = () => {
 
 const scrollCustomLineElementToCenter = (middleLine, rangeFirstLine) => {
     nextTick().then(() => {
-        const container = document.getElementById('viewer-container');  // 外面的容器，包裹着里面的滚动着的高div
-        if (!container) {
-            return 0;
-        }
-        if (!container.firstChild) {
-            return 0;
-        }
-        let targetElement;
-        // 在右侧容器中查找具有相同 data-source-line 的元素
-        targetElement = container.firstChild
-            .querySelector(`[data-source-line="${middleLine - rangeFirstLine + 1 /* data-source-line的编号是从0开始的，因此需要减1 -> */ - 1}"]`);
-        if (targetElement) {
-            targetElement.scrollIntoView({
-                behavior: 'auto',
-                block: 'center',
-                container: 'nearest',
-                inline: 'center',
-            });
+        const container = document.getElementById('write');  // 外面的容器，包裹着里面的滚动着的高div
+        const errRange = [-1, 0, 1];
+        // 在右侧容器中查找具有相同 data-source-line (误差范围正负1) 的元素
+        for (let i = 0; i < errRange.length; i++) {
+            let targetElements = container.querySelectorAll(
+                `[data-source-line="${middleLine - rangeFirstLine + 1 /* data-source-line的编号是从0开始的，因此需要减1 -> */ - 1 + errRange[i]}"]`);
+            if (targetElements.length !== 0) {
+                // 看下是不是blockquote，是就滚动祖父元素
+                if (targetElements[0].parentElement?.parentElement.tagName === 'BLOCKQUOTE' ||
+                    targetElements[0].parentElement?.parentElement.classList.contains('markdown-alert')) {
+                    targetElements[0].parentElement?.parentElement.scrollIntoView({
+                        behavior: 'auto',
+                        block: 'center',
+                        container: 'nearest',
+                        inline: 'center',
+                    });
+                } else {
+                    targetElements[0].scrollIntoView({
+                        behavior: 'auto',
+                        block: 'center',
+                        container: 'nearest',
+                        inline: 'center',
+                    });
+                }
+                break;
+            }
         }
     });
 };
@@ -502,11 +510,6 @@ code:hover {
     background-color: #e9ecef;
 }
 
-/* 暗色模式适配 */
-@media (prefers-color-scheme: dark) {
-
-}
-
 /* 重置代码块（<pre><code>）内的样式，确保代码块保持原始格式 */
 pre code {
     background-color: transparent;
@@ -520,25 +523,5 @@ pre code {
 
 * {
     word-break: break-all !important;
-}
-
-.markdown-alert.markdown-alert-note {
-    background-color: rgba(47, 129, 247, 0.06);
-}
-
-.markdown-alert.markdown-alert-important {
-    background-color: rgba(163, 113, 247, 0.06);
-}
-
-.markdown-alert.markdown-alert-tip {
-    background-color: rgba(63, 185, 80, 0.06);
-}
-
-.markdown-alert.markdown-alert-warning {
-    background-color: rgba(210, 153, 34, 0.06);
-}
-
-.markdown-alert.markdown-alert-caution {
-    background-color: rgba(248, 81, 73, 0.06);
 }
 </style>

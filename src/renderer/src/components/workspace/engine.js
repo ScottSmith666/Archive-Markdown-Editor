@@ -42,7 +42,7 @@ export default (enableDocumentMediaPath, displayKind = 'preview') => {
     mdIt.use(MarkdownItClass, {
         h1: 'md-block',
         p: 'md-block',
-        table: 'md-block',
+        table: 'md-block md-table',
     });
     mdIt.use(markdownItTaskLists);
     mdIt.use(MarkdownItIncrementalDOM, IncrementalDOM);

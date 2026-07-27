@@ -22,7 +22,7 @@ export const rules = (md, documentPathObject, displayKind) => {
             if (state.tokens[i].type === 'table_open') {
                 // 在 table_open 之前插入一个 div_open 类型的 Token
                 const open = new state.Token('html_inline', '', 0);
-                open.content = '<div class="table-container">';
+                open.content = '<div class="table-container md-table-fig">';
                 state.tokens.splice(i, 0, open);
                 i++; // 跳过刚插入的 token
             }

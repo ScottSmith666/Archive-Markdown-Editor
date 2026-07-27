@@ -106,7 +106,7 @@ onMounted(() => {
             <div id="xlsx-container"></div>
         </div>
         <div class="video-preview" v-else-if="store.state.exts.videoExts.includes(getExt().toLowerCase())">
-            <video style="object-fit: contain;" controls>
+            <video style="object-fit: contain; width: 100%;" controls>
                 <source :src="'file://' + encodeURI(props.mediaFilePath)"/>
             </video>
         </div>

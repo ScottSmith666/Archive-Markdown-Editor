@@ -33,20 +33,6 @@ button:focus {
     padding-bottom: 20px;
 }
 
-:deep(.md-block) {
-    overflow-x: scroll;
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-:deep(.md-block::-webkit-scrollbar) {
-    display: none; /* 或者高度设为0 */
-}
-
-:deep(.table-container) {
-    overflow-x: scroll;
-}
-
 .viewer-contextmenu {
     box-shadow: 0 12px 32px rgba(0, 0, 0, .1), 0 2px 6px rgba(0, 0, 0, .08);
     border: 1px solid transparent;
