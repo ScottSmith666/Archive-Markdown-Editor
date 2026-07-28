@@ -11,7 +11,11 @@ const store = useStore();
  * 根据用户的操作系统语言自行切换，如果用户操作系统语言不是这三种语言，则默认切换为英文
  * 语言无需自己设置
  * -----外观-----
- * 设置界面主题：ame_theme: ""
+ * 设置渲染区主题：ame_viewer_theme: "default"...
+ * 设置编辑区主题：ame_editor_theme: "vs" "atom-light" "github-light"
+ * "material-light" "vs-dark" "darcula" "material-dark" "atom-dark" "github-dark" "one-dark-pro" "monokai-pro" <- 前面这11个均为内置，后面
+ * 的这个选项为自定义: "custom"
+ * 设置主题色：theme_color: <string>，初始化默认为"#42b983"
  * -----编辑器-----
  * 编辑区Tab缩进长度：editor_tab_size: <number>，初始化默认为4
  * 编辑区字体大小：editor_font_size: <number>，初始化默认为14
@@ -145,6 +149,58 @@ const render_mode = computed({
                     {{ store.state.i18n.langPackage[store.state.settings.lang].settings.attention }}
                 </div>
             </div>
+
+            <div class="title2">
+                <div class="title2-block"></div>
+                <div style="width: 8px"></div>
+                <h2>{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.mainCaption }}</h2>
+            </div>
+
+            <div class="settings-item">
+                <div class="settings-icon">
+                    <svg t="1775365018449" class="icon tab-icon" viewBox="0 0 1024 1024" version="1.1"
+                         xmlns="http://www.w3.org/2000/svg" p-id="11404" width="200" height="200">
+                        <path
+                            d="M793.6 430.08h-56.32c-10.24 0-15.36-5.12-20.48-10.24s-5.12-20.48 5.12-25.6l40.96-40.96c5.12-5.12 10.24-15.36 10.24-20.48 0-10.24-5.12-15.36-10.24-20.48l-51.2-51.2c-10.24-10.24-35.84-10.24-46.08 0l-40.96 40.96c-10.24 5.12-15.36 5.12-20.48 5.12s-10.24-5.12-15.36-5.12c-5.12-5.12-5.12-10.24-5.12-15.36v-61.44c0-20.48-15.36-30.72-30.72-30.72h-71.68c-20.48 0-30.72 15.36-30.72 30.72v56.32c0 15.36-10.24 20.48-20.48 20.48-5.12 0-10.24 0-15.36-5.12l-46.08-40.96c-10.24-10.24-35.84-10.24-46.08 0l-51.2 51.2c-5.12 5.12-10.24 15.36-10.24 20.48 0 10.24 5.12 15.36 10.24 20.48l40.96 40.96c5.12 5.12 10.24 15.36 5.12 25.6s-10.24 10.24-20.48 10.24h-56.32c-20.48 0-30.72 15.36-30.72 30.72v71.68c0 20.48 15.36 30.72 30.72 30.72h56.32c10.24 0 15.36 5.12 20.48 10.24 5.12 10.24 5.12 20.48-5.12 25.6l-40.96 40.96c-5.12 5.12-10.24 15.36-10.24 20.48 0 10.24 5.12 15.36 10.24 20.48l51.2 51.2c10.24 10.24 35.84 10.24 46.08 0l40.96-40.96c5.12-5.12 10.24-5.12 15.36-5.12 10.24 0 20.48 10.24 20.48 20.48V768c0 20.48 15.36 30.72 30.72 30.72h71.68c20.48 0 30.72-15.36 30.72-30.72v-51.2c0-15.36 10.24-20.48 20.48-20.48 5.12 0 10.24 0 15.36 5.12l40.96 40.96c10.24 10.24 35.84 10.24 46.08 0l51.2-51.2c5.12-5.12 10.24-15.36 10.24-20.48 0-10.24-5.12-15.36-10.24-20.48l-35.84-40.96c-5.12-5.12-10.24-15.36-5.12-25.6s10.24-10.24 20.48-10.24h56.32c20.48 0 30.72-15.36 30.72-30.72v-71.68c5.12-25.6-10.24-40.96-25.6-40.96z m-199.68 71.68c0 40.96-35.84 81.92-81.92 81.92-40.96 0-81.92-35.84-81.92-81.92 0-40.96 35.84-81.92 81.92-81.92 46.08 0 81.92 35.84 81.92 81.92z"
+                            p-id="11405" data-spm-anchor-id="a313x.search_index.0.i9.75d53a81ELi9GL"
+                            class="selected" fill="#42b883"></path>
+                    </svg>
+                </div>
+                <div class="settings-content">
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.themeColor }}</div>
+                    <div style="height: 10px;"></div>
+                    <input class="input" type="text" />
+                </div>
+            </div>
+            <div style="height: 15px;"></div>
+
+            <div class="settings-item">
+                <div class="settings-icon">
+                    <svg t="1775365018449" class="icon tab-icon" viewBox="0 0 1024 1024" version="1.1"
+                         xmlns="http://www.w3.org/2000/svg" p-id="11404" width="200" height="200">
+                        <path
+                            d="M793.6 430.08h-56.32c-10.24 0-15.36-5.12-20.48-10.24s-5.12-20.48 5.12-25.6l40.96-40.96c5.12-5.12 10.24-15.36 10.24-20.48 0-10.24-5.12-15.36-10.24-20.48l-51.2-51.2c-10.24-10.24-35.84-10.24-46.08 0l-40.96 40.96c-10.24 5.12-15.36 5.12-20.48 5.12s-10.24-5.12-15.36-5.12c-5.12-5.12-5.12-10.24-5.12-15.36v-61.44c0-20.48-15.36-30.72-30.72-30.72h-71.68c-20.48 0-30.72 15.36-30.72 30.72v56.32c0 15.36-10.24 20.48-20.48 20.48-5.12 0-10.24 0-15.36-5.12l-46.08-40.96c-10.24-10.24-35.84-10.24-46.08 0l-51.2 51.2c-5.12 5.12-10.24 15.36-10.24 20.48 0 10.24 5.12 15.36 10.24 20.48l40.96 40.96c5.12 5.12 10.24 15.36 5.12 25.6s-10.24 10.24-20.48 10.24h-56.32c-20.48 0-30.72 15.36-30.72 30.72v71.68c0 20.48 15.36 30.72 30.72 30.72h56.32c10.24 0 15.36 5.12 20.48 10.24 5.12 10.24 5.12 20.48-5.12 25.6l-40.96 40.96c-5.12 5.12-10.24 15.36-10.24 20.48 0 10.24 5.12 15.36 10.24 20.48l51.2 51.2c10.24 10.24 35.84 10.24 46.08 0l40.96-40.96c5.12-5.12 10.24-5.12 15.36-5.12 10.24 0 20.48 10.24 20.48 20.48V768c0 20.48 15.36 30.72 30.72 30.72h71.68c20.48 0 30.72-15.36 30.72-30.72v-51.2c0-15.36 10.24-20.48 20.48-20.48 5.12 0 10.24 0 15.36 5.12l40.96 40.96c10.24 10.24 35.84 10.24 46.08 0l51.2-51.2c5.12-5.12 10.24-15.36 10.24-20.48 0-10.24-5.12-15.36-10.24-20.48l-35.84-40.96c-5.12-5.12-10.24-15.36-5.12-25.6s10.24-10.24 20.48-10.24h56.32c20.48 0 30.72-15.36 30.72-30.72v-71.68c5.12-25.6-10.24-40.96-25.6-40.96z m-199.68 71.68c0 40.96-35.84 81.92-81.92 81.92-40.96 0-81.92-35.84-81.92-81.92 0-40.96 35.84-81.92 81.92-81.92 46.08 0 81.92 35.84 81.92 81.92z"
+                            p-id="11405" data-spm-anchor-id="a313x.search_index.0.i9.75d53a81ELi9GL"
+                            class="selected" fill="#42b883"></path>
+                    </svg>
+                </div>
+                <div class="settings-content">
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.viewerThemes }}</div>
+                    <div style="height: 10px;"></div>
+                    <select class="input" style="flex: 1; min-width: 150px;">
+                        <option value="default">default</option>
+                        <option value="red">red</option>
+                        <option value="orange">red</option>
+                        <option value="yellow">yellow</option>
+                        <option value="light-blue">light-blue</option>
+                        <option value="dark-blue">dark-blue</option>
+                        <option value="purple">purple</option>
+                        <option value="dark">dark</option>
+                        <option value="custom">custom...</option>
+                    </select>
+                </div>
+            </div>
+            <div style="height: 15px;"></div>
 
             <div class="title2">
                 <div class="title2-block"></div>

@@ -142,6 +142,19 @@ export const i18n = {
                     "settings": {
                         "title": '设置',
                         "attention": '设置更改后即时生效，无需重启应用。',
+                        "theme": {
+                            "mainCaption": '主题',
+                            "subCaptions": {
+                                "themeColor": '主题色',
+                                "viewerThemes": '预览区主题设置',
+                                "editorThemes": '编辑区主题设置',
+                                "customThemes": {
+                                    "caption": '自定义主题',
+                                    "addButton": '新建主题',
+                                    "deleteButton": '删除主题',
+                                },
+                            },
+                        },
                         "editor": {
                             "mainCaption": '编辑器',
                             "subCaptions": {
@@ -436,6 +449,19 @@ export const i18n = {
                     "settings": {
                         "title": '設定',
                         "attention": '設定變更後即時生效，無需重新啟動應用。',
+                        "theme": {
+                            "mainCaption": '主題',
+                            "subCaptions": {
+                                "themeColor": '主題色',
+                                "viewerThemes": '預覽區主題設定',
+                                "editorThemes": '編輯區主題設置',
+                                "customThemes": {
+                                    "caption": '自訂主題',
+                                    "addButton": '新主題',
+                                    "deleteButton": '刪除主題',
+                                },
+                            },
+                        },
                         "editor": {
                             "mainCaption": '編輯器',
                             "subCaptions": {
@@ -730,6 +756,19 @@ export const i18n = {
                     "settings": {
                         "title": 'Settings',
                         "attention": 'Settings changes take effect immediately without requiring an application restart.',
+                        "theme": {
+                            "mainCaption": 'Themes',
+                            "subCaptions": {
+                                "themeColor": 'Set Theme Color',
+                                "viewerThemes": 'Set Viewer Theme',
+                                "editorThemes": 'Set Editor Theme',
+                                "customThemes": {
+                                    "caption": 'Custom Theme',
+                                    "addButton": 'New Theme',
+                                    "deleteButton": 'Delete Theme',
+                                },
+                            },
+                        },
                         "editor": {
                             "mainCaption": 'Editor',
                             "subCaptions": {

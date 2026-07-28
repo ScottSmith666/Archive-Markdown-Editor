@@ -96,19 +96,14 @@ if (!gotTheLock) {  // 当前打开多个实例
 
             const themeStats = fs.statSync(path.join(settings_dir_path, "themes"));
             if (themeStats.isDirectory()) {  // 确认主题路径存在
-                if (!fs.existsSync(path.join(settings_dir_path, "themes", "viewer-theme.css"))) {
-                    fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.css"), defaultViewerTheme, "utf8");
-                }
-
-                if (!fs.existsSync(path.join(settings_dir_path, "themes", "viewer-theme.css.default"))) {
-                    fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.css.default"), defaultViewerTheme, "utf8");
+                if (!fs.existsSync(path.join(settings_dir_path, "themes", "viewer-theme.default.css"))) {
+                    fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.default.css"), defaultViewerTheme, "utf8");
                 }
             }
         } catch (e) {  // 没有该路径，就创建文件夹
             fs.mkdirSync(path.join(settings_dir_path, "themes"), { recursive: true });
             // 生成默认主题
-            fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.css"), defaultViewerTheme, "utf8");
-            fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.css.default"), defaultViewerTheme, "utf8");
+            fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.default.css"), defaultViewerTheme, "utf8");
         }
 
         menu();
