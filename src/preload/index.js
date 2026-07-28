@@ -50,7 +50,10 @@ const api = {
     'windowManPreload': {
         getWindowWhAndPos: () => ipcRenderer.invoke('get-window-wh-and-pos'),
         setWindowWhAndPos: (whXyArray) => ipcRenderer.send('set-window-wh-and-pos', whXyArray),
-    }
+    },
+    'themesManPreload': {
+        getViewerTheme: () => ipcRenderer.invoke('get-viewer-theme'),
+    },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
@@ -76,6 +79,8 @@ if (process.contextIsolated) {
         contextBridge.exposeInMainWorld('permissionsPreload', api.permissionsPreload);
         // 加载窗口属性
         contextBridge.exposeInMainWorld('windowManPreload', api.windowManPreload);
+        // 加载主题
+        contextBridge.exposeInMainWorld('themesManPreload', api.themesManPreload);
     } catch (error) {
         console.error(error);
     }

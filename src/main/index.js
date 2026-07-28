@@ -1,10 +1,11 @@
-import {app, dialog, Tray} from "electron";
+import {app, dialog, Tray, protocol} from "electron";
 import path from "path";
 import {ipc} from "./ipc";
 import {menu} from "./menu";
 import {mainWindow} from "./window";
 import os from "os";
 import fs from "fs";
+import {defaultViewerTheme} from "./themes/default-viewer-theme";
 
 let Sqlite3;
 if (!app.isPackaged) {
@@ -65,7 +66,6 @@ if (!gotTheLock) {  // 当前打开多个实例
     });
 
     app.whenReady().then(() => {
-        console.log("when ready");
         const unpackedRoot = path.join(process.resourcesPath, 'app.asar.unpacked');
         let pngPath = process.platform === "openharmony"
             ? path.join(__dirname, `..${path.sep}..${path.sep}resources${path.sep}icon.png`)
@@ -74,9 +74,7 @@ if (!gotTheLock) {  // 当前打开多个实例
                     ? path.join(__dirname, `..${path.sep}..${path.sep}resources${path.sep}icon.png`)
                     : path.join(unpackedRoot, `resources`, `icon.png`)
             );
-        console.log(pngPath);
         let tray = new Tray(pngPath);
-        console.log("tray", tray);
         // 创建一个Sqlite连接
         let settings_dir_path = process.platform === 'openharmony'
             ? path.join(app.getPath('appData'), ".ame_conf")  // 鸿蒙系统只能存在appData目录内，其他地方没有权限
@@ -95,8 +93,22 @@ if (!gotTheLock) {  // 当前打开多个实例
                     }
                 });
             }
+
+            const themeStats = fs.statSync(path.join(settings_dir_path, "themes"));
+            if (themeStats.isDirectory()) {  // 确认主题路径存在
+                if (!fs.existsSync(path.join(settings_dir_path, "themes", "viewer-theme.css"))) {
+                    fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.css"), defaultViewerTheme, "utf8");
+                }
+
+                if (!fs.existsSync(path.join(settings_dir_path, "themes", "viewer-theme.css.default"))) {
+                    fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.css.default"), defaultViewerTheme, "utf8");
+                }
+            }
         } catch (e) {  // 没有该路径，就创建文件夹
-            fs.mkdirSync(settings_dir_path, { recursive: true });
+            fs.mkdirSync(path.join(settings_dir_path, "themes"), { recursive: true });
+            // 生成默认主题
+            fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.css"), defaultViewerTheme, "utf8");
+            fs.writeFileSync(path.join(settings_dir_path, "themes", "viewer-theme.css.default"), defaultViewerTheme, "utf8");
         }
 
         menu();

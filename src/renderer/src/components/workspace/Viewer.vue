@@ -132,6 +132,14 @@ mdIt.renderer.rules.image = function (tokens, idx, options, env, self) {
     }
 };
 
+// 加载主题
+const loadViewerTheme = async () => {
+    const themeContent = await window.themesManPreload.getViewerTheme();
+    const styleTag = document.createElement('style');
+    styleTag.textContent = themeContent;
+    document.head.appendChild(styleTag);
+};
+
 // data
 const confirmContentSafe = ref(false);
 const viewerContextMenuShow = ref(false);
@@ -139,6 +147,7 @@ const contextMenuPositionStyle = ref('');
 const viewerTocShow = ref(false);
 
 onMounted(() => {
+    loadViewerTheme();
     if ((!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)) {
         render(props.mdPiece);
     }
@@ -155,7 +164,7 @@ const render = async (content) => {
     // apply render HTML content piece
     try {
         IncrementalDOM.patch(
-            document.getElementById('write'),
+            document.getElementById('viewer-content'),
             mdIt.renderToIncrementalDOM(content),
         );
     } catch (e) {
@@ -175,7 +184,7 @@ const render = async (content) => {
 
 const mathJaxRender = () => {
     if (window.MathJax && window.MathJax.typesetPromise) {
-        let target = document.getElementById('write');
+        let target = document.getElementById('viewer-content');
         if (target) {
             // 先清除该区域之前的渲染状态（防止重复渲染或内存泄漏）
             nextTick().then(() => {
@@ -198,7 +207,7 @@ const mathJaxRender = () => {
 const mermaidRender = () => {
     nextTick().then(async () => {
         // 先清除data-processed节点
-        const nodes = document.getElementById('write')
+        const nodes = document.getElementById('viewer-content')
             .querySelectorAll('.mermaid');
         if (nodes.length !== 0) {
             nodes.forEach(node => {
@@ -214,7 +223,7 @@ const mermaidRender = () => {
 
 const scrollCustomLineElementToCenter = (middleLine, rangeFirstLine) => {
     nextTick().then(() => {
-        const container = document.getElementById('write');  // 外面的容器，包裹着里面的滚动着的高div
+        const container = document.getElementById('viewer-content');  // 外面的容器，包裹着里面的滚动着的高div
         const errRange = [-1, 0, 1];
         // 在右侧容器中查找具有相同 data-source-line (误差范围正负1) 的元素
         for (let i = 0; i < errRange.length; i++) {
@@ -296,9 +305,9 @@ const copyInViewerByHotkey = (e) => {
 const goToTop = () => {
     // 滚到顶了
     try {
-        if (document.getElementById('write').children.length !== 0) {
+        if (document.getElementById('viewer-content').children.length !== 0) {
             setTimeout(() => {
-                document.getElementById('write').firstElementChild.scrollIntoView({
+                document.getElementById('viewer-content').firstElementChild.scrollIntoView({
                     behavior: 'auto',
                     block: 'center',
                     inline: 'center',
@@ -312,9 +321,9 @@ const goToTop = () => {
 const goToBottom = () => {
     // 滚到底了
     try {
-        if (document.getElementById('write').children.length !== 0) {
+        if (document.getElementById('viewer-content').children.length !== 0) {
             setTimeout(() => {
-                document.getElementById('write').lastElementChild.scrollIntoView({
+                document.getElementById('viewer-content').lastElementChild.scrollIntoView({
                     behavior: 'auto',
                     block: 'center',
                     inline: 'center',
@@ -467,7 +476,7 @@ watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get
          @contextmenu.prevent="displayViewerContextMenu"
          @click="viewerContextMenuShow = false"
          @blur="viewerContextMenuShow = false">
-        <div v-if="(!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)" id="write">
+        <div v-if="(!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)" id="viewer-content">
             <!--Generated HTML was injected here...-->
         </div>
         <safe-mode-info
@@ -479,8 +488,6 @@ watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get
 @import "./styles/viewer.css";
 </style>
 <style>
-@import "./styles/theme.css";
-
 /* 行内代码样式（适用于 <code> 标签，且不影响 <pre><code> 代码块） */
 code {
     /* 字体：优先使用等宽字体 */

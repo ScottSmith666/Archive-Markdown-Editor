@@ -28,7 +28,7 @@ button:focus {
     box-shadow: none; /* 有些 UI 框架（如 Bootstrap）使用的是阴影，也要去掉 */
 }
 
-#write {
+#viewer-content {
     padding-top: 20px;
     padding-bottom: 20px;
 }
