@@ -34,6 +34,7 @@ import {nextTick, onMounted, watch, ref} from "vue";
 import {useStore} from 'vuex';
 
 import SafeModeInfo from "./SafeModeInfo.vue";
+import {onBeforeRouteUpdate} from "vue-router";
 
 const store = useStore();
 
@@ -134,10 +135,19 @@ mdIt.renderer.rules.image = function (tokens, idx, options, env, self) {
 
 // 加载主题
 const loadViewerTheme = async () => {
-    const themeContent = await window.themesManPreload.getViewerTheme();
-    const styleTag = document.createElement('style');
-    styleTag.textContent = themeContent;
-    document.head.appendChild(styleTag);
+    const themeContent = await window.themesManPreload.getViewerTheme(store.state.settings.userSettings.ame_viewer_theme);
+    let styleTag;
+    if (document.getElementById("viewer-theme-style")) {
+        styleTag = document.getElementById("viewer-theme-style");
+        styleTag.textContent = "";
+        styleTag.textContent = themeContent;
+    } else {
+        styleTag = document.createElement('style');
+        styleTag.id = "viewer-theme-style";
+        styleTag.textContent = "";
+        styleTag.textContent = themeContent;
+        document.head.appendChild(styleTag);
+    }
 };
 
 // data
@@ -152,6 +162,10 @@ onMounted(() => {
         render(props.mdPiece);
     }
     window.addEventListener('keydown', copyInViewerByHotkey);
+});
+
+onBeforeRouteUpdate((to, from) => {
+    loadViewerTheme();
 });
 
 // methods

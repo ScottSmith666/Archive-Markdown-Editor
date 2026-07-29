@@ -1,13 +1,14 @@
 import {app, dialog, Tray, protocol} from "electron";
 import path from "path";
 import {ipc} from "./ipc";
-import {menu} from "./menu";
+import {menu, trayMenu} from "./menu";
 import {mainWindow} from "./window";
 import os from "os";
 import fs from "fs";
 import {defaultViewerTheme} from "./themes/default-viewer-theme";
 
 let Sqlite3;
+let tray;
 if (!app.isPackaged) {
     // 在开发环境
     Sqlite3 = process.platform === 'openharmony'
@@ -74,7 +75,8 @@ if (!gotTheLock) {  // 当前打开多个实例
                     ? path.join(__dirname, `..${path.sep}..${path.sep}resources${path.sep}icon.png`)
                     : path.join(unpackedRoot, `resources`, `icon.png`)
             );
-        let tray = new Tray(pngPath);
+        tray = new Tray(pngPath);
+        tray.setContextMenu(trayMenu());
         // 创建一个Sqlite连接
         let settings_dir_path = process.platform === 'openharmony'
             ? path.join(app.getPath('appData'), ".ame_conf")  // 鸿蒙系统只能存在appData目录内，其他地方没有权限

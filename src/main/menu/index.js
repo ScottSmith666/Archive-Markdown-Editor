@@ -11,3 +11,11 @@ export const menu = () => {
         ])
     );
 }
+
+export const trayMenu = () => {
+    return Menu.buildFromTemplate([
+        {
+            role: 'quit'
+        }
+    ]);
+};

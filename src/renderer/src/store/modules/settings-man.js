@@ -24,6 +24,10 @@ export const settingsMan = {
             if (!localStorage.getItem('userSettings')) {
                 // 如果刚打开时localStorage没有user settings，则初始化
                 state.userSettings = {
+                    'ame_theme_color': '#42b983',
+                    'ame_theme_mode': 'light',
+                    'ame_viewer_theme': 'default',
+                    'ame_editor_theme': 'vs',
                     'editor_tab_size': 4,
                     'editor_font_size': 14,
                     'enable_line_num': 'on',
@@ -45,6 +49,10 @@ export const settingsMan = {
         },
         forceResetUserSettings(state) {
             state.userSettings = {
+                'ame_theme_color': '#42b983',
+                'ame_theme_mode': 'light',
+                'ame_viewer_theme': 'default',
+                'ame_editor_theme': 'vs',
                 'editor_tab_size': 4,
                 'editor_font_size': 14,
                 'enable_line_num': 'on',

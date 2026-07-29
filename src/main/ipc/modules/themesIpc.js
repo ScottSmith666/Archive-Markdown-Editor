@@ -8,7 +8,7 @@ let themesDir = (process.platform === 'openharmony'
     : path.join(os.homedir(), ".ame_conf", "themes"));  // 其它系统内，配置文件置于$HOME目录的.ame_conf隐藏文件夹内
 
 let themeFilePath = (themeName, themeType) =>
-    path.join(themesDir, `viewer-theme.${themeName}.${themeType === 'viewer' ? 'css' : 'json'}`);
+    path.join(themesDir, `${themeType}-theme.${themeName}.${themeType === 'viewer' ? 'css' : 'json'}`);
 
 export const themesIpc = () => {
     ipcMain.handle("get-viewer-theme", async (event, themeName) => {
@@ -16,6 +16,7 @@ export const themesIpc = () => {
         try {
             return await fs.promises.readFile(themeFilePath(themeName, "viewer"), "utf8");
         } catch (e) {
+            console.error(e);
             return await fs.promises.readFile(themeFilePath("default", "viewer"), "utf8");
         }
     });

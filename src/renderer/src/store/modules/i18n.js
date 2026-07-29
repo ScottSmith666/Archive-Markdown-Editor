@@ -32,7 +32,8 @@ export const i18n = {
                         "tools": {
                             'mainCaption': '工具',
                             'subCaptions': {
-                                "mdzMediaMan": '本地Mdz媒体管理工具...'
+                                "mdzMediaMan": '本地Mdz媒体管理工具...',
+                                "themeEditor": '主题编辑器...',
                             }
                         },
                         "help": {
@@ -146,13 +147,11 @@ export const i18n = {
                             "mainCaption": '主题',
                             "subCaptions": {
                                 "themeColor": '主题色',
+                                "themeMode": '主题模式',
+                                "themeModeOptions": ['白昼模式', '夜间模式'],
                                 "viewerThemes": '预览区主题设置',
                                 "editorThemes": '编辑区主题设置',
-                                "customThemes": {
-                                    "caption": '自定义主题',
-                                    "addButton": '新建主题',
-                                    "deleteButton": '删除主题',
-                                },
+                                "customThemes": '前往自定义主题...',
                             },
                         },
                         "editor": {
@@ -303,6 +302,15 @@ export const i18n = {
                             "saveButton": '保存',
                             "notDirectPreview": ['当前媒体文件不支持直接预览，请另存至本地处理', '或', '以文本形式预览部分内容'],
                         },
+                        "themeEditor": {
+                            "title": '主题编辑器',
+                            "openButton": '打开主题',
+                            "openViewerThemeButton": '打开预览区主题',
+                            "openEditorThemeButton": '打开编辑区主题',
+                            "saveButton": '保存主题',
+                            "saveAsViewerThemeButton": '保存为预览区主题',
+                            "saveAsEditorThemeButton": '保存为编辑区主题',
+                        },
                     },
                     "editorPlace": {
                         "pasteErrorMsg": '计划插入的多媒体文件内部包含敏感符号，请修改文件名后再重新插入',
@@ -339,7 +347,8 @@ export const i18n = {
                         "tools": {
                             'mainCaption': '工具',
                             'subCaptions': {
-                                "mdzMediaMan": '本地Mdz媒體管理工具...'
+                                "mdzMediaMan": '本地Mdz媒體管理工具...',
+                                "themeEditor": '主題編輯器...',
                             },
                         },
                         "help": {
@@ -408,7 +417,7 @@ export const i18n = {
                                 "txt": '文字檔（*.txt）',
                             },
                             "savePathPlaceholder": '儲存路徑',
-                            "savePathChooseButton": '選擇...',
+                            "savePathChooseButton": '選擇...',"themeMode": '主題模式',
                             "attention": '請注意，為防止資料洩露，AME不會以任何方式持久化保存您的密碼，請自行牢記密碼！如因自身原因密碼遺失導致加密mdz檔案打不開的，後果自負！' +
                                 '建議設定複雜度較高的密碼以免被暴力破解！' +
                                 '如您想建立無密碼的Archive MD檔，則不用輸入密碼，直接儲存即可。',
@@ -453,13 +462,11 @@ export const i18n = {
                             "mainCaption": '主題',
                             "subCaptions": {
                                 "themeColor": '主題色',
+                                "themeMode": '主題模式',
+                                "themeModeOptions": ['白昼模式', '夜间模式'],
                                 "viewerThemes": '預覽區主題設定',
                                 "editorThemes": '編輯區主題設置',
-                                "customThemes": {
-                                    "caption": '自訂主題',
-                                    "addButton": '新主題',
-                                    "deleteButton": '刪除主題',
-                                },
+                                "customThemes": '前往自訂主題...',
                             },
                         },
                         "editor": {
@@ -646,7 +653,8 @@ export const i18n = {
                         "tools": {
                             'mainCaption': 'Tools',
                             'subCaptions': {
-                                "mdzMediaMan": 'Local Mdz MediaMan Tool...'
+                                "mdzMediaMan": 'Local Mdz MediaMan Tool...',
+                                "themeEditor": 'Theme Editor...',
                             },
                         },
                         "help": {
@@ -760,13 +768,11 @@ export const i18n = {
                             "mainCaption": 'Themes',
                             "subCaptions": {
                                 "themeColor": 'Set Theme Color',
+                                "themeMode": 'Theme Mode',
+                                "themeModeOptions": ['Light Mode', 'Dark Mode'],
                                 "viewerThemes": 'Set Viewer Theme',
                                 "editorThemes": 'Set Editor Theme',
-                                "customThemes": {
-                                    "caption": 'Custom Theme',
-                                    "addButton": 'New Theme',
-                                    "deleteButton": 'Delete Theme',
-                                },
+                                "customThemes": 'Go To Customize Themes...',
                             },
                         },
                         "editor": {

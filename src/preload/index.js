@@ -52,7 +52,7 @@ const api = {
         setWindowWhAndPos: (whXyArray) => ipcRenderer.send('set-window-wh-and-pos', whXyArray),
     },
     'themesManPreload': {
-        getViewerTheme: () => ipcRenderer.invoke('get-viewer-theme'),
+        getViewerTheme: (themeName) => ipcRenderer.invoke('get-viewer-theme', themeName),
     },
 };
 

@@ -60,9 +60,7 @@ const updateMonacoEditorTheme = (monacoInstance) => {
             enabled: store.state.settings.userSettings.display_code_scale === 1,
         },
         cursorSmoothCaretAnimation: store.state.settings.userSettings.display_editor_animation === 1,
-        // theme: 'vs-dark',
-        // theme: 'vs',
-        // theme: 'monokai-pro',
+        theme: store.state.settings.userSettings.ame_editor_theme,
     });
 };
 

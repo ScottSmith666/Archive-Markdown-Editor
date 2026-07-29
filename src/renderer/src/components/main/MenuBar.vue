@@ -248,6 +248,15 @@ onMounted(() => {
                                         }); store.commit('mainManuAllHide');">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.tools.subCaptions.mdzMediaMan }}</p>
                                 </div>
+                                <div class="menu-element" id="theme-editor"
+                                     @click="store.commit('addTabPage',
+                                        {
+                                            'pageType': 'tools',
+                                            'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].toolsPage.mdzMediaMan.tabTitle,
+                                            'toolKind': 'themeEditor'
+                                        }); store.commit('mainManuAllHide');">
+                                    <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.tools.subCaptions.themeEditor }}</p>
+                                </div>
                             </div>
                         </Transition>
 

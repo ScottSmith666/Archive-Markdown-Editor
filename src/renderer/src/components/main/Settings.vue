@@ -10,12 +10,14 @@ const store = useStore();
  * 界面显示语言：surface_lang："zh-CN" || "zh-TW" || "en"，"zh-CN"代表简体中文，"zh-TW"代表繁体中文，"en"代表英语
  * 根据用户的操作系统语言自行切换，如果用户操作系统语言不是这三种语言，则默认切换为英文
  * 语言无需自己设置
- * -----外观-----
- * 设置渲染区主题：ame_viewer_theme: "default"...
- * 设置编辑区主题：ame_editor_theme: "vs" "atom-light" "github-light"
- * "material-light" "vs-dark" "darcula" "material-dark" "atom-dark" "github-dark" "one-dark-pro" "monokai-pro" <- 前面这11个均为内置，后面
- * 的这个选项为自定义: "custom"
- * 设置主题色：theme_color: <string>，初始化默认为"#42b983"
+ * -----主题-----
+ * 设置渲染区主题：ame_viewer_theme: "default" || "red" || "orange" || "yellow" || "light-blue" ||
+ * "dark-blue" || "purple"
+ * 设置编辑区主题：ame_editor_theme: "vs" || "atom-light" || "github-light" ||
+ * "material-light" || "vs-dark" || "darcula" || "material-dark" || "atom-dark" ||
+ * "github-dark" || "one-dark-pro" || "monokai-pro" <- 前面这11个均为内置，后面的选项为自定义
+ * 设置主题色：ame_theme_color: <string>，初始化默认为"#42b983"
+ * 设置主题模式：ame_theme_mode: <string>，"light" || "dark", 初始化默认为"light"
  * -----编辑器-----
  * 编辑区Tab缩进长度：editor_tab_size: <number>，初始化默认为4
  * 编辑区字体大小：editor_font_size: <number>，初始化默认为14
@@ -34,6 +36,34 @@ const store = useStore();
  */
 
 const showResetConfirm = ref(false);
+
+const ame_theme_color = computed({
+    get: () => store.state.settings.userSettings.ame_theme_color,
+    set: (newValue) => {
+        store.commit('changeUserSettings', ['ame_theme_color', newValue]);
+    }
+});
+
+const ame_theme_mode = computed({
+    get: () => store.state.settings.userSettings.ame_theme_mode,
+    set: (newValue) => {
+        store.commit('changeUserSettings', ['ame_theme_mode', newValue]);
+    }
+});
+
+const ame_viewer_theme = computed({
+    get: () => store.state.settings.userSettings.ame_viewer_theme,
+    set: (newValue) => {
+        store.commit('changeUserSettings', ['ame_viewer_theme', newValue]);
+    }
+});
+
+const ame_editor_theme = computed({
+    get: () => store.state.settings.userSettings.ame_editor_theme,
+    set: (newValue) => {
+        store.commit('changeUserSettings', ['ame_editor_theme', newValue]);
+    }
+});
 
 const editor_tab_size = computed({
     get: () => store.state.settings.userSettings.editor_tab_size,
@@ -169,7 +199,28 @@ const render_mode = computed({
                 <div class="settings-content">
                     <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.themeColor }}</div>
                     <div style="height: 10px;"></div>
-                    <input class="input" type="text" />
+                    <input class="input" type="text" v-model="ame_theme_color" />
+                </div>
+            </div>
+            <div style="height: 15px;"></div>
+
+            <div class="settings-item">
+                <div class="settings-icon">
+                    <svg t="1775365018449" class="icon tab-icon" viewBox="0 0 1024 1024" version="1.1"
+                         xmlns="http://www.w3.org/2000/svg" p-id="11404" width="200" height="200">
+                        <path
+                            d="M793.6 430.08h-56.32c-10.24 0-15.36-5.12-20.48-10.24s-5.12-20.48 5.12-25.6l40.96-40.96c5.12-5.12 10.24-15.36 10.24-20.48 0-10.24-5.12-15.36-10.24-20.48l-51.2-51.2c-10.24-10.24-35.84-10.24-46.08 0l-40.96 40.96c-10.24 5.12-15.36 5.12-20.48 5.12s-10.24-5.12-15.36-5.12c-5.12-5.12-5.12-10.24-5.12-15.36v-61.44c0-20.48-15.36-30.72-30.72-30.72h-71.68c-20.48 0-30.72 15.36-30.72 30.72v56.32c0 15.36-10.24 20.48-20.48 20.48-5.12 0-10.24 0-15.36-5.12l-46.08-40.96c-10.24-10.24-35.84-10.24-46.08 0l-51.2 51.2c-5.12 5.12-10.24 15.36-10.24 20.48 0 10.24 5.12 15.36 10.24 20.48l40.96 40.96c5.12 5.12 10.24 15.36 5.12 25.6s-10.24 10.24-20.48 10.24h-56.32c-20.48 0-30.72 15.36-30.72 30.72v71.68c0 20.48 15.36 30.72 30.72 30.72h56.32c10.24 0 15.36 5.12 20.48 10.24 5.12 10.24 5.12 20.48-5.12 25.6l-40.96 40.96c-5.12 5.12-10.24 15.36-10.24 20.48 0 10.24 5.12 15.36 10.24 20.48l51.2 51.2c10.24 10.24 35.84 10.24 46.08 0l40.96-40.96c5.12-5.12 10.24-5.12 15.36-5.12 10.24 0 20.48 10.24 20.48 20.48V768c0 20.48 15.36 30.72 30.72 30.72h71.68c20.48 0 30.72-15.36 30.72-30.72v-51.2c0-15.36 10.24-20.48 20.48-20.48 5.12 0 10.24 0 15.36 5.12l40.96 40.96c10.24 10.24 35.84 10.24 46.08 0l51.2-51.2c5.12-5.12 10.24-15.36 10.24-20.48 0-10.24-5.12-15.36-10.24-20.48l-35.84-40.96c-5.12-5.12-10.24-15.36-5.12-25.6s10.24-10.24 20.48-10.24h56.32c20.48 0 30.72-15.36 30.72-30.72v-71.68c5.12-25.6-10.24-40.96-25.6-40.96z m-199.68 71.68c0 40.96-35.84 81.92-81.92 81.92-40.96 0-81.92-35.84-81.92-81.92 0-40.96 35.84-81.92 81.92-81.92 46.08 0 81.92 35.84 81.92 81.92z"
+                            p-id="11405" data-spm-anchor-id="a313x.search_index.0.i9.75d53a81ELi9GL"
+                            class="selected" fill="#42b883"></path>
+                    </svg>
+                </div>
+                <div class="settings-content">
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.themeMode }}</div>
+                    <div style="height: 10px;"></div>
+                    <select class="input" style="flex: 1; min-width: 150px;" v-model="ame_theme_mode">
+                        <option value="light">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.themeModeOptions[0] }}</option>
+                        <option value="dark">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.themeModeOptions[1] }}</option>
+                    </select>
                 </div>
             </div>
             <div style="height: 15px;"></div>
@@ -187,18 +238,57 @@ const render_mode = computed({
                 <div class="settings-content">
                     <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.viewerThemes }}</div>
                     <div style="height: 10px;"></div>
-                    <select class="input" style="flex: 1; min-width: 150px;">
+                    <select class="input" style="flex: 1; min-width: 150px;" v-model="ame_viewer_theme">
                         <option value="default">default</option>
                         <option value="red">red</option>
-                        <option value="orange">red</option>
+                        <option value="orange">orange</option>
                         <option value="yellow">yellow</option>
                         <option value="light-blue">light-blue</option>
                         <option value="dark-blue">dark-blue</option>
                         <option value="purple">purple</option>
                         <option value="dark">dark</option>
-                        <option value="custom">custom...</option>
                     </select>
                 </div>
+            </div>
+            <div style="height: 15px;"></div>
+
+            <div class="settings-item">
+                <div class="settings-icon">
+                    <svg t="1775365018449" class="icon tab-icon" viewBox="0 0 1024 1024" version="1.1"
+                         xmlns="http://www.w3.org/2000/svg" p-id="11404" width="200" height="200">
+                        <path
+                            d="M793.6 430.08h-56.32c-10.24 0-15.36-5.12-20.48-10.24s-5.12-20.48 5.12-25.6l40.96-40.96c5.12-5.12 10.24-15.36 10.24-20.48 0-10.24-5.12-15.36-10.24-20.48l-51.2-51.2c-10.24-10.24-35.84-10.24-46.08 0l-40.96 40.96c-10.24 5.12-15.36 5.12-20.48 5.12s-10.24-5.12-15.36-5.12c-5.12-5.12-5.12-10.24-5.12-15.36v-61.44c0-20.48-15.36-30.72-30.72-30.72h-71.68c-20.48 0-30.72 15.36-30.72 30.72v56.32c0 15.36-10.24 20.48-20.48 20.48-5.12 0-10.24 0-15.36-5.12l-46.08-40.96c-10.24-10.24-35.84-10.24-46.08 0l-51.2 51.2c-5.12 5.12-10.24 15.36-10.24 20.48 0 10.24 5.12 15.36 10.24 20.48l40.96 40.96c5.12 5.12 10.24 15.36 5.12 25.6s-10.24 10.24-20.48 10.24h-56.32c-20.48 0-30.72 15.36-30.72 30.72v71.68c0 20.48 15.36 30.72 30.72 30.72h56.32c10.24 0 15.36 5.12 20.48 10.24 5.12 10.24 5.12 20.48-5.12 25.6l-40.96 40.96c-5.12 5.12-10.24 15.36-10.24 20.48 0 10.24 5.12 15.36 10.24 20.48l51.2 51.2c10.24 10.24 35.84 10.24 46.08 0l40.96-40.96c5.12-5.12 10.24-5.12 15.36-5.12 10.24 0 20.48 10.24 20.48 20.48V768c0 20.48 15.36 30.72 30.72 30.72h71.68c20.48 0 30.72-15.36 30.72-30.72v-51.2c0-15.36 10.24-20.48 20.48-20.48 5.12 0 10.24 0 15.36 5.12l40.96 40.96c10.24 10.24 35.84 10.24 46.08 0l51.2-51.2c5.12-5.12 10.24-15.36 10.24-20.48 0-10.24-5.12-15.36-10.24-20.48l-35.84-40.96c-5.12-5.12-10.24-15.36-5.12-25.6s10.24-10.24 20.48-10.24h56.32c20.48 0 30.72-15.36 30.72-30.72v-71.68c5.12-25.6-10.24-40.96-25.6-40.96z m-199.68 71.68c0 40.96-35.84 81.92-81.92 81.92-40.96 0-81.92-35.84-81.92-81.92 0-40.96 35.84-81.92 81.92-81.92 46.08 0 81.92 35.84 81.92 81.92z"
+                            p-id="11405" data-spm-anchor-id="a313x.search_index.0.i9.75d53a81ELi9GL"
+                            class="selected" fill="#42b883"></path>
+                    </svg>
+                </div>
+                <div class="settings-content">
+                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.editorThemes }}</div>
+                    <div style="height: 10px;"></div>
+                    <select class="input" style="flex: 1; min-width: 150px;" v-model="ame_editor_theme">
+                        <option value="vs">vs</option>
+                        <option value="atom-light">atom-light</option>
+                        <option value="github-light">github-light</option>
+                        <option value="material-light">material-light</option>
+                        <option value="vs-dark">vs-dark</option>
+                        <option value="darcula">darcula</option>
+                        <option value="material-dark">material-dark</option>
+                        <option value="atom-dark">atom-dark</option>
+                        <option value="github-dark">github-dark</option>
+                        <option value="one-dark-pro">one-dark-pro</option>
+                        <option value="monokai-pro">monokai-pro</option>
+                    </select>
+                </div>
+            </div>
+            <div style="height: 15px;"></div>
+
+            <div class="confirm-dialog-confirm-button" style="width: 200px;" @click="store.commit('addTabPage',
+                {
+                    'pageType': 'tools',
+                    'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].toolsPage.mdzMediaMan.tabTitle,
+                    'toolKind': 'themeEditor'
+                });">
+                {{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.customThemes }}
             </div>
             <div style="height: 15px;"></div>
 
