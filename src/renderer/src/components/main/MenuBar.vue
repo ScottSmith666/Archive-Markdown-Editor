@@ -167,6 +167,10 @@ onMounted(() => {
                                      @click="store.commit('toggleModal', {'kind': 'save-as'}); store.commit('mainManuAllHide');">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.saveAs }}</p>
                                 </div>
+                                <div class="menu-element" id="main-menu-export"
+                                     @click="store.commit('toggleModal', {'kind': 'export'}); store.commit('mainManuAllHide');">
+                                    <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.export }}</p>
+                                </div>
                             </template>
 
                             <template v-if="store.state.tab.tabList.size !== 0">

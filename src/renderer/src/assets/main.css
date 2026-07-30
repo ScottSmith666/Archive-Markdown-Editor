@@ -46,12 +46,12 @@ html, body {
     position: absolute;
     top: 100px;
     left: 50%;
-    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    transform: translate(-50%, -50%); /* 根据自身宽高偏移一半 */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    user-select: none;  /* 禁止拖选文字 */
+    user-select: none; /* 禁止拖选文字 */
     /*width: 300px;*/
     height: 60px;
     background-color: white;
@@ -65,12 +65,12 @@ html, body {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    transform: translate(-50%, -50%); /* 根据自身宽高偏移一半 */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    user-select: none;  /* 禁止拖选文字 */
+    user-select: none; /* 禁止拖选文字 */
     width: 500px;
     /*height: 400px;*/
     background-color: white;
@@ -139,12 +139,12 @@ html, body {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    transform: translate(-50%, -50%); /* 根据自身宽高偏移一半 */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    user-select: none;  /* 禁止拖选文字 */
+    user-select: none; /* 禁止拖选文字 */
     width: 400px;
     /*height: 400px;*/
     background-color: white;
@@ -188,12 +188,12 @@ html, body {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    transform: translate(-50%, -50%); /* 根据自身宽高偏移一半 */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    user-select: none;  /* 禁止拖选文字 */
+    user-select: none; /* 禁止拖选文字 */
     width: 400px;
     /*height: 400px;*/
     background-color: white;
@@ -206,7 +206,7 @@ html, body {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);  /* 根据自身宽高偏移一半 */
+    transform: translate(-50%, -50%); /* 根据自身宽高偏移一半 */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -300,6 +300,25 @@ html, body {
 }
 
 .save-button:hover {
+    font-weight: bold;
+}
+
+.export-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid var(--main-color);
+}
+
+.export-option:hover {
+    border: 3px solid var(--main-color);
+    background-color: rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    color: var(--main-color);
     font-weight: bold;
 }
 

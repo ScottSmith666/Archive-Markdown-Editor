@@ -6,6 +6,7 @@ export const ameLifecycleMan = {
             showDonate: false,
             showLoading: false,
             showSaveAs: false,
+            showExport: false,
             showPreview: false,
 
             tLevel: 'info',  // 普通弹出提示框的等级，分为success、info和fail
@@ -22,6 +23,8 @@ export const ameLifecycleMan = {
                 state.showDonate = !state.showDonate;
             } else if (object.kind === 'save-as') {
                 state.showSaveAs = !state.showSaveAs;
+            } else if (object.kind === 'export') {
+                state.showExport = !state.showExport;
             } else if (object.kind === 'preview') {
                 state.showPreview = !state.showPreview;
             }

@@ -463,6 +463,43 @@ const vFocus = {
         </div>
     </Transition>
 
+    <Transition>
+        <!--导出提示-->
+        <div v-if="store.state.lifecycle.showExport" class="save-as-dialog fonts">
+            <!--标题和关闭按钮-->
+            <div class="dialog-title-bar">
+                <div class="title3">
+                    <div class="title3-block"></div>
+                    <div style="width: 8px"></div>
+                    <div style="font-weight: bold; font-size: 1.2rem;">
+                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.exportForm.title }}
+                    </div>
+                </div>
+                <div class="close" @click="store.commit('toggleModal', {'kind': 'export'});">
+                    <div style="font-size: 1.8rem; font-weight: bold;">×</div>
+                </div>
+            </div>
+
+            <div style="height: 15px;"></div>
+
+            <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; width: 100%;">
+                <div class="export-option">
+                    <div>
+                        <svg style="width: 100px; height: 100px;" t="1785388154043" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6650" width="200" height="200"><path d="M89.088 59.392l62.464 803.84c1.024 12.288 9.216 22.528 20.48 25.6L502.784 993.28c6.144 2.048 12.288 2.048 18.432 0l330.752-104.448c11.264-4.096 19.456-14.336 20.48-25.6l62.464-803.84c1.024-17.408-12.288-31.744-29.696-31.744H118.784c-17.408 0-31.744 14.336-29.696 31.744z" fill="#FC490B" p-id="6651"></path><path d="M774.144 309.248h-409.6l12.288 113.664h388.096l-25.6 325.632-227.328 71.68-227.328-71.68-13.312-169.984h118.784v82.944l124.928 33.792 123.904-33.792 10.24-132.096H267.264L241.664 204.8h540.672z" fill="#FFFFFF" p-id="6652"></path></svg>
+                    </div>
+                    <div>{{store.state.i18n.langPackage[store.state.settings.lang].dialog.exportForm.saveAs}}HTML</div>
+                </div>
+                <div style="width: 100px;"></div>
+                <div class="export-option">
+                    <div>
+                        <svg style="width: 100px; height: 100px;" t="1785388202606" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="8601" width="200" height="200"><path d="M179 64h468.5l223 225.5V935c0 13.807-11.193 25-25 25H179c-13.807 0-25-11.193-25-25V89c0-13.807 11.193-25 25-25z" fill="#FF4867" p-id="8602"></path><path d="M647.5 64v200.5c0 13.807 11.193 25 25 25h198L647.5 64z" fill="#FF97A9" p-id="8603"></path><path d="M691.919 812c-44.4 0-84.22-76.189-105.17-125.732-35.243-14.71-74.092-28.45-111.831-37.331-33.022 21.788-89.214 54.4-132.365 54.4-26.778 0-46.064-13.461-53.14-36.914-5.411-19.29-0.832-32.613 4.995-39.83 11.377-15.543 34.825-23.453 69.929-23.453 28.443 0 64.517 4.996 104.754 14.71 25.945-18.457 52.307-39.829 75.756-62.45-10.406-49.404-21.784-129.479 7.076-166.393 14.29-17.625 36.074-23.454 62.436-15.543 28.86 8.326 39.82 25.951 43.15 39.829 12.21 48.155-43.15 113.103-80.473 151.267 8.325 33.029 19.286 67.862 32.606 99.78 53.556 23.87 117.24 59.536 124.456 98.394 2.913 13.461-1.249 25.951-12.21 36.915-9.435 7.771-19.425 12.351-29.97 12.351zM652 728c9.768 21.74 19.081 32 23.99 32 0.76 0 1.823-0.333 3.341-1.664 1.822-1.996 1.822-3.327 1.518-4.547-1.012-5.713-9.262-15.085-28.849-25.789z m-281.922-88c-15.62 0-19.913 3.774-21.22 5.535-0.373 0.566-1.493 2.264-0.373 6.666 0.933 3.774 3.547 7.799 11.636 7.799 10.143 0 24.829-5.723 41.879-15.975-12.196-2.704-22.962-4.025-31.922-4.025zM523 620.582c9.333 2.6 19.01 5.951 28 9.418-3.264-8.551-5.898-17.449-8.13-26A629.121 629.121 0 0 1 523 620.582zM588.966 433c-3.32 0-5.649 1.229-7.745 3.511-6.173 7.783-6.872 27.386-2.097 52.489 18.111-19.427 27.953-37.275 25.507-46.813-0.35-1.404-1.398-5.676-9.842-8.134-2.33-0.702-4.076-1.053-5.823-1.053z" fill="#FFFFFF" p-id="8604"></path></svg>
+                    </div>
+                    <div>{{store.state.i18n.langPackage[store.state.settings.lang].dialog.exportForm.saveAs}}PDF</div>
+                </div>
+            </div>
+        </div>
+    </Transition>
+
     <!--打赏-->
     <Transition>
         <div v-if="store.state.lifecycle.showDonate" class="fonts donate">

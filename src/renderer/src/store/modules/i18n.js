@@ -11,6 +11,7 @@ export const i18n = {
                                 "open": '打开...',
                                 "save": '保存',
                                 "saveAs": '另存为...',
+                                "export": '导出...',
                                 "close": '关闭',
                                 "exitAME": '退出AME',
                             },
@@ -110,6 +111,10 @@ export const i18n = {
                             "savePasswordAgainPlaceholder": '再次输入密码',
                             "cancelButton": '取消',
                             "confirmButton": '保存',
+                        },
+                        "exportForm": {
+                            "title": '导出',
+                            "saveAs": '导出为',
                         },
                         "saveForm": {
                             "fileNameRequired": '保存失败，请填写文件名！',
@@ -325,7 +330,8 @@ export const i18n = {
                                 "new": '新建...',
                                 "open": '打開...',
                                 "save": '儲存',
-                                "saveAs": '另存為...',
+                                "saveAs": '儲存為...',
+                                "export": '匯出',
                                 "close": '關閉',
                                 "exitAME": '退出AME',
                             },
@@ -425,6 +431,10 @@ export const i18n = {
                             "savePasswordAgainPlaceholder": '再次輸入密碼',
                             "cancelButton": '取消',
                             "confirmButton": '儲存',
+                        },
+                        "exportForm": {
+                            "title": '匯出',
+                            "saveAs": '匯出為',
                         },
                         "saveFileInMdz": {
                             "title": '儲存mdz內嵌媒體',
@@ -632,6 +642,7 @@ export const i18n = {
                                 "open": 'Open...',
                                 "save": 'Save',
                                 "saveAs": 'Save As...',
+                                "export": 'Export...',
                                 "close": 'Close',
                                 "exitAME": 'Exit AME',
                             },
@@ -731,6 +742,10 @@ export const i18n = {
                             "savePasswordAgainPlaceholder": 'Enter Password Again',
                             "cancelButton": 'Cancel',
                             "confirmButton": 'Save',
+                        },
+                        "exportForm": {
+                            "title": 'Export',
+                            "saveAs": 'Export As ',
                         },
                         "saveFileInMdz": {
                             "title": 'Save mdz embedded media files as',

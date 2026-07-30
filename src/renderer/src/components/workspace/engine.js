@@ -45,7 +45,9 @@ export default (enableDocumentMediaPath, displayKind = 'preview') => {
         table: 'md-block md-table',
     });
     mdIt.use(markdownItTaskLists);
-    mdIt.use(MarkdownItIncrementalDOM, IncrementalDOM);
+    if (displayKind === "preview") {
+        mdIt.use(MarkdownItIncrementalDOM, IncrementalDOM);
+    }
     mdIt.use(emoji);
     mdIt.use(MarkdownItMark);
     mdIt.use(alert);
