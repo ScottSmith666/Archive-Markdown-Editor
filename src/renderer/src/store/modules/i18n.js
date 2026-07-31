@@ -3,6 +3,10 @@ export const i18n = {
         return {
             langPackage: {
                 "zh-CN": {
+                    "footerBar": {
+                        "version": '版本',
+                        "exporting": '正在导出',
+                    },
                     "menuBar": {
                         "file": {
                             'mainCaption': '文件',
@@ -323,6 +327,10 @@ export const i18n = {
                     "renderPlaceholder": 'Markdown渲染区',
                 },
                 "zh-TW": {
+                    "footerBar": {
+                        "version": '版本',
+                        "exporting": '正在匯出',
+                    },
                     "menuBar": {
                         "file": {
                             'mainCaption': '文件',
@@ -634,6 +642,10 @@ export const i18n = {
                     "renderPlaceholder": 'Markdown渲染區',
                 },
                 "en": {
+                    "footerBar": {
+                        "version": 'Version ',
+                        "exporting": 'Exporting ',
+                    },
                     "menuBar": {
                         "file": {
                             'mainCaption': 'File',

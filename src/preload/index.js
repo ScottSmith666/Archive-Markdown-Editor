@@ -54,6 +54,9 @@ const api = {
     'themesManPreload': {
         getViewerTheme: (themeName) => ipcRenderer.invoke('get-viewer-theme', themeName),
     },
+    'appVersionPreload': {
+        getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+    },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
@@ -81,6 +84,8 @@ if (process.contextIsolated) {
         contextBridge.exposeInMainWorld('windowManPreload', api.windowManPreload);
         // 加载主题
         contextBridge.exposeInMainWorld('themesManPreload', api.themesManPreload);
+        // 获得app版本
+        contextBridge.exposeInMainWorld('appVersionPreload', api.appVersionPreload);
     } catch (error) {
         console.error(error);
     }

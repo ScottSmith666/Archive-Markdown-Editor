@@ -15,6 +15,7 @@ import {
     getNow,
     copyOnHarmony
 } from "./modules/common";
+import {appVersionIpc} from "./modules/appVersionIpc";
 
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
@@ -487,4 +488,7 @@ export const ipc = (Sqlite3, dbPath) => {
 
     // get themes
     themesIpc();
+
+    // get app version
+    appVersionIpc();
 };

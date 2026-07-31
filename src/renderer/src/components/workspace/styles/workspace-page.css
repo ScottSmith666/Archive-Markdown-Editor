@@ -2,7 +2,7 @@
     display: -webkit-box;
     display: -moz-box;
     width: 100%;
-    height: calc(100vh - 36px - 31px);
+    height: calc(100vh - 36px - 31px - 15px);
     position: relative;
 }
 

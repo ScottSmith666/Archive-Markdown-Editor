@@ -8,6 +8,7 @@ export const ameLifecycleMan = {
             showSaveAs: false,
             showExport: false,
             showPreview: false,
+            appVersion: '',
 
             tLevel: 'info',  // 普通弹出提示框的等级，分为success、info和fail
             tipContent: '',  // 普通弹出提示框的内容
@@ -53,4 +54,9 @@ export const ameLifecycleMan = {
             window.confirmPreload.tryClose();
         },
     },
+    actions: {
+        async getAppVersion({commit, rootState}) {
+            rootState.lifecycle.appVersion = await window.appVersionPreload.getAppVersion();
+        },
+    }
 }
