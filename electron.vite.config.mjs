@@ -27,5 +27,8 @@ export default defineConfig({
             },
         },
         plugins: [vue()],
+        worker: {
+            format: "es",
+        },
     },
 });

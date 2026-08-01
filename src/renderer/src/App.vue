@@ -125,7 +125,7 @@ const exportTo = (type) => {
     // 启动Worker执行任务
     let exportWorker = new Worker(
         new URL(
-            "worker/exporter.js",
+            "worker/exporter/exporter.js",
             import.meta.url
         ), {type: "module"});
     // 监听并接收worker结果

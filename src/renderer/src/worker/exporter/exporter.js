@@ -1,5 +1,5 @@
-import engine from "../components/workspace/engine.js";
-import {regExps, returnMediaElement} from "../components/workspace/get_media_skeleton.js";
+import engine from "./export_engine";
+import {regExps, returnMediaElement} from "../../components/workspace/get_media_skeleton.js";
 
 self.addEventListener("message", (e) => {
     if (e.data[0] === 'html') {
