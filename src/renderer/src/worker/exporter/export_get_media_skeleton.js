@@ -26,8 +26,7 @@ export const returnMediaElement = (isURL, kind, url, caption = "") => {
     } else if (kind === 'audio') {
         return `<audio style="width: 100%;" controls src="${isURL ? encodeURI(url) : ('file://' + url)}"></audio>`;
     } else if (kind === 'file') {
-        return `<div onclick="localStorage.setItem('` + localStorage.getItem("currentPageId") + `-click-media-path', '` + decodeURI(url) + `');" `
-            + `style="cursor:pointer; display: flex; flex-direction: row; align-items: center; padding: 15px; `
+        return `<div style="cursor:pointer; display: flex; flex-direction: row; align-items: center; padding: 15px; `
             + `border-radius: 5px; background-color: #42b98330; border: 1px solid #42b983;"><div>`
             + `<svg style="width: 50px; height: 50px;" t="1763025308845" class="icon" viewBox="0 0 1024 1024" `
             + `version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5358" width="200" height="200">`

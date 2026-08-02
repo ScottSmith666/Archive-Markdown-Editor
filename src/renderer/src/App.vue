@@ -121,7 +121,6 @@ const saveMediaFile = (url) => {
 const exportTo = (type) => {
     let originFileContent
         = store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('monacoEditorModel').getValue();
-    console.log(originFileContent);
     // 启动Worker执行任务
     let exportWorker = new Worker(
         new URL(
@@ -140,7 +139,16 @@ const exportTo = (type) => {
         console.log("Worker error: ", e);
         exportWorker.terminate();
     };
-    exportWorker.postMessage([type, originFileContent]);
+    // 拷贝一份Map，防止下面delete时直接删除原Map内容
+    let currentPageInfo = new Map(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId));
+    currentPageInfo.delete("monacoEditorModel");
+    let currentPageInfoObject = Object.fromEntries(currentPageInfo);
+    console.log("currentPageInfoObject = ", currentPageInfoObject);
+    exportWorker.postMessage([
+        type,
+        originFileContent,
+        currentPageInfoObject,
+    ]);
 };
 
 const vFocus = {

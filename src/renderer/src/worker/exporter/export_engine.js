@@ -8,9 +8,8 @@ import markdownItTaskLists from 'markdown-it-task-lists';
 import {full as emoji} from 'markdown-it-emoji';
 import MarkdownItMark from 'markdown-it-mark';
 import {alert} from "@mdit/plugin-alert";
-import '@mdit/plugin-alert/style';
 
-import {rules} from "../../components/workspace/render_rules";
+import {rules} from "./export_render_rules";
 
 // displayKind分为预览（preview）和导出为HTML（export）
 // 比如：当导出为HTML时，<a>标签不需要onclick，直接href就行

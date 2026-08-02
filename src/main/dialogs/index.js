@@ -16,9 +16,8 @@ export class Dialogs {
 
     openFileDialog(title, isMedia = false) {
         let extFilters = isMedia ? [] : [
-            { name: 'Archive Markdown File', extensions: ['mdz'] },
-            { name: 'Markdown File', extensions: ['md'] },
-            { name: 'Text File', extensions: ['txt'] },
+            { name: 'Markdown File Family', extensions: ['mdz', "md"] },
+            { name: 'Text File Family', extensions: ['txt'] },
         ];
         return dialog.showOpenDialogSync({
             /**

@@ -10,7 +10,6 @@ import MarkdownItIncrementalDOM from 'markdown-it-incremental-dom';
 import {full as emoji} from 'markdown-it-emoji';
 import MarkdownItMark from 'markdown-it-mark';
 import {alert} from "@mdit/plugin-alert";
-import '@mdit/plugin-alert/style';
 
 import {rules} from "./render_rules.js";
 

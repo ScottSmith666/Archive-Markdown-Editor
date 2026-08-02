@@ -1,4 +1,4 @@
-import {regExps, returnMediaElement} from "./get_media_skeleton.js";
+import {regExps, returnMediaElement} from "./export_get_media_skeleton.js";
 
 export const rules = (md, documentPathObject, displayKind) => {
     // 保存默认的代码块渲染规则
