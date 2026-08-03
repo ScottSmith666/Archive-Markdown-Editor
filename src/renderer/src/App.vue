@@ -155,6 +155,10 @@ const exportTo = (type, exportFilePath) => {
         const htmlContent = e.data;
         console.log("htmlContent\n", htmlContent);
         exportWorker.terminate();
+
+        // 执行媒体文件拷贝与导出文件写入逻辑
+
+
         displayExporting.value = false;
         store.commit('autoTips', {kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
     });
