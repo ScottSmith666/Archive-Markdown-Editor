@@ -80,6 +80,7 @@ export const i18n = {
                             "unsupportedFileType": '不支持打开这种类型的文件',
                             "fileNotFound": '无法打开不存在的文件',
                             "cancelPasswordInput": '用户已取消输入密码',
+                            "cancelExport": '用户已取消导出',
                             "saveFailed": '保存失败，请马上直接关闭文件以回滚到您上次保存的状态',
                         },
                         "loading": {
@@ -405,6 +406,7 @@ export const i18n = {
                             "fileNotFound": '無法開啟不存在的文件',
                             "cancelPasswordInput": '用戶已取消輸入密碼',
                             "saveFailed": '儲存失敗，請馬上直接關閉檔案以回滾到您上次儲存的狀態',
+                            "cancelExport": '用戶已取消匯出',
                         },
                         "loading": {
                             "open": '正在開啟檔案...',
@@ -714,6 +716,7 @@ export const i18n = {
                     "dialog": {
                         "activeTip": {
                             "userCancelOpen": 'The user has canceled opening the file',
+                            "cancelExport": 'The user has canceled exporting',
                             "repeatOpenForbidden": 'Prevent opening an already opened file again',
                             "forbiddenCharsInFileName": 'The filename contains illegal characters > < : \' | * ?',
                             "unsupportedFileType": 'This type of file is not supported',

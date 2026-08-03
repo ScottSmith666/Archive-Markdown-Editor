@@ -1,6 +1,6 @@
 import {regExps, returnMediaElement} from "./get_media_skeleton.js";
 
-export const rules = (md, documentPathObject, displayKind) => {
+export const rules = (md, documentPathObject) => {
     // 保存默认的代码块渲染规则
     const defaultFence = md.renderer.rules.fence;
     // 重写 fence 规则
@@ -160,13 +160,13 @@ export const rules = (md, documentPathObject, displayKind) => {
 
         // 如果是外部链接则通过默认浏览器打开
         if (href.startsWith('http')) {
-            if (displayKind === 'preview') {
-                let func = `window.openURLPreload.openURL('${href}');`;
-                token.attrPush(['onclick', func]);
-                token.attrPush(['style', 'cursor: pointer;']);
-                // 移除自带的href属性
-                const idx = token.attrIndex('href');
-                if (idx !== -1) token.attrs.splice(idx, 1);
+            let func = `window.openURLPreload.openURL('${href}');`;
+            token.attrPush(['onclick', func]);
+            token.attrPush(['style', 'cursor: pointer;']);
+            // 移除自带的href属性
+            const idx = token.attrIndex('href');
+            if (idx !== -1) {
+                token.attrs.splice(idx, 1);
             }
         }
         // 渲染该 Token 并返回 HTML 字符串

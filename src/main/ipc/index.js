@@ -16,6 +16,7 @@ import {
     copyOnHarmony
 } from "./modules/common";
 import {appVersionIpc} from "./modules/appVersionIpc";
+import {exportIpc} from "./modules/exportIpc";
 
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
@@ -491,4 +492,7 @@ export const ipc = (Sqlite3, dbPath) => {
 
     // get app version
     appVersionIpc();
+
+    // export
+    exportIpc(dialogs);
 };

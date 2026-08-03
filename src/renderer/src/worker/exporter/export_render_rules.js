@@ -1,6 +1,6 @@
 import {regExps, returnMediaElement} from "./export_get_media_skeleton.js";
 
-export const rules = (md, documentPathObject, displayKind) => {
+export const rules = (md) => {
     // 保存默认的代码块渲染规则
     const defaultFence = md.renderer.rules.fence;
     // 重写 fence 规则
@@ -73,8 +73,6 @@ export const rules = (md, documentPathObject, displayKind) => {
         // 1. Win32系路径格式：(大写或小写字母 + 冒号 + 斜杠)开头，例如C:/Users/scottsmith/Desktop/test.jpg
         // 2. Posix系路径格式：斜杠开头，例如/Users/scottsmith/Desktop/test.jpg
         // 3. 路径开头包含“$MDZ_MEDIA”，这是mdz格式导引多媒体路径的标志，例如$MDZ_MEDIA/test.jpg
-        // 4. 路径开头包含“$DOCUMENT_MEDIA”，这是document页面格式导引多媒体路径的标志，只能由软件本身进行内部调用，不对外部终端用户开放
-        //    例如$DOCUMENT_MEDIA/test.jpg
         // const caption = token.content;这里面的caption是Markdown多媒体语句中方括号内的内容，即“![content](url)”中的“content”部分
         // 在这里定义AME的新语法：
         //     content的格式符合“${video}:caption”，将作为视频处理
@@ -82,21 +80,6 @@ export const rules = (md, documentPathObject, displayKind) => {
         //     content的格式符合“${file}:caption”，将作为其他类型可下载文件处理
         //     content的格式如不符合上述三种情况，将作为图片处理，即Markdown默认语法
         let matchedMediaMark = regs.mediaContentMark.exec(caption);
-
-        // 内部调用document media路径，外部不可调用
-        if (documentPathObject.isEnabled) {
-            if (regs.path.document.test(url)) {
-                if (matchedMediaMark !== null) {
-                    let kind = matchedMediaMark[2];
-                    let getCaption = matchedMediaMark[4];
-                    let mediaFileName = url.split("/").pop();
-                    return returnMediaElement(false, kind, documentPathObject.path + '/' + mediaFileName, getCaption);
-                } else {
-                    let mediaFileName = url.split("/").pop();
-                    return returnMediaElement(false, "image", documentPathObject.path + '/' + mediaFileName, caption);
-                }
-            }
-        }
 
         // 外部调用
         if (regs.url.test(url)) {
@@ -148,28 +131,5 @@ export const rules = (md, documentPathObject, displayKind) => {
                 return `<p style="color: red; font-weight: bold;">🚫${langOption[lang].mdzMediaFileNotFound}</p>`;
             }
         }
-    };
-
-    // 处理链接，点击可通过默认浏览器打开
-    md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
-        const token = tokens[idx];
-
-        // 获取链接地址 (href)
-        const hrefIndex = token.attrIndex('href');
-        const href = token.attrs[hrefIndex][1];
-
-        // 如果是外部链接则通过默认浏览器打开
-        if (href.startsWith('http')) {
-            if (displayKind === 'preview') {
-                let func = `window.openURLPreload.openURL('${href}');`;
-                token.attrPush(['onclick', func]);
-                token.attrPush(['style', 'cursor: pointer;']);
-                // 移除自带的href属性
-                const idx = token.attrIndex('href');
-                if (idx !== -1) token.attrs.splice(idx, 1);
-            }
-        }
-        // 渲染该 Token 并返回 HTML 字符串
-        return self.renderToken(tokens, idx, options);
     };
 };

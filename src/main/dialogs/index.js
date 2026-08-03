@@ -44,7 +44,11 @@ export class Dialogs {
         });
     }
 
-    saveMediaDialog(title = "保存文件", defPath = os.homedir()) {
+    saveMediaDialog(title = "保存文件", defPath = os.homedir(), isExport = false) {
+        let extFilters = isExport ? [
+            {name: 'Hypertext Markup Language File', extensions: ['html']},
+            // {name: 'Portable Document Format', extensions: ['pdf']},
+        ] : [];
         return dialog.showSaveDialogSync({
             /**
              * 另存为文件
@@ -53,6 +57,7 @@ export class Dialogs {
             defaultPath: defPath,
             buttonLabel: '保存',
             message: title,
+            filters: extFilters,
         });
     }
 }

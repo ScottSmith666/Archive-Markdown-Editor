@@ -11,15 +11,13 @@ import {alert} from "@mdit/plugin-alert";
 
 import {rules} from "./export_render_rules";
 
-// displayKind分为预览（preview）和导出为HTML（export）
-// 比如：当导出为HTML时，<a>标签不需要onclick，直接href就行
-export default (enableDocumentMediaPath, displayKind = 'preview') => {
+export default () => {
     // 初始化Markdown-it
     const mdIt = new MarkdownIt({
         html: true,
         langPrefix: 'language-',
     });
-    rules(mdIt, enableDocumentMediaPath, displayKind);  // 自定义渲染规则
+    rules(mdIt);  // 自定义渲染规则
     mdIt.use(markdownItRegex, {
         name: "escape_dollar",
         regex: /(\\\$)/,

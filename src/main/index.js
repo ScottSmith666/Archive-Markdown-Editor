@@ -1,4 +1,4 @@
-import {app, dialog, Tray, protocol} from "electron";
+import {app, dialog, Tray} from "electron";
 import path from "path";
 import {ipc} from "./ipc";
 import {menu, trayMenu} from "./menu";

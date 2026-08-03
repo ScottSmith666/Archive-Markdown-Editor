@@ -38,6 +38,9 @@ const api = {
         deleteMediaInMdz: (mediaPath) => ipcRenderer.invoke('delete-media-in-mdz', mediaPath),
         importMediaIntoMdz: (title, destinationPath, errorMsg) => ipcRenderer.invoke('import-media-into-mdz', title, destinationPath, errorMsg),
     },
+    'exportPreload': {
+        getExportNameAndFolder: (type, title, failed) => ipcRenderer.invoke('get-export-name-and-folder', type, title, failed),
+    },
     'confirmPreload': {
         onAskForClose: (callback) => ipcRenderer.on('ask-for-close', callback),
         confirmClose: (canClose, mdzPaths) => ipcRenderer.send('confirm-close', canClose, mdzPaths),
@@ -72,6 +75,8 @@ if (process.contextIsolated) {
         contextBridge.exposeInMainWorld('sqliteDataManPreload', api.sqliteDataManPreload);
         // 文件管理相关
         contextBridge.exposeInMainWorld('fileManPreload', api.fileManPreload);
+        // 导出相关
+        contextBridge.exposeInMainWorld('exportPreload', api.exportPreload);
         // 关闭前确认
         contextBridge.exposeInMainWorld('confirmPreload', api.confirmPreload);
         // 加载语言
