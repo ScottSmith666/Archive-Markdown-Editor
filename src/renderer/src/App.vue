@@ -14,6 +14,7 @@ const quitConfirmDialog = ref(false);
 // data footer display export info
 const displayExportType = ref("");
 const displayExporting = ref(false);
+const exportWorker = ref(null);
 
 // data-form
 const savePath = ref("");
@@ -140,46 +141,66 @@ const prepareExport = async (type) => {
     }
 };
 
+const finishExport = (copyPasteMediaPathArray, ) => {
+    // worker成功结束后，如果有多媒体文件，将其保存至HTML同级的“export_html.xxx.media_dir”，其中xxx为导出的html文件名称不带扩展名
+    // 同时写入并保存html文件
+
+};
+
+const forceTerminateWorker = () => {
+    // 用户可以强制中止worker导出过程
+    exportWorker.value.terminate();
+    store.commit('autoTips', {
+        kind: "tip",
+        tipLevel: "info",
+        content: store.state.i18n.langPackage[store.state.settings.lang].dialog.activeTip.cancelExport
+    });
+};
+
 const exportTo = (type, exportFilePath) => {
     let originFileContent
         = store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('monacoEditorModel').getValue();
     // 启动Worker执行任务
-    let exportWorker = new Worker(
+    exportWorker.value = new Worker(
         new URL(
             "worker/exporter/exporter.js",
             import.meta.url
         ), {type: "module"});
-    // 监听并接收worker结果
-    exportWorker.addEventListener("message", (e) => {
-        // 获得渲染完成的HTML字符串
-        const htmlContent = e.data;
-        console.log("htmlContent\n", htmlContent);
-        exportWorker.terminate();
 
-        // 执行媒体文件拷贝与导出文件写入逻辑
-
-
-        displayExporting.value = false;
-        store.commit('autoTips', {kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
-    });
-
-    exportWorker.onerror = (e) => {
-        console.error(e);
-        exportWorker.terminate();
-        displayExporting.value = false;
-        store.commit('autoTips', {kind: "tip", tipLevel: "fail", content: `导出失败/Export failed, ${e.name}`});
-    };
     // 拷贝一份Map，防止下面delete时直接删除原Map内容
     let currentPageInfo = new Map(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId));
     currentPageInfo.delete("monacoEditorModel");
     let currentPageInfoObject = Object.fromEntries(currentPageInfo);
     console.log("currentPageInfoObject = ", currentPageInfoObject);
-    exportWorker.postMessage([
+    // 开始执行worker
+    exportWorker.value.postMessage([
         type,
         originFileContent,
         currentPageInfoObject,
         exportFilePath
     ]);
+
+    // 监听并接收worker结果
+    exportWorker.value.addEventListener("message", (e) => {
+        // 获得渲染完成的HTML字符串
+        const htmlContent = e.data[0];
+        console.log("htmlContent\n", htmlContent);
+        exportWorker.value.terminate();
+
+        // 如果有多媒体文件，则执行媒体文件拷贝与导出文件写入逻辑
+        finishExport();
+
+        displayExporting.value = false;
+        store.commit('autoTips', {kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
+    });
+
+    // 监听worker出错
+    exportWorker.value.onerror = (e) => {
+        console.error(e);
+        exportWorker.value.terminate();
+        displayExporting.value = false;
+        store.commit('autoTips', {kind: "tip", tipLevel: "fail", content: `导出失败/Export failed, ${e.name}`});
+    };
 };
 
 const vFocus = {
@@ -656,7 +677,11 @@ const vFocus = {
             <TabMan/>
             <!--变换区，切换成默认页面、新标签页、新建文件或打开的文件内容-->
             <router-view></router-view>
-            <footer-status-bar :is-exporting="displayExporting" :export-type="displayExportType"></footer-status-bar>
+            <footer-status-bar
+                :is-exporting="displayExporting"
+                :export-type="displayExportType"
+                @terminate-export="forceTerminateWorker"
+            ></footer-status-bar>
         </div>
     </div>
 </template>

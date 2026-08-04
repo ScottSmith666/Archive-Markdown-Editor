@@ -3,6 +3,7 @@ import {regExps, returnMediaElement} from "./export_get_media_skeleton.js";
 
 const exportToHTML = (content, currentPageInfoObj, exportFilePath) => {
     let currentPageInfo = new Map(Object.entries(currentPageInfoObj));
+    let originMediaPathToNewMediaPathPairsArray = [];
     // Markdown-It engine
     let mdIt = engine();
 
@@ -52,7 +53,10 @@ const exportToHTML = (content, currentPageInfoObj, exportFilePath) => {
         }
     };
 
-    return mdIt.render(content);
+    return [
+        mdIt.render(content),
+        originMediaPathToNewMediaPathPairsArray,
+    ];
 };
 
 self.addEventListener("message", (e) => {

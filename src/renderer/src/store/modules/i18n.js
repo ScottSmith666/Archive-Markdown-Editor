@@ -6,6 +6,7 @@ export const i18n = {
                     "footerBar": {
                         "version": '版本',
                         "exporting": '正在导出',
+                        "description": '（双击取消导出）',
                     },
                     "menuBar": {
                         "file": {
@@ -331,6 +332,7 @@ export const i18n = {
                     "footerBar": {
                         "version": '版本',
                         "exporting": '正在匯出',
+                        "description": '（Double click取消匯出）',
                     },
                     "menuBar": {
                         "file": {
@@ -647,6 +649,7 @@ export const i18n = {
                     "footerBar": {
                         "version": 'Version ',
                         "exporting": 'Exporting ',
+                        "description": ' (Double click to terminate export)',
                     },
                     "menuBar": {
                         "file": {

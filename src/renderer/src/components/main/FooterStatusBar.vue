@@ -17,6 +17,8 @@ const props = defineProps({
         }
     },
 });
+
+const emit = defineEmits(['terminate-export']);
 </script>
 
 <template>
@@ -24,7 +26,7 @@ const props = defineProps({
     <div class="footer-version fonts">
         {{ store.state.i18n.langPackage[store.state.settings.lang].footerBar.version }}{{ store.state.lifecycle.appVersion }}
     </div>
-    <div v-if="props.isExporting" class="footer-export-loading fonts">
+    <div v-if="props.isExporting" class="footer-export-loading fonts" @dblclick="emit('terminate-export')">
         <div>
             <svg style="width: 12px; height: 12px;" width="100" height="100" viewBox="0 0 100 100"
                  xmlns="http://w3.org">
@@ -69,7 +71,7 @@ const props = defineProps({
             </svg>
         </div>
         <div style="width: 5px;"></div>
-        <div>{{ store.state.i18n.langPackage[store.state.settings.lang].footerBar.exporting }}{{ props.exportType }}...</div>
+        <div>{{ store.state.i18n.langPackage[store.state.settings.lang].footerBar.exporting }}{{ props.exportType }}...{{ store.state.i18n.langPackage[store.state.settings.lang].footerBar.description }}</div>
     </div>
     <div class="footer-export-loading fonts" v-else></div>
 </div>
