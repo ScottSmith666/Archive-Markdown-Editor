@@ -178,7 +178,7 @@ The next step is simply to eliminate malicious code.
 
 ## II. Archive Markdown Editor Hotkey Table
 
-| Operation       | Windows/Linux    | macOS         |
+| Operation       | Windows/Linux/HarmonyOS     | macOS         |
 |:---------|:-------------------|:----------------|
 | New File     | `Ctrl` `N`         | `⌘` `N`         |
 | Open File     | `Ctrl` `O`         | `⌘` `O`         |

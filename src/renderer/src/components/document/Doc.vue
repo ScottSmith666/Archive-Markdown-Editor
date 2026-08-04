@@ -70,6 +70,6 @@ onMounted(async () => {
 <style>
 .light-view {
     width: 100% !important;
-    height: calc(100vh - 36px - 31px);;
+    height: calc(100vh - 36px - 31px - 15px);;
 }
 </style>

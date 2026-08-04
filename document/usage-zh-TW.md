@@ -178,7 +178,7 @@ Archive Markdown Editor具有優秀的Markdown智慧提示功能。當您在編�
 
 ## 二、Archive Markdown Editor快速鍵表
 
-| 操作       | Windows/Linux平台    | macOS平台         |
+| 操作       | Windows/Linux/HarmonyOS平台   | macOS平台         |
 |:---------|:-------------------|:----------------|
 | 新建文件     | `Ctrl` `N`         | `⌘` `N`         |
 | 開啟文件     | `Ctrl` `O`         | `⌘` `O`         |
