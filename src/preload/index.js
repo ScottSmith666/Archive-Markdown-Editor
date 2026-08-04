@@ -40,6 +40,9 @@ const api = {
     },
     'exportPreload': {
         getExportNameAndFolder: (type, title, failed) => ipcRenderer.invoke('get-export-name-and-folder', type, title, failed),
+        setFinishedExportFiles: (copyPasteMediaPathArray, exportHtmlFullPath, exportHtmlMediaFolderPath, exportHtmlContent) => {
+            return ipcRenderer.invoke('set-finished-export-files', copyPasteMediaPathArray, exportHtmlFullPath, exportHtmlMediaFolderPath, exportHtmlContent);
+        },
     },
     'confirmPreload': {
         onAskForClose: (callback) => ipcRenderer.on('ask-for-close', callback),

@@ -83,6 +83,7 @@ export const i18n = {
                             "cancelPasswordInput": '用户已取消输入密码',
                             "cancelExport": '用户已取消导出',
                             "saveFailed": '保存失败，请马上直接关闭文件以回滚到您上次保存的状态',
+                            "cannotAddExportMission": '后台仍有导出任务正在运行，无法开始本次的导出任务',
                         },
                         "loading": {
                             "open": '正在打开文件...',
@@ -409,6 +410,7 @@ export const i18n = {
                             "cancelPasswordInput": '用戶已取消輸入密碼',
                             "saveFailed": '儲存失敗，請馬上直接關閉檔案以回滾到您上次儲存的狀態',
                             "cancelExport": '用戶已取消匯出',
+                            "cannotAddExportMission": '後台仍有匯出任務正在執行，無法開始本次的匯出任務',
                         },
                         "loading": {
                             "open": '正在開啟檔案...',
@@ -726,6 +728,7 @@ export const i18n = {
                             "fileNotFound": 'Unable to open a file that does not exist',
                             "cancelPasswordInput": 'The user has cancelled entering a password',
                             "saveFailed": 'Saving failed! Please close the file immediately to revert to your last saved state',
+                            "cannotAddExportMission": 'An export task is ran in the background, so this task cannot be started.',
                         },
                         "loading": {
                             "open": 'Opening...',

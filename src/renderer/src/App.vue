@@ -124,6 +124,15 @@ const saveMediaFile = (url) => {
 };
 
 const prepareExport = async (type) => {
+    if (displayExporting.value) {
+        store.commit('toggleModal', {'kind': 'export'});
+        store.commit('autoTips', {
+            kind: "tip",
+            tipLevel: "fail",
+            content: store.state.i18n.langPackage[store.state.settings.lang].dialog.activeTip.cannotAddExportMission
+        });
+        return 0;
+    }
     displayExportType.value = type.toUpperCase();
     displayExporting.value = true;
     let planExportFolderAndName =  await window.exportPreload.getExportNameAndFolder(
@@ -133,7 +142,7 @@ const prepareExport = async (type) => {
     );  // 返回计划导出的文件路径
     if (planExportFolderAndName.success) {
         store.commit('toggleModal', {'kind': 'export'});
-        exportTo(type, planExportFolderAndName);
+        exportTo(type, planExportFolderAndName.message);
     } else {
         store.commit('toggleModal', {'kind': 'export'});
         displayExporting.value = false;
@@ -141,15 +150,10 @@ const prepareExport = async (type) => {
     }
 };
 
-const finishExport = (copyPasteMediaPathArray, ) => {
-    // worker成功结束后，如果有多媒体文件，将其保存至HTML同级的“export_html.xxx.media_dir”，其中xxx为导出的html文件名称不带扩展名
-    // 同时写入并保存html文件
-
-};
-
 const forceTerminateWorker = () => {
     // 用户可以强制中止worker导出过程
     exportWorker.value.terminate();
+    displayExporting.value = false;
     store.commit('autoTips', {
         kind: "tip",
         tipLevel: "info",
@@ -167,6 +171,13 @@ const exportTo = (type, exportFilePath) => {
             import.meta.url
         ), {type: "module"});
 
+    // 获悉导出的目录和文件名
+    let exportFilePathArray = exportFilePath.split("/");
+    let fileNameArray = exportFilePathArray.pop().split(".");
+    fileNameArray.pop();
+    let fileNameWithoutExt = fileNameArray.join(".");
+    let exportFolderPath = exportFilePathArray.join("/");
+
     // 拷贝一份Map，防止下面delete时直接删除原Map内容
     let currentPageInfo = new Map(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId));
     currentPageInfo.delete("monacoEditorModel");
@@ -177,21 +188,29 @@ const exportTo = (type, exportFilePath) => {
         type,
         originFileContent,
         currentPageInfoObject,
-        exportFilePath
+        exportFolderPath,
+        fileNameWithoutExt
     ]);
 
     // 监听并接收worker结果
-    exportWorker.value.addEventListener("message", (e) => {
+    exportWorker.value.addEventListener("message", async (e) => {
         // 获得渲染完成的HTML字符串
         const htmlContent = e.data[0];
         console.log("htmlContent\n", htmlContent);
         exportWorker.value.terminate();
-
         // 如果有多媒体文件，则执行媒体文件拷贝与导出文件写入逻辑
-        finishExport();
-
+        let res = await window.exportPreload.setFinishedExportFiles(
+            e.data[1],
+            exportFilePath,
+            `${exportFolderPath}/export.${fileNameWithoutExt}.media_dir`,
+            htmlContent
+        );
         displayExporting.value = false;
-        store.commit('autoTips', {kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
+        if (res.success) {
+            store.commit('autoTips', {kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
+        } else {
+            store.commit('autoTips', {kind: "tip", tipLevel: "fail", content: "导出失败/Export Failed"});
+        }
     });
 
     // 监听worker出错

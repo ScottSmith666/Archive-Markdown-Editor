@@ -93,11 +93,12 @@ const emit = defineEmits(['terminate-export']);
 }
 
 .footer-export-loading {
-    width: 200px;
+    width: 300px;
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
 }
 
 .footer-export-loading div, .footer-version {

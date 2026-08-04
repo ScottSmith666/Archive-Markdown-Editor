@@ -1,7 +1,9 @@
 import engine from "./export_engine";
+import {uniqueArray, processLatex} from "./common";
 import {regExps, returnMediaElement} from "./export_get_media_skeleton.js";
 
-const exportToHTML = (content, currentPageInfoObj, exportFilePath) => {
+const exportToHTML = (content, currentPageInfoObj, exportFolderPath, exportFileNameNoExt) => {
+    content = processLatex(content);
     let currentPageInfo = new Map(Object.entries(currentPageInfoObj));
     let originMediaPathToNewMediaPathPairsArray = [];
     // Markdown-It engine
@@ -40,12 +42,19 @@ const exportToHTML = (content, currentPageInfoObj, exportFilePath) => {
             let factMediaPath
                 = currentFilePathRemoveFileName
                 + `/._mdz_content.${currentFileNameRemoveExt}/mdz_contents/media_src/${url.replace("$MDZ_MEDIA/", "")}`;
+            let exportFactMediaPath =
+                `${exportFolderPath}/export.${exportFileNameNoExt}.media_dir/${url.replace("$MDZ_MEDIA/", "")}`;
+            // 返回多媒体拷贝路径
+            console.log("匹配到路径：", factMediaPath, "haha", exportFactMediaPath);
+            originMediaPathToNewMediaPathPairsArray.push(
+                [factMediaPath, exportFactMediaPath]
+            );
             if (matchedMediaMark !== null) {
                 let kind = matchedMediaMark[2];
                 let getCaption = matchedMediaMark[4];
-                return returnMediaElement(false, kind, factMediaPath, getCaption);
+                return returnMediaElement(false, kind, exportFactMediaPath, getCaption);
             } else {
-                return returnMediaElement(false, 'image', factMediaPath, caption);
+                return returnMediaElement(false, 'image', exportFactMediaPath, caption);
             }
         } else {
             // 如果不符合mdz media规则，就返回原来的旧规则
@@ -53,15 +62,25 @@ const exportToHTML = (content, currentPageInfoObj, exportFilePath) => {
         }
     };
 
+    let renderResult = mdIt.render(content);
+
+    console.log("originMediaPathToNewMediaPathPairsArray:", originMediaPathToNewMediaPathPairsArray);
+
+    // 将拷贝路径去重
+    let originMediaPathToNewMediaPathPairsArrayUnique =
+        originMediaPathToNewMediaPathPairsArray.length !== 0
+            ? uniqueArray(originMediaPathToNewMediaPathPairsArray)
+            : [];
+
     return [
-        mdIt.render(content),
-        originMediaPathToNewMediaPathPairsArray,
+        renderResult,
+        originMediaPathToNewMediaPathPairsArrayUnique,
     ];
 };
 
 self.addEventListener("message", (e) => {
     if (e.data[0] === 'html') {
-        let afterRender = exportToHTML(e.data[1], e.data[2], e.data[3]);
+        let afterRender = exportToHTML(e.data[1], e.data[2], e.data[3], e.data[4]);
         self.postMessage(afterRender);
     } else if (e.data[0] === 'pdf') {
         self.postMessage("PDF");

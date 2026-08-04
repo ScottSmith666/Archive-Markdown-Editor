@@ -575,4 +575,45 @@ export const defaultViewerTheme = `
 
 #viewer-content a img {
     border: none;
-}`;
+}
+
+/* 行内代码样式（适用于 <code> 标签，且不影响 <pre><code> 代码块） */
+code {
+    /* 字体：优先使用等宽字体 */
+    font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Roboto Mono', monospace;
+
+    /* 背景与文字颜色（亮色主题） */
+    background-color: #f6f8fa;
+    color: #e83e8c;
+
+    /* 内边距与圆角 */
+    padding: 0.2em 0.4em;
+    border-radius: 6px;
+
+    /* 字号略小于正文 */
+    font-size: 0.875em;
+
+    /* 长代码自动换行，避免溢出 */
+    white-space: normal;
+    word-break: break-word;
+
+    /* 可选：平滑过渡效果（不影响功能） */
+    transition: background-color 0.1s ease;
+}
+
+/* 鼠标悬停时稍微加深背景，提升交互感（可选） */
+code:hover {
+    background-color: #e9ecef;
+}
+
+/* 重置代码块（<pre><code>）内的样式，确保代码块保持原始格式 */
+pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+    color: inherit;
+    white-space: pre; /* 保留代码缩进与换行 */
+    word-break: normal; /* 避免代码块内单词折断 */
+}
+`;
