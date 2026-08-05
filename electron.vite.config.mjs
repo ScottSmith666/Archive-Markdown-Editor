@@ -5,21 +5,21 @@ import vue from "@vitejs/plugin-vue";
 export default defineConfig({
     main: {
         build: {
-            bytecode: false,
+            bytecode: true,
         }
     },
     preload: {
         build: {
-            bytecode: false,
+            bytecode: true,
         }
     },
     renderer: {
         build: {
-            // minify: 'esbuild',
-            // esbuildOptions: {
-            //     minify: false,
-            //     drop: ['console', 'debugger'], // 移除 console.log 和 debugger
-            // },
+            minify: 'esbuild',
+            esbuildOptions: {
+                minify: true,
+                drop: ['console', 'debugger'], // 移除 console.log 和 debugger
+            },
         },
         resolve: {
             alias: {
