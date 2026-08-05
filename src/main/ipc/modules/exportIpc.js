@@ -35,7 +35,7 @@ export const exportIpc = (dialogs) => {
             if (copyPasteMediaPathArray.length !== 0) {
                 await fs.promises.mkdir(exportHtmlMediaFolderPath);
                 for (let i = 0; i < copyPasteMediaPathArray.length; i++) {
-                    await copyExport(copyPasteMediaPathArray[i][0], copyPasteMediaPathArray[i][1]);
+                    await copyExport(decodeURI(copyPasteMediaPathArray[i][0]), decodeURI(copyPasteMediaPathArray[i][1]));
                 }
             }
             await fs.promises.writeFile(exportHtmlFullPath, exportHtmlTemplate(
@@ -45,6 +45,7 @@ export const exportIpc = (dialogs) => {
             ));
             return {"success": true};
         } catch (e) {
+            console.log(e);
             return {"success": false, "message": e.name};
         }
     });
