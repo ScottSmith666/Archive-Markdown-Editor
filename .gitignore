@@ -12,3 +12,4 @@ libs/third_party/7z2600-src/CPP/7zip/Bundles/Format7zF/b/
 libs/third_party/bit7z/build/
 libs/napi_cpp/mdz_utils/build
 libs/third_party/bit7z/lib
+REVIEW.md

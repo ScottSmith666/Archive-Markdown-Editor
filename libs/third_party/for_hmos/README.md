@@ -27,23 +27,23 @@ export CXXFLAGS="-fPIC -D__MUSL__=1"
 export PATH=$PATH:$OHOS_SDK/native/llvm/bin:/path/to/command-line-tools/sdk/default/openharmony/native/build-tools/cmake/bin
 ```
 
-## 1. 编译p7zip
+## 1. 编译7-zip
 
-参考`./tpc_c_cplusplus/thirdparty/p7zip/docs/hap_integrate.md`。
+参考`../7z2600-src/README_OHOS_arm64.md`。
 
 ## 2. 编译Bit7z
 
 > [!caution]
 >
-> 本节的编译步骤务必采用放置在Archive Markdown Editor项目中的bit7z源码进行编译，否则可能会报错。
+> 本节的编译步骤务必采用放置在Archive Markdown Editor项目中的bit7z源码进行编译，否则可能会有性能问题。
 
 ```bash
 cd /path/to/bit7z
 mkdir build
 cd build
-# 注意，-DBIT7Z_CUSTOM_7ZIP_PATH参数引入p7zip的源码来自第一步“编译p7zip”哦
-cmake -DCMAKE_CXX_FLAGS="-Wno-error=unused-command-line-argument" -DCMAKE_TOOLCHAIN_FILE="/path/to/command-line-tools/sdk/default/openharmony/native/build/cmake/ohos.toolchain.cmake" -DBIT7Z_USE_LEGACY_IUNKNOWN=ON -DOHOS_ARCH=arm64-v8a .. -L -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION="22.01" -DBIT7Z_CUSTOM_7ZIP_PATH="/path/to/tpc_c_cplusplus/thirdparty/p7zip/p7zip-17.05"
-make
+# 注意，-DBIT7Z_CUSTOM_7ZIP_PATH参数引入p7zip的源码来自第一步“编译7-zip”哦
+cmake -DCMAKE_CXX_FLAGS="-Wno-error=unused-command-line-argument" -DCMAKE_TOOLCHAIN_FILE="/path/to/command-line-tools/sdk/default/openharmony/native/build/cmake/ohos.toolchain.cmake" -DOHOS_ARCH=arm64-v8a -L -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION="26.00" -DBIT7Z_CUSTOM_7ZIP_PATH="/path/to/7z2600-src"
+cmake --build . -j --config Release
 ```
 
 ## 3. 编译better-sqlite3-multiple-ciphers
@@ -52,4 +52,4 @@ make
 
 ## 4. 编译“mdz_utils”
 
-将第2部分编译出来的`libbit7z.a`放进`mdz_utils`项目根目录中的`lib/ohos/arm64`目录中，然后在`mdz_utils`项目根目录打开终端，运行`node-gyp configure`和`node-gyp build`。
+将第2部分编译出来的`libbit7z.a`放进`mdz_utils`项目根目录中的`lib/ohos/arm64`目录中，然后将`binding-ohos.gyp`改成`binding.gyp`，然后在`mdz_utils`项目根目录打开终端，运行`node-gyp configure`和`node-gyp build`。

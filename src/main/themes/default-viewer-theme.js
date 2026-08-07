@@ -399,6 +399,7 @@ export const defaultViewerTheme = `
     transition: transform 0.3s ease, background-position 0.3s ease, height 0.3s ease;
     background-size: 200% 100%;
     background-position: 0 0;
+    background-color: var(--main-color);
 }
 
 #viewer-content > hr:hover {
