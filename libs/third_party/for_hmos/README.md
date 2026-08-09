@@ -42,7 +42,7 @@ cd /path/to/bit7z
 mkdir build
 cd build
 # 注意，-DBIT7Z_CUSTOM_7ZIP_PATH参数引入p7zip的源码来自第一步“编译7-zip”哦
-cmake -DCMAKE_CXX_FLAGS="-Wno-error=unused-command-line-argument" -DCMAKE_TOOLCHAIN_FILE="/path/to/command-line-tools/sdk/default/openharmony/native/build/cmake/ohos.toolchain.cmake" -DOHOS_ARCH=arm64-v8a -L -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION="26.00" -DBIT7Z_CUSTOM_7ZIP_PATH="/path/to/7z2600-src"
+cmake ../ -DCMAKE_CXX_FLAGS="-Wno-error=unused-command-line-argument" -DCMAKE_TOOLCHAIN_FILE="/path/to/command-line-tools/sdk/default/openharmony/native/build/cmake/ohos.toolchain.cmake" -DOHOS_ARCH="arm64-v8a" -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION="26.02" -DBIT7Z_CUSTOM_7ZIP_PATH="/path/to/7z2602-src"
 cmake --build . -j --config Release
 ```
 
