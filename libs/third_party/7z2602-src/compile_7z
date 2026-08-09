@@ -1,0 +1,95 @@
+#!/usr/bin/env node
+
+// 7z编译脚本，运行参数：
+// node ./compile_7z <win32/darwin/linux/openharmony> <x64/arm64>
+
+const fs = require("fs");
+const path = require("path");
+const {spawn} = require("child_process");
+let iconv;
+
+if (process.platform === 'win32') {
+    iconv = require("iconv-lite");
+}
+
+const params = process.argv.slice(2);
+let support = true;
+
+// 检查参数，少一个/两个则退出
+if (params.length < 2) {
+    console.log(`缺少参数，程序已退出。\n\tnode ./compile_7z <win32/darwin/linux/openharmony> <x64/arm64>\n`);
+    process.exit(-1);
+}
+
+const env = params[0];
+const arch = params[1];
+const genProductDir = `${__dirname}${path.sep}out${path.sep}${env}${path.sep}${arch}`;  // 拷贝至目标文件夹路径
+
+let command = "";
+let productFolder = "";  // 编译产物路径
+let productName = "";  // 编译产物文件名
+
+if (env === "openharmony") {
+    command = `bash ${__dirname}${path.sep}build_ohos_arm64.sh`;
+} else {
+    // 先新建编译产物的文件夹（鸿蒙则不用）
+    fs.mkdirSync(genProductDir, {recursive: true});
+    // 然后启动命令构建（分系统）
+    if (process.platform === 'win32') {
+        if (process.arch === 'x64') {
+            command = `cd /D ${__dirname}\\CPP\\7zip\\Bundles\\Format7zF && call "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat" && nmake NEW_COMPILER=1 MY_STATIC_LINK=1`;
+            productName = "7z.dll";
+            productFolder = `${__dirname}${path.sep}CPP${path.sep}7zip${path.sep}Bundles${path.sep}Format7zF${path.sep}x64`;
+        } else {
+            support = false;
+        }
+    } else if (process.platform === 'darwin') {
+        if (process.arch === 'arm64') {
+            command = `cd ${__dirname}/CPP/7zip/Bundles/Format7zF && make -j -f ../../cmpl_mac_arm64.mak`;
+            productName = "7z.so";
+            productFolder = `${__dirname}/CPP/7zip/Bundles/Format7zF/b/m_${process.arch}`;
+        } else {
+            support = false;
+        }
+    } else if (process.platform === 'linux') {
+        if (process.arch === 'x64') {
+            command = `cd ${__dirname}/CPP/7zip/Bundles/Format7zF && make -j -f ../../cmpl_gcc.mak`;
+            productName = "7z.so";
+            productFolder = `${__dirname}/CPP/7zip/Bundles/Format7zF/b/g`;
+        } else {
+            support = false;
+        }
+    }
+    if (!support) {
+        console.log("本程序仅支持win32-x64、darwin-arm64、linux-x64和openharmony-arm64四种主流平台的自动化构建，其他平台请参照本程序自行构建。");
+        process.exit(-1);
+    }
+}
+
+// 运行shell
+console.log(`正在运行${command}`);
+const child = spawn(command, {
+    shell: true, // Windows 下必须开启才能识别环境变量和内置命令
+    encoding: "buffer",
+});
+
+// 监听标准输出（实时打印）
+child.stdout.on('data', (data) => {
+    process.stdout.write(iconv ? iconv.decode(data, 'gbk') : data); // 使用 process.stdout.write 不会自动换行，保持原汁原味
+});
+
+// 监听错误输出
+child.stderr.on('data', (data) => {
+    process.stderr.write(`${iconv ? iconv.decode(data, 'gbk') : data}`);
+});
+
+child.on('close', (code) => {
+    console.log(`\nExit code: ${code}`);
+    // 如果exit code是0，则说明没有问题，若不是0，则有问题。
+    if (code === 0) {
+        // 最后拷贝至指定位置
+        fs.copyFileSync(`${productFolder}${path.sep}${productName}`, `${genProductDir}${path.sep}${productName}`);
+    } else {
+        console.log("脚本执行出错！")
+    }
+});

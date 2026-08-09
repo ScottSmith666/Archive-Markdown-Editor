@@ -1,4 +1,4 @@
-/*
+﻿/*
  * bit7z - A C++ static library to interface with the 7-zip shared libraries.
  * Copyright (c) 2014-2024 Riccardo Ostani - All Rights Reserved.
  *

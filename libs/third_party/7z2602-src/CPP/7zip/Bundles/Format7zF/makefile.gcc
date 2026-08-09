@@ -1,0 +1,84 @@
+PROG = 7z
+DEF_FILE = ../../Archive/Archive2.def
+
+# OHOS / HarmonyOS arm64 cross build (Ubuntu 22.04 x86_64 host):
+#
+#   cd CPP/7zip/Bundles/Format7zF
+#   export OHOS_SDK=/path/to/ohos-sdk
+#   make -f makefile.gcc          # or simply: make
+#
+# Output: b/ohos_arm64/7z.so (shared library for arm64-v8a, exports
+# CreateObject / GetNumberOfFormats / ... for bit7z).
+#
+# When OHOS_SDK is not set, this makefile keeps the usual native Linux
+# build of Format7zF (7z.so in _o/).
+ifdef OHOS_SDK
+include ../../var_ohos_arm64.mak
+include ../../warn_ohos.mak
+endif
+
+# IS_X64 = 1
+# USE_ASM = 1
+# ST_MODE = 1
+
+include Arc_gcc.mak
+
+ifdef SystemDrive
+IS_MINGW = 1
+else
+ifdef SYSTEMDRIVE
+# ifdef OS
+IS_MINGW = 1
+endif
+endif
+
+LOCAL_FLAGS_SYS =
+
+ifdef IS_MINGW
+
+LOCAL_FLAGS_SYS = \
+  $(LOCAL_FLAGS_ST) \
+
+
+
+SYS_OBJS = \
+  $O/resource.o \
+
+else
+
+SYS_OBJS = \
+  $O/MyWindows.o \
+
+endif
+
+LOCAL_FLAGS = \
+  -DZ7_EXTERNAL_CODECS \
+  $(LOCAL_FLAGS_SYS) \
+  $(LOCAL_FLAGS_ST) \
+
+
+COMPRESS_OBJS_2 = \
+  $O/CodecExports.o \
+
+AR_OBJS_2 = \
+  $O/ArchiveExports.o \
+  $O/DllExports2.o \
+
+OBJS = \
+  $(ARC_OBJS) \
+  $(AR_OBJS_2) \
+  $(COMPRESS_OBJS_2) \
+  $(SYS_OBJS) \
+
+include ../../7zip_gcc.mak
+
+# OHOS overrides (see var_ohos_arm64.mak / warn_ohos.mak):
+# 7zip_gcc.mak assigns CFLAGS_WARN_WALL = -Werror -Wall -Wextra and
+# LIB2 = -lpthread -ldl unconditionally. The OHOS (musl) build must drop
+# -Werror (sysroot headers are not warning-clean) and must not link
+# -lpthread/-ldl (they live in libc.so on OHOS). Recipes expand variables
+# at execution time, so these late assignments take effect.
+ifdef OHOS_SDK
+CFLAGS_WARN_WALL = -Wall -Wextra
+LIB2 =
+endif

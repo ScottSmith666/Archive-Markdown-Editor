@@ -329,10 +329,12 @@ export const afterChosenFile = (rootState, result, isHistoryMethod = false) => {
                     while (true) {
                         try {
                             let returnFromInputMdzPasswordDialog = await showPasswordPrompt(promTitle, promContent, isPasswordWrong);
+                            // console.log("returnFromInputMdzPasswordDialog", returnFromInputMdzPasswordDialog);
                             if (returnFromInputMdzPasswordDialog) {
                                 let userMdzPassword = returnFromInputMdzPasswordDialog;
                                 // 开始尝试用输入的密码打开加密mdz
                                 let result4 = await window.fileManPreload.loadEncryptedMdzFileContent(planOpenFilePath, userMdzPassword);
+                                // console.log("result4", result4);
                                 if (result4.success) {
                                     // 说明密码正确，开始加载内容
                                     addTabPage(rootState.tab, {
