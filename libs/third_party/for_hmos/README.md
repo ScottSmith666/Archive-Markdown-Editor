@@ -29,7 +29,7 @@ export PATH=$PATH:$OHOS_SDK/native/llvm/bin:/path/to/command-line-tools/sdk/defa
 
 ## 1. 编译7-zip
 
-参考`../7z2600-src/README_OHOS_arm64.md`。
+参考`../7z2602-src/README_OHOS_arm64.md`。
 
 ## 2. 编译Bit7z
 
@@ -52,4 +52,4 @@ cmake --build . -j --config Release
 
 ## 4. 编译“mdz_utils”
 
-将第2部分编译出来的`libbit7z.a`放进`mdz_utils`项目根目录中的`lib/ohos/arm64`目录中，然后将`binding-ohos.gyp`改成`binding.gyp`，然后在`mdz_utils`项目根目录打开终端，运行`node-gyp configure`和`node-gyp build`。
+将第2部分编译出来的`libbit7z.a`放进`mdz_utils`项目根目录中的`lib/openharmony/arm64`目录中，然后将`binding-ohos.gyp`改成`binding.gyp`，然后在`mdz_utils`项目根目录打开终端，依次运行`node-gyp clean`、`node-gyp configure`和`node-gyp build`。

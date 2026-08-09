@@ -87,7 +87,7 @@
         ["OS=='linux'", {
           "conditions": [
             ["target_arch=='x64'", {
-              "libraries": [ "../lib/ohos/arm64/libbit7z64-new.a" ]
+              "libraries": [ "../lib/openharmony/arm64/libbit7z64.a" ]
             }]
 #             ,
 #             ["target_arch=='arm64'", {

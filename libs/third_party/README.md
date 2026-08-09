@@ -1,7 +1,7 @@
 # 1. 编译7-Zip
 
 ```bash
-cd /path/to/7z2600-src/CPP/7zip/Bundles/Format7zF
+cd /path/to/7z2602-src/CPP/7zip/Bundles/Format7zF
 
 # 这是macOS arm64命令
 make -j -f ../../cmpl_mac_arm64.mak
@@ -19,7 +19,10 @@ make -j -f ../../cmpl_gcc.mak
 cd /path/to/bit7z
 mkdir build
 cd build
-cmake ../ -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION="26.00" -DBIT7Z_CUSTOM_7ZIP_PATH=/Volumes/Execute/Files/project/ame_new/archive_markdown_editor/libs/third_party/7z2600-src
+# win32 / darwin平台命令
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION="26.02" -DBIT7Z_CUSTOM_7ZIP_PATH=/path/to/7z2602-src
+# linux平台命令
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DBIT7Z_USE_NATIVE_STRING=ON -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_7ZIP_VERSION="26.02" -DBIT7Z_CUSTOM_7ZIP_PATH=/path/to/7z2602-src -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_C_FLAGS="-fPIC" -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 cmake --build . -j --config Release
 ```
 如果在Windows平台上编译发现下面的错误：
@@ -32,9 +35,10 @@ C:\path\to\bit7z\src\internal\xxx.cpp(1,1): warning C4819: 该文件包含不能
 
 然后继续编译，就不会报错了。
 
-# 3. 下载、编译、安装better-sqlite3（如果项目能跑起来不出错就不用管这条）
+# 3. 下载、编译、安装better-sqlite3
 ```bash
 npm install --save-dev electron-rebuild
 npm install better-sqlite3
+# 如果调用该包时出错，就运行：
 ./node_modules/.bin/electron-rebuild -f -w better-sqlite3
 ```
