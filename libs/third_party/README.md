@@ -10,7 +10,7 @@ make -j -f ../../cmpl_mac_arm64.mak
 nmake NEW_COMPILER=1 MY_STATIC_LINK=1  # 这是Windows的命令，MY_STATIC_LINK=1为静态编译
 
 # 这是Linux命令
-make -j -f ../../cmpl_gcc.mak
+make -j -f ../../cmpl_gcc.mak LOCAL_FLAGS=-DZ7_NO_LARGE_PAGES  # 如果不加LOCAL_FLAGS=-DZ7_NO_LARGE_PAGES，Linux平台编译完成的库会导致文件保存出错、文件损坏的bug
 # 获取7z.so或者7z.dll
 ```
 
