@@ -224,6 +224,7 @@ if --->|yes| f1[GCD = b] --> B(End)
 if --->|no| f2["a, b = b, a % b "]-->if
 \`\`\`
 `;
+<<<<<<< HEAD
 
 export const exampleContentForHarmonyOS = `# Markdown语法学习
 
@@ -381,3 +382,5 @@ if --->|yes| f1[GCD = b] --> B(End)
 if --->|no| f2["a, b = b, a % b "]-->if
 \`\`\`
 `;
+=======
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)

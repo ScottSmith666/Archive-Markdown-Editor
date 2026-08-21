@@ -19,16 +19,23 @@ import {nextTick, onMounted, ref} from "vue";
 import {useStore} from 'vuex';
 import {useRoute, onBeforeRouteUpdate} from 'vue-router';
 
+<<<<<<< HEAD
 import {exampleContent, exampleContentForHarmonyOS} from "./example.js";
+=======
+import {exampleContent} from "./example.js";
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)
 
 const route = useRoute();
 const store = useStore();
 
 let monacoInstance;
 
+<<<<<<< HEAD
 // data
 const monacoEditorStateMap = ref(new Map());  // 存储每个标签页的状态（光标位置、滚动位置等）
 
+=======
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)
 // emit
 const emit = defineEmits(['update', 'top', 'bottom']);
 
@@ -66,16 +73,28 @@ const updateMonacoEditorTheme = (monacoInstance) => {
 
 onBeforeRouteUpdate((to, from) => {
     // 页面变动时存储上一个旧页面的state
+<<<<<<< HEAD
     monacoEditorStateMap.value.set(from.query.pageid, monacoInstance.saveViewState());
+=======
+    store.commit('changePropsOfTab', {
+        'pageId': from.query.pageid,
+        'propName': 'viewState',
+        'propValue': monacoInstance.saveViewState()
+    });
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)
     // 页面变动时切换Monaco Editor Model
     let model = store.state.tab.tabList.get(to.query.pageid).get('monacoEditorModel');
     updateMonacoEditorTheme(monacoInstance);
     monacoInstance.setModel(model);
 
     // 加载新编辑器页面的state
+<<<<<<< HEAD
     if (monacoEditorStateMap.value.get(to.query.pageid)) {
         monacoInstance.restoreViewState(monacoEditorStateMap.value.get(to.query.pageid));
     }
+=======
+    monacoInstance.restoreViewState(store.state.tab.tabList.get(to.query.pageid).get("viewState"));
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)
     monacoInstance.focus();
     update(monacoInstance, to.query.pageid);
 });
@@ -105,9 +124,13 @@ onMounted(() => {
     let model = store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel');
     monacoInstance.setModel(model);
     // 加载对应编辑器页面的state
+<<<<<<< HEAD
     if (monacoEditorStateMap.value.get(route.query.pageid)) {
         monacoInstance.restoreViewState(monacoEditorStateMap.value.get(route.query.pageid));
     }
+=======
+    monacoInstance.restoreViewState(store.state.tab.tabList.get(route.query.pageid).get("viewState"));
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)
 
     // 自动聚焦
     monacoInstance.focus();
@@ -156,7 +179,11 @@ onMounted(() => {
                 {
                     // 如果使用 selection，当有文本被选中时会替换它；否则在光标处插入
                     range: selection,
+<<<<<<< HEAD
                     text: store.state.hmos.isHarmonyOS ? exampleContentForHarmonyOS : exampleContent,
+=======
+                    text: exampleContent,
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)
                     forceMoveMarkers: true // 通常设置为 true
                 }
             ]);

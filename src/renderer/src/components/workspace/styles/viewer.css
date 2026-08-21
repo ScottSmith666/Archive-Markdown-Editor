@@ -17,7 +17,11 @@
     position: absolute;
     z-index: 10;
     width: calc(100% - 14px) !important;
+<<<<<<< HEAD
     height: 100%;
+=======
+    height: calc(100% - 15px);
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)
 }
 
 /* 去除针对所有带 tabindex 的元素或 input的外框或阴影 */

@@ -125,6 +125,10 @@ export const tMan = {
                 "monacoEditorModel": markRaw(createMonacoEditorModel()),
                 "encrypted": false,
                 "password": "",
+<<<<<<< HEAD
+=======
+                "viewState": null,  // 保存编辑区状态
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)
             }));
             // 如果设置为启动时不打开任何页面，则该值为空值
             // let initPage = null;

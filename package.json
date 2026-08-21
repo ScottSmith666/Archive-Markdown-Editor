@@ -1,6 +1,10 @@
 {
     "name": "archive-markdown-editor",
+<<<<<<< HEAD
     "version": "1.2.5-fixed",
+=======
+    "version": "1.2.6",
+>>>>>>> 78768f4 (1.2.6-fix page forget bug)
     "description": "A simple, beautiful and powerful markdown & mdz file editor.",
     "main": "./out/main/index.js",
     "author": "Scott Smith",
