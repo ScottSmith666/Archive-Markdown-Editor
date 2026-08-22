@@ -1,10 +1,6 @@
 {
     "name": "archive-markdown-editor",
-<<<<<<< HEAD
-    "version": "1.2.5-fixed",
-=======
     "version": "1.2.6",
->>>>>>> 78768f4 (1.2.6-fix page forget bug)
     "description": "A simple, beautiful and powerful markdown & mdz file editor.",
     "main": "./out/main/index.js",
     "author": "Scott Smith",
@@ -40,15 +36,17 @@
         "@toycode/markdown-it-class": "^1.2.4",
         "better-sqlite3": "^12.8.0",
         "docx-preview": "^0.4.0",
+        "dompurify": "^3.4.14",
+        "htmlparser2": "^12.0.0",
         "incremental-dom": "^0.7.0",
         "markdown-it": "^14.1.1",
         "markdown-it-emoji": "^3.0.0",
-        "markdown-it-incremental-dom": "^2.1.0",
         "markdown-it-inject-linenumbers": "^0.3.0",
         "markdown-it-mark": "^4.0.0",
         "markdown-it-regex": "^0.2.2",
         "markdown-it-task-lists": "^2.1.1",
         "markdown-it-textual-uml": "^0.17.1",
+        "morphdom": "^2.7.8",
         "prismjs": "^1.30.0",
         "vite-plugin-monaco-editor-nls": "^3.0.1",
         "vue-router": "^4.6.4",

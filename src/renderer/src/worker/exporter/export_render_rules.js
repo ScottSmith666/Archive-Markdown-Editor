@@ -132,4 +132,12 @@ export const rules = (md) => {
             }
         }
     };
+
+    // 链接
+    md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+        const token = tokens[idx];
+        token.attrPush(['target', '_blank']);
+        // 渲染该 Token 并返回 HTML 字符串
+        return self.renderToken(tokens, idx, options);
+    };
 };

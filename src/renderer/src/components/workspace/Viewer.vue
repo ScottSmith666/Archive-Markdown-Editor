@@ -2,7 +2,9 @@
 import engine from "./engine.js";
 import {regExps, returnMediaElement} from "./get_media_skeleton.js";
 
-import * as IncrementalDOM from 'incremental-dom';
+import morphdom from 'morphdom';
+import DOMPurify from "dompurify";
+
 import mermaid from 'mermaid';
 // 引入Prism
 import Prism from 'prismjs';
@@ -30,10 +32,9 @@ import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 // 导入主题
 import 'prismjs/themes/prism.css';
 
-import {nextTick, onMounted, watch, ref} from "vue";
+import {nextTick, onMounted, ref, watch} from "vue";
 import {useStore} from 'vuex';
 
-import SafeModeInfo from "./SafeModeInfo.vue";
 import {onBeforeRouteUpdate} from "vue-router";
 
 const store = useStore();
@@ -59,12 +60,6 @@ const props = defineProps({
         }
     },
     enableToc: {
-        type: Boolean,
-        default: () => {
-            return true;
-        }
-    },
-    enableSafe: {
         type: Boolean,
         default: () => {
             return true;
@@ -151,16 +146,13 @@ const loadViewerTheme = async () => {
 };
 
 // data
-const confirmContentSafe = ref(false);
 const viewerContextMenuShow = ref(false);
 const contextMenuPositionStyle = ref('');
 const viewerTocShow = ref(false);
 
 onMounted(() => {
     loadViewerTheme();
-    if ((!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)) {
-        render(props.mdPiece);
-    }
+    render(props.mdPiece);
     window.addEventListener('keydown', copyInViewerByHotkey);
 });
 
@@ -176,14 +168,21 @@ const render = async (content) => {
     }
 
     // apply render HTML content piece
-    try {
-        IncrementalDOM.patch(
-            document.getElementById('viewer-content'),
-            mdIt.renderToIncrementalDOM(content),
-        );
-    } catch (e) {
-        console.error(`渲染器出错，原因：${e.name}: ${e.message}`);
-    }
+    // 用markdown-it渲染成HTML字符串
+    let rawHTMLStr = mdIt.render(content);
+    // 然后用DOMPurify消毒
+    let purifiedHTMLStr = DOMPurify.sanitize(rawHTMLStr, {
+        ADD_TAGS: ['img', 'audio', 'video', 'source'],
+        ADD_ATTR: ['src', 'autoplay', 'loop'],
+        ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|ftp|file|blob|data):|[^&?#]*[./])/i,
+        ALLOW_UNKNOWN_PROTOCOLS: true
+    });
+    // 然后形成真实DOM
+    let newDOM = document.createElement("div");
+    newDOM.setAttribute("id", "viewer-content");
+    newDOM.innerHTML = purifiedHTMLStr;
+    // 更新
+    morphdom(document.getElementById("viewer-content"), newDOM);
 
     // render Prism Highlight
     nextTick().then(() => {
@@ -220,16 +219,6 @@ const mathJaxRender = () => {
 
 const mermaidRender = () => {
     nextTick().then(async () => {
-        // 先清除data-processed节点
-        const nodes = document.getElementById('viewer-content')
-            .querySelectorAll('.mermaid');
-        if (nodes.length !== 0) {
-            nodes.forEach(node => {
-                // 移除该属性，否则 Mermaid 会跳过这些节点
-                node.removeAttribute('data-processed');
-            });
-        }
-        // 再执行渲染
         mermaid.initialize({startOnLoad: false});
         await mermaid.run({querySelector: '.mermaid'});
     });
@@ -348,6 +337,15 @@ const goToBottom = () => {
     }
 };
 
+const customClickEvents = (event) => {
+    const clickObject = event.target.closest('.ame-custom-click');
+    if (clickObject.dataset.typeFlag === "link") {
+        window.openURLPreload.openURL(clickObject.dataset.href);
+    } else if (clickObject.dataset.typeFlag === "file") {
+        localStorage.setItem(`${store.state.tab.currentOpenedPageId}-click-media-path`, clickObject.dataset.fileUrl);
+    }
+};
+
 defineExpose({
     goToTop,
     goToBottom,
@@ -358,27 +356,15 @@ watch(
     () => [props.mdPiece, props.middleLineNumber],
     async ([newMdPiece, newMiddleLineNumber], [oldMdPiece, oldMiddleLineNumber]) => {
         await nextTick();
-        if ((!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)) {
-            render(newMdPiece);
-            if (newMiddleLineNumber !== oldMiddleLineNumber) {
-                scrollCustomLineElementToCenter(
-                    newMiddleLineNumber,
-                    props.startLineNumber
-                );
-            }
+        render(newMdPiece);
+        if (newMiddleLineNumber !== oldMiddleLineNumber) {
+            scrollCustomLineElementToCenter(
+                newMiddleLineNumber,
+                props.startLineNumber
+            );
         }
     }
 );
-
-watch(confirmContentSafe, (newValue, oldValue) => {
-    if (newValue) {
-        nextTick().then(() => {
-            if ((!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)) {
-                render(props.mdPiece);
-            }
-        });
-    }
-});
 
 watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("isExistFile"), (newVal, oldVal) => {
     // 当新值和旧值不一样且新值为true时，肯定是另存为的时候，刷新渲染器，防止意外报错
@@ -391,7 +377,7 @@ watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get
 
 <template>
     <Transition>
-        <nav v-if="(!(Number(store.state.settings.userSettings.safe_mode) === 1)) && props.enableToc && viewerTocShow"
+        <nav v-if="props.enableToc && viewerTocShow"
              class="custom-toc">
             <div class="toc fonts">
                 <div class="toc-title-block"></div>
@@ -490,11 +476,11 @@ watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get
          @contextmenu.prevent="displayViewerContextMenu"
          @click="viewerContextMenuShow = false"
          @blur="viewerContextMenuShow = false">
-        <div v-if="(!(Number(store.state.settings.userSettings.safe_mode) === 1)) || (!props.enableSafe)" id="viewer-content">
-            <!--Generated HTML was injected here...-->
+        <div @click="customClickEvents">
+            <div id="viewer-content">
+                <!--Generated HTML was injected here...-->
+            </div>
         </div>
-        <safe-mode-info
-            v-if="Number(store.state.settings.userSettings.safe_mode) === 1 && props.enableSafe"></safe-mode-info>
     </div>
 </template>
 

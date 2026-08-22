@@ -60,7 +60,6 @@ onMounted(async () => {
         v-if="rootPath !== ''"
         class="light-view"
         :enableToc="false"
-        :enableSafe="false"
         :mdPiece="content"
         :enable-document-media-path="{'isEnabled': true, 'path': rootPath}"
         @click="expandPreviewDialog"

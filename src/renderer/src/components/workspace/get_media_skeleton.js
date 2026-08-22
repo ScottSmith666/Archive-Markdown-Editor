@@ -22,11 +22,11 @@ export const returnMediaElement = (isURL, kind, url, caption = "") => {
         }
     };
     if (kind === 'video') {
-        return `<video controls><source src="${isURL ? encodeURI(url) : ('file://' + url)}"></video>`;
+        return `<video controls="controls"><source src="${isURL ? encodeURI(url) : ('file://' + url)}"></video>`;
     } else if (kind === 'audio') {
-        return `<audio style="width: 100%;" controls src="${isURL ? encodeURI(url) : ('file://' + url)}"></audio>`;
+        return `<audio style="width: 100%;" controls="controls" src="${isURL ? encodeURI(url) : ('file://' + url)}"></audio>`;
     } else if (kind === 'file') {
-        return `<div onclick="localStorage.setItem('` + localStorage.getItem("currentPageId") + `-click-media-path', '` + decodeURI(url) + `');" `
+        return `<div class="ame-custom-click" data-type-flag="file" data-file-url="` + decodeURI(url) + `" `
             + `style="cursor:pointer; display: flex; flex-direction: row; align-items: center; padding: 15px; `
             + `border-radius: 5px; background-color: #42b98330; border: 1px solid #42b983;"><div>`
             + `<svg style="width: 50px; height: 50px;" t="1763025308845" class="icon" viewBox="0 0 1024 1024" `

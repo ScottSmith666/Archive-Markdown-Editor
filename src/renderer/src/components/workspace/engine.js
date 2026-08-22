@@ -5,8 +5,8 @@ import MarkdownItInjectLineNumbers from 'markdown-it-inject-linenumbers';
 import markdownItTextualUml from 'markdown-it-textual-uml';
 import MarkdownItClass from '@toycode/markdown-it-class';
 import markdownItTaskLists from 'markdown-it-task-lists';
-import * as IncrementalDOM from 'incremental-dom';
-import MarkdownItIncrementalDOM from 'markdown-it-incremental-dom';
+// import * as IncrementalDOM from 'incremental-dom';
+// import MarkdownItIncrementalDOM from 'markdown-it-incremental-dom';
 import {full as emoji} from 'markdown-it-emoji';
 import MarkdownItMark from 'markdown-it-mark';
 import {alert} from "@mdit/plugin-alert";
@@ -42,7 +42,7 @@ export default (enableDocumentMediaPath) => {
         table: 'md-block md-table',
     });
     mdIt.use(markdownItTaskLists);
-    mdIt.use(MarkdownItIncrementalDOM, IncrementalDOM);
+    // mdIt.use(MarkdownItIncrementalDOM, IncrementalDOM);
     mdIt.use(emoji);
     mdIt.use(MarkdownItMark);
     mdIt.use(alert);

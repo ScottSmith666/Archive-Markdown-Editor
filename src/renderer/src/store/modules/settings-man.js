@@ -39,7 +39,6 @@ export const settingsMan = {
                     'display_code_scale': 1,
                     'display_editor_animation': 1,
                     'render_mode': 'performance',
-                    'safe_mode': 0,
                 };
                 localStorage.setItem('userSettings', JSON.stringify(state.userSettings));
             } else {
@@ -64,7 +63,6 @@ export const settingsMan = {
                 'display_code_scale': 1,
                 'display_editor_animation': 1,
                 'render_mode': 'performance',
-                'safe_mode': 0,
             };
             localStorage.setItem('userSettings', JSON.stringify(state.userSettings));
         }

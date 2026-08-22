@@ -160,8 +160,9 @@ export const rules = (md, documentPathObject) => {
 
         // 如果是外部链接则通过默认浏览器打开
         if (href.startsWith('http')) {
-            let func = `window.openURLPreload.openURL('${href}');`;
-            token.attrPush(['onclick', func]);
+            token.attrPush(['data-type-flag', 'link']);  // 识别数据类型，以作不同处理
+            token.attrPush(['data-href', encodeURI(href)]);  // 装填数据
+            token.attrPush(['class', 'ame-custom-click']);
             token.attrPush(['style', 'cursor: pointer;']);
             // 移除自带的href属性
             const idx = token.attrIndex('href');

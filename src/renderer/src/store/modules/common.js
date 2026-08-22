@@ -11,11 +11,7 @@ export const mainManuAllHide = (state) => {
     state.helpMenuStyleStatus = false;
 };
 
-<<<<<<< HEAD
-export const createMonacoEditorModel = (pageId, content = "") => {
-=======
 export const createMonacoEditorModel = (pageId = null, content = "") => {
->>>>>>> 78768f4 (1.2.6-fix page forget bug)
     if (!pageId) {  // 要是没传入参数，就自己生成
         pageId = "UNUSED_" + crypto.randomUUID();
     }
@@ -24,26 +20,22 @@ export const createMonacoEditorModel = (pageId = null, content = "") => {
     return monaco.editor.createModel(content, "markdown", uri);
 };
 
-export const switchTo = (path, pageId) => {
+export const switchTo = (path) => {
     router.replace(path);
-    localStorage.setItem("currentPageId", pageId);
 };
 
 export const switchToPage = (state, item) => {
     // 更新当前窗口类型状态
     // state.currentActivatedTabType = item.get('type');
     state.currentOpenedPageId = item.get('pageid');
-    switchTo(item.get('path'), item.get('pageid'));
+    switchTo(item.get('path'));
 };
 
 export const changePropsOfTab = (state, pageId, propName, propValue) => {
     if (state.tabList.get(pageId)) {
-<<<<<<< HEAD
-=======
         if (propName === 'viewState') {  // 防止过度深层解析导致卡死
             propValue = markRaw(propValue);
         }
->>>>>>> 78768f4 (1.2.6-fix page forget bug)
         state.tabList.get(pageId).set(propName, propValue);
     }
 };
@@ -108,10 +100,7 @@ export const addTabPage = (state, object) => {  // 新增标签页
         "monacoEditorModel": markRaw(model),
         "encrypted": object.encrypted ? (object.encrypted === true) : false,
         "password": object.password ? object.password : "",
-<<<<<<< HEAD
-=======
         "viewState": null,
->>>>>>> 78768f4 (1.2.6-fix page forget bug)
     }));
     state.tabList.set(filePageID, newPageObject);
     state.currentOpenedPageId = filePageID;  // 更新当前打开的pageId
