@@ -23,17 +23,28 @@ if (!app.isPackaged) {
 }
 
 let main;
+let firstLaunch = true;
 // 当应用启动前双击文件时，app.on("open-file")会比app.whenReady()先运行
 // 因此设置了这个全局变量，以备储存打开文件的路径
 let globalFilePath;
-if (process.platform === 'darwin') {
+if (process.platform === 'darwin' || process.platform === 'openharmony') {
     // macOS平台双击文件类型打开默认应用
     app.on("open-file", (event, filePath) => {
         event.preventDefault();
+        console.log("打开的文件路径", filePath);
         if (main && main.webContents) {
-            // 如果窗口准备就绪，就发送打开文件信号
-            // 针对热启动
-            main.webContents.send("default-open-file", filePath);
+            // 针对HarmonyOS，不管是冷启动还是热启动，app.whenReady()永远比app.on("open-file")先启动
+            if (process.platform === 'openharmony') {
+                if (!firstLaunch) {
+                    main.webContents.send("default-open-file", filePath);
+                } else {
+                    globalFilePath = filePath;
+                }
+            } else {
+                // 如果窗口准备就绪，就发送打开文件信号
+                // 针对热启动
+                main.webContents.send("default-open-file", filePath);
+            }
         } else {
             // 当应用启动前（即冷启动）双击文件时，app.on("open-file")会比app.whenReady()先运行
             // 因此先把文件路径存进一个全局变量
@@ -129,6 +140,7 @@ if (!gotTheLock) {  // 当前打开多个实例
 
         // 针对冷启动打开文件
         main.webContents.on('did-finish-load', () => {
+            firstLaunch = false;
             if (globalFilePath) {
                 main.webContents.send("default-open-file", globalFilePath.replaceAll("\\", "/"));
                 globalFilePath = null;
