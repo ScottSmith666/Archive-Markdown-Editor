@@ -31,7 +31,7 @@ const handleGoToBottom = () => {
 const expandPreviewDialog = () => {
     setTimeout(() => {
         if (localStorage.getItem(`${store.state.tab.currentOpenedPageId}-click-media-path`)) {
-            store.commit('toggleModal', {'kind': 'preview'});
+            ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'preview'});
         }
     }, 400);
 };

@@ -151,28 +151,6 @@ For intelligent keyword suggestions, please refer to `Menu bar > Help > Markdown
 
 ![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/suggestions.png)
 
-#### 5. Safe Mode
-
-> [!caution]
->
-> Malicious users may exploit the HTML rendering features of various Markdown editors to write malicious content, such as `<script>...</script>` or `<img onclick="...">` containing malicious scripts.
->
-> This is called a cross-site scripting (XSS) attack.
-
-If you suspect that the content of a file you are about to open is problematic, you can refrain from opening the file beforehand and go to settings first.
-
-![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/settings.png)
-
-Enable safe mode, then exit settings.
-
-![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/open-safe-mode.png)
-
-When safe mode is enabled, the connection between the editor and the renderer will be broken, so the renderer will not work when a file is opened, and therefore malicious code will not be executed.
-
-The next step is simply to eliminate malicious code.
-
-![](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/pause-render.png)
-
 ## III. Archive Markdown Editor Hotkey Table
 
 | Operation       | Windows/Linux    | macOS         |

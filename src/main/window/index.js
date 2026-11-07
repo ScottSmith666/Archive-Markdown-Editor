@@ -37,7 +37,7 @@ export const mainWindow = (sqlite3, dbPath) => {
         },
     });
 
-    // main.webContents.openDevTools({mode: "right"});
+    main.webContents.openDevTools({mode: "right"});
 
     main.on("ready-to-show", () => {
         main.show();

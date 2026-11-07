@@ -18,31 +18,31 @@ export const ameLifecycleMan = {
     },
     mutations: {
         toggleModal(state, object) {
-            // object: {kind: "..."}
-            state.showModal = !state.showModal;
+            // object: {wantToOpen: true or false, kind: "..."}
+            state.showModal = object.wantToOpen;
             if (object.kind === 'donate') {  // kind是提示框的类型，none则是仅弹出背景模态框
-                state.showDonate = !state.showDonate;
+                state.showDonate = object.wantToOpen;
             } else if (object.kind === 'save-as') {
-                state.showSaveAs = !state.showSaveAs;
+                state.showSaveAs = object.wantToOpen;
             } else if (object.kind === 'export') {
-                state.showExport = !state.showExport;
+                state.showExport = object.wantToOpen;
             } else if (object.kind === 'preview') {
-                state.showPreview = !state.showPreview;
+                state.showPreview = object.wantToOpen;
             }
         },
         autoTips(state, object) {
-            // object: {kind: "...", tipLevel: "...", content: "..."}
-            state.showModal = !state.showModal;
+            // object: {wantToOpen: true or false, kind: "...", tipLevel: "...", content: "..."}
+            state.showModal = object.wantToOpen;
             if (object.kind === 'loading') {  // kind是提示框的类型，分为loading和tip，none则是仅弹出背景模态框
                 state.loadingContent = object.content;
-                state.showLoading = !state.showLoading;
+                state.showLoading = object.wantToOpen;
             } else if (object.kind === 'tip') {
                 state.tipContent = object.content;
                 state.tLevel = object.tipLevel;
-                state.showTip = !state.showTip;
+                state.showTip = object.wantToOpen;
                 setTimeout(() => {
-                    state.showTip = !state.showTip;
-                    state.showModal = !state.showModal;
+                    state.showTip = false;
+                    state.showModal = false;
                 }, state.tipDisplayTime * 1000);
             }
         },

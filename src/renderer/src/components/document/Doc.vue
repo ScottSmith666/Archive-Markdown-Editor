@@ -18,8 +18,8 @@ const readDocument = async (docName) => {
             rootPath.value = result.root.replaceAll("\\", "/");  // 渲染端不许出现反斜杠
             content.value = result.content;
         } else {
-            store.commit('toggleModal', {kind: "none"});
-            store.commit("autoTips", {
+            ameLifecycleManStore.autoTips({
+                wantToOpen: true,
                 kind: "tip",
                 tipLevel: "fail",
                 content: result.message,
@@ -27,8 +27,8 @@ const readDocument = async (docName) => {
             });
         }
     } catch (e) {
-        store.commit('toggleModal', {kind: "none"});
-        store.commit("autoTips", {
+        ameLifecycleManStore.autoTips({
+            wantToOpen: true,
             kind: "tip",
             tipLevel: "fail",
             content: `${e.name}: ${e.message}`,
@@ -40,7 +40,7 @@ const readDocument = async (docName) => {
 const expandPreviewDialog = () => {
     setTimeout(() => {
         if (localStorage.getItem(`${store.state.tab.currentOpenedPageId}-click-media-path`)) {
-            store.commit('toggleModal', {'kind': 'preview'});
+            ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'preview'});
         }
     }, 400);
 };

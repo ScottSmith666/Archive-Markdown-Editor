@@ -2,7 +2,7 @@
     display: -webkit-box;
     display: -moz-box;
     width: 100%;
-    height: calc(100vh - 36px - 31px - 15px);
+    height: calc(100vh - 36px - 31px - 15px - 5px * 2);  /* 整个窗口高度减去Tab的高度、减去Menu的高度、减去Footer的高度，最后减去Footer padding的高度 */
     position: relative;
 }
 

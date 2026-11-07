@@ -1,14 +1,23 @@
 <script setup>
 import {onMounted} from "vue";
 import {useStore} from 'vuex';
+import {useAmeLifecycleManStore} from "../../store/ame-lifecycle-man";
+import {useMainMenuManStore} from "../../store/main-menu-man";
+import {useTabManStore} from "../../store/tab-man";
+import {useHarmonyOSPermsStore} from "../../store/harmony-perms";
+import {useI18nStore} from "../../store/i18n";
 
+const ameLifecycleManStore = useAmeLifecycleManStore();
+const mainMenuManStore = useMainMenuManStore();
+const tabManStore = useTabManStore();
+const harmonyOSPermsStore = useHarmonyOSPermsStore();
+const i18nStore = useI18nStore();
 const store = useStore();
 
 // methods
 const closeCurrentPage = () => {
-    let currentPage = store.state.tab.tabList.get(store.state.tab.currentOpenedPageId);
-    store.commit('closeTabPage',
-        {'pageId': store.state.tab.currentOpenedPageId, 'model': currentPage.get('monacoEditorModel')});
+    let currentPage = tabManStore.tabList.get(tabManStore.currentOpenedPageId);
+    tabManStore.closeTabPage({'pageId': tabManStore.currentOpenedPageId, 'model': currentPage.get('monacoEditorModel')});
 };
 
 const openOfficialWebsite = () => {
@@ -18,33 +27,36 @@ const openOfficialWebsite = () => {
 
 const save = () => {
     // 检测当前打开的是不是已存在文件，如果不是，则说明是新建文件，直接调用另存为逻辑
-    if (!store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("isExistFile")) {
-        store.commit('toggleModal', {'kind': 'save-as'});
+    if (!tabManStore.tabList.get(tabManStore.currentOpenedPageId).get("isExistFile")) {
+        ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'save-as'});
     } else {
         store.dispatch('directSaveAction');
     }
 };
 
 const openUsageByHotkey = (e) => {
-    let currentPage = store.state.tab.tabList.get(store.state.tab.currentOpenedPageId);
+    let currentPage = tabManStore.tabList.get(tabManStore.currentOpenedPageId);
     // Ctrl/Command + Shift + H打开Archive Markdown Editor使用指南
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'h' || e.key === 'H')) {
         e.preventDefault(); // 阻止浏览器默认保存行为
-        store.commit('addTabPage',
-            {'pageType': 'document',
-                'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.usage,
-                'isExistFile': false, 'docName': `usage${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`});
+        tabManStore.addTabPage({
+            'pageType': 'document',
+            'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.usage,
+            'isExistFile': false, 'docName': `usage${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`
+        });
     }
     // Ctrl/Command + N新建文件
     if ((e.ctrlKey || e.metaKey) && (e.key === 'n' || e.key === 'N')) {
         e.preventDefault();
-        store.commit('addTabPage', {'pageType': 'file',
-            'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false});
+        tabManStore.addTabPage({
+            'pageType': 'file',
+            'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false
+        });
     }
     // Ctrl/Command + O打开文件
     if ((e.ctrlKey || e.metaKey) && (e.key === 'o' || e.key === 'O')) {
         e.preventDefault();
-        store.dispatch('getHarmonyPerms');
+        harmonyOSPermsStore.getHarmonyPerms();
         store.dispatch('activateOpenFileDialogAction');
     }
 
@@ -71,9 +83,11 @@ const openUsageByHotkey = (e) => {
     // Ctrl/Command + ,打开设置
     if ((e.ctrlKey || e.metaKey) && e.code === 'Comma') {
         e.preventDefault();
-        store.commit('addTabPage', {'pageType': 'settings',
-            'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.settings,
-            'isExistFile': false});
+        tabManStore.addTabPage({
+            'pageType': 'settings',
+            'pageTitle': i18nStore.langPackage[store.state.settings.lang].tabBar.settings,
+            'isExistFile': false
+        });
     }
 };
 
@@ -136,51 +150,52 @@ onMounted(() => {
             <div class="break"></div>
             <div class="bar-menu-position">
                 <div class="bar-menu-element lower">
-                    <div id="file" class="bar-menu-element-txt fonts" @click="store.commit('mainManuClick', 'file')">
+                    <div id="file" class="bar-menu-element-txt fonts" @click="mainMenuManStore.mainManuClick('file')">
                         {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.mainCaption }}
                     </div>
                     <Transition name="slide-fade">
                         <div id="file-expand" class="upper menu" style="margin-left: -10px;"
-                             v-if="store.state.menu.fileMenuStyleStatus">
+                             v-if="mainMenuManStore.fileMenuStyleStatus">
                             <div class="menu-element" id="main-menu-new"
                                  @click="store.commit('addTabPage',
                                  {'pageType': 'file',
                                  'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false});
                                  store.dispatch('getHarmonyPerms');
-                                 store.commit('mainManuAllHide');">
+                                 mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.new }}</p>
                             </div>
                             <div class="menu-element" id="main-menu-open"
                                  @click="store.dispatch('activateOpenFileDialogAction');
                                  store.dispatch('getHarmonyPerms');
-                                 store.commit('mainManuAllHide');">
+                                 mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.open }}</p>
                             </div>
                             <template v-if="store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
                                 ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                                 : false">
                                 <div class="menu-element" id="main-menu-save"
-                                     @click="save(); store.commit('mainManuAllHide');">
+                                     @click="save(); mainMenuManStore.mainManuAllHide();">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.save }}</p>
                                 </div>
                                 <div class="menu-element" id="main-menu-save-as"
-                                     @click="store.commit('toggleModal', {'kind': 'save-as'}); store.commit('mainManuAllHide');">
+                                     @click="ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'save-as'});
+                                     mainMenuManStore.mainManuAllHide();">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.saveAs }}</p>
                                 </div>
                                 <div class="menu-element" id="main-menu-export"
-                                     @click="store.commit('toggleModal', {'kind': 'export'}); store.commit('mainManuAllHide');">
+                                     @click="ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'export'});
+                                     mainMenuManStore.mainManuAllHide();">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.export }}</p>
                                 </div>
                             </template>
 
                             <template v-if="store.state.tab.tabList.size !== 0">
                                 <div class="menu-element" id="main-menu-close"
-                                     @click="closeCurrentPage(); store.commit('mainManuAllHide');">
+                                     @click="closeCurrentPage(); mainMenuManStore.mainManuAllHide();">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.close }}</p>
                                 </div>
                             </template>
-                            <div class="menu-element" id="app-quit" @click="store.commit('quitApp');
-                                 store.commit('mainManuAllHide');">
+                            <div class="menu-element" id="app-quit" @click="ameLifecycleManStore.quitApp()">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.file.subCaptions.exitAME }}</p>
                             </div>
                         </div>
@@ -189,17 +204,17 @@ onMounted(() => {
                     <div class="main-menu-separator"></div>
 
                     <div id="edit" class="bar-menu-element-txt fonts"
-                         @click="store.commit('mainManuClick', 'edit')">
+                         @click="mainMenuManStore.mainManuClick('edit')">
                         {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.edit.mainCaption }}
                     </div>
                     <Transition name="slide-fade">
                         <div id="edit-expand" class="upper menu" style="margin-left: calc(1 * (25px + 15px));"
-                             v-if="store.state.menu.editMenuStyleStatus">
+                             v-if="mainMenuManStore.editMenuStyleStatus">
                             <div class="menu-element" id="settings"
                                  @click="store.commit('addTabPage',
                                  {'pageType': 'settings',
                                  'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.settings, 'isExistFile': false});
-                                 store.commit('mainManuAllHide');">
+                                 mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.edit.subCaptions.settings }}</p>
                             </div>
                         </div>
@@ -210,22 +225,22 @@ onMounted(() => {
                         : false">
                         <div class="main-menu-separator"></div>
                         <div id="view" class="bar-menu-element-txt fonts"
-                             @click="store.commit('mainManuClick', 'view')">
+                             @click="mainMenuManStore.mainManuClick('view')">
                             {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.view.mainCaption }}
                         </div>
                         <Transition name="slide-fade">
                             <div id="view-expand" class="upper menu" style="margin-left: calc(2 * (25px + 18px));"
-                                 v-if="store.state.menu.viewMenuStyleStatus">
+                                 v-if="mainMenuManStore.viewMenuStyleStatus">
                                 <div class="menu-element" id="preview-mode"
-                                     @click="store.commit('changeEditorMode', 'preview'); store.commit('mainManuAllHide');">
+                                     @click="store.commit('changeEditorMode', 'preview'); mainMenuManStore.mainManuAllHide();">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.view.subCaptions.viewMode }}</p>
                                 </div>
                                 <div class="menu-element" id="edit-mode"
-                                     @click="store.commit('changeEditorMode', 'edit'); store.commit('mainManuAllHide');">
+                                     @click="store.commit('changeEditorMode', 'edit'); mainMenuManStore.mainManuAllHide();">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.view.subCaptions.editMode }}</p>
                                 </div>
                                 <div class="menu-element" id="mix-mode"
-                                     @click="store.commit('changeEditorMode', 'mix'); store.commit('mainManuAllHide');">
+                                     @click="store.commit('changeEditorMode', 'mix'); mainMenuManStore.mainManuAllHide();">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.view.subCaptions.mixMode }}</p>
                                 </div>
                             </div>
@@ -234,7 +249,7 @@ onMounted(() => {
 
                         <div class="main-menu-separator"></div>
                         <div id="tool" class="bar-menu-element-txt fonts"
-                             @click="store.commit('mainManuClick', 'tool')">
+                             @click="mainMenuManStore.mainManuClick('tool')">
                             {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.tools.mainCaption }}
                         </div>
                         <Transition name="slide-fade">
@@ -242,14 +257,14 @@ onMounted(() => {
                                  :style="`margin-left: calc((3 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
                                     ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                                     : false) ? 0 : 1}) * (25px + 18px));`"
-                                 v-if="store.state.menu.toolMenuStyleStatus">
+                                 v-if="mainMenuManStore.toolMenuStyleStatus">
                                 <div class="menu-element" id="mdz-media-man"
                                      @click="store.commit('addTabPage',
                                         {
                                             'pageType': 'tools',
                                             'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].toolsPage.mdzMediaMan.tabTitle,
                                             'toolKind': 'mdzMediaMan'
-                                        }); store.commit('mainManuAllHide');">
+                                        }); mainMenuManStore.mainManuAllHide();">
                                     <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.tools.subCaptions.mdzMediaMan }}</p>
                                 </div>
 <!--                                <div class="menu-element" id="theme-editor"-->
@@ -266,7 +281,7 @@ onMounted(() => {
 
                     <div class="main-menu-separator"></div>
 
-                    <div id="help" class="bar-menu-element-txt fonts" @click="store.commit('mainManuClick', 'help')">
+                    <div id="help" class="bar-menu-element-txt fonts" @click="mainMenuManStore.mainManuClick('help')">
                         {{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.mainCaption }}
                     </div>
                     <Transition name="slide-fade">
@@ -274,36 +289,36 @@ onMounted(() => {
                              :style="`margin-left: calc((4 - ${(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId)
                                 ? store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('type') === 'file'
                                 : false) ? 0 : 1}) * (25px + 18px));`"
-                             v-if="store.state.menu.helpMenuStyleStatus">
+                             v-if="mainMenuManStore.helpMenuStyleStatus">
                             <div class="menu-element"
                                  @click="store.commit('addTabPage', {'pageType': 'welcome',
-                                 'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.welcome, 'isExistFile': false}); store.commit('mainManuAllHide');">
+                                 'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.welcome, 'isExistFile': false}); mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.welcome }}</p>
                             </div>
                             <div class="menu-element" id="about"
                                  @click="store.commit('addTabPage', {'pageType': 'document',
                                  'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.about, 'isExistFile': false,
-                                 'docName': `about${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); store.commit('mainManuAllHide');">
+                                 'docName': `about${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.about }}</p>
                             </div>
                             <div class="menu-element" id="usage"
                                  @click="store.commit('addTabPage', {'pageType': 'document',
                                  'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.usage, 'isExistFile': false,
-                                 'docName': `usage${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); store.commit('mainManuAllHide');">
+                                 'docName': `usage${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.usage }}</p>
                             </div>
                             <div class="menu-element" id="syntax"
                                  @click="store.commit('addTabPage', {'pageType': 'document',
                                  'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.syntax, 'isExistFile': false,
-                                 'docName': `syntax${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); store.commit('mainManuAllHide');">
+                                 'docName': `syntax${store.state.settings.lang === 'zh-CN' ? '' : '-' + store.state.settings.lang}`}); mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.syntax }}</p>
                             </div>
                             <div class="menu-element" id="donate"
-                                 @click="store.commit('toggleModal', {'kind': 'donate'}); store.commit('mainManuAllHide');">
+                                 @click="ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'donate'}); mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts" style="color: red;">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.donate }}</p>
                             </div>
                             <div class="menu-element" id="learn-more"
-                                 @click="openOfficialWebsite(); store.commit('mainManuAllHide');">
+                                 @click="openOfficialWebsite(); mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts">{{ store.state.i18n.langPackage[store.state.settings.lang].menuBar.help.subCaptions.officialSite }}</p>
                             </div>
                         </div>

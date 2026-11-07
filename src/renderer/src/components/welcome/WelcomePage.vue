@@ -2,7 +2,9 @@
 import {useStore} from 'vuex';
 import {computed, onMounted, ref} from "vue";
 import {onBeforeRouteUpdate} from "vue-router";
+import {useAmeLifecycleManStore} from "../../store/ame-lifecycle-man";
 
+const ameLifecycleManStore = useAmeLifecycleManStore();
 const store = useStore();
 
 // data
@@ -23,8 +25,11 @@ const loadHistory = () => {
         // 返回的记录结构：[{'hsId', '...', 'fileName': '...', 'filePath': '...', 'openTime': '...'}, ...]
         recentFileHistoryList.value = history;
     }).catch(error => {
-        store.commit('autoTips', {'kind': 'tip', tipLevel: "fail", content: "历史记录加载失败！"});
-        store.commit('toggleModal', {'kind': 'none'});
+        ameLifecycleManStore.autoTips({'wantToOpen': true,
+            'kind': 'tip',
+            'tipLevel': "fail",
+            'content': "历史记录加载失败！"
+        });
     });
 };
 
@@ -44,8 +49,9 @@ const deleteHistory = (hsId) => {
             }
         }
     }).catch(error => {
-        store.commit('autoTips', {'kind': 'tip', tipLevel: "fail", content: "历史记录删除失败！"});
-        store.commit('toggleModal', {'kind': 'none'});
+        ameLifecycleManStore.autoTips(
+            {'wantToOpen': true, 'kind': 'tip', tipLevel: "fail", content: "历史记录删除失败！"}
+        );
     });
 };
 
@@ -110,7 +116,7 @@ const sortHistory = computed(() => {
                     {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.settings }}
                 </div>
                 <!--Quit-->
-                <div class="options-quit" id="quit" @click="store.commit('quitApp')"><span class="options-icon">㊡</span>
+                <div class="options-quit" id="quit" @click="ameLifecycleManStore.quitApp()"><span class="options-icon">㊡</span>
                     {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.exitAME }}
                 </div>
 

@@ -5,8 +5,13 @@ import MenuBar from "./components/main/MenuBar.vue";
 import Preview from "./components/tools/media_preview/Preview.vue";
 import {useStore} from 'vuex';
 import FooterStatusBar from "./components/main/FooterStatusBar.vue";
+import {useAmeLifecycleManStore} from "./store/ame-lifecycle-man";
+import {useMainMenuManStore} from "./store/main-menu-man";
 
 const store = useStore();
+
+const ameLifecycleManStore = useAmeLifecycleManStore();
+const mainMenuManStore = useMainMenuManStore();
 
 // data
 const quitConfirmDialog = ref(false);
@@ -52,7 +57,7 @@ onMounted(async () => {
             }
         }
         if (!isSaved) {
-            store.commit('toggleModal', {'kind': 'none'});
+            ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'none'});
             quitConfirmDialog.value = !quitConfirmDialog.value;
         } else {
             // 发现都保存了，就直接退出
@@ -102,8 +107,9 @@ const getSavePathFromDialog = () => {
             savePath.value = "";
         }
     }).catch(error => {
-        store.commit('toggleModal', {kind: "none"});
-        store.commit('autoTips', {kind: "tip", tipLevel: "fail", content: `${error.name}: ${error.message}`});
+        ameLifecycleManStore.autoTips(
+            {'wantToOpen': true, kind: "tip", tipLevel: "fail", content: `${error.name}: ${error.message}`}
+        );
     });
 };
 
@@ -112,7 +118,7 @@ const getFocusedMediaFilePath = () => {
 }
 
 const closeMediaPreview = () => {
-    store.commit('toggleModal', {'kind': 'preview'});
+    ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'preview'});
     localStorage.removeItem(`${store.state.tab.currentOpenedPageId}-click-media-path`);
 };
 
@@ -125,8 +131,8 @@ const saveMediaFile = (url) => {
 
 const prepareExport = async (type) => {
     if (displayExporting.value) {
-        store.commit('toggleModal', {'kind': 'export'});
-        store.commit('autoTips', {
+        ameLifecycleManStore.autoTips({
+            wantToOpen: true,
             kind: "tip",
             tipLevel: "fail",
             content: store.state.i18n.langPackage[store.state.settings.lang].dialog.activeTip.cannotAddExportMission
@@ -141,12 +147,12 @@ const prepareExport = async (type) => {
         store.state.i18n.langPackage[store.state.settings.lang].dialog.activeTip.cancelExport
     );  // 返回计划导出的文件路径
     if (planExportFolderAndName.success) {
-        store.commit('toggleModal', {'kind': 'export'});
+        ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export'});
         exportTo(type, planExportFolderAndName.message);
     } else {
-        store.commit('toggleModal', {'kind': 'export'});
+        ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export'});
         displayExporting.value = false;
-        store.commit('autoTips', {kind: "tip", tipLevel: "info", content: planExportFolderAndName.message});
+        ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "info", content: planExportFolderAndName.message});
     }
 };
 
@@ -154,7 +160,7 @@ const forceTerminateWorker = () => {
     // 用户可以强制中止worker导出过程
     exportWorker.value.terminate();
     displayExporting.value = false;
-    store.commit('autoTips', {
+    ameLifecycleManStore.autoTips({
         kind: "tip",
         tipLevel: "info",
         content: store.state.i18n.langPackage[store.state.settings.lang].dialog.activeTip.cancelExport
@@ -207,9 +213,9 @@ const exportTo = (type, exportFilePath) => {
         );
         displayExporting.value = false;
         if (res.success) {
-            store.commit('autoTips', {kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
+            ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
         } else {
-            store.commit('autoTips', {kind: "tip", tipLevel: "fail", content: "导出失败/Export Failed"});
+            ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "fail", content: "导出失败/Export Failed"});
         }
     });
 
@@ -218,7 +224,7 @@ const exportTo = (type, exportFilePath) => {
         console.error(e);
         exportWorker.value.terminate();
         displayExporting.value = false;
-        store.commit('autoTips', {kind: "tip", tipLevel: "fail", content: `导出失败/Export failed, ${e.name}`});
+        ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "fail", content: `导出失败/Export failed, ${e.name}`});
     };
 };
 
@@ -451,7 +457,8 @@ const vFocus = {
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts"
-                         @click="store.commit('toggleModal', {'kind': 'none'}); quitConfirmDialog = !quitConfirmDialog;">
+                         @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'none'});
+                         quitConfirmDialog = !quitConfirmDialog;">
                         {{
                             store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.cancelButton
                         }}
@@ -555,7 +562,7 @@ const vFocus = {
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts" style="width: 60px;"
-                         @click="store.commit('toggleModal', {'kind': 'save-as'})">
+                         @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'save-as'})">
                         {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.cancelButton }}
                     </div>
                     <div style="width: 10px;"></div>
@@ -582,7 +589,7 @@ const vFocus = {
                         {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.exportForm.title }}
                     </div>
                 </div>
-                <div class="close" @click="store.commit('toggleModal', {'kind': 'export'});">
+                <div class="close" @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export'});">
                     <div style="font-size: 1.8rem; font-weight: bold;">×</div>
                 </div>
             </div>
@@ -653,7 +660,8 @@ const vFocus = {
                 </div>
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
-                    <div class="donate-close-button fonts" @click="store.commit('toggleModal', {'kind': 'donate'})">
+                    <div class="donate-close-button fonts"
+                         @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'donate'})">
                         {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.donate.closeButton }}
                     </div>
                 </div>
@@ -691,7 +699,7 @@ const vFocus = {
     <div class="main-page">
         <!--菜单栏-->
         <MenuBar/>
-        <div class="work-page" @click="store.commit('mainManuAllHide')">
+        <div class="work-page" @click="mainMenuManStore.mainManuAllHide()">
             <!--标签管理器-->
             <TabMan/>
             <!--变换区，切换成默认页面、新标签页、新建文件或打开的文件内容-->

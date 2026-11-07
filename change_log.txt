@@ -1,7 +1,8 @@
 1.2.7
 
 修复：
-1. 修复*.mdz格式的一个重大问题，修复后的*.mdz文件格式细节见README.md以及release 1.2.7的SPEC.md
+1. 修复了*.mdz格式的一个重大问题，修复后的*.mdz文件格式细节见README.md以及release 1.2.7的SPEC.md
+2. 修复了混合模式下右边渲染区底部显示不完全的问题
 
 新增：
 1. 新增了Linux和HarmonyOS通过双击文件默认以AME打开的功能

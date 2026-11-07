@@ -54,7 +54,7 @@ const expandPreviewDialog = (url) => {
     localStorage.setItem(`${store.state.tab.currentOpenedPageId}-click-media-path`, decodeURI(url));
     setTimeout(() => {
         if (localStorage.getItem(`${store.state.tab.currentOpenedPageId}-click-media-path`)) {
-            store.commit('toggleModal', {'kind': 'preview'});
+            ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'preview'});
         }
     }, 400);
 };
@@ -62,11 +62,10 @@ const expandPreviewDialog = (url) => {
 const copyIntoClip = async (text) => {
     try {
         await navigator.clipboard.writeText(text);
-        store.commit('autoTips', {kind: "tip", tipLevel:
+        ameLifecycleManStore.autoTips({kind: "tip", tipLevel:
                 "success", content: store.state.i18n.langPackage[store.state.settings.lang].toolsPage.mdzMediaMan.copyResultPrompt.success});
     } catch (err) {
-        store.commit('autoTips', {kind: "tip", tipLevel: "success",
-            content: `${store.state.i18n.langPackage[store.state.settings.lang].toolsPage.mdzMediaMan.copyResultPrompt.fail}${err.name}`});
+        ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "success", content: `${store.state.i18n.langPackage[store.state.settings.lang].toolsPage.mdzMediaMan.copyResultPrompt.fail}${err.name}`});
     }
 }
 
@@ -91,7 +90,7 @@ const deleteMediaInMdz = (fileName, filePath) => {
             // 更改mdz标签页为未保存状态
             store.state.tab.tabList.get(chosenMdzPageID.value).set("saved", false);
         }
-        store.commit('autoTips', {kind: "tip", tipLevel: result.success ? "success" : "fail", content: result.message});
+        ameLifecycleManStore.autoTips({kind: "tip", tipLevel: result.success ? "success" : "fail", content: result.message});
     });
 };
 
@@ -116,7 +115,7 @@ const addMediaIntoMdz = () => {
             // 更改mdz标签页为未保存状态
             store.state.tab.tabList.get(chosenMdzPageID.value).set("saved", false);
         }
-        store.commit('autoTips', {kind: "tip", tipLevel: result.success ? "success" : "fail", content: result.message[0]});
+        ameLifecycleManStore.autoTips({kind: "tip", tipLevel: result.success ? "success" : "fail", content: result.message[0]});
     });
 };
 
