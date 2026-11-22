@@ -26,7 +26,7 @@ export const useFileManStore = defineStore("file-man-store", {
     },
     actions: {
         // 激活“打开文件”操作系统组件
-        activateOpenFileDialogMethod(state, rootState) {
+        activateOpenFileDialogMethod() {
             const ameLifecycleManStore = useAmeLifecycleManStore();
             const i18nStore = useI18nStore();
             const settingsManStore = useSettingsManStore();
@@ -81,8 +81,8 @@ export const useFileManStore = defineStore("file-man-store", {
                         'wantToOpen': true,
                         'kind': 'tip',
                         'tipLevel': 'fail',
-                        'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.forbiddenCharsInFileName,
-                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                        'content': i18nStore.langPackage[settingsManStore.lang].dialog.activeTip.forbiddenCharsInFileName,
+                        'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                     });
                     return 0;
                 }
@@ -91,7 +91,7 @@ export const useFileManStore = defineStore("file-man-store", {
             ameLifecycleManStore.autoTips({
                 'wantToOpen': true,
                 'kind': "loading",
-                'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.loading.open
+                'content': i18nStore.langPackage[settingsManStore.lang].dialog.loading.open
             });  // 显示加载
             // 获得文件路径后，异步打开文件获得内容
             let planOpenFilePath = result.filePath;
@@ -102,25 +102,34 @@ export const useFileManStore = defineStore("file-man-store", {
                 if (result2.success) {  // 符合条件的md、txt文件以及不带密码的mdz文件可直接打开
                     // 然后将其装载入Monaco Editor Model
                     // 最后将这个Model装入Tab Map，打开这个Tab对应的页面
-                    addTabPage(rootState.tab, {
+                    tabManStore.addTabPage({
                         'pageType': 'file',
                         'pageTitle': result2.name,
                         'isExistFile': true,
                         'filePath': result2.path,
                         'content': result2.content,
                     });
-                    hdLoading(rootState);  // 最后等页面load完成后，再关闭加载提示
+                    ameLifecycleManStore.autoTips({
+                        'wantToOpen': false,
+                        'kind': "loading",
+                        'content': ''
+                    });  // 最后等页面load完成后，再关闭加载提示
                 } else {
                     if (ext === 'md' || ext === 'txt') {  // 符合条件的md、txt文件以及不带密码的mdz文件出错那是真出错了，直接抛出异常提示
-                        hdLoading(rootState);  // 最后等页面load完成后，再关闭加载提示
-                        tgModel(rootState, {kind: "none"});
-                        actModel(rootState, {
+                        ameLifecycleManStore.autoTips({
+                            'wantToOpen': false,
+                            'kind': "loading",
+                            'content': ''
+                        });  // 最后等页面load完成后，再关闭加载提示
+
+                        ameLifecycleManStore.autoTips({
+                            'wantToOpen': true,
                             'kind': 'tip',
                             'tipLevel': 'fail',
                             'content': result2.message.includes('no such file or directory')
-                                ? rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.fileNotFound
+                                ? i18nStore.langPackage[settingsManStore.lang].dialog.activeTip.fileNotFound
                                 : result2.message,
-                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                            'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                         });
                     } else if (ext === 'mdz') {
                         // 很可能是因为mdz设置了密码
@@ -128,8 +137,8 @@ export const useFileManStore = defineStore("file-man-store", {
                         if (result2.message === "PASSWORD_REQUIRED") {
                             // 说明mdz设置了密码
                             // 那就弹出需要解锁密码的弹框输入密码
-                            let promTitle = rootState.i18n.langPackage[rootState.settings.lang].dialog.openEncMdzPasswordRequired.title;
-                            let promContent = rootState.i18n.langPackage[rootState.settings.lang].dialog.openEncMdzPasswordRequired.description;
+                            let promTitle = i18nStore.langPackage[settingsManStore.lang].dialog.openEncMdzPasswordRequired.title;
+                            let promContent = i18nStore.langPackage[settingsManStore.lang].dialog.openEncMdzPasswordRequired.description;
                             let isPasswordWrong = false;  // 指示是否输入密码出错，如为true则说明密码输错
                             while (true) {
                                 try {
@@ -142,7 +151,7 @@ export const useFileManStore = defineStore("file-man-store", {
                                         // console.log("result4", result4);
                                         if (result4.success) {
                                             // 说明密码正确，开始加载内容
-                                            addTabPage(rootState.tab, {
+                                            tabManStore.addTabPage({
                                                 'pageType': 'file',
                                                 'pageTitle': result4.name,
                                                 'isExistFile': true,
@@ -151,68 +160,90 @@ export const useFileManStore = defineStore("file-man-store", {
                                                 'encrypted': result4.encrypted,
                                                 'password': userMdzPassword,
                                             });
-                                            hdLoading(rootState);  // 最后等页面load完成后，再关闭加载提示
+                                            ameLifecycleManStore.autoTips({
+                                                'wantToOpen': false,
+                                                'kind': "loading",
+                                                'content': ''
+                                            });  // 最后等页面load完成后，再关闭加载提示
                                             break;
                                         } else {
                                             if (result4.message === "WRONG_PASSWORD_ERROR") {
                                                 isPasswordWrong = true;
-                                                promTitle = rootState.i18n.langPackage[rootState.settings.lang].dialog.openEncMdzPasswordRequired.wrongPasswordTitle;
+                                                promTitle = i18nStore.langPackage[settingsManStore.lang].dialog.openEncMdzPasswordRequired.wrongPasswordTitle;
                                             }
                                             // 如果不点取消则会一直重试
                                         }
                                     } else {
                                         // 用户点击了取消
                                         isPasswordWrong = false;
-                                        hdLoading(rootState);
-                                        tgModel(rootState, {kind: "none"});
-                                        actModel(rootState, {
+                                        ameLifecycleManStore.autoTips({
+                                            'wantToOpen': false,
+                                            'kind': "loading",
+                                            'content': ''
+                                        });
+                                        ameLifecycleManStore.autoTips({
+                                            'wantToOpen': true,
                                             'kind': 'tip',
                                             'tipLevel': 'info',
-                                            'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.cancelPasswordInput,
-                                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                            'content': i18nStore.langPackage[settingsManStore.lang].dialog.activeTip.cancelPasswordInput,
+                                            'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                                         });
                                         break;
                                     }
                                 } catch (e) {
                                     console.log(e);
-                                    hdLoading(rootState);
-                                    tgModel(rootState, {kind: "none"});
-                                    actModel(rootState, {
+                                    ameLifecycleManStore.autoTips({
+                                        'wantToOpen': false,
+                                        'kind': "loading",
+                                        'content': ''
+                                    });
+                                    ameLifecycleManStore.autoTips({
+                                        'wantToOpen': true,
                                         'kind': 'tip',
                                         'tipLevel': 'fail',
                                         'content': `${e.name}: ${e.message}`,
-                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                        'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                                     });
                                     break;
                                 }
                             }
                         } else {
-                            hdLoading(rootState);
-                            tgModel(rootState, {kind: "none"});
-                            actModel(rootState, {
+                            ameLifecycleManStore.autoTips({
+                                'wantToOpen': false,
+                                'kind': "loading",
+                                'content': ''
+                            });
+                            ameLifecycleManStore.autoTips({
+                                'wantToOpen': true,
                                 'kind': 'tip',
                                 'tipLevel': 'fail',
-                                'content': result2.message === "FILE_NOT_FOUND" ? rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.fileNotFound : result2.message,
-                                'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                                'content': result2.message === "FILE_NOT_FOUND"
+                                    ? i18nStore.langPackage[settingsManStore.lang].dialog.activeTip.fileNotFound : result2.message,
+                                'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                             });
                         }
                     } else {
-                        hdLoading(rootState);
-                        tgModel(rootState, {kind: "none"});
-                        actModel(rootState, {
+                        ameLifecycleManStore.autoTips({
+                            'wantToOpen': false,
+                            'kind': "loading",
+                            'content': ''
+                        });
+                        ameLifecycleManStore.autoTips({
+                            'wantToOpen': true,
                             'kind': 'tip',
                             'tipLevel': 'fail',
                             'content': result2.message,
-                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                            'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                         });
                     }
                 }
             }).catch((e) => {
-                actModel(rootState, {
+                ameLifecycleManStore.autoTips({
+                    'wantToOpen': true,
                     'kind': 'tip',
                     'tipLevel': 'fail',
                     'content': `${e.name}: ${e.message}`,
-                    'showTimeSecond': rootState.lifecycle.tipDisplayTime
+                    'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                 });
             });
         },

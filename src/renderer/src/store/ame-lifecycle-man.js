@@ -22,31 +22,31 @@ export const useAmeLifecycleManStore
     actions: {
         toggleModal(object) {
             // object: {wantToOpen: true or false, kind: "..."}
-            state.showModal = object.wantToOpen;
+            this.showModal = object.wantToOpen;
             if (object.kind === 'donate') {  // kind是提示框的类型，none则是仅弹出背景模态框
-                state.showDonate = object.wantToOpen;
+                this.showDonate = object.wantToOpen;
             } else if (object.kind === 'save-as') {
-                state.showSaveAs = object.wantToOpen;
+                this.showSaveAs = object.wantToOpen;
             } else if (object.kind === 'export') {
-                state.showExport = object.wantToOpen;
+                this.showExport = object.wantToOpen;
             } else if (object.kind === 'preview') {
-                state.showPreview = object.wantToOpen;
+                this.showPreview = object.wantToOpen;
             }
         },
         autoTips(object) {
             // object: {wantToOpen: true or false, kind: "...", tipLevel: "...", content: "..."}
-            state.showModal = object.wantToOpen;
+            this.showModal = object.wantToOpen;
             if (object.kind === 'loading') {  // kind是提示框的类型，分为loading和tip，none则是仅弹出背景模态框
-                state.loadingContent = object.content;
-                state.showLoading = object.wantToOpen;
+                this.loadingContent = object.content;
+                this.showLoading = object.wantToOpen;
             } else if (object.kind === 'tip') {
-                state.tipContent = object.content;
-                state.tLevel = object.tipLevel;
-                state.showTip = object.wantToOpen;
+                this.tipContent = object.content;
+                this.tLevel = object.tipLevel;
+                this.showTip = object.wantToOpen;
                 setTimeout(() => {
-                    state.showTip = false;
-                    state.showModal = false;
-                }, state.tipDisplayTime * 1000);
+                    this.showTip = false;
+                    this.showModal = false;
+                }, this.tipDisplayTime * 1000);
             }
         },
         hideLoading() {

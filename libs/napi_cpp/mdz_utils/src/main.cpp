@@ -10,7 +10,6 @@
 #include <utility>
 #include <filesystem>
 #include <mutex>
-#include <stdexcept>
 
 
 class MdzUtilsWorker : public Napi::AsyncWorker
@@ -188,13 +187,25 @@ Napi::Value genOrDecompressMdz(const Napi::CallbackInfo& info)
     return promise;
 }
 
+Napi::Value readContentInMdz(const Napi::CallbackInfo& info) {
+
+}
+
+Napi::Value writeContentInMdz(const Napi::CallbackInfo& info) {
+
+}
+
 // 模块初始化，暴露函数给js
 Napi::Object InitMdzUtil(Napi::Env env, Napi::Object exports)
 {
-    printf("Checkpoint 19\n");
-    fflush(stdout);
+    // printf("Checkpoint 19\n");
+    // fflush(stdout);
     exports.Set(Napi::String::New(env, "genOrDecompressMdz"),
                 Napi::Function::New(env, genOrDecompressMdz));
+    exports.Set(Napi::String::New(env, "readContentInMdz"),
+                Napi::Function::New(env, readContentInMdz));
+    exports.Set(Napi::String::New(env, "writeContentInMdz"),
+                Napi::Function::New(env, writeContentInMdz));
     return exports;
 }
 
