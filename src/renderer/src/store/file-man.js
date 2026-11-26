@@ -1,14 +1,9 @@
+// 仅保留与 store 状态无关的纯工具函数，状态相关的一律改为引用对应的 store
 import {
-    actModel,
-    tgModel,
-    afterChosenFile,
     getMdzMediaPathToDirectPathEdits,
     getDirectPathToMdzMediaPathEdits,
-    hdLoading,
     replaceIdToOriginCode,
-    verifySaveForm,
-    hdSaveForm,
-    getNow, isOpened, addTabPage
+    getNow
 } from "./common.js";
 
 import {defineStore} from "pinia";
@@ -16,6 +11,91 @@ import {useAmeLifecycleManStore} from "./ame-lifecycle-man";
 import {useI18nStore} from "./i18n";
 import {useSettingsManStore} from "./settings-man";
 import {useTabManStore} from "./tab-man";
+
+// 密码弹出框
+const showPasswordPrompt = (t, message, isWrongPassword) => {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('pwd-modal');
+        const form = document.getElementById('pwd-form');
+        const input = document.getElementById('pwd-input');
+        const title = document.getElementById('pwd-title');
+        const msg = document.getElementById('pwd-msg');
+
+        title.innerText = t;
+        // 如果密码错误，则字体呈现红色
+        if (isWrongPassword) {
+            title.style.color = "red";
+        }
+        msg.innerText = message;
+        input.value = ''; // 清空上次输入
+        modal.style.display = 'block'; // 显示遮罩
+        form.style.display = 'block'; // 显示窗体
+        input.focus();
+
+        // 绑定确定按钮
+        document.getElementById('pwd-ok').onclick = () => {
+            modal.style.display = 'none';
+            form.style.display = 'none';
+            title.style.color = "#42b983";
+            resolve(input.value); // 返回输入的密码
+        };
+
+        // 绑定回车键事件
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                modal.style.display = 'none';
+                form.style.display = 'none';
+                title.style.color = "#42b983";
+                resolve(input.value); // 返回输入的密码
+            }
+        });
+
+        // 绑定取消按钮
+        document.getElementById('pwd-cancel').onclick = () => {
+            modal.style.display = 'none';
+            form.style.display = 'none';
+            title.style.color = "#42b983";
+            resolve(null); // 返回 null 代表取消
+        };
+    });
+};
+
+// 保存表单验证，提示文案改为从 i18n store 取
+const verifySaveForm = (formArray, i18nStore, settingsManStore) => {
+    // 用户提供的文件信息，则包含：data = [单纯文件名, 扩展名, 保存路径, 密码, 再次输入密码]
+    const fileForbiddenChars = [">", "<", ":", "'", "|", "*", "?"];
+
+    if (formArray[0] === '') {
+        return {
+            "success": false,
+            message: i18nStore.langPackage[settingsManStore.lang].dialog.saveForm.fileNameRequired
+        };
+    }
+
+    for (let i = 0; i < fileForbiddenChars.length; i++) {
+        if (formArray[0].includes(fileForbiddenChars[i])) {
+            return {
+                "success": false,
+                message: i18nStore.langPackage[settingsManStore.lang].dialog.saveForm.forbiddenChars
+            };
+        }
+    }
+
+    if (formArray[2] === '') {
+        return {
+            "success": false,
+            message: i18nStore.langPackage[settingsManStore.lang].dialog.saveForm.savePathRequired
+        };
+    }
+
+    if (formArray[3] !== formArray[4]) {
+        return {
+            "success": false,
+            message: i18nStore.langPackage[settingsManStore.lang].dialog.saveForm.twicePasswordNotSame
+        };
+    }
+    return {"success": true};
+};
 
 export const useFileManStore = defineStore("file-man-store", {
     state: () => {
@@ -52,7 +132,8 @@ export const useFileManStore = defineStore("file-man-store", {
             });
         },
 
-        afterChosenFile(rootState, result, isHistoryMethod = false) {
+        // 用户选中文件之后的处理（打开文件 / 历史记录打开）
+        afterChosenFile(result, isHistoryMethod = false) {
             const ameLifecycleManStore = useAmeLifecycleManStore();
             const i18nStore = useI18nStore();
             const settingsManStore = useSettingsManStore();
@@ -248,48 +329,36 @@ export const useFileManStore = defineStore("file-man-store", {
             });
         },
 
-        openFileFromHistoryMethod(state, object) {
-            let rootState = object.rootState;
-            let result = object.result;
-            afterChosenFile(rootState, result, true);
-        },
-        changeFileStoreData(state, value) {
-            state.isListenFileChange = value;
+        // 在历史记录中打开文件时，走同一条处理链路
+        openFileFromHistoryMethod(result) {
+            this.afterChosenFile(result, true);
         },
 
-        hdLoading(state, rootState) {
-            hdLoading(rootState);
-        },
-        hdSaveForm(state, rootState) {
-            hdSaveForm(rootState);
-        },
-        tgModel(state, object) {
-            tgModel(object.rootState, object.object);
-        },
-        actModel(state, object) {
-            actModel(object.rootState, object.object);
+        changeFileStoreData(value) {
+            this.isListenFileChange = value;
         },
 
         // 激活“打开文件”操作系统组件 + modal
-        activateOpenFileDialogAction({commit, rootState}) {
-            commit('activateOpenFileDialogMethod', rootState);
+        activateOpenFileDialogAction() {
+            this.activateOpenFileDialogMethod();
         },
         // 直接在历史记录中打开
-        openFileFromHistoryAction({commit, rootState}, result) {
-            let object = {
-                'rootState': rootState,
-                'result': result  // result: {'filePath': '...', 'fileName': '...'}
-            };
-            commit('openFileFromHistoryMethod', object);
+        openFileFromHistoryAction(result) {
+            this.openFileFromHistoryMethod(result);
         },
         // 保存文件
-        async directSaveAction({commit, rootState}, data = []) {
+        async directSaveAction(data = []) {
             // 如果是用户提供的文件信息，则包含：data = [单纯文件名, 扩展名, 保存路径, 密码, 再次输入密码]
             // 如果用户不提供文件信息，则data为空列表
             let planSaveFileInfo = data;
 
+            const ameLifecycleManStore = useAmeLifecycleManStore();
+            const i18nStore = useI18nStore();
+            const settingsManStore = useSettingsManStore();
+            const tabManStore = useTabManStore();
+
             // 先拿到对应页面的相关信息
-            let currentPageInfo = rootState.tab.tabList.get(rootState.tab.currentOpenedPageId);
+            let currentPageInfo = tabManStore.tabList.get(tabManStore.currentOpenedPageId);
             let currentPageMonacoEditorModel = currentPageInfo.get("monacoEditorModel");
             let currentPageIsExistFile = currentPageInfo.get("isExistFile");
             let currentPageIsEncryptedFile = currentPageInfo.get("encrypted");
@@ -298,17 +367,12 @@ export const useFileManStore = defineStore("file-man-store", {
 
             if (currentPageIsExistFile && planSaveFileInfo.length === 0) {
 
-                commit('tgModel', {
-                    rootState: rootState,
-                    object: {kind: "none"}
-                });
+                ameLifecycleManStore.toggleModal({wantToOpen: true, kind: "none"});
 
-                commit("actModel", {
-                    rootState: rootState,
-                    object: {
-                        'kind': 'loading',
-                        'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.loading.save,
-                    }
+                ameLifecycleManStore.autoTips({
+                    'wantToOpen': true,
+                    'kind': 'loading',
+                    'content': i18nStore.langPackage[settingsManStore.lang].dialog.loading.save,
                 });
                 // currentPageIsExistFile为true，且用户不提供计划保存文件信息参数
                 // 说明是已存在的文件，且用户进行“保存”操作
@@ -335,7 +399,7 @@ export const useFileManStore = defineStore("file-man-store", {
                     try {
                         let result = await window.fileManPreload.makeMdzDirectory(currentPurePath, currentPureFileName);
                         if (result.success) {
-                            commit('changeFileStoreData', false);
+                            this.changeFileStoreData(false);
                             let editsCopies
                                 = await getDirectPathToMdzMediaPathEdits(currentPageMonacoEditorModel, currentPureFileName, currentPurePath);
                             // mdz文件夹结构创建成功后，开始拷贝多媒体文件至mdz文件夹结构
@@ -379,14 +443,14 @@ export const useFileManStore = defineStore("file-man-store", {
                                         );
                                         if (sqlResult.success) {
                                             // 停止加载
-                                            commit('hdLoading', rootState);
-                                            commit('changeFileStoreData', true);
+                                            ameLifecycleManStore.hideLoading();
+                                            this.changeFileStoreData(true);
                                         } else {
                                             // 发送错误信息
                                             console.error(sqlResult.message);
                                             // 停止加载
-                                            commit('hdLoading', rootState);
-                                            commit('changeFileStoreData', true);
+                                            ameLifecycleManStore.hideLoading();
+                                            this.changeFileStoreData(true);
                                             return 0;
                                         }
                                     }
@@ -395,36 +459,30 @@ export const useFileManStore = defineStore("file-man-store", {
                                 // 发送错误信息
                                 console.error(copyResult.message);
                                 // 停止加载
-                                commit('hdLoading', rootState);
-                                commit('tgModel', {
-                                    rootState: rootState,
-                                    object: {kind: "none"}
+                                ameLifecycleManStore.hideLoading();
+                                ameLifecycleManStore.autoTips({
+                                    'wantToOpen': true,
+                                    'kind': 'tip',
+                                    'tipLevel': 'fail',
+                                    'content': i18nStore.langPackage[settingsManStore.lang].dialog.activeTip.saveFailed,
+                                    'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                                 });
-                                commit("actModel", {
-                                    rootState: rootState,
-                                    object: {
-                                        'kind': 'tip',
-                                        'tipLevel': 'fail',
-                                        'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.saveFailed,
-                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                    }
-                                });
-                                commit('changeFileStoreData', true);
+                                this.changeFileStoreData(true);
                                 return 0;
                             }
                         } else {
                             // 发送错误信息
                             console.error(result.message);
                             // 停止加载
-                            commit('hdLoading', rootState);
-                            commit('changeFileStoreData', true);
+                            ameLifecycleManStore.hideLoading();
+                            this.changeFileStoreData(true);
                             return 0;
                         }
                     } catch (e) {
                         // 发送错误信息
                         console.error(e);
                         // 停止加载
-                        commit('hdLoading', rootState);
+                        ameLifecycleManStore.hideLoading();
                         return 0;
                     }
                 } else {
@@ -450,58 +508,51 @@ export const useFileManStore = defineStore("file-man-store", {
                                 );
                                 if (sqlResult.success) {
                                     // 停止加载
-                                    commit('hdLoading', rootState);
+                                    ameLifecycleManStore.hideLoading();
                                 } else {
                                     // 停止加载
-                                    commit('hdLoading', rootState);
+                                    ameLifecycleManStore.hideLoading();
                                     // 发送错误信息
                                     console.error(sqlResult.message);
                                     return 0;
                                 }
                             } catch (e) {
                                 // 停止加载
-                                commit('hdLoading', rootState);
+                                ameLifecycleManStore.hideLoading();
                                 console.error(e);
                             }
                         } else {
                             // 停止加载
-                            commit('hdLoading', rootState);
+                            ameLifecycleManStore.hideLoading();
                             console.error(writeResult.message);
                         }
                     } catch (e) {
                         // 停止加载
-                        commit('hdLoading', rootState);
+                        ameLifecycleManStore.hideLoading();
                         console.error(e);
                     }
                 }
             } else {
-                commit("actModel", {
-                    rootState: rootState,
-                    object: {
-                        'kind': 'loading',
-                        'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.loading.save,
-                    }
+                ameLifecycleManStore.autoTips({
+                    'wantToOpen': true,
+                    'kind': 'loading',
+                    'content': i18nStore.langPackage[settingsManStore.lang].dialog.loading.save,
                 });
 
                 // 表单验证
-                let verifyResult = verifySaveForm(planSaveFileInfo, rootState);
+                let verifyResult = verifySaveForm(planSaveFileInfo, i18nStore, settingsManStore);
                 if (!verifyResult.success) {
                     // 停止加载
-                    commit('hdLoading', rootState);
-                    commit('tgModel', {
-                        rootState: rootState,
-                        object: {kind: "none"}
-                    });
-                    rootState.file.saveAsError = verifyResult.message;
+                    ameLifecycleManStore.hideLoading();
+                    // 表单不关闭，保留模态背景以便显示错误信息
+                    ameLifecycleManStore.toggleModal({wantToOpen: true, kind: "none"});
+                    this.saveAsError = verifyResult.message;
                     return 0;
                 }
 
-                // 隐藏保存表单
-                commit('hdSaveForm', rootState);
-                commit('tgModel', {
-                    rootState: rootState,
-                    object: {kind: "none"}
-                });
+                // 隐藏“另存为”表单，但保留加载提示所需的模态背景
+                ameLifecycleManStore.toggleModal({wantToOpen: false, kind: 'save-as'});
+                ameLifecycleManStore.toggleModal({wantToOpen: true, kind: 'none'});
 
                 if (currentPageIsExistFile && planSaveFileInfo.length !== 0) {
                     // 说明用户对一个已存在文件进行“另存为”操作
@@ -537,10 +588,10 @@ export const useFileManStore = defineStore("file-man-store", {
                                 currentPageInfo.set("label",
                                     `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                 currentPageInfo.set("path", `/workspace?` +
-                                    `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                    `pageid=${tabManStore.currentOpenedPageId}&` +
                                     `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                 currentPageInfo.set("isExistFile", true);
-                                currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
+                                currentPageInfo.set("pageid", tabManStore.currentOpenedPageId);
 
                                 try {
                                     let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
@@ -550,28 +601,28 @@ export const useFileManStore = defineStore("file-man-store", {
                                     );
                                     if (sqlResult.success) {
                                         // 停止加载
-                                        commit('hdLoading', rootState);
+                                        ameLifecycleManStore.hideLoading();
                                     } else {
                                         // 停止加载
-                                        commit('hdLoading', rootState);
+                                        ameLifecycleManStore.hideLoading();
                                         // 发送错误信息
                                         console.error(sqlResult.message);
                                         return 0;
                                     }
                                 } catch (e) {
                                     // 停止加载
-                                    commit('hdLoading', rootState);
+                                    ameLifecycleManStore.hideLoading();
                                     console.error(e);
                                 }
                             } else {
                                 // 停止加载
-                                commit('hdLoading', rootState);
+                                ameLifecycleManStore.hideLoading();
                                 console.error(writeResult.message);
                             }
                         } catch (e) {
                             // 停止加载
-                            commit('hdLoading', rootState);
-                            console.error(err);
+                            ameLifecycleManStore.hideLoading();
+                            console.error(e);
                         }
                     } else if (
                         (currentOpenedFileExt === "md" || currentOpenedFileExt === "txt" || currentOpenedFileExt === "mdz") && planSaveFileInfo[1] === "mdz"
@@ -585,7 +636,7 @@ export const useFileManStore = defineStore("file-man-store", {
                         try {
                             let result = await window.fileManPreload.makeMdzDirectory(planSaveFileInfo[2], planSaveFileInfo[0]);
                             if (result.success) {
-                                commit('changeFileStoreData', false);
+                                this.changeFileStoreData(false);
                                 let editsCopies;
                                 if (currentOpenedFileExt === "mdz") {
                                     editsCopies = await getDirectPathToMdzMediaPathEdits(
@@ -642,10 +693,10 @@ export const useFileManStore = defineStore("file-man-store", {
                                             currentPageInfo.set("label",
                                                 `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                             currentPageInfo.set("path", `/workspace?` +
-                                                `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                                `pageid=${tabManStore.currentOpenedPageId}&` +
                                                 `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                             currentPageInfo.set("isExistFile", true);
-                                            currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
+                                            currentPageInfo.set("pageid", tabManStore.currentOpenedPageId);
                                             currentPageInfo.set("encrypted", planSaveFileInfo[3] !== "");
                                             currentPageInfo.set("password", planSaveFileInfo[3]);
 
@@ -656,14 +707,14 @@ export const useFileManStore = defineStore("file-man-store", {
                                             );
                                             if (sqlResult.success) {
                                                 // 停止加载
-                                                commit('hdLoading', rootState);
-                                                commit('changeFileStoreData', true);
+                                                ameLifecycleManStore.hideLoading();
+                                                this.changeFileStoreData(true);
                                             } else {
                                                 // 发送错误信息
                                                 console.error(sqlResult.message);
                                                 // 停止加载
-                                                commit('hdLoading', rootState);
-                                                commit('changeFileStoreData', true);
+                                                ameLifecycleManStore.hideLoading();
+                                                this.changeFileStoreData(true);
                                                 return 0;
                                             }
                                         }
@@ -672,61 +723,43 @@ export const useFileManStore = defineStore("file-man-store", {
                                     // 发送错误信息
                                     console.error(copyResult.message);
                                     // 停止加载
-                                    commit('hdLoading', rootState);
-                                    commit('tgModel', {
-                                        rootState: rootState,
-                                        object: {kind: "none"}
+                                    ameLifecycleManStore.hideLoading();
+                                    ameLifecycleManStore.autoTips({
+                                        'wantToOpen': true,
+                                        'kind': 'tip',
+                                        'tipLevel': 'fail',
+                                        'content': i18nStore.langPackage[settingsManStore.lang].dialog.activeTip.saveFailed,
+                                        'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                                     });
-                                    commit("actModel", {
-                                        rootState: rootState,
-                                        object: {
-                                            'kind': 'tip',
-                                            'tipLevel': 'fail',
-                                            'content': rootState.i18n.langPackage[rootState.settings.lang].dialog.activeTip.saveFailed,
-                                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                        }
-                                    });
-                                    commit('changeFileStoreData', true);
+                                    this.changeFileStoreData(true);
                                     return 0;
                                 }
                             } else {
                                 // 发送错误信息
                                 console.error(result.message);
                                 // 停止加载
-                                commit('hdLoading', rootState);
-                                commit('tgModel', {
-                                    rootState: rootState,
-                                    object: {kind: "none"}
+                                ameLifecycleManStore.hideLoading();
+                                ameLifecycleManStore.autoTips({
+                                    'wantToOpen': true,
+                                    'kind': 'tip',
+                                    'tipLevel': 'fail',
+                                    'content': result.message,
+                                    'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                                 });
-                                commit("actModel", {
-                                    rootState: rootState,
-                                    object: {
-                                        'kind': 'tip',
-                                        'tipLevel': 'fail',
-                                        'content': result.message,
-                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                    }
-                                });
-                                commit('changeFileStoreData', true);
+                                this.changeFileStoreData(true);
                                 return 0;
                             }
                         } catch (e) {
                             // 发送错误信息
                             console.error(e);
                             // 停止加载
-                            commit('hdLoading', rootState);
-                            commit('tgModel', {
-                                rootState: rootState,
-                                object: {kind: "none"}
-                            });
-                            commit("actModel", {
-                                rootState: rootState,
-                                object: {
-                                    'kind': 'tip',
-                                    'tipLevel': 'fail',
-                                    'content': e,
-                                    'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                }
+                            ameLifecycleManStore.hideLoading();
+                            ameLifecycleManStore.autoTips({
+                                'wantToOpen': true,
+                                'kind': 'tip',
+                                'tipLevel': 'fail',
+                                'content': e,
+                                'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                             });
                             return 0;
                         }
@@ -745,7 +778,7 @@ export const useFileManStore = defineStore("file-man-store", {
                         try {
                             let result = await window.fileManPreload.makeMdMediaDirectory(planSaveFileInfo[2], planSaveFileInfo[0]);
                             if (result.success) {
-                                commit('changeFileStoreData', false);
+                                this.changeFileStoreData(false);
                                 let editsCopies = await getMdzMediaPathToDirectPathEdits(
                                     currentPageMonacoEditorModel,
                                     currentPurePath,
@@ -784,10 +817,10 @@ export const useFileManStore = defineStore("file-man-store", {
                                     currentPageInfo.set("label",
                                         `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                     currentPageInfo.set("path", `/workspace?` +
-                                        `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                        `pageid=${tabManStore.currentOpenedPageId}&` +
                                         `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                     currentPageInfo.set("isExistFile", true);
-                                    currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
+                                    currentPageInfo.set("pageid", tabManStore.currentOpenedPageId);
                                     currentPageInfo.set("encrypted", false);
                                     currentPageInfo.set("password", "");
 
@@ -798,75 +831,57 @@ export const useFileManStore = defineStore("file-man-store", {
                                     );
                                     if (sqlResult.success) {
                                         // 停止加载
-                                        commit('hdLoading', rootState);
-                                        commit('changeFileStoreData', true);
+                                        ameLifecycleManStore.hideLoading();
+                                        this.changeFileStoreData(true);
                                     } else {
                                         // 发送错误信息
                                         console.error(sqlResult.message);
                                         // 停止加载
-                                        commit('hdLoading', rootState);
-                                        commit('changeFileStoreData', true);
+                                        ameLifecycleManStore.hideLoading();
+                                        this.changeFileStoreData(true);
                                         return 0;
                                     }
                                 } else {
                                     // 发送错误信息
                                     console.error(copyResult.message);
                                     // 停止加载
-                                    commit('hdLoading', rootState);
-                                    commit('tgModel', {
-                                        rootState: rootState,
-                                        object: {kind: "none"}
+                                    ameLifecycleManStore.hideLoading();
+                                    ameLifecycleManStore.autoTips({
+                                        'wantToOpen': true,
+                                        'kind': 'tip',
+                                        'tipLevel': 'fail',
+                                        'content': '保存失败！',
+                                        'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                                     });
-                                    commit("actModel", {
-                                        rootState: rootState,
-                                        object: {
-                                            'kind': 'tip',
-                                            'tipLevel': 'fail',
-                                            'content': '保存失败！',
-                                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                        }
-                                    });
-                                    commit('changeFileStoreData', true);
+                                    this.changeFileStoreData(true);
                                     return 0;
                                 }
                             } else {
                                 // 发送错误信息
                                 console.error(result.message);
                                 // 停止加载
-                                commit('hdLoading', rootState);
-                                commit('tgModel', {
-                                    rootState: rootState,
-                                    object: {kind: "none"}
+                                ameLifecycleManStore.hideLoading();
+                                ameLifecycleManStore.autoTips({
+                                    'wantToOpen': true,
+                                    'kind': 'tip',
+                                    'tipLevel': 'fail',
+                                    'content': result.message,
+                                    'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                                 });
-                                commit("actModel", {
-                                    rootState: rootState,
-                                    object: {
-                                        'kind': 'tip',
-                                        'tipLevel': 'fail',
-                                        'content': result.message,
-                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                    }
-                                });
-                                commit('changeFileStoreData', true);
+                                this.changeFileStoreData(true);
                                 return 0;
                             }
                         } catch (e) {
                             // 发送错误信息
                             console.error(e);
                             // 停止加载
-                            commit('hdLoading', rootState);
-                            commit('tgModel', {
-                                rootState: rootState,
-                                object: {kind: "none"}
-                            });
-                            commit("actModel", {
-                                rootState: rootState,
-                                object: {
-                                    'kind': 'tip',
-                                    'tipLevel': 'fail',
-                                    'content': e,
-                                    'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                }
+                            ameLifecycleManStore.hideLoading();
+                            ameLifecycleManStore.autoTips({
+                                'wantToOpen': true,
+                                'kind': 'tip',
+                                'tipLevel': 'fail',
+                                'content': e,
+                                'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                             });
                             return 0;
                         }
@@ -882,7 +897,7 @@ export const useFileManStore = defineStore("file-man-store", {
                         try {
                             let result = await window.fileManPreload.makeMdzDirectory(planSaveFileInfo[2], planSaveFileInfo[0]);
                             if (result.success) {
-                                commit('changeFileStoreData', false);
+                                this.changeFileStoreData(false);
                                 let editsCopies = await getDirectPathToMdzMediaPathEdits(
                                     currentPageMonacoEditorModel,
                                     planSaveFileInfo[0],
@@ -927,10 +942,10 @@ export const useFileManStore = defineStore("file-man-store", {
                                             currentPageInfo.set("label",
                                                 `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                             currentPageInfo.set("path", `/workspace?` +
-                                                `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                                `pageid=${tabManStore.currentOpenedPageId}&` +
                                                 `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                             currentPageInfo.set("isExistFile", true);
-                                            currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
+                                            currentPageInfo.set("pageid", tabManStore.currentOpenedPageId);
                                             currentPageInfo.set("encrypted", planSaveFileInfo[3] !== "");
                                             currentPageInfo.set("password", planSaveFileInfo[3]);
 
@@ -941,14 +956,14 @@ export const useFileManStore = defineStore("file-man-store", {
                                             );
                                             if (sqlResult.success) {
                                                 // 停止加载
-                                                commit('hdLoading', rootState);
-                                                commit('changeFileStoreData', true);
+                                                ameLifecycleManStore.hideLoading();
+                                                this.changeFileStoreData(true);
                                             } else {
                                                 // 发送错误信息
                                                 console.error(sqlResult.message);
                                                 // 停止加载
-                                                commit('hdLoading', rootState);
-                                                commit('changeFileStoreData', true);
+                                                ameLifecycleManStore.hideLoading();
+                                                this.changeFileStoreData(true);
                                                 return 0;
                                             }
                                         }
@@ -957,61 +972,43 @@ export const useFileManStore = defineStore("file-man-store", {
                                     // 发送错误信息
                                     console.error(copyResult.message);
                                     // 停止加载
-                                    commit('hdLoading', rootState);
-                                    commit('tgModel', {
-                                        rootState: rootState,
-                                        object: {kind: "none"}
+                                    ameLifecycleManStore.hideLoading();
+                                    ameLifecycleManStore.autoTips({
+                                        'wantToOpen': true,
+                                        'kind': 'tip',
+                                        'tipLevel': 'fail',
+                                        'content': '保存失败！',
+                                        'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                                     });
-                                    commit("actModel", {
-                                        rootState: rootState,
-                                        object: {
-                                            'kind': 'tip',
-                                            'tipLevel': 'fail',
-                                            'content': '保存失败！',
-                                            'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                        }
-                                    });
-                                    commit('changeFileStoreData', true);
+                                    this.changeFileStoreData(true);
                                     return 0;
                                 }
                             } else {
                                 // 发送错误信息
                                 console.error(result.message);
                                 // 停止加载
-                                commit('hdLoading', rootState);
-                                commit('tgModel', {
-                                    rootState: rootState,
-                                    object: {kind: "none"}
+                                ameLifecycleManStore.hideLoading();
+                                ameLifecycleManStore.autoTips({
+                                    'wantToOpen': true,
+                                    'kind': 'tip',
+                                    'tipLevel': 'fail',
+                                    'content': result.message,
+                                    'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                                 });
-                                commit("actModel", {
-                                    rootState: rootState,
-                                    object: {
-                                        'kind': 'tip',
-                                        'tipLevel': 'fail',
-                                        'content': result.message,
-                                        'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                    }
-                                });
-                                commit('changeFileStoreData', true);
+                                this.changeFileStoreData(true);
                                 return 0;
                             }
                         } catch (e) {
                             // 发送错误信息
                             console.error(e);
                             // 停止加载
-                            commit('hdLoading', rootState);
-                            commit('tgModel', {
-                                rootState: rootState,
-                                object: {kind: "none"}
-                            });
-                            commit("actModel", {
-                                rootState: rootState,
-                                object: {
-                                    'kind': 'tip',
-                                    'tipLevel': 'fail',
-                                    'content': e,
-                                    'showTimeSecond': rootState.lifecycle.tipDisplayTime
-                                }
+                            ameLifecycleManStore.hideLoading();
+                            ameLifecycleManStore.autoTips({
+                                'wantToOpen': true,
+                                'kind': 'tip',
+                                'tipLevel': 'fail',
+                                'content': e,
+                                'showTimeSecond': ameLifecycleManStore.tipDisplayTime
                             });
                             return 0;
                         }
@@ -1034,10 +1031,10 @@ export const useFileManStore = defineStore("file-man-store", {
                                 currentPageInfo.set("label",
                                     `${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                 currentPageInfo.set("path", `/workspace?` +
-                                    `pageid=${rootState.tab.currentOpenedPageId}&` +
+                                    `pageid=${tabManStore.currentOpenedPageId}&` +
                                     `filepath=${planSaveFileInfo[2]}${sep}${planSaveFileInfo[0]}.${planSaveFileInfo[1]}`);
                                 currentPageInfo.set("isExistFile", true);
-                                currentPageInfo.set("pageid", rootState.tab.currentOpenedPageId);
+                                currentPageInfo.set("pageid", tabManStore.currentOpenedPageId);
 
                                 try {
                                     let sqlResult = await window.sqliteDataManPreload.setRecentOpenedHistory(
@@ -1047,27 +1044,27 @@ export const useFileManStore = defineStore("file-man-store", {
                                     );
                                     if (sqlResult.success) {
                                         // 停止加载
-                                        commit('hdLoading', rootState);
+                                        ameLifecycleManStore.hideLoading();
                                     } else {
                                         // 停止加载
-                                        commit('hdLoading', rootState);
+                                        ameLifecycleManStore.hideLoading();
                                         // 发送错误信息
                                         console.error(sqlResult.message);
                                         return 0;
                                     }
                                 } catch (e) {
                                     // 停止加载
-                                    commit('hdLoading', rootState);
+                                    ameLifecycleManStore.hideLoading();
                                     console.error(e);
                                 }
                             } else {
                                 // 停止加载
-                                commit('hdLoading', rootState);
+                                ameLifecycleManStore.hideLoading();
                                 console.error(writeResult.message);
                             }
                         } catch (e) {
                             // 停止加载
-                            commit('hdLoading', rootState);
+                            ameLifecycleManStore.hideLoading();
                             console.error(e);
                         }
                     }
