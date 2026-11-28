@@ -2786,6 +2786,29 @@ THE SOFTWARE.
         </g>
     </g>
 </svg>
+
+### Vibe Coding Support
+
+> [!note]
+> 
+> Starting from this version, a `Vibe Coding` workflow has been introduced.
+>
+> Special thanks to the open-source `Qwen3.8 Flash Next` large language model from Alibaba.
+>
+> Click the image to visit the official website.
+>
+> [<svg style="height: 100px; width: 100px;" fill="#6950EF" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>QWen</title><path d="M23.919 14.545 20.817 9.17l1.47-2.544a.56.56 0 0 0 0-.566l-1.633-2.83a.57.57 0 0 0-.49-.283h-6.207L12.487.402a.57.57 0 0 0-.49-.284H8.732a.56.56 0 0 0-.49.284L5.139 5.775h-2.94a.56.56 0 0 0-.49.284L.077 8.887a.56.56 0 0 0 0 .567L3.18 14.83l-1.47 2.545a.56.56 0 0 0 0 .566l1.634 2.83a.57.57 0 0 0 .49.283h6.205l1.47 2.545a.57.57 0 0 0 .49.284h3.266a.57.57 0 0 0 .49-.284l3.104-5.375h2.94a.57.57 0 0 0 .49-.283l1.634-2.828a.55.55 0 0 0-.004-.568M8.733.686l1.634 2.828-1.634 2.828H21.8L20.164 9.17H7.425L5.63 6.06Zm1.306 19.801-6.205-.002 1.634-2.83h3.265L2.201 6.344h3.267q3.182 5.517 6.367 11.032zm10.124-5.66L18.53 12l-6.532 11.315-1.634-2.83c2.129-3.673 4.25-7.351 6.373-11.028h3.592l3.102 5.374z"/></svg>](https://qwen.ai/)
+> 
+> Special thanks to `jesdga95` for open-sourcing the `Basalt` inference engine, which makes my smooth local deployment possible [https://github.com/jesdga95/basalt](https://github.com/jesdga95/basalt)
+>
+> ![jesdga95]($DOCUMENT_MEDIA/jesdga95.jpeg)
+> 
+> Special thanks to `yanmindi` for the `RTX Spark` porting work on `Basalt` [https://github.com/yanmindi/basalt-arm-sm121](https://github.com/yanmindi/basalt-arm-sm121)
+> 
+> And special thanks to `dingzhao100`, who adapted it for `DGX Spark` on top of that work [https://github.com/dingzhao100/basalt-arm-sm121-dgxspark.git](https://github.com/dingzhao100/basalt-arm-sm121-dgxspark.git)
+> 
+> This project was developed in depth on a local deployment of `Qwen3.8 Flash Next` `NVFP4 DQ6_K` on a `DGX Spark`.
+
 ---
 
 # Finally, please do us a favor and make a donation:sob:

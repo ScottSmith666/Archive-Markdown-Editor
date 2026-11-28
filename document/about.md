@@ -2787,6 +2787,28 @@ THE SOFTWARE.
     </g>
 </svg>
 
+### Vibe Coding支持
+
+> [!note]
+> 
+> 自本版本起引入`Vibe Coding`工作流。
+>
+> 特别感谢阿里巴巴开源的`Qwen3.8 Flash Next`大模型
+>
+> 点击图片访问官网
+>
+> [<svg style="height: 100px; width: 100px;" fill="#6950EF" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>QWen</title><path d="M23.919 14.545 20.817 9.17l1.47-2.544a.56.56 0 0 0 0-.566l-1.633-2.83a.57.57 0 0 0-.49-.283h-6.207L12.487.402a.57.57 0 0 0-.49-.284H8.732a.56.56 0 0 0-.49.284L5.139 5.775h-2.94a.56.56 0 0 0-.49.284L.077 8.887a.56.56 0 0 0 0 .567L3.18 14.83l-1.47 2.545a.56.56 0 0 0 0 .566l1.634 2.83a.57.57 0 0 0 .49.283h6.205l1.47 2.545a.57.57 0 0 0 .49.284h3.266a.57.57 0 0 0 .49-.284l3.104-5.375h2.94a.57.57 0 0 0 .49-.283l1.634-2.828a.55.55 0 0 0-.004-.568M8.733.686l1.634 2.828-1.634 2.828H21.8L20.164 9.17H7.425L5.63 6.06Zm1.306 19.801-6.205-.002 1.634-2.83h3.265L2.201 6.344h3.267q3.182 5.517 6.367 11.032zm10.124-5.66L18.53 12l-6.532 11.315-1.634-2.83c2.129-3.673 4.25-7.351 6.373-11.028h3.592l3.102 5.374z"/></svg>](https://qwen.ai/)
+> 
+> 特别感谢`jesdga95`开源的支持我流畅本地部署的`Basalt`推理引擎 [https://github.com/jesdga95/basalt](https://github.com/jesdga95/basalt)
+>
+> ![jesdga95]($DOCUMENT_MEDIA/jesdga95.jpeg)
+> 
+> 特别感谢`yanmindi`对`Basalt`进行`RTX Spark`适配工作 [https://github.com/yanmindi/basalt-arm-sm121](https://github.com/yanmindi/basalt-arm-sm121)
+> 
+> 以及特别感谢在此基础上由`dingzhao100`适配了`DGX Spark` [https://github.com/dingzhao100/basalt-arm-sm121-dgxspark.git](https://github.com/dingzhao100/basalt-arm-sm121-dgxspark.git)
+> 
+> 本人通过在`DGX Spark`本地部署`Qwen3.8 Flash Next`的`NVFP4 DQ6_K`版本，进行项目的深度开发。
+
 ---
 
 # 最后，我来赛博讨口子啦～
