@@ -31,7 +31,7 @@ const api = {
         copyMdzMediaFiles: (filePathArray) => ipcRenderer.invoke('copy-mdz-media-files', filePathArray),
         defaultOpenFile: (callback) => ipcRenderer.on('default-open-file', (event, value) => callback(value)),
         saveFileContent: (purePath, pureFileName, content, ext) => ipcRenderer.invoke('save-file-content', purePath, pureFileName, content, ext),
-        compressToMdz: (purePath, pureFileName, password) => ipcRenderer.invoke('compress-to-mdz', purePath, pureFileName, password),
+        compressToMdz: (purePath, pureFileName, password, backupOldMdz) => ipcRenderer.invoke('compress-to-mdz', purePath, pureFileName, password, backupOldMdz),
         getMdzMediaList: (mediaHomePath) => ipcRenderer.invoke('get-media-list-in-mdz', mediaHomePath),
         getFileBuffer: (filePath, isXlsx = false) => ipcRenderer.invoke('get-file-buffer', filePath, isXlsx),
         getFileAsText: (filePath) => ipcRenderer.invoke('get-file-as-txt', filePath),
@@ -42,6 +42,10 @@ const api = {
         getExportNameAndFolder: (type, title, failed) => ipcRenderer.invoke('get-export-name-and-folder', type, title, failed),
         setFinishedExportFiles: (copyPasteMediaPathArray, exportHtmlFullPath, exportHtmlMediaFolderPath, exportHtmlContent) => {
             return ipcRenderer.invoke('set-finished-export-files', copyPasteMediaPathArray, exportHtmlFullPath, exportHtmlMediaFolderPath, exportHtmlContent);
+        },
+        // 导出PDF：正文必须先在渲染进程净化过，这里只是把已经净化好的HTML交给主进程去印
+        exportToPdf: (htmlContent, pdfOptions, exportPdfFullPath, themeCss) => {
+            return ipcRenderer.invoke('export-pdf', htmlContent, pdfOptions, exportPdfFullPath, themeCss);
         },
     },
     'confirmPreload': {

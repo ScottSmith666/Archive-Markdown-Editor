@@ -21,6 +21,7 @@ public:
      * @param operationKind     operationKind参数指示方法采用解压还是压缩操作，值为“compress”和“decompress”
      * @param sevenZlibPath     7zip动态链接库
      * @param compressPassword  压缩包提供密码，默认为空字符串，如果为空字符串，则生成不带密码的mdz文件
+     *                          非空时连同归档头部（条目名与目录结构）一起加密（7z 的 -mhe）
      */
     MdzUtilsWorker(
         Napi::Env env,
@@ -56,7 +57,9 @@ public:
             bit7z::BitFileExtractor extractor{sevenZlib, bit7z::BitFormat::Auto}; // 设置Auto可支持压缩解压多种压缩包格式，兼容性更好
             if (operationKind == "compress")
             {
-                compressor.setPassword(compressPassword);
+                // 第二个参数开启归档头部加密（条目名与目录结构也加密，仅7z格式有效）。
+                // 7z 的头部加密必须伴随口令，故口令为空串时保持原来的明文容器行为。
+                compressor.setPassword(compressPassword, !compressPassword.empty());
                 compressor.compressDirectory(inputPath, destPath);
                 message = u8"创建mdz成功！";
                 success = true;
@@ -79,6 +82,21 @@ public:
             std::string utf8_path = std::filesystem::path(exception.what()).u8string();
             message = u8"操作出错了！" + utf8_path + u8" (错误码: " + std::to_string(
                 exception.code().value()) + u8")";
+            // 开启头部加密后，口令问题会提前到“打开归档”阶段，bit7z 的文案从
+            // “A password is required but none was provided.”/“...(wrong password?).”
+            // 变成 “Could not open the archive: Wrong password?”（见
+            // libs/third_party/bit7z/src/internal/operationcategory.cpp）。
+            // 上层 src/main/ipc/index.js 判定“需要口令/口令错误”用的是小写文案
+            // “password is required but none was provided” 与 “wrong password”，
+            // 三条都匹配不上会让“弹口令框”“输错重输”的流程失效。
+            // 这里在保留原始文案的前提下补一条规范小写标记，其他错误的表现不变。
+            const bool passwordRelated = utf8_path.find("assword") != std::string::npos;
+            const bool alreadyMarked = utf8_path.find("wrong password") != std::string::npos
+                                       || utf8_path.find("A password is required") != std::string::npos;
+            if (passwordRelated && !alreadyMarked)
+            {
+                message += " [wrong password?]";
+            }
             SetError(message);
         }
         catch ([[maybe_unused]] const std::exception& otherException)

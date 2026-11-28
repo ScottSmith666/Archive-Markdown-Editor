@@ -80,6 +80,8 @@ When you save, you'll find a password input box at the bottom. That's right, you
 
 Go back to the "Save As" dialog box, where there is a password input box at the bottom. When you specify a password when saving the .mdz file, the final saved file will be a password-protected .mdz file.
 
+When a password is given, the package is encrypted with the 7z format's default AES-256 cipher, and AME additionally turns on 7z header encryption: without the password you cannot read not only the Markdown text and the multimedia data inside the package, but also the entry names and the directory structure (third-party archiving tools need the password to see anything either).
+
 Of course, if you don't fill in the password box below when saving the .mdz file, the final saved file will be an unencrypted .mdz file without a password.
 
 ![]($DOCUMENT_MEDIA/save-as-dialog.png)
@@ -184,6 +186,68 @@ The next step is simply to eliminate malicious code.
 
 ![]($DOCUMENT_MEDIA/pause-render.png)
 
+#### 6. Exporting: HTML and PDF
+
+The menu bar `File > Export...` exports the body of the current tab as **HTML** or **PDF**.
+
+##### Export as HTML
+
+Pick a save location and you are done. The result is `name.html`; whenever the document references local media, AME also creates a `name.media_dir` folder next to it, holding the copied images/videos/audio/downloadable files plus the offline assets of Mermaid, Prism and MathJax (including every tex extension and math font).
+
+That makes the exported HTML **fully usable offline**: code highlighting, diagrams and formulas still work with the network unplugged. Remote image URLs and base64 images are kept as they are.
+
+##### Export as PDF
+
+Clicking "Export As PDF" opens an options dialog first, then asks for the save location:
+
+| Option | Description |
+|:---|:---|
+| Paper | A3 / A4 / A5 / A6 / Letter / Legal / Tabloid |
+| Orientation | Portrait / Landscape |
+| Margins | None / Narrow / Standard / Wide. Enabling the footer reserves the minimum bottom margin the footer needs |
+| Pages | Only `1-5, 8, 11-13` style ranges are accepted; leave it blank for all pages |
+| Print background colors and images | On by default; switch it off and the theme's background/alert colours are not printed |
+| Show date, title and page number in footer | Footer reads "date title current page / total pages" |
+| Generate PDF outline bookmarks | Built from the document headings (a Chromium experimental feature, some readers hide it) |
+
+The PDF is typeset with the **viewer theme** you selected in Settings, the very same source used by the in-app preview and the exported HTML.
+
+Two differences from exporting HTML:
+
+1. **PDF never creates a `.media_dir` folder.** A PDF is a one-off artefact: local images and mdz embedded images are read from their original absolute paths while laying out and then embedded into the PDF, so the only file produced is the `.pdf`.
+2. **Audio and video become static cards in the PDF** (an icon + the file name + the caption). A PDF is a static document and printed player controls cannot be operated, so they are represented honestly as cards.
+
+> [!note]
+>
+> The body sent to the PDF exporter goes through the same HTML sanitizing rules as the in-app preview, so `<script>`, `<iframe>` and friends are stripped before exporting. PDF export is not offered on HarmonyOS.
+
+#### 7. Built-in Tools: LaTeX Editor and Mermaid Editor
+
+Menu `Tools > LaTeX Editor...` and `Tools > Mermaid Editor...` each open a "write on the left, see on the right" tool in **its own tab**.
+
+| Area | Content |
+|:---|:---|
+| Left half | Monaco Editor, the very same one used by the file editor, so font size, line numbers, theme and word wrap follow your editor settings |
+| Right half | Live preview. LaTeX is typeset by MathJax, Mermaid is rendered as a diagram. It refreshes about 0.3 s after you stop typing |
+| Copy Code | Put the whole left-hand source onto the clipboard so you can paste it straight into your document |
+| Clear | Empty the left-hand editor. `Ctrl` `Z` still brings it back |
+
+IntelliSense is the main point of these two tools:
+
+- **LaTeX**: typing a backslash `\` triggers completion, covering Greek letters, operators and relations, arrows, delimiters, big operators, accents and spacing commands; typing `\begin` offers a ready-made environment scaffold with its matching `\end{...}`; inside `\end{` the first suggestions are the environments your document has not closed yet.
+- **Mermaid**: the first line offers diagram types (over 20 — `flowchart`, `sequenceDiagram`, `classDiagram`, `stateDiagram-v2`, `erDiagram`, `gantt`, `pie`, `gitGraph`, `mindmap`, `timeline`, ...); once the type is known, suggestions switch to that type's context keywords (e.g. `participant`, `activate`, `note over`, `alt`/`else` under `sequenceDiagram`, or `dateFormat`, `section`, `crit` under `gantt`), and arrow syntax is offered from the second line on.
+
+A few practical notes:
+
+1. **A sample source ships with the first opening**, so the left-right feedback is immediate; once cleared it is not restored automatically.
+2. **Switching tabs never loses your work.** Only one tab per tool kind can exist — clicking the menu item again just focuses it, and LaTeX and Mermaid are independent of each other.
+3. **Closing the tab does not ask about unsaved changes.** These are scratch pads: nothing is written to any file, so use "Copy Code" and paste into your document if you want to keep it.
+4. When Mermaid hits a syntax error, the error text is shown right in the preview and disappears as soon as you fix it.
+
+> [!note]
+>
+> The preview reuses the very same offline MathJax and Mermaid assets as the in-app preview, so no network is needed. The left-hand side only ever holds source text and is never rewritten by the typesetter.
+
 ## II. Archive Markdown Editor Hotkey Table
 
 | Operation       | Windows/Linux/HarmonyOS     | macOS         |
@@ -196,3 +260,62 @@ The next step is simply to eliminate malicious code.
 | Open User Guide   | `Ctrl` `Shift` `H` | `⌘` `Shift` `H` |
 | Open Settings     | `Ctrl` `,`         | `⌘` `,`         |
 | Exit AME    | `Ctrl` `Q`         | `⌘` `Q`         |
+
+## III. Set AME as the default app for md, mdz and txt on Linux
+
+> [!note]
+>
+> This section is about Linux only, and describes the `.deb` package.
+
+Once the `.deb` package is installed, AME has already registered the three types below with the system, so Archive Markdown Editor shows up in GNOME `Settings → Default Applications` and in every file manager `Open With` list:
+
+| File | MIME type |
+|:---|:---|
+| `.md` | `text/markdown` |
+| `.txt` | `text/plain` |
+| `.mdz` | `application/prs.archive-markdown-format` (AME's own type, registered by the package) |
+
+There are two ways to hand those files to AME:
+
+1. Right-click a `.md`, `.mdz` or `.txt` file in the file manager → `Open With Other Application` → pick Archive Markdown Editor (GNOME Files needs `Other Options…` first) and tick `Set as default`.
+2. From a terminal:
+
+```bash
+xdg-mime default archive-markdown-editor.desktop text/markdown
+xdg-mime default archive-markdown-editor.desktop text/plain
+xdg-mime default archive-markdown-editor.desktop application/prs.archive-markdown-format
+```
+
+Check whether it took effect:
+
+```bash
+xdg-mime query default text/markdown      # want: archive-markdown-editor.desktop
+xdg-mime query filetype ./demo.mdz        # want: application/prs.archive-markdown-format
+```
+
+After that, double-clicking a file opens it in AME. If AME is already running, the file is handed to the existing window instead of spawning a second instance.
+
+> [!caution]
+>
+> `mdz` is a private format of AME and is not in the system MIME database. Without registration it is detected as `application/zip` and fights with archive managers in the `Open With` list, which is why the `.deb` package ships a MIME declaration for `mdz`. Uninstalling the package removes that declaration, but the MIME cache is only refreshed by the next `update-mime-database /usr/share/mime`; the defaults you set yourself in `$HOME/.config/mimeapps.list` have to be cleaned up manually as well.
+
+**AppImage users**: an AppImage does not register anything system-wide on its own. Either
+
+- let an integration tool such as `appimaged` or `AppImageLauncher` import it — it reads the `.desktop` file inside the AppImage, which already carries the MIME types and the launch arguments above;
+- or place a `.desktop` file in `$HOME/.local/share/applications/` yourself, point `Exec=` at the absolute path of the AppImage and **keep the trailing `--direct-open-file=%f`**, then add the `mdz` MIME declaration as follows:
+
+```bash
+mkdir -p "$HOME/.local/share/mime/packages"
+cat > "$HOME/.local/share/mime/packages/archive-markdown-editor.xml" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/prs.archive-markdown-format">
+    <glob pattern="*.mdz"/>
+    <comment>Archive Markdown Editor archive document</comment>
+    <icon name="x-office-document"/>
+  </mime-type>
+</mime-info>
+EOF
+update-mime-database "$HOME/.local/share/mime"
+update-desktop-database "$HOME/.local/share/applications"
+```

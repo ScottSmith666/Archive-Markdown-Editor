@@ -11,6 +11,8 @@ import {useFileManStore} from "./store/file-man";
 import FooterStatusBar from "./components/main/FooterStatusBar.vue";
 import {useAmeLifecycleManStore} from "./store/ame-lifecycle-man";
 import {useMainMenuManStore} from "./store/main-menu-man";
+import DOMPurify from "dompurify";
+import {purifyConfig} from "./sanitize-config.js";
 
 const tabManStore = useTabManStore();
 const harmonyOSPermsStore = useHarmonyOSPermsStore();
@@ -28,6 +30,16 @@ const quitConfirmDialog = ref(false);
 const displayExportType = ref("");
 const displayExporting = ref(false);
 const exportWorker = ref(null);
+
+// data-form 导出PDF的参数。默认值和 src/main/print/index.js 的 normalizeOptions() 对齐，
+// 那边还会再校验一遍并做白名单收敛，这里只负责表达界面意图
+const pdfPageSize = ref("A4");
+const pdfLandscape = ref(false);
+const pdfMargins = ref("standard");
+const pdfPrintBackground = ref(true);
+const pdfFooter = ref(false);
+const pdfOutline = ref(false);
+const pdfPageRanges = ref("");
 
 // data-form
 const savePath = ref("");
@@ -137,7 +149,7 @@ const saveMediaFile = (url) => {
     );
 };
 
-const prepareExport = async (type) => {
+const prepareExport = async (type, pdfOptions = null) => {
     if (displayExporting.value) {
         ameLifecycleManStore.autoTips({
             wantToOpen: true,
@@ -156,7 +168,7 @@ const prepareExport = async (type) => {
     );  // 返回计划导出的文件路径
     if (planExportFolderAndName.success) {
         ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export'});
-        exportTo(type, planExportFolderAndName.message);
+        exportTo(type, planExportFolderAndName.message, pdfOptions);
     } else {
         ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export'});
         displayExporting.value = false;
@@ -175,7 +187,7 @@ const forceTerminateWorker = () => {
     });
 };
 
-const exportTo = (type, exportFilePath) => {
+const exportTo = (type, exportFilePath, pdfOptions = null) => {
     let originFileContent
         = tabManStore.tabList.get(tabManStore.currentOpenedPageId).get('monacoEditorModel').getValue();
     // 启动Worker执行任务
@@ -212,6 +224,11 @@ const exportTo = (type, exportFilePath) => {
         const htmlContent = e.data[0];
         console.log("htmlContent\n", htmlContent);
         exportWorker.value.terminate();
+        // PDF走另一个主进程入口，不走“拷媒体 + 写html”那条路（PDF模式下worker根本不给拷贝清单）
+        if (type === 'pdf') {
+            await exportPdfDocument(htmlContent, exportFilePath, pdfOptions);
+            return;
+        }
         // 如果有多媒体文件，则执行媒体文件拷贝与导出文件写入逻辑
         let res = await window.exportPreload.setFinishedExportFiles(
             e.data[1],
@@ -234,6 +251,63 @@ const exportTo = (type, exportFilePath) => {
         displayExporting.value = false;
         ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel: "fail", content: `导出失败/Export failed, ${e.name}`});
     };
+};
+
+const openPdfExportOptions = () => {
+    // 鸿蒙上 printToPDF 没有后端支撑，入口在模板里已经藏掉，这里是最后一道说明
+    if (harmonyOSPermsStore.isHarmonyOS) {
+        ameLifecycleManStore.autoTips({
+            wantToOpen: true,
+            kind: "tip",
+            tipLevel: "fail",
+            content: i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.unsupportedPlatform
+        });
+        return;
+    }
+    ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export'});
+    ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'export-pdf'});
+};
+
+const confirmPdfExportOptions = () => {
+    ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export-pdf'});
+    prepareExport('pdf', {
+        pageSize: pdfPageSize.value,
+        landscape: pdfLandscape.value,
+        margins: pdfMargins.value,
+        printBackground: pdfPrintBackground.value,
+        footer: pdfFooter.value,
+        outline: pdfOutline.value,
+        pageRanges: pdfPageRanges.value
+    });
+};
+
+const exportPdfDocument = async (htmlContent, exportFilePath, pdfOptions) => {
+    try {
+        // 净化必须在交给主进程之前做完：打印页拿到这段HTML是直接innerHTML进DOM的，
+        // 而markdown-it开着html:true，正文里的原始HTML会原样出现在这个字符串里。
+        // 这里用的是和app内预览（Viewer.vue）同一份 purifyConfig，两边口径不会漂。
+        const safeHtmlContent = DOMPurify.sanitize(htmlContent, purifyConfig);
+        // 用户选中的viewer主题，和app内预览、导出HTML取的是同一个来源
+        const themeCss = await window.themesManPreload.getViewerTheme(
+            settingsManStore.userSettings.ame_viewer_theme
+        );
+        let res = await window.exportPreload.exportToPdf(
+            safeHtmlContent,
+            pdfOptions,
+            exportFilePath,
+            themeCss
+        );
+        displayExporting.value = false;
+        if (res.success) {
+            ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
+        } else {
+            ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel: "fail", content: `导出失败/Export Failed, ${res.message}`});
+        }
+    } catch (e) {
+        console.error(e);
+        displayExporting.value = false;
+        ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel: "fail", content: `导出失败/Export Failed, ${e.name}`});
+    }
 };
 
 const vFocus = {
@@ -611,13 +685,122 @@ const vFocus = {
                     </div>
                     <div>{{i18nStore.langPackage[settingsManStore.lang].dialog.exportForm.saveAs}}HTML</div>
                 </div>
-<!--                <div style="width: 100px;"></div>-->
-<!--                <div class="export-option" @click="exportTo('pdf')">-->
-<!--                    <div>-->
-<!--                        <svg style="width: 100px; height: 100px;" t="1785388202606" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="8601" width="200" height="200"><path d="M179 64h468.5l223 225.5V935c0 13.807-11.193 25-25 25H179c-13.807 0-25-11.193-25-25V89c0-13.807 11.193-25 25-25z" fill="#FF4867" p-id="8602"></path><path d="M647.5 64v200.5c0 13.807 11.193 25 25 25h198L647.5 64z" fill="#FF97A9" p-id="8603"></path><path d="M691.919 812c-44.4 0-84.22-76.189-105.17-125.732-35.243-14.71-74.092-28.45-111.831-37.331-33.022 21.788-89.214 54.4-132.365 54.4-26.778 0-46.064-13.461-53.14-36.914-5.411-19.29-0.832-32.613 4.995-39.83 11.377-15.543 34.825-23.453 69.929-23.453 28.443 0 64.517 4.996 104.754 14.71 25.945-18.457 52.307-39.829 75.756-62.45-10.406-49.404-21.784-129.479 7.076-166.393 14.29-17.625 36.074-23.454 62.436-15.543 28.86 8.326 39.82 25.951 43.15 39.829 12.21 48.155-43.15 113.103-80.473 151.267 8.325 33.029 19.286 67.862 32.606 99.78 53.556 23.87 117.24 59.536 124.456 98.394 2.913 13.461-1.249 25.951-12.21 36.915-9.435 7.771-19.425 12.351-29.97 12.351zM652 728c9.768 21.74 19.081 32 23.99 32 0.76 0 1.823-0.333 3.341-1.664 1.822-1.996 1.822-3.327 1.518-4.547-1.012-5.713-9.262-15.085-28.849-25.789z m-281.922-88c-15.62 0-19.913 3.774-21.22 5.535-0.373 0.566-1.493 2.264-0.373 6.666 0.933 3.774 3.547 7.799 11.636 7.799 10.143 0 24.829-5.723 41.879-15.975-12.196-2.704-22.962-4.025-31.922-4.025zM523 620.582c9.333 2.6 19.01 5.951 28 9.418-3.264-8.551-5.898-17.449-8.13-26A629.121 629.121 0 0 1 523 620.582zM588.966 433c-3.32 0-5.649 1.229-7.745 3.511-6.173 7.783-6.872 27.386-2.097 52.489 18.111-19.427 27.953-37.275 25.507-46.813-0.35-1.404-1.398-5.676-9.842-8.134-2.33-0.702-4.076-1.053-5.823-1.053z" fill="#FFFFFF" p-id="8604"></path></svg>-->
-<!--                    </div>-->
-<!--                    <div>{{i18nStore.langPackage[settingsManStore.lang].dialog.exportForm.saveAs}}PDF</div>-->
-<!--                </div>-->
+                <div v-if="!harmonyOSPermsStore.isHarmonyOS" style="width: 100px;"></div>
+                <div v-if="!harmonyOSPermsStore.isHarmonyOS" class="export-option" @click="openPdfExportOptions()">
+                    <div>
+                        <svg style="width: 100px; height: 100px;" t="1785388202606" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="8601" width="200" height="200"><path d="M179 64h468.5l223 225.5V935c0 13.807-11.193 25-25 25H179c-13.807 0-25-11.193-25-25V89c0-13.807 11.193-25 25-25z" fill="#FF4867" p-id="8602"></path><path d="M647.5 64v200.5c0 13.807 11.193 25 25 25h198L647.5 64z" fill="#FF97A9" p-id="8603"></path><path d="M691.919 812c-44.4 0-84.22-76.189-105.17-125.732-35.243-14.71-74.092-28.45-111.831-37.331-33.022 21.788-89.214 54.4-132.365 54.4-26.778 0-46.064-13.461-53.14-36.914-5.411-19.29-0.832-32.613 4.995-39.83 11.377-15.543 34.825-23.453 69.929-23.453 28.443 0 64.517 4.996 104.754 14.71 25.945-18.457 52.307-39.829 75.756-62.45-10.406-49.404-21.784-129.479 7.076-166.393 14.29-17.625 36.074-23.454 62.436-15.543 28.86 8.326 39.82 25.951 43.15 39.829 12.21 48.155-43.15 113.103-80.473 151.267 8.325 33.029 19.286 67.862 32.606 99.78 53.556 23.87 117.24 59.536 124.456 98.394 2.913 13.461-1.249 25.951-12.21 36.915-9.435 7.771-19.425 12.351-29.97 12.351zM652 728c9.768 21.74 19.081 32 23.99 32 0.76 0 1.823-0.333 3.341-1.664 1.822-1.996 1.822-3.327 1.518-4.547-1.012-5.713-9.262-15.085-28.849-25.789z m-281.922-88c-15.62 0-19.913 3.774-21.22 5.535-0.373 0.566-1.493 2.264-0.373 6.666 0.933 3.774 3.547 7.799 11.636 7.799 10.143 0 24.829-5.723 41.879-15.975-12.196-2.704-22.962-4.025-31.922-4.025zM523 620.582c9.333 2.6 19.01 5.951 28 9.418-3.264-8.551-5.898-17.449-8.13-26A629.121 629.121 0 0 1 523 620.582zM588.966 433c-3.32 0-5.649 1.229-7.745 3.511-6.173 7.783-6.872 27.386-2.097 52.489 18.111-19.427 27.953-37.275 25.507-46.813-0.35-1.404-1.398-5.676-9.842-8.134-2.33-0.702-4.076-1.053-5.823-1.053z" fill="#FFFFFF" p-id="8604"></path></svg>
+                    </div>
+                    <div>{{i18nStore.langPackage[settingsManStore.lang].dialog.exportForm.saveAs}}PDF</div>
+                </div>
+            </div>
+        </div>
+    </Transition>
+
+    <Transition>
+        <!--导出PDF参数-->
+        <div v-if="ameLifecycleManStore.showExportPdf" class="save-as-dialog pdf-options-dialog fonts">
+            <!--标题和关闭按钮-->
+            <div class="dialog-title-bar">
+                <div class="title3">
+                    <div class="title3-block"></div>
+                    <div style="width: 8px"></div>
+                    <div style="font-weight: bold; font-size: 1.2rem;">
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.title }}
+                    </div>
+                </div>
+                <div class="close" @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export-pdf'});">
+                    <div style="font-size: 1.8rem; font-weight: bold;">×</div>
+                </div>
+            </div>
+
+            <div style="height: 15px;"></div>
+
+            <div class="pdf-options-row">
+                <div class="pdf-options-label">
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.pageSize }}
+                </div>
+                <select class="save-as-input" style="flex: 1; width: 0;" v-model="pdfPageSize">
+                    <option value="A3">A3</option>
+                    <option value="A4" selected>A4</option>
+                    <option value="A5">A5</option>
+                    <option value="A6">A6</option>
+                    <option value="Letter">Letter</option>
+                    <option value="Legal">Legal</option>
+                    <option value="Tabloid">Tabloid</option>
+                </select>
+                <div style="width: 10px;"></div>
+                <select class="save-as-input" style="flex: 1; width: 0;" v-model="pdfLandscape">
+                    <option :value="false">
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.portrait }}
+                    </option>
+                    <option :value="true">
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.landscape }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="pdf-options-row">
+                <div class="pdf-options-label">
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.margins }}
+                </div>
+                <select class="save-as-input" style="flex: 1; width: 0;" v-model="pdfMargins">
+                    <option value="none">
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.marginNone }}
+                    </option>
+                    <option value="narrow">
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.marginNarrow }}
+                    </option>
+                    <option value="standard" selected>
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.marginStandard }}
+                    </option>
+                    <option value="wide">
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.marginWide }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="pdf-options-row">
+                <div class="pdf-options-label">
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.pageRanges }}
+                </div>
+                <input class="save-as-input" style="flex: 1; width: 0;" type="text" maxlength="200"
+                       :placeholder="i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.pageRangesPlaceholder"
+                       v-model="pdfPageRanges">
+            </div>
+
+            <label class="pdf-options-row">
+                <div class="pdf-options-label">
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.background }}
+                </div>
+                <input type="checkbox" class="pdf-options-checkbox" v-model="pdfPrintBackground">
+            </label>
+
+            <label class="pdf-options-row">
+                <div class="pdf-options-label">
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.footer }}
+                </div>
+                <input type="checkbox" class="pdf-options-checkbox" v-model="pdfFooter">
+            </label>
+
+            <label class="pdf-options-row">
+                <div class="pdf-options-label">
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.outline }}
+                </div>
+                <input type="checkbox" class="pdf-options-checkbox" v-model="pdfOutline">
+            </label>
+
+            <div style="height: 5px;"></div>
+
+            <!--按钮组-->
+            <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
+                <div class="confirm-dialog-cancel-button fonts" style="width: 60px;"
+                     @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export-pdf'})">
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.cancelButton }}
+                </div>
+                <div style="width: 10px;"></div>
+                <div class="confirm-dialog-confirm-button fonts" style="width: 110px;" @click="confirmPdfExportOptions()">
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportPdfForm.exportButton }}
+                </div>
             </div>
         </div>
     </Transition>

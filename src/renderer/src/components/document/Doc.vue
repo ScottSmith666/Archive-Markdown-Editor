@@ -5,6 +5,10 @@ import {onBeforeRouteUpdate, useRoute} from "vue-router";
 import {useAmeLifecycleManStore} from "../../store/ame-lifecycle-man";
 import {useTabManStore} from "../../store/tab-man";
 
+// 与编辑区预览（workspace/Editor.vue）同一份数学片段预处理：
+// 文档正文同样要经 markdown-it，不做这一步的话 \left\{ 这类写法在文档页里会被吃掉反斜杠
+import {processLatex} from "../../latex-preprocess.js";
+
 const route = useRoute();
 const ameLifecycleManStore = useAmeLifecycleManStore();
 const tabManStore = useTabManStore();
@@ -18,7 +22,7 @@ const readDocument = async (docName) => {
         let result = await window.docLoaderPreload.docLoader(docName);
         if (result.success) {
             rootPath.value = result.root.replaceAll("\\", "/");  // 渲染端不许出现反斜杠
-            content.value = result.content;
+            content.value = processLatex(result.content);  // 数学片段补反斜杠后再交给 Viewer 渲染
         } else {
             ameLifecycleManStore.autoTips({
                 wantToOpen: true,
@@ -71,6 +75,6 @@ onMounted(async () => {
 <style>
 .light-view {
     width: 100% !important;
-    height: calc(100vh - 36px - 31px - 15px);;
+    height: calc(100vh - 36px - 31px - 15px - 20px);
 }
 </style>

@@ -17,6 +17,7 @@ import {
 } from "./modules/common";
 import {appVersionIpc} from "./modules/appVersionIpc";
 import {exportIpc} from "./modules/exportIpc";
+import {exportPdfIpc} from "../print";
 import {openExternalSafe} from "../external-url";
 
 const util = require('util');
@@ -159,6 +160,7 @@ const MDZ_CONTENTS_DIR = "mdz_contents";
 const MDZ_MEDIA_DIR = "media_src";
 const MDZ_MAIN_MD_NAME = "content.md";
 const MDZ_STAGE_DIR = ".ame_mdz_stage";  // 解压暂存目录，仅解压瞬间存在，随后搬移并删除
+const MDZ_CACHE_EXT = ".mdzcache";  // “保存”就地覆盖时的原包留底扩展名，仅在压缩成功前存在
 
 const mdzWorkDirPath = (dirPath, pureFileName) => dirPath + path.sep + MDZ_WORK_DIR_PREFIX + pureFileName;
 
@@ -424,18 +426,53 @@ export const ipc = (Sqlite3, dbPath) => {
         }
     });
 
-    ipcMain.handle("compress-to-mdz", async (event, purePath, pureFileName, password) => {
+    ipcMain.handle("compress-to-mdz", async (event, purePath, pureFileName, password, backupOldMdz) => {
+        const mdzPath = purePath + path.sep + pureFileName + ".mdz";
+        const cachePath = purePath + path.sep + pureFileName + MDZ_CACHE_EXT;
         try {
-            // 先删除原来的mdz包
-            await rm(purePath + path.sep + pureFileName + ".mdz", {recursive: true, force: true});
-            // 再压缩产生新的
-            await mdzUtils.genOrDecompressMdz(
-                mdzWorkDirPath(purePath, pureFileName),
-                purePath + path.sep + pureFileName + ".mdz",
-                "compress",
-                password,
-                ""
-            );
+            if (backupOldMdz) {
+                // “保存”（就地覆盖）：先把原包改名留底，压缩出新包成功后才删除留底。
+                // 这样压缩报错、磁盘写满、进程被强杀等情况下原mdz不会被丢弃。
+                if (await pathExists(cachePath)) {
+                    // 上一次保存被强杀留下的留底文件，可能已经是这篇文档仅存的内容，不能静默覆盖
+                    return {
+                        "success": false,
+                        "message": `EXISTS: 同目录下还留着上次保存中断产生的 '${pureFileName}${MDZ_CACHE_EXT}'，`
+                            + `确认其内容后请手动删除再保存`
+                    };
+                }
+                if (await pathExists(mdzPath)) {
+                    await fs.promises.rename(mdzPath, cachePath);
+                }
+            } else {
+                // “另存为”：保持原来的直接删除再覆盖行为
+                await rm(mdzPath, {recursive: true, force: true});
+            }
+            try {
+                // 再压缩产生新的
+                await mdzUtils.genOrDecompressMdz(
+                    mdzWorkDirPath(purePath, pureFileName),
+                    mdzPath,
+                    "compress",
+                    password,
+                    ""
+                );
+            } catch (compressError) {
+                // 打包没成功：把留底改回原名，让原mdz回到保存之前的状态
+                if (backupOldMdz && await pathExists(cachePath)) {
+                    try {
+                        await fs.promises.rename(cachePath, mdzPath);
+                    } catch (rollbackError) {
+                        throw new Error(`${compressError.name}: ${compressError.message}`
+                            + `；原包留在 '${pureFileName}${MDZ_CACHE_EXT}'，把它的扩展名改回 .mdz 即可找回`);
+                    }
+                }
+                throw compressError;
+            }
+            // 只有打包成功，才删除留底；删除本身失败不影响本次保存结果
+            if (backupOldMdz) {
+                await rm(cachePath, {recursive: true, force: true});
+            }
             return {"success": true, "message": "保存成功"};
         } catch (e) {
             return {"success": false, message: `${e.name}: ${e.message}`};
@@ -713,4 +750,7 @@ export const ipc = (Sqlite3, dbPath) => {
 
     // export
     exportIpc(dialogs);
+
+    // export pdf
+    exportPdfIpc();
 };

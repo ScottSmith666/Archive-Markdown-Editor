@@ -80,6 +80,8 @@ file_name.mdz
 
 還是回到「儲存為」對話框，下方有密碼輸入框。當您在儲存mdz檔案的時候指定密碼，最後儲存的檔案就是帶有密碼的mdz檔案。
 
+指定密碼後，mdz套件內會以7z預設的AES-256加密，同時AME還會開啟7z的「標頭加密」：不只是內文與多媒體的內容，套件內的檔名與目錄結構在未輸入密碼時同樣無法讀取（使用其他解壓工具檢視時同樣需要密碼）。
+
 當然，在您儲存mdz檔案的時候不填寫下方的密碼框，最後儲存的檔案當然就是不含密碼的未加密mdz檔案。
 
 ![]($DOCUMENT_MEDIA/save-as-dialog.png)
@@ -184,6 +186,68 @@ Archive Markdown Editor具有優秀的Markdown智慧提示功能。當您在編�
 
 ![]($DOCUMENT_MEDIA/pause-render.png)
 
+#### 6. 匯出：HTML 與 PDF
+
+選單列 `檔案 > 匯出...` 可以將目前頁籤的正文匯出為 **HTML** 或 **PDF**。
+
+##### 匯出HTML
+
+選好儲存位置即完成。產物是 `匯出名.html`；正文裡用到本地多媒體時，AME 會在同目錄再建一個 `匯出名.media_dir` 資料夾，存放複製過去的圖片/音訊影片/可下載檔案，以及 Mermaid、Prism、MathJax（含全部 tex 擴充與公式字型）的離線資源。
+
+所以匯出的 HTML **完全離線可用**：斷網開啟依然有程式碼高亮、流程圖和公式。線上圖片URL與 base64 圖片照原樣保留。
+
+##### 匯出PDF
+
+點「匯出為PDF」後會先跳出參數框，確認後再選擇儲存位置：
+
+| 參數 | 說明 |
+|:---|:---|
+| 紙張 | A3 / A4 / A5 / A6 / Letter / Legal / Tabloid |
+| 方向 | 縱向 / 橫向 |
+| 頁邊距 | 無 / 窄 / 標準 / 寬。勾選頁尾時會自動留出頁尾所需的最小邊距 |
+| 頁碼範圍 | 只接受 `1-5, 8, 11-13` 這種寫法，留空表示匯出全部 |
+| 列印背景色與圖片 | 預設開啟；關掉後主題裡的底色、提示塊底色不會被列印出來 |
+| 頁尾顯示日期、標題與頁碼 | 頁尾內容為「日期 標題 目前頁 / 總頁數」 |
+| 產生PDF書籤大綱 | 依正文標題產生PDF大綱（Chromium 實驗特性，個別閱讀器不顯示） |
+
+PDF 的排版使用你在設定中選取的**檢視器主題**，與 app 內預覽、匯出 HTML 是同一來源。
+
+和匯出 HTML 有兩點不同：
+
+1. **PDF 不會建立 `.media_dir` 附屬目錄**。PDF 是一次性產物，本地圖片和 mdz 內嵌圖片在排版時依原始絕對路徑直接讀取並嵌入 PDF，所以產物只有一個 `.pdf` 檔案。
+2. **音訊和影片在 PDF 裡是「靜態卡片」**（圖示 + 檔案名稱 + 說明文字）。PDF 是靜態文件，播放器控件印出來也按不動，所以如實表示成卡片。
+
+> [!note]
+>
+> 匯出 PDF 的正文與 app 內預覽走同一套 HTML 淨化規則，`<script>`、`<iframe>` 一類的內容在匯出前會被剝除。HarmonyOS 平台暫不提供匯出 PDF 入口。
+
+#### 7. 內建工具：LaTeX編輯器與Mermaid編輯器
+
+功能表列 `工具 > LaTeX編輯器...` 與 `工具 > Mermaid編輯器...` 會各自以**獨立分頁**開啟一個「左寫右看」的小工具。
+
+| 區域 | 內容 |
+|:---|:---|
+| 左半邊 | Monaco Editor，與內文編輯區同源，字型大小、行號、主題、自動換行等跟隨設定中的編輯器設定 |
+| 右半邊 | 即時預覽。LaTeX 用 MathJax 排版，Mermaid 直接渲染成圖。停筆約 0.3 秒自動重新整理 |
+| 拷貝原始碼 | 把左側原始碼整份拷進剪貼簿，直接貼回內文 |
+| 清空 | 清空左側編輯區，`Ctrl` `Z` 還能復原回來 |
+
+智慧提示是這兩個工具的主要用處：
+
+- **LaTeX**：鍵入反斜線 `\` 觸發補全，涵蓋希臘字母、運算子與關係符、箭頭、定界符、大型運算子、重音與間距等指令；鍵入 `\begin` 會直接給出帶配對 `\end{...}` 的環境腳手架；在 `\end{` 處優先提示文件裡尚未閉合的那個環境。
+- **Mermaid**：首行提示圖類型（`flowchart`、`sequenceDiagram`、`classDiagram`、`stateDiagram-v2`、`erDiagram`、`gantt`、`pie`、`gitGraph`、`mindmap`、`timeline` 等 20 餘種）；圖類型確定後，接著依類型給上下文關鍵字（例如 `sequenceDiagram` 下的 `participant`、`activate`、`note over`、`alt`/`else`，`gantt` 下的 `dateFormat`、`section`、`crit`），非首行還會補箭頭寫法。
+
+幾點使用說明：
+
+1. **首次開啟自帶一段範例原始碼**，方便立刻看到左右連動的效果；清空後不會自動補回來。
+2. **切換分頁內容不會遺失**。同一類工具同時只會開一個分頁，重複點功能表只是切過去，不會重複開啟；LaTeX 與 Mermaid 彼此獨立。
+3. **關閉分頁不會跳「未儲存」確認**。這兩個工具是草稿板，內容不寫進任何檔案，想留存就點「拷貝原始碼」貼進內文再儲存。
+4. Mermaid 遇到語法錯誤時，右側直接把錯誤文字顯示出來，改對了就會恢復。
+
+> [!note]
+>
+> 預覽用的是與 app 內預覽同一套 MathJax 與 Mermaid 離線資源，不需要聯網。左側編輯區只有原始碼，不會被公式排版改寫。
+
 ## 二、Archive Markdown Editor快速鍵表
 
 | 操作       | Windows/Linux/HarmonyOS平台   | macOS平台         |
@@ -196,3 +260,62 @@ Archive Markdown Editor具有優秀的Markdown智慧提示功能。當您在編�
 | 開啟使用指南   | `Ctrl` `Shift` `H` | `⌘` `Shift` `H` |
 | 開啟設定     | `Ctrl` `,`         | `⌘` `,`         |
 | 退出AME    | `Ctrl` `Q`         | `⌘` `Q`         |
+
+## 三、在Linux上把AME設為md、mdz、txt的預設開啟方式
+
+> [!note]
+>
+> 本節只針對Linux平台，並以deb包為準。
+
+裝好deb包後，AME 已經自動向系統登記好下面三種類型，所以 GNOME「設定 → 預設應用程式」以及檔案管理器右鍵「開啟與」的清單裡都會直接出現 Archive Markdown Editor：
+
+| 檔案 | MIME 類型 |
+|:---|:---|
+| `.md` | `text/markdown` |
+| `.txt` | `text/plain` |
+| `.mdz` | `application/prs.archive-markdown-format`（AME 私有類型，隨包註冊） |
+
+把它們交給 AME 有兩種做法：
+
+1. 在檔案管理器裡右鍵 `.md`、`.mdz` 或 `.txt` 檔案 → 「開啟與」→ 選取 Archive Markdown Editor（GNOME Files 要先點「其他選項…」），並勾選「設為預設」。
+2. 命令列：
+
+```bash
+xdg-mime default archive-markdown-editor.desktop text/markdown
+xdg-mime default archive-markdown-editor.desktop text/plain
+xdg-mime default archive-markdown-editor.desktop application/prs.archive-markdown-format
+```
+
+確認是否已經生效：
+
+```bash
+xdg-mime query default text/markdown      # 預期輸出 archive-markdown-editor.desktop
+xdg-mime query filetype ./範例.mdz         # 預期輸出 application/prs.archive-markdown-format
+```
+
+設定完成後，雙擊檔案即可以 AME 開啟；若 AME 已經在執行，檔案會被交給現有視窗，不會再多起一個實例。
+
+> [!caution]
+>
+> `mdz` 是 AME 的私有格式，系統 MIME 庫裡原本沒有它，不註冊就會被識別成 `application/zip`，在「開啟與」裡和壓縮軟體互相干擾，所以 deb 包會附上一份 `mdz` 的 MIME 宣告。解除安裝 deb 包時這份宣告會隨包刪除，但 MIME 快取要等下一次 `update-mime-database /usr/share/mime` 才重新整理；`$HOME/.config/mimeapps.list` 裡手動設過的預設項目也需要自行清理。
+
+**AppImage 使用者**：AppImage 不會自行寫入任何系統登記，兩種選擇：
+
+- 交給 `appimaged`、`AppImageLauncher` 這類整合工具，它會讀取 AppImage 內建的 `.desktop`（裡面已經帶好上面的 MIME 類型和啟動參數）替你註冊；
+- 或自己在 `$HOME/.local/share/applications/` 放一份 `.desktop`，`Exec=` 指向 AppImage 的絕對路徑並**保留結尾的 `--direct-open-file=%f`**，再按下面的寫法補上 `mdz` 的 MIME 宣告：
+
+```bash
+mkdir -p "$HOME/.local/share/mime/packages"
+cat > "$HOME/.local/share/mime/packages/archive-markdown-editor.xml" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/prs.archive-markdown-format">
+    <glob pattern="*.mdz"/>
+    <comment>Archive Markdown Editor archive document</comment>
+    <icon name="x-office-document"/>
+  </mime-type>
+</mime-info>
+EOF
+update-mime-database "$HOME/.local/share/mime"
+update-desktop-database "$HOME/.local/share/applications"
+```

@@ -18,7 +18,14 @@
             displayMath: [  // 段内公式选择符
                 ["$$", "$$"],
             ],
-            packages: {'[+]': ['base', 'action', 'mhchem', 'ams']},
+            // loader.load 只负责把宏包文件下载下来，并不会把它注册进排版用的宏表。
+            // 宏包必须同时出现在这里的 packages 里，否则 physics 的 \dv、\pdv、\abs，
+            // gensymb 的 \degree、\micro，mathtools 的 \coloneqq 这些宏取不到定义，
+            // 会被 noundefined 兜底成红色的原样字符（实测：只写 loader.load 时全部发红）。
+            packages: {'[+]': ['base', 'action', 'mhchem', 'ams',
+                'amscd', 'bbox', 'boldsymbol', 'braket', 'bussproofs', 'cancel', 'cases',
+                'centernot', 'color', 'colortbl', 'empheq', 'enclose', 'extpfeil', 'gensymb',
+                'html', 'mathtools', 'physics', 'tagformat', 'upgreek', 'verb']},
             processEscapes: true,
             processEnvironments: true // 允许识别 \begin{aligned} 等环境
         },

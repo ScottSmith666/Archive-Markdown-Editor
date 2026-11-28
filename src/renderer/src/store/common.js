@@ -13,13 +13,14 @@ export const getNow = () => {
     }).replace(/\//g, '-');
 };
 
-export const createMonacoEditorModel = (pageId = null, content = "") => {
+// language默认markdown，工具页（LaTeX编辑器、Mermaid编辑器）会传入各自的语言以启用对应智能提示
+export const createMonacoEditorModel = (pageId = null, content = "", language = "markdown") => {
     if (!pageId) {  // 要是没传入参数，就自己生成
         pageId = "UNUSED_" + crypto.randomUUID();
     }
     const uri = monaco.Uri.parse(`uuid:///${pageId}.md`);
     // 创建并返回 Model 实例
-    return monaco.editor.createModel(content, "markdown", uri);
+    return monaco.editor.createModel(content, language, uri);
 };
 
 // 密码弹出框

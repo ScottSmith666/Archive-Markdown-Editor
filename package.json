@@ -22,7 +22,7 @@
         "lint": "eslint --cache .",
         "start": "electron .",
         "dev": "electron-vite dev",
-        "build": "electron-vite build && node ./utils/copy-mathjax && node ./utils/syncver.js",
+        "build": "electron-vite build && node ./utils/copy-mathjax && node ./utils/copy-print-assets && node ./utils/syncver.js",
         "build:unpack": "npm run build && electron-builder --dir",
         "build:win": "npm run build && electron-builder --win",
         "build:mac": "npm run build && electron-builder --mac",

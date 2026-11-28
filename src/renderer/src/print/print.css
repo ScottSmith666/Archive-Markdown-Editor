@@ -1,0 +1,165 @@
+/*
+ * 导出PDF专用打印页样式（只服务 src/renderer/ame-print.html）。
+ *
+ * 这里只写两类东西：
+ * 1) 排印基线：字体、CJK回退、正文颜色，保证用户没选主题时也能出一份能看的PDF；
+ * 2) 打印必需的分页与“防裁切”规则。
+ *
+ * 为什么第2类必须自己写：app内预览和导出HTML的容器是按“屏幕滚动”设计的
+ * （#viewer-content 有 max-width:90%、.md-block 与 pre 有 overflow-x:scroll/auto、
+ *  还可能有 height:100%），换成纸张之后这些会让超出页宽的内容被直接裁掉、
+ * 或者让整篇文档只出一页。所有这类属性都在这里按打印语义覆盖掉，
+ * 不动 src/main/themes/default-viewer-theme.js，app和导出HTML的行为一个字都不改。
+ */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #ffffff;
+    color: #2c3e50;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+        "Source Han Sans SC", "WenQuanYi Micro Hei", sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    /* 主题里的背景色、告警块底色、表格斑马纹要能印出来，否则printToPDF的
+       printBackground传什么都不显示 */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+#viewer-content {
+    /* 主题里的 max-width:90% / margin:0 auto 在纸张上是多余的，页宽由printToPDF的margins决定 */
+    max-width: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+/* 屏幕上的横向滚动容器，纸面上必须改成“可见”，否则宽表格和长代码会被裁成一截 */
+#viewer-content .md-block,
+#viewer-content .table-container,
+#viewer-content .md-table-fig {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+/* 代码块：宁可折行也不能被页宽裁掉。不引line-numbers插件，
+   所以 pre.line-numbers 上的 class 在这里只是个空壳，不用管行号槽 */
+#viewer-content pre,
+#viewer-content pre[class*="language-"] {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: visible !important;
+    max-height: none !important;
+    border-radius: 4px;
+    break-inside: auto;
+    page-break-inside: auto;
+}
+
+#viewer-content code {
+    word-break: break-word;
+}
+
+/* 图片、画布、表格按页宽收敛。刻意不加 !important：
+   mermaid 渲染出来的 <svg> 自带 inline style="max-width:<图的固有宽度>"，
+   一旦用 !important 顶掉它，小图会被 width:100% 拉伸到整页宽
+   （实测一个三节点的流程图能独占一整页）。内联样式本来就优先，交给它。 */
+img,
+svg,
+video,
+canvas,
+table {
+    max-width: 100%;
+}
+
+img,
+video,
+canvas {
+    height: auto;
+}
+
+/* 分页规则：标题别落在页尾变成孤儿，块级元素尽量整块翻页 */
+#viewer-content h1,
+#viewer-content h2,
+#viewer-content h3,
+#viewer-content h4,
+#viewer-content h5,
+#viewer-content h6 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+    break-inside: avoid;
+}
+
+#viewer-content blockquote,
+#viewer-content li,
+#viewer-content figure,
+#viewer-content tr,
+#viewer-content .markdown-alert {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+#viewer-content table {
+    border-collapse: collapse;
+}
+
+#viewer-content mjx-container[display="true"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    overflow: visible !important;
+}
+
+#viewer-content .mermaid {
+    text-align: center;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    white-space: normal;
+}
+
+#viewer-content .mermaid svg {
+    /* 宽度由 mermaid 自己那行 inline max-width 管，这里只保证按 viewBox 等比缩放 */
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* PDF是静态文档，音视频没法在里面播放。渲染器（worker/exporter）在PDF模式下
+   给的是这张卡片，这里只负责它的排版 */
+.ame-print-media-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    margin: 8px 0;
+    border: 1px solid #42b983;
+    border-radius: 5px;
+    background-color: rgba(66, 185, 131, 0.19);
+    break-inside: avoid;
+    page-break-inside: avoid;
+    max-width: 100%;
+}
+
+.ame-print-media-card > svg {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+}
+
+.ame-print-media-name {
+    font-weight: bold;
+    color: #2f7f5f;
+    word-break: break-all;
+}
+
+.ame-print-media-caption {
+    color: #555555;
+    word-break: break-word;
+}

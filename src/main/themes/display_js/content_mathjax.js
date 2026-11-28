@@ -8,7 +8,13 @@ export const contentMathjax = `
                 ["$$", "$$"],
                 ["\\[", "\\]"],
             ],
-            packages: {'[+]': ['base', 'action', 'mhchem', 'ams']},
+            // 与 src/renderer/index.html 的同名配置保持一致：
+            // loader.load 只下载宏包文件，不注册宏表，宏包必须同时写进 packages，
+            // 否则 physics/gensymb/mathtools 等宏在导出HTML与打印页里会渲染成红色原样字符
+            packages: {'[+]': ['base', 'action', 'mhchem', 'ams',
+                'amscd', 'bbox', 'boldsymbol', 'braket', 'bussproofs', 'cancel', 'cases',
+                'centernot', 'color', 'colortbl', 'empheq', 'enclose', 'extpfeil', 'gensymb',
+                'html', 'mathtools', 'physics', 'tagformat', 'upgreek', 'verb']},
             processEscapes: true,
             processEnvironments: true // 允许识别 \\begin{aligned} 等环境
         },

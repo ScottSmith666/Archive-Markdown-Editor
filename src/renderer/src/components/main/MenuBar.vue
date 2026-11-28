@@ -7,6 +7,7 @@ import {useMainMenuManStore} from "../../store/main-menu-man";
 import {useTabManStore} from "../../store/tab-man";
 import {useHarmonyOSPermsStore} from "../../store/harmony-perms";
 import {useI18nStore} from "../../store/i18n";
+import {latexSample, mermaidSample} from "../tools/tool_editor_samples";
 
 const ameLifecycleManStore = useAmeLifecycleManStore();
 const mainMenuManStore = useMainMenuManStore();
@@ -269,6 +270,28 @@ onMounted(() => {
                                         }); mainMenuManStore.mainManuAllHide();">
                                     <p class="fonts">{{ i18nStore.langPackage[settingsManStore.lang].menuBar.tools.subCaptions.mdzMediaMan }}</p>
                                 </div>
+                                <div class="menu-element" id="formula-editor"
+                                     @click="tabManStore.addTabPage(
+                                        {
+                                            'pageType': 'tools',
+                                            'pageTitle': i18nStore.langPackage[settingsManStore.lang].toolsPage.formulaEditor.tabTitle,
+                                            'toolKind': 'formulaEditor',
+                                            'pageLanguage': 'latex',
+                                            'pageInitContent': latexSample
+                                        }); mainMenuManStore.mainManuAllHide();">
+                                    <p class="fonts">{{ i18nStore.langPackage[settingsManStore.lang].menuBar.tools.subCaptions.formulaEditor }}</p>
+                                </div>
+                                <div class="menu-element" id="mermaid-editor"
+                                     @click="tabManStore.addTabPage(
+                                        {
+                                            'pageType': 'tools',
+                                            'pageTitle': i18nStore.langPackage[settingsManStore.lang].toolsPage.mermaidEditor.tabTitle,
+                                            'toolKind': 'mermaidEditor',
+                                            'pageLanguage': 'mermaid',
+                                            'pageInitContent': mermaidSample
+                                        }); mainMenuManStore.mainManuAllHide();">
+                                    <p class="fonts">{{ i18nStore.langPackage[settingsManStore.lang].menuBar.tools.subCaptions.mermaidEditor }}</p>
+                                </div>
 <!--                                <div class="menu-element" id="theme-editor"-->
 <!--                                     @click="tabManStore.addTabPage(-->
 <!--                                        {-->
@@ -314,6 +337,18 @@ onMounted(() => {
                                  'pageTitle': i18nStore.langPackage[settingsManStore.lang].tabBar.syntax, 'isExistFile': false,
                                  'docName': `syntax${settingsManStore.lang === 'zh-CN' ? '' : '-' + settingsManStore.lang}`}); mainMenuManStore.mainManuAllHide();">
                                 <p class="fonts">{{ i18nStore.langPackage[settingsManStore.lang].menuBar.help.subCaptions.syntax }}</p>
+                            </div>
+                            <div class="menu-element" id="latex-syntax"
+                                 @click="tabManStore.addTabPage({'pageType': 'document',
+                                 'pageTitle': i18nStore.langPackage[settingsManStore.lang].tabBar.latexSyntax, 'isExistFile': false,
+                                 'docName': `latex-syntax${settingsManStore.lang === 'zh-CN' ? '' : '-' + settingsManStore.lang}`}); mainMenuManStore.mainManuAllHide();">
+                                <p class="fonts">{{ i18nStore.langPackage[settingsManStore.lang].menuBar.help.subCaptions.latexSyntax }}</p>
+                            </div>
+                            <div class="menu-element" id="mermaid-syntax"
+                                 @click="tabManStore.addTabPage({'pageType': 'document',
+                                 'pageTitle': i18nStore.langPackage[settingsManStore.lang].tabBar.mermaidSyntax, 'isExistFile': false,
+                                 'docName': `mermaid-syntax${settingsManStore.lang === 'zh-CN' ? '' : '-' + settingsManStore.lang}`}); mainMenuManStore.mainManuAllHide();">
+                                <p class="fonts">{{ i18nStore.langPackage[settingsManStore.lang].menuBar.help.subCaptions.mermaidSyntax }}</p>
                             </div>
                             <div class="menu-element" id="donate"
                                  @click="ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'donate'}); mainMenuManStore.mainManuAllHide();">

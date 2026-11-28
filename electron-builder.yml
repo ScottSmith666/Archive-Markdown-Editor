@@ -122,8 +122,59 @@ linux:
     - deb
   maintainer: scottsmith666.github.io
   category: Utility
+  # ── Linux 桌面集成（1/3）：让“双击文件”真正把文件交给 AME ──────────────
+  # 生成的 .desktop 里 Exec 会变成
+  #   Exec="/opt/Archive Markdown Editor/archive-markdown-editor" --direct-open-file=%f
+  # %f 由桌面环境替换成“单个本地文件绝对路径”（含空格/中文都可以），
+  # 正好对上主进程已有的启动参数解析（src/main/index.js 里的 --direct-open-file=）。
+  # 从应用网格/菜单启动（没有文件）时，GLib 会把 %f 抹掉，只剩空值
+  # “--direct-open-file=”，主进程按假值忽略，启动行为不变（已用 gio launch 实测）。
+  # 注意：electron-builder 只在 executableArgs 里出现“独立的 %f/%F/%u/%U”时才不追加 %U，
+  # 我们这个写法会被追加成 “--direct-open-file=%f %U”，desktop-file-validate 会报
+  # “may contain at most one field code”。GLib（GNOME/Nautilus，实测）与 KDE 都能正确处理：
+  # 单文件时只会传一个 --direct-open-file=<绝对路径>，多文件时才多一个被主进程忽略的多余参数。
+  executableArgs:
+    - '--direct-open-file=%f'
+  # ── Linux 桌面集成（2/3）：复用系统已有的 MIME 类型 ────────────────────
+  # 只把这些类型写进 .desktop 的 MimeType=，不注册新 glob，
+  # 避免和 shared-mime-info 里已有的 *.md / *.txt 规则撞车。
+  # 写进 MimeType= 之后，GNOME“设置 → 默认应用程序”和文件管理器“打开方式”里才会出现 AME。
+  mimeTypes:
+    - text/markdown
+    - text/x-markdown
+    - text/plain
+  # ── Linux 桌面集成（3/3）：注册 mdz 这个 AME 私有格式 ──────────────────
+  # 系统 MIME 库里根本没有 mdz，不注册的话 *.mdz 会被 magic 嗅探成 application/zip
+  # （“打开方式”里跟压缩软件抢，设为默认还会把 zip 也抢走）。
+  # electron-builder 会据此生成 /usr/share/mime/packages/archive-markdown-editor.xml，
+  # 装包时 after-install 脚本自动跑 update-mime-database / update-desktop-database 生效。
+  # 只在 linux 下声明，避免影响 NSIS（写注册表）与 macOS（CFBundleDocumentTypes）。
+  # MIME 名用 application/prs.archive-markdown-format：prs. 是 RFC 6838 的 personal 树，
+  # 专给未向 IANA 注册的自有格式（vnd. 树是留给已注册厂商类型的，x- 前缀则是历史写法），
+  # 且 shared-mime-info 上游本来就有 application/prs.plucker、audio/prs.sid 这种条目，
+  # update-mime-database / GLib / xdg-mime 全链路实测正常（*.mdz 的 glob 规则优先于 zip magic）。
+  fileAssociations:
+    - ext: mdz
+      name: Archive Markdown Editor Archive
+      description: Archive Markdown Editor archive document
+      mimeType: application/prs.archive-markdown-format
+  desktop:
+    entry:
+      # StartupWMClass 要和窗口的 WM_CLASS 一致，GNOME 才能把运行中的窗口归到本图标
+      # （旧值回退成 productName “Archive Markdown Editor”，本机 xprop 实测根本对不上）。
+      # 注意：MimeType / Categories / Comment 由 electron-builder 在 entry 之后覆盖，
+      # 所以那三项必须走上面的 linux.mimeTypes / linux.category / description，不能写在这里。
+      StartupWMClass: archive-markdown-editor
+      GenericName: Markdown Editor
+      Keywords: markdown;md;mdz;editor;archive;
 appImage:
   artifactName: ${name}-${version}.${ext}
+  # AppImage 的 .desktop 由 electron-builder 生成，且无条件在 Exec 末尾追加 %U；
+  # 一旦设置 executableArgs，它原本的默认参数 --no-sandbox 就会被丢掉，
+  # 这里显式补回来（deepAssign 会把它和 linux.executableArgs 拼成一个数组），
+  # 保证 AppImage 用户在没有非特权 user namespace 的内核上照旧能启动。
+  executableArgs:
+    - '--no-sandbox'
 npmRebuild: false
 publish:
   provider: github

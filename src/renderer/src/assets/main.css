@@ -322,6 +322,39 @@ html, body {
     font-weight: bold;
 }
 
+/* 导出PDF参数框：容器、输入框、按钮全部复用另存为那一套（save-as-dialog / save-as-input /
+   confirm-dialog-*button），这里只补它自己的排版 */
+.pdf-options-dialog {
+    width: 420px;
+}
+
+.pdf-options-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.pdf-options-label {
+    flex: 0 0 auto;
+    margin-right: 10px;
+    color: #4d4d4d;
+}
+
+.pdf-options-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--main-color);
+    cursor: pointer;
+}
+
+.pdf-options-dialog .save-as-input {
+    /* save-as-dialog 整块禁拖选，页码范围那个输入框得能选中改字 */
+    user-select: text;
+}
+
 /* Transition animation */
 .v-enter-active,
 .v-leave-active {

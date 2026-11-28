@@ -10,6 +10,7 @@ export const useAmeLifecycleManStore
             showLoading: false,
             showSaveAs: false,
             showExport: false,
+            showExportPdf: false,
             showPreview: false,
             appVersion: '',
             tLevel: 'info',  // 普通弹出提示框的等级，分为success、info和fail
@@ -29,6 +30,9 @@ export const useAmeLifecycleManStore
                 this.showSaveAs = object.wantToOpen;
             } else if (object.kind === 'export') {
                 this.showExport = object.wantToOpen;
+            } else if (object.kind === 'export-pdf') {
+                // 导出PDF的参数框（纸张、方向、页边距……）
+                this.showExportPdf = object.wantToOpen;
             } else if (object.kind === 'preview') {
                 this.showPreview = object.wantToOpen;
             }

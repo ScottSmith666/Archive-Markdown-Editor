@@ -29,7 +29,7 @@ export const useTabManStore = defineStore("tab-man", {
             mainMenuManStore.mainManuAllHide();
             let isOpenedWelcome = false;
             let isOpenedSettings = false;
-            let isOpenedMdzMediaMan = false;
+            const openedToolKinds = new Set();
             // 检查设置页面和欢迎页面有没有打开
             for (let [key, value] of this.tabList) {
                 if (value.get('type') === 'welcome') {
@@ -42,11 +42,13 @@ export const useTabManStore = defineStore("tab-man", {
 
                 if (value.get('type') === 'tools') {
                     let url = value.get('path');
-                    let paramsList = url.split('?')[1].split('&');
-                    for (let paramI = 0; paramI < paramsList.length; paramI++) {
-                        if (paramsList[paramI].split('=')[0] === 'toolkind') {
-                            if (paramsList[paramI].split('=')[1] === 'mdzMediaMan') {
-                                isOpenedMdzMediaMan = true;
+                    let queryString = url.split('?')[1];
+                    if (queryString) {
+                        // 工具页按toolkind去重，同类工具（媒体管理、LaTeX编辑器、Mermaid编辑器）各自只能开一个
+                        let paramsList = queryString.split('&');
+                        for (let paramI = 0; paramI < paramsList.length; paramI++) {
+                            if (paramsList[paramI].split('=')[0] === 'toolkind') {
+                                openedToolKinds.add(paramsList[paramI].split('=')[1]);
                                 break;
                             }
                         }
@@ -60,7 +62,7 @@ export const useTabManStore = defineStore("tab-man", {
             if (object.pageType === 'settings' && isOpenedSettings) {
                 return 0;
             }
-            if (object.pageType === 'tools' && isOpenedMdzMediaMan) {
+            if (object.pageType === 'tools' && object.toolKind && openedToolKinds.has(object.toolKind)) {
                 return 0;
             }
 
@@ -72,7 +74,15 @@ export const useTabManStore = defineStore("tab-man", {
                 urlContent = 'workspace';
                 model = createMonacoEditorModel(filePageID, object.isExistFile ? object.content : '');
             } else {
-                model = createMonacoEditorModel();
+                if (object.pageLanguage) {  // 工具页需要指定语言（latex/mermaid）与初始示例内容
+                    model = createMonacoEditorModel(
+                        filePageID,
+                        object.pageInitContent ? object.pageInitContent : "",
+                        object.pageLanguage
+                    );
+                } else {
+                    model = createMonacoEditorModel();
+                }
                 urlContent = object.pageType;
             }
             // 将上一个pageId对应的Tab取消选中
@@ -83,7 +93,7 @@ export const useTabManStore = defineStore("tab-man", {
             let newPageObject = new Map(Object.entries({
                 "label": object.pageTitle,
                 "type": object.pageType,
-                // object.toolKind的值有”mdzMediaMan“和”preview“
+                // object.toolKind的值有”mdzMediaMan“”preview“”formulaEditor“和”mermaidEditor“
                 "path": `/${urlContent}?pageid=${filePageID}${object.docName ? ("&docname=" + object.docName) : ""}${object.isExistFile ? "&filepath=" + object.filePath : ""}${object.toolKind ? "&toolkind=" + object.toolKind : ""}${object.previewMediaPath ? "&previewmediapath=" + object.previewMediaPath : ""}`,
                 "focus": true,
                 "isExistFile": object.isExistFile,

@@ -1367,3 +1367,59 @@ node --check 通过；eslint（@eslint/js recommended）0 error / 0 warning
 4. mdz 另存为的拷贝失败提示文案在已存在文件分支取 i18n，在新建文件分支与解包分支为硬编码 '保存失败！'
 5. 加密文件带 data 时直接落空（既非 B 也非 C 分支）
 ```
+
+---
+
+# 2026-11-28 21:10
+
+- 文件：`src/renderer/src/store/file-man.js`
+- 说明：“保存”（`saveInPlaceAction` 的 mdz 分支）调用 `compressToMdz` 时显式传 `true`，启用主进程的“原包先改名 `.mdzcache` 留底 → 打包成功才删留底”流程；同一分支的失败出口补上解锁与提示收尾。
+- 背景：只有就地保存需要这个保护，“另存为”（`saveAsOverExistingAction` / `saveAsNewFileAction` 在第 650 行的调用点）按要求保持原样不传该参。
+- 改法：
+  - 第 489 行调用点补第 4 个实参 `true`（带注释说明主进程侧行为）。
+  - 紧随其后的 `if (!makeMdzResult.success) { return; }` 补 `console.error(makeMdzResult.message)`、`ameLifecycleManStore.hideLoading()`、`this.changeFileStoreData(true)` 三行：原来打包失败会既不打日志、也不收 loading 提示条、还不恢复 `changeFileStoreData(false)` 置起的状态（同函数内 `copyResult`/`writeResult` 的失败分支本来就是这么收尾的）。新增的“残留 `.mdzcache` 时拒绝保存”这条失败路径必须有可见反馈，否则用户只会看到转圈不消失。
+- 未改动：“另存为”两处 `compressToMdz` 调用（第 650 行等）与 `applySaveAsTabInfo`；`saveInPlaceAction` 的非 mdz 分支；打开、关闭、历史、口令弹窗等其余 action；`promptMdzPassword` 的重试循环。
+- 验证：ESLint 无告警；`npx electron-vite build` 通过；主进程侧四场景（成功、压缩失败自动回滚、残留留底拒绝覆盖、另存为行为不变）实测通过，见 change-ipc-index.js.md。界面侧需 `npm run dev` 复核：保存成功后同目录不应出现 `.mdzcache`；保存中途杀进程会留下 `.mdzcache`，把它扩展名改回 `.mdz` 即拿回原包。
+- 层级：renderer 层
+- 本次改动统计：1 个调用点加 1 个实参 + 失败出口补 3 行收尾；行数 735 → 740（+5）
+
+## 原始行数
+
+735
+
+## 原始内容块
+
+```js
+                // 最后将文件夹压缩封装为mdz文件
+                const makeMdzResult = await window.fileManPreload.compressToMdz(
+                    purePath,
+                    pureFileName,
+                    encryptedFilePassword
+                );
+                if (!makeMdzResult.success) {
+                    return;
+                }
+```
+
+## 修改后行数
+
+740
+
+## 修改后内容块
+
+```js
+                // 最后将文件夹压缩封装为mdz文件
+                const makeMdzResult = await window.fileManPreload.compressToMdz(
+                    purePath,
+                    pureFileName,
+                    encryptedFilePassword,
+                    // 就地“保存”：主进程会先把原包改名成 .mdzcache 留底，新包压缩成功后才删除留底
+                    true
+                );
+                if (!makeMdzResult.success) {
+                    console.error(makeMdzResult.message);
+                    ameLifecycleManStore.hideLoading();
+                    this.changeFileStoreData(true);
+                    return;
+                }
+```

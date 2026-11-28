@@ -489,9 +489,14 @@ export const useFileManStore = defineStore("file-man-store", {
                 const makeMdzResult = await window.fileManPreload.compressToMdz(
                     purePath,
                     pureFileName,
-                    encryptedFilePassword
+                    encryptedFilePassword,
+                    // 就地“保存”：主进程会先把原包改名成 .mdzcache 留底，新包压缩成功后才删除留底
+                    true
                 );
                 if (!makeMdzResult.success) {
+                    console.error(makeMdzResult.message);
+                    ameLifecycleManStore.hideLoading();
+                    this.changeFileStoreData(true);
                     return;
                 }
                 // 封装完成后，修改store内tab数据，完成页面更新，

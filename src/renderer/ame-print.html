@@ -1,0 +1,60 @@
+<!doctype html>
+<!--
+  AME 导出PDF专用的“打印页”。
+  它不属于应用界面，只被主进程以一个隐藏窗口打开（ame-app://bundle/ame-print.html），
+  由主进程单向注入“正文HTML + 用户viewer主题CSS”，排完版后调用
+  webContents.printToPDF() 拿到PDF字节流。
+
+  刻意做到：
+  1) 不注入preload，本页面不持有任何IPC能力，主窗口能做的事它一件都做不了；
+  2) 不引CDN，MathJax走 ./libs/MathJax/ 下的本包内资源（和 src/renderer/index.html 同一份，
+     由 utils/copy-mathjax 落到 out/renderer/libs/MathJax），字体基址同样交给
+     ame_mathjax_font_hook.js 改写，整页离线；
+  3) MathJax配置不在这里抄一份，占位注释由 electron.vite.config.mjs 的
+     ame-print-mathjax 插件用 src/main/themes/display_js/content_mathjax.js 的
+     contentMathjax 字符串填入，和导出HTML模板同源，不会漂移。
+-->
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>AME Print</title>
+    <!--AME:MATHJAX-CONFIG-->
+    <style id="ame-print-user-theme">
+        /* 用户选中的viewer主题CSS由主进程注入到这里；rootVars也由主进程一并注入，
+           这样markdown-alert那几个颜色变量和本包内那份保持同一个来源 */
+    </style>
+</head>
+
+<body>
+<!-- 容器id必须叫 viewer-content：所有viewer主题CSS都是按 #viewer-content 写的，换个名字主题就全丢了 -->
+<div id="viewer-content"></div>
+<!--
+  Prism 按“core 先、语言后”的固定顺序用经典 <script> 加载，顺序就是执行顺序，不能改。
+  为什么不 import npm 包：见 src/renderer/libs/Prism/README.md（打包器会把只有副作用的
+  语言组件摊到共享chunk顶层先跑，而 CommonJS 的 prism 主入口被包成延迟初始化，
+  全局 Prism 还没就位，实测直接 ReferenceError）。
+  语言集合与 export_assets.js（导出HTML）、Viewer.vue（app内预览）保持一致。
+-->
+<script src="./libs/Prism/prism-core.min.js"></script>
+<script src="./libs/Prism/prism-markup.min.js"></script>
+<script src="./libs/Prism/prism-css.min.js"></script>
+<script src="./libs/Prism/prism-clike.min.js"></script>
+<script src="./libs/Prism/prism-javascript.min.js"></script>
+<script src="./libs/Prism/prism-typescript.min.js"></script>
+<script src="./libs/Prism/prism-c.min.js"></script>
+<script src="./libs/Prism/prism-cpp.min.js"></script>
+<script src="./libs/Prism/prism-java.min.js"></script>
+<script src="./libs/Prism/prism-python.min.js"></script>
+<script src="./libs/Prism/prism-markdown.min.js"></script>
+<script>
+    // MathJax 4 的字体是独立包，运行时会再去 cdn.jsdelivr.net 拉组件js和woff2，
+    // 且基址被组件内部写死、配置层改不动。这里给出本地基址，由钩子把写进页面的
+    // jsdelivr地址改写成本地地址（与 src/renderer/index.html 完全同样的两行）。
+    window.__AME_MATHJAX_FONTS_BASE__ = "./libs/MathJax/fonts/";
+</script>
+<script src="./libs/MathJax/ame_mathjax_font_hook.js"></script>
+<script id="MathJax-script" async src="./libs/MathJax/tex-mml-chtml.js"></script>
+<script type="module" src="/src/print/print.js"></script>
+</body>
+</html>

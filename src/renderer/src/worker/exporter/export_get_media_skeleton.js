@@ -1,3 +1,5 @@
+import {toMediaUrl} from "../../media-url.js";
+
 export const regExps = () => {
     return {
         imageBase64: /data:image\/(.*?);base64,/,
@@ -12,7 +14,50 @@ export const regExps = () => {
     };
 };
 
+// 本地绝对路径最终写成什么形态，由这个开关决定：
+//   "file"     —— 导出HTML用的老行为，拼 file:// + 路径，媒体已经拷进 .media_dir
+//   "protocol" —— 导出PDF用的，改走 mdz-media-protocol://，媒体原地引用、一个字节都不拷
+// 这个worker每次导出都是 new Worker() 新建的（App.vue 的 exportTo），
+// 模块级变量不会在两次任务之间串味，所以不用把mode一路当参数透传。
+let localSrcMode = "file";
+
+export const setLocalSrcMode = (mode) => {
+    localSrcMode = mode === "protocol" ? "protocol" : "file";
+};
+
+export const getLocalSrcMode = () => localSrcMode;
+
+const localSrc = (url) => (localSrcMode === "protocol" ? toMediaUrl(url) : `file://${url}`);
+
+// PDF是静态文档，<video>/<audio> 印出来只是一个画不出来的黑框（或者干脆什么都没有），
+// 所以PDF模式下给它换成和“可下载文件卡片”同形状的静态卡片：一个图标 + 文件名。
+// 不写任何中文/英文字面量，这份产物和语言无关。
+const MEDIA_CARD_ICONS = {
+    video: `<svg viewBox="0 0 24 24" aria-hidden="true">`
+        + `<rect x="1.5" y="4.5" width="15" height="15" rx="2.5" fill="#42b983"></rect>`
+        + `<path d="M17.5 10.2l4.3-2.9a.9.9 0 0 1 1.4.75v7.9a.9.9 0 0 1-1.4.75l-4.3-2.9z" fill="#42b983"></path>`
+        + `<path d="M7 8.6l6 3.4-6 3.4z" fill="#ffffff"></path></svg>`,
+    audio: `<svg viewBox="0 0 24 24" aria-hidden="true">`
+        + `<path d="M11 4.4L5.4 9H2.6a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2.8l5.6 4.6z" fill="#42b983"></path>`
+        + `<path d="M15.3 8.3a5.4 5.4 0 0 1 0 7.4" fill="none" stroke="#42b983" stroke-width="1.8" `
+        + `stroke-linecap="round"></path>`
+        + `<path d="M18.1 5.5a9.4 9.4 0 0 1 0 13" fill="none" stroke="#42b983" stroke-width="1.8" `
+        + `stroke-linecap="round"></path></svg>`,
+};
+
+const returnStaticMediaCard = (kind, url, caption) => {
+    const mediaName = decodeURI(String(url).split(/\//).pop());
+    return `<div class="ame-print-media-card">${MEDIA_CARD_ICONS[kind]}`
+        + `<div><div class="ame-print-media-name">${mediaName}</div>`
+        + (caption ? `<div class="ame-print-media-caption">${caption}</div>` : "")
+        + `</div></div>`;
+};
+
 export const returnMediaElement = (isURL, kind, url, caption = "") => {
+    // PDF模式：音视频不落地、也播不了，先于取地址的逻辑换成静态卡片
+    if (localSrcMode === "protocol" && (kind === 'video' || kind === 'audio')) {
+        return returnStaticMediaCard(kind, url, caption);
+    }
     let lang = "zh-CN";
 
     let langOption = {
@@ -22,9 +67,9 @@ export const returnMediaElement = (isURL, kind, url, caption = "") => {
         }
     };
     if (kind === 'video') {
-        return `<video controls><source src="${isURL ? encodeURI(url) : ('file://' + url)}"></video>`;
+        return `<video controls><source src="${isURL ? encodeURI(url) : localSrc(url)}"></video>`;
     } else if (kind === 'audio') {
-        return `<audio style="width: 100%;" controls src="${isURL ? encodeURI(url) : ('file://' + url)}"></audio>`;
+        return `<audio style="width: 100%;" controls src="${isURL ? encodeURI(url) : localSrc(url)}"></audio>`;
     } else if (kind === 'file') {
         return `<div style="cursor:pointer; display: flex; flex-direction: row; align-items: center; padding: 15px; `
             + `border-radius: 5px; background-color: #42b98330; border: 1px solid #42b983;"><div>`
@@ -45,7 +90,7 @@ export const returnMediaElement = (isURL, kind, url, caption = "") => {
             + `</path></svg></div><div style="width: 10px;"></div><div style="font-weight: bold; `
             + `color: #42b983;">${decodeURI(url.split(/\//).pop())}</div></div>`;
     } else if (kind === 'image') {
-        return `<img src="${isURL ? encodeURI(url) : ('file://' + url)}" alt="${caption}">`;
+        return `<img src="${isURL ? encodeURI(url) : localSrc(url)}" alt="${caption}">`;
     } else {
         return `<p style="color: red; font-weight: bold;">🚫${langOption[lang].unrecognizedFileFlag}${kind}</p>`;
     }

@@ -24,6 +24,9 @@ import {useRoute, onBeforeRouteUpdate} from 'vue-router';
 
 import {exampleContent} from "./example.js";
 
+// 数学片段的反斜杠预处理，与内置文档页共用同一份实现
+import {processLatex} from "../../latex-preprocess.js";
+
 const route = useRoute();
 const tabManStore = useTabManStore();
 const i18nStore = useI18nStore();
@@ -323,25 +326,6 @@ const getLineNumsOfVisualPage = (editor) => {
             'lineNumAtPageBottom': 1,
         };
     }
-};
-
-const processLatex = (originContent) => {
-    // 1. 处理 $$ ... $$ 块
-    originContent = originContent.replaceAll(/\$\$([\s\S]*?)\$\$/g, (match, content) => {
-        const newContent = content.replaceAll(/(?<!\\)\\\\(?!\\)/g, '\\\\\\\\');
-        return '$$' + newContent + '$$';
-    });
-
-    // 2. 处理 \[ ... \] 块
-    originContent = originContent.replaceAll(/\\\[([\s\S]*?)\\\]/g, (match, content) => {
-        const newContent = content.replaceAll(/(?<!\\)\\\\(?!\\)/g, '\\\\\\\\');
-        return '\\[' + newContent + '\\]';
-    });
-
-    // 3. 处理转义$
-    originContent = originContent.replaceAll("\\$", "\\\\$");
-    // console.log("处理后的内容：\n", originContent);
-    return originContent;
 };
 
 const getPlanPiece = (monacoInstance, pageId) => {

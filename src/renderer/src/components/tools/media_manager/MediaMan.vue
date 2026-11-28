@@ -70,10 +70,10 @@ const expandPreviewDialog = (url) => {
 const copyIntoClip = async (text) => {
     try {
         await navigator.clipboard.writeText(text);
-        ameLifecycleManStore.autoTips({kind: "tip", tipLevel:
+        ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel:
                 "success", content: i18nStore.langPackage[settingsManStore.lang].toolsPage.mdzMediaMan.copyResultPrompt.success});
     } catch (err) {
-        ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "success", content: `${i18nStore.langPackage[settingsManStore.lang].toolsPage.mdzMediaMan.copyResultPrompt.fail}${err.name}`});
+        ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel: "fail", content: `${i18nStore.langPackage[settingsManStore.lang].toolsPage.mdzMediaMan.copyResultPrompt.fail}${err.name}`});
     }
 }
 

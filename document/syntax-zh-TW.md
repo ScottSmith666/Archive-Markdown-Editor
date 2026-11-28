@@ -409,11 +409,11 @@ $$
 $$
 \boxed{\begin{aligned}
 3^{6n+3}+4^{6n+3}
-& \equiv (3^3)^{2n+1}+(4^3)^{2n+1}\\\\
-& \equiv 27^{2n+1}+64^{2n+1}\\\\
-& \equiv 27^{2n+1}+(-27)^{2n+1}\\\\
-& \equiv 27^{2n+1}-27^{2n+1}\\\\
-& \equiv 0 \pmod{91}\\\\
+& \equiv (3^3)^{2n+1}+(4^3)^{2n+1}\\
+& \equiv 27^{2n+1}+64^{2n+1}\\
+& \equiv 27^{2n+1}+(-27)^{2n+1}\\
+& \equiv 27^{2n+1}-27^{2n+1}\\
+& \equiv 0 \pmod{91}\\
 2\text{KMnO}_4 \xlongequal{\Delta} \text{K}_2\text{MnO}_4 + \text{MnO}_2 + \text{O}_2\uparrow
 \end{aligned}}
 $$

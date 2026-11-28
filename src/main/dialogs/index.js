@@ -45,10 +45,15 @@ export class Dialogs {
     }
 
     saveMediaDialog(title = "保存文件", defPath = os.homedir(), isExport = false) {
-        let extFilters = isExport ? [
-            {name: 'Hypertext Markup Language File', extensions: ['html']},
-            // {name: 'Portable Document Format', extensions: ['pdf']},
-        ] : [];
+        // 导出类型由传进来的默认路径后缀决定（调用方拼的就是 export.<type>），
+        // 这样保存框只给一种过滤器，用户不会把PDF存成.html
+        let extFilters = [];
+        if (isExport) {
+            const exportExt = String(defPath).split(".").pop().toLowerCase();
+            extFilters = exportExt === "pdf"
+                ? [{name: 'Portable Document Format', extensions: ['pdf']}]
+                : [{name: 'Hypertext Markup Language File', extensions: ['html']}];
+        }
         return dialog.showSaveDialogSync({
             /**
              * 另存为文件

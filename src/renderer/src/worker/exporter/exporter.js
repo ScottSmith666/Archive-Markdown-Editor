@@ -1,6 +1,11 @@
 import engine from "./export_engine";
 import {uniqueArray, processLatex} from "./common";
-import {regExps, returnMediaElement} from "./export_get_media_skeleton.js";
+import {
+    regExps,
+    returnMediaElement,
+    setLocalSrcMode,
+    getLocalSrcMode,
+} from "./export_get_media_skeleton.js";
 
 const exportToHTML = (content, currentPageInfoObj, exportFolderPath, exportFileNameNoExt) => {
     content = processLatex(content);
@@ -44,17 +49,24 @@ const exportToHTML = (content, currentPageInfoObj, exportFolderPath, exportFileN
                 + `/._mdz_content.${currentFileNameRemoveExt}/mdz_contents/media_src/${url.replace("$MDZ_MEDIA/", "")}`;
             let exportFactMediaPath =
                 `${exportFolderPath}/export.${exportFileNameNoExt}.media_dir/${url.replace("$MDZ_MEDIA/", "")}`;
-            // 返回多媒体拷贝路径
-            console.log("匹配到路径：", factMediaPath, "haha", exportFactMediaPath);
-            originMediaPathToNewMediaPathPairsArray.push(
-                [factMediaPath, exportFactMediaPath]
-            );
+            // 导出HTML要把媒体拷进 .media_dir，所以引用的是拷贝后的地址；
+            // 导出PDF由打印页经 mdz-media-protocol 直接读解压目录里的原文件，
+            // 一个字节都不用拷（PDF是一次性产物，旁边不该长出附属目录）
+            const forPdf = getLocalSrcMode() === "protocol";
+            const mediaRefPath = forPdf ? factMediaPath : exportFactMediaPath;
+            if (!forPdf) {
+                // 返回多媒体拷贝路径
+                console.log("匹配到路径：", factMediaPath, "haha", exportFactMediaPath);
+                originMediaPathToNewMediaPathPairsArray.push(
+                    [factMediaPath, exportFactMediaPath]
+                );
+            }
             if (matchedMediaMark !== null) {
                 let kind = matchedMediaMark[2];
                 let getCaption = matchedMediaMark[4];
-                return returnMediaElement(false, kind, exportFactMediaPath, getCaption);
+                return returnMediaElement(false, kind, mediaRefPath, getCaption);
             } else {
-                return returnMediaElement(false, 'image', exportFactMediaPath, caption);
+                return returnMediaElement(false, 'image', mediaRefPath, caption);
             }
         } else {
             // 如果不符合mdz media规则，就返回原来的旧规则
@@ -79,10 +91,15 @@ const exportToHTML = (content, currentPageInfoObj, exportFolderPath, exportFileN
 };
 
 self.addEventListener("message", (e) => {
-    if (e.data[0] === 'html') {
-        let afterRender = exportToHTML(e.data[1], e.data[2], e.data[3], e.data[4]);
-        self.postMessage(afterRender);
-    } else if (e.data[0] === 'pdf') {
-        self.postMessage("PDF");
+    const exportType = e.data[0];
+    if (exportType !== 'html' && exportType !== 'pdf') {
+        return;
     }
+    // PDF和HTML走同一套markdown渲染，唯一区别是本地媒体的引用方式，
+    // 那个区别由 export_get_media_skeleton.js 的 localSrcMode 开关吸收：
+    // PDF用受控协议原地引用、不产拷贝清单，HTML保持原来的 file:// + 拷贝进 .media_dir。
+    setLocalSrcMode(exportType === 'pdf' ? 'protocol' : 'file');
+    let afterRender = exportToHTML(e.data[1], e.data[2], e.data[3], e.data[4]);
+    // 回消息的形状保持不变：[渲染好的HTML, 媒体拷贝清单]，调用方按下标取用
+    self.postMessage(afterRender);
 });
