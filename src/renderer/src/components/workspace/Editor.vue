@@ -16,13 +16,19 @@ import Themes from "../../../../../libs/third_party/monaco-editor-themes";
 
 // get Vue API
 import {nextTick, onMounted, ref} from "vue";
-import {useStore} from 'vuex';
+import {useTabManStore} from "../../store/tab-man";
+import {useI18nStore} from "../../store/i18n";
+import {useSettingsManStore} from "../../store/settings-man";
+import {useFileManStore} from "../../store/file-man";
 import {useRoute, onBeforeRouteUpdate} from 'vue-router';
 
 import {exampleContent} from "./example.js";
 
 const route = useRoute();
-const store = useStore();
+const tabManStore = useTabManStore();
+const i18nStore = useI18nStore();
+const settingsManStore = useSettingsManStore();
+const fileManStore = useFileManStore();
 
 let monacoInstance;
 
@@ -41,40 +47,40 @@ const updateMonacoEditorTheme = (monacoInstance) => {
         dragAndDrop: false,
 
         // 可调节属性
-        tabSize: Number(store.state.settings.userSettings.editor_tab_size),
-        fontSize: Number(store.state.settings.userSettings.editor_font_size),
-        lineNumbers: store.state.settings.userSettings.enable_line_num,
-        folding: store.state.settings.userSettings.enable_code_fold === 1,
-        wordWrap: store.state.settings.userSettings.enable_auto_wrap_line,
-        autoClosingBrackets: store.state.settings.userSettings.enable_auto_closure,
-        autoClosingDelete: store.state.settings.userSettings.enable_auto_closure,
-        autoClosingQuotes: store.state.settings.userSettings.enable_auto_closure,
+        tabSize: Number(settingsManStore.userSettings.editor_tab_size),
+        fontSize: Number(settingsManStore.userSettings.editor_font_size),
+        lineNumbers: settingsManStore.userSettings.enable_line_num,
+        folding: settingsManStore.userSettings.enable_code_fold === 1,
+        wordWrap: settingsManStore.userSettings.enable_auto_wrap_line,
+        autoClosingBrackets: settingsManStore.userSettings.enable_auto_closure,
+        autoClosingDelete: settingsManStore.userSettings.enable_auto_closure,
+        autoClosingQuotes: settingsManStore.userSettings.enable_auto_closure,
         scrollbar: {
-            "vertical": store.state.settings.userSettings.display_vertical_scrollbar,
-            "horizontal": store.state.settings.userSettings.display_horizon_scrollbar,
+            "vertical": settingsManStore.userSettings.display_vertical_scrollbar,
+            "horizontal": settingsManStore.userSettings.display_horizon_scrollbar,
         },
         minimap: {
-            enabled: store.state.settings.userSettings.display_code_scale === 1,
+            enabled: settingsManStore.userSettings.display_code_scale === 1,
         },
-        cursorSmoothCaretAnimation: store.state.settings.userSettings.display_editor_animation === 1,
-        theme: store.state.settings.userSettings.ame_editor_theme,
+        cursorSmoothCaretAnimation: settingsManStore.userSettings.display_editor_animation === 1,
+        theme: settingsManStore.userSettings.ame_editor_theme,
     });
 };
 
 onBeforeRouteUpdate((to, from) => {
     // 页面变动时存储上一个旧页面的state
-    store.commit('changePropsOfTab', {
-        'pageId': from.query.pageid,
-        'propName': 'viewState',
-        'propValue': monacoInstance.saveViewState()
-    });
+    tabManStore.changePropsOfTab(
+        from.query.pageid,
+        'viewState',
+        monacoInstance.saveViewState()
+    );
     // 页面变动时切换Monaco Editor Model
-    let model = store.state.tab.tabList.get(to.query.pageid).get('monacoEditorModel');
+    let model = tabManStore.tabList.get(to.query.pageid).get('monacoEditorModel');
     updateMonacoEditorTheme(monacoInstance);
     monacoInstance.setModel(model);
 
     // 加载新编辑器页面的state
-    monacoInstance.restoreViewState(store.state.tab.tabList.get(to.query.pageid).get("viewState"));
+    monacoInstance.restoreViewState(tabManStore.tabList.get(to.query.pageid).get("viewState"));
     monacoInstance.focus();
     update(monacoInstance, to.query.pageid);
 });
@@ -101,10 +107,10 @@ onMounted(() => {
     updateMonacoEditorTheme(monacoInstance);
 
     // 加载页面对应的model
-    let model = store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel');
+    let model = tabManStore.tabList.get(route.query.pageid).get('monacoEditorModel');
     monacoInstance.setModel(model);
     // 加载对应编辑器页面的state
-    monacoInstance.restoreViewState(store.state.tab.tabList.get(route.query.pageid).get("viewState"));
+    monacoInstance.restoreViewState(tabManStore.tabList.get(route.query.pageid).get("viewState"));
 
     // 自动聚焦
     monacoInstance.focus();
@@ -114,7 +120,7 @@ onMounted(() => {
         // 唯一 ID
         id: 'custom-undo',
         // 菜单上显示的文字
-        label: store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inEditor.undo,
+        label: i18nStore.langPackage[settingsManStore.lang].contextMenu.inEditor.undo,
         // 指定快捷键 (可选)
         keybindings: [
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ,
@@ -130,7 +136,7 @@ onMounted(() => {
     });
     monacoInstance.addAction({
         id: 'custom-redo',
-        label: store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inEditor.redo,
+        label: i18nStore.langPackage[settingsManStore.lang].contextMenu.inEditor.redo,
         keybindings: [
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY,
         ],
@@ -144,7 +150,7 @@ onMounted(() => {
     // 在 9_cutcopypaste 组添加“添加示例语句”
     monacoInstance.addAction({
         id: 'add-example',
-        label: store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inEditor.addExample,
+        label: i18nStore.langPackage[settingsManStore.lang].contextMenu.inEditor.addExample,
         contextMenuGroupId: '9_cutcopypaste',
         run: function () {
             const selection = monacoInstance.getSelection();
@@ -167,14 +173,14 @@ onMounted(() => {
     // 在 9_cutcopypaste 组添加“粘贴多媒体”
     monacoInstance.addAction({
         id: 'paste-other-media',
-        label: store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inEditor.pasteMedia,
+        label: i18nStore.langPackage[settingsManStore.lang].contextMenu.inEditor.pasteMedia,
         keybindings: [
             monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.KeyV,
         ],
         contextMenuGroupId: '9_cutcopypaste',
         run: async function () {
             let mediaMdFromClipboard = await window.clipboardPreload
-                .mediaPaster(store.state.i18n.langPackage[store.state.settings.lang].editorPlace.pasteErrorMsg);
+                .mediaPaster(i18nStore.langPackage[settingsManStore.lang].editorPlace.pasteErrorMsg);
             const selection = monacoInstance.getSelection();
             monacoInstance.executeEdits('media-md', [
                 {
@@ -205,13 +211,14 @@ onMounted(() => {
 
     // 监测内容改变事件
     monacoInstance.onDidChangeModelContent((event) => {
-        if (store.state.file.isListenFileChange) {
+        if (fileManStore.isListenFileChange) {
             debounceChange()(() => {
-                store.commit('changePropsOfTab', {  // 将标签上的关闭按钮换成圆形
-                    'pageId': route.query.pageid,
-                    'propName': 'saved',
-                    'propValue': false,
-                });
+                // 将标签上的关闭按钮换成圆形
+                tabManStore.changePropsOfTab(
+                    route.query.pageid,
+                    'saved',
+                    false
+                );
                 getPlanPiece(monacoInstance, route.query.pageid);
             });
         }
@@ -220,7 +227,7 @@ onMounted(() => {
     // Monaco Editor滚动事件
     // 滚动事件触发后，将从Monaco Editor中间行号开始，向两边各截取n/2倍Monaco Editor可视行数的文本传进渲染器
     monacoInstance.onDidScrollChange((event) => {
-        if (route.query.pageid === store.state.tab.currentOpenedPageId) {
+        if (route.query.pageid === tabManStore.currentOpenedPageId) {
             // 由于Monaco Editor切换Model时会自动执行onDidScrollChange事件，因此需要判断route param是否与打开的页面id相同
             let isUp = monacoInstance.getVisibleRanges().length === 0
                 ? true
@@ -228,7 +235,7 @@ onMounted(() => {
             let isDown = monacoInstance.getVisibleRanges().length === 0
                 ? true
                 : (monacoInstance.getVisibleRanges()[0].endLineNumber
-                    === store.state.tab.tabList.get(route.query.pageid).get('monacoEditorModel').getLineCount());
+                    === tabManStore.tabList.get(route.query.pageid).get('monacoEditorModel').getLineCount());
             if (isUp) {  // Editor是否到顶
                 emit('top');
             }
@@ -240,11 +247,11 @@ onMounted(() => {
             debounceScroll()(() => {
                 // 设置页面滚动、光标位置等状态
                 // 页面滚动时存储本页面的state
-                store.commit('changePropsOfTab', {
-                    'pageId': route.query.pageid,
-                    'propName': 'viewState',
-                    'propValue': monacoInstance.saveViewState()
-                });
+                tabManStore.changePropsOfTab(
+                    route.query.pageid,
+                    'viewState',
+                    monacoInstance.saveViewState()
+                );
                 getPlanPiece(monacoInstance, route.query.pageid);
             });
         }
@@ -288,11 +295,11 @@ const update = (monacoInstance, pageId) => {
 };
 
 const getContentOfLineRange = (startLine, endLine, pageId) => {
-    return store.state.tab.tabList.get(pageId).get('monacoEditorModel').getValueInRange({
+    return tabManStore.tabList.get(pageId).get('monacoEditorModel').getValueInRange({
         startLineNumber: startLine,
         startColumn: 1,
         endLineNumber: endLine,
-        endColumn: store.state.tab.tabList.get(pageId).get('monacoEditorModel').getLineMaxColumn(endLine) // 获取该行最后一个字符的列号
+        endColumn: tabManStore.tabList.get(pageId).get('monacoEditorModel').getLineMaxColumn(endLine) // 获取该行最后一个字符的列号
     });
 }
 
@@ -338,9 +345,9 @@ const processLatex = (originContent) => {
 };
 
 const getPlanPiece = (monacoInstance, pageId) => {
-    let fileTotalLines = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getLineCount();  // 编辑器内的文本总行数
+    let fileTotalLines = tabManStore.tabList.get(pageId).get('monacoEditorModel').getLineCount();  // 编辑器内的文本总行数
     let vt = getLineNumsOfVisualPage(monacoInstance);
-    let planCutContentLines = vt.linesInVisualPage * store.state.settings.renderDistance;  // 选区总长度，即可视页面行数与渲染距离之积
+    let planCutContentLines = vt.linesInVisualPage * settingsManStore.renderDistance;  // 选区总长度，即可视页面行数与渲染距离之积
     let rangeFirstLineNumber = 1;  // 选区第一行行数
     let rangeLastLineNumber = fileTotalLines;  // 选区最后一行行数
 
@@ -355,15 +362,15 @@ const getPlanPiece = (monacoInstance, pageId) => {
     //        则获取编辑器内第(可视页面中间行行数 - 可视页面行数与渲染距离之积的一半 + 1)行至第(可视页面中间行行数 + 可视页面行数与渲染距离之积的一半)行的内容
     let pieceContent;
     // 分支0，开启质量模式
-    if (store.state.settings.userSettings.render_mode === 'quality') {
-        pieceContent = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getValue();
-    } else if (store.state.settings.userSettings.render_mode === 'performance'
-        || !store.state.settings.userSettings.render_mode  // 当旧版软件没有“渲染模式”这个设置选项时，默认无（undefined）则为性能模式
+    if (settingsManStore.userSettings.render_mode === 'quality') {
+        pieceContent = tabManStore.tabList.get(pageId).get('monacoEditorModel').getValue();
+    } else if (settingsManStore.userSettings.render_mode === 'performance'
+        || !settingsManStore.userSettings.render_mode  // 当旧版软件没有“渲染模式”这个设置选项时，默认无（undefined）则为性能模式
     ) {
         // 开启性能模式
         if (fileTotalLines <= planCutContentLines) {
             // 分支1
-            pieceContent = store.state.tab.tabList.get(pageId).get('monacoEditorModel').getValue();
+            pieceContent = tabManStore.tabList.get(pageId).get('monacoEditorModel').getValue();
         } else {
             if ((fileTotalLines - vt.lineNumAtPageCenter + 1) <= Math.floor(planCutContentLines / 2 + 0.5)) {
                 // 分支2.1

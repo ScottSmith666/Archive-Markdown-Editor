@@ -1250,3 +1250,120 @@ const verifySaveForm = (formArray, i18nStore, settingsManStore) => {
                             ameLifecycleManStore.hideLoading();
 ```
 
+
+---
+
+# 2026-11-27 22:05
+
+- 说明：`src/renderer/src/store/file-man.js` 等价重构（精简 + 抽象复用），**功能与对外调用方式完全不变**。原文件中 `directSaveAction` 单个 action 长达 724 行、最深嵌套 48 空格缩进，且「拷贝多媒体 → 应用 edit 序列 → 写正文 → 压缩 mdz → 同步 Tab → 写历史 → 收尾提示」这条链路被复制了 4 份，`i18nStore.langPackage[settingsManStore.lang]` 出现 20 次、`autoTips({...})` 字面量 29 次、win32 路径正则重复声明 5 次、非法字符数组重复声明 2 次。本次把可复用部分提为模块级纯函数与 6 个新私有 action，`directSaveAction` 退化为分支分发器。
+- 层级：renderer（未触碰 preload / main 层）
+- 对外契约：state 仍为 `isListenFileChange` / `saveAsError`（`App.vue` 直接写 `saveAsError`，保持不变）；原有 7 个 action 名称与签名全部保留：`activateOpenFileDialogMethod`、`afterChosenFile`、`openFileFromHistoryMethod`、`changeFileStoreData`、`activateOpenFileDialogAction`、`openFileFromHistoryAction`、`directSaveAction(data = [])`。新增的 6 个 action 仅供内部调用。
+
+## 原始行数
+
+1075 行 / 64124 字符，最大缩进 48 空格
+
+## 原始内容块
+
+结构（完整正文见 `git show HEAD:src/renderer/src/store/file-man.js`）
+
+```text
+模块级 showPasswordPrompt(t, message, isWrongPassword)     46 行  三处重复「收起遮罩+改色+resolve」
+模块级 verifySaveForm(formArray, i18nStore, settingsManStore) 35 行  四段重复 {success:false, message:...}
+actions.activateOpenFileDialogMethod()                     25 行
+actions.afterChosenFile(result, isHistoryMethod)          197 行  6 层嵌套，mdz 密码 while 循环内联
+actions.openFileFromHistoryMethod(result)                   4 行
+actions.changeFileStoreData(value)                          3 行
+actions.activateOpenFileDialogAction()                      4 行
+actions.openFileFromHistoryAction(result)                   4 行
+actions.directSaveAction(data = [])                       724 行  ← 主要冗余来源
+    ├─ 已存在文件 + 无 data → 覆盖保存  mdz / 非 mdz          2 份
+    └─ 有 data → 另存为
+        ├─ (md|txt)→(md|txt)      ┐
+        ├─ (md|txt|mdz)→mdz       ├ 与下面新建文件分支重复
+        ├─ mdz→(md|txt) 解包       │
+        └─ 新建文件 → mdz / 非 mdz  ┘
+```
+
+## 修改后行数
+
+735 行 / 33545 字符，最大缩进 28 空格（-31.6% 行数，-47.7% 字符）
+
+## 修改后内容块
+
+新增模块级纯函数（第 16–186 行）
+
+```js
+const FILE_FORBIDDEN_CHARS = [">", "<", ":", "'", "|", "*", "?"];
+const WIN32_PATH_PATTERN = /(^([A-Za-z]:)(\/\S+)+)|(^([A-Za-z]:)(\\\S+)+)/;
+const TEXT_EXTS = ["md", "txt"];
+const isTextExt = (ext) => TEXT_EXTS.includes(ext);
+const hasForbiddenChars = (fileName) => FILE_FORBIDDEN_CHARS.some((char) => fileName.includes(char));
+const pathSeparatorOf = (dirPath) => WIN32_PATH_PATTERN.test(dirPath) ? "\\" : "/";
+const currentLang = () => useI18nStore().langPackage[useSettingsManStore().lang];
+const parseRouterFilePath = (router) => {/* pureFileName / purePath / ext */};
+const addRecentOpenedHistory = (dirPath, fullFileName) => {/* setRecentOpenedHistory + getNow */};
+const applySaveAsTabInfo = (pageInfo, pureFileName, ext, dirPath, encrypted, password) => {/* 6~8 个 .set() */};
+const copyMediaFiles = async (editsCopies) => {/* 无可拷文件时直接视为成功 */};
+const applyMediaEdits = async (monacoEditorModel, editsCopies) => {/* pushStackElement + applyEdits + replaceIdToOriginCode */};
+const showLoadingTip = (content) => {/* autoTips kind:loading */};
+const closeLoadingTip = () => {/* autoTips wantToOpen:false kind:loading */};
+const tipFail = (content) => {/* autoTips tipLevel:fail + tipDisplayTime */};
+const tipInfo = (content) => {/* autoTips tipLevel:info + tipDisplayTime */};
+// showPasswordPrompt 内部收起遮罩的三步收敛为 finish(value)
+// verifySaveForm 去掉两个 store 形参，改用 currentLang()
+```
+
+actions 拆分（行号）
+
+```text
+197  activateOpenFileDialogMethod()        对外契约不变
+217  afterChosenFile(result, isHistoryMethod = false)  对外契约不变，改早返回消嵌套
+285  promptMdzPassword(...)                新增（内部）：mdz 密码 while 循环
+332  openFileFromHistoryMethod(result)     对外契约不变
+336  changeFileStoreData(value)            对外契约不变
+341  activateOpenFileDialogAction()        对外契约不变
+346  openFileFromHistoryAction(result)     对外契约不变
+351  directSaveAction(data = [])           对外契约不变 → 仅做分支分发
+406  saveInPlaceAction(pageContext)        新增（内部）：覆盖保存已存在文件
+518  saveAsOverExistingAction(ctx, psf)    新增（内部）：已存在文件的另存为分发
+553  saveAsNewFileAction(ctx, psf)         新增（内部）：新建文件的保存/另存为分发
+567  saveAsPlainTextAction(ctx, psf)       新增（内部）：B1 + C2 共用
+599  saveAsMdzAction(ctx, psf, options)    新增（内部）：B2 + C1 共用，options 传 rebase 与文案
+675  extractMdzToMediaDirAction(...)       新增（内部）：mdz→纯文本解包
+```
+
+复用收益
+
+```text
+autoTips({...}) 字面量        29 → 4（其余走 tipFail/tipInfo/showLoadingTip/closeLoadingTip）
+langPackage[...] 取值链       20 → 17 处 currentLang() 调用（其中 3 处在 helper 内）
+win32 正则声明                 5 → 1
+非法字符数组声明               2 → 1
+路由解析三行组                 3 → 1（parseRouterFilePath）
+Tab 同步 .set() 序列           4 → 1（applySaveAsTabInfo）
+历史写入调用                   7 → 1（addRecentOpenedHistory）
+```
+
+## 等价性验证
+
+以 mock 注入同一套 `window.fileManPreload` / `window.sqliteDataManPreload` / 兄弟 store / 假 DOM，对「原版 vs 新版」跑同一场景矩阵，逐条比对对外调用序列、假 DOM 写入、`pageInfo` 内容、store 状态与返回值：
+
+```text
+对拍场景 66 个：全部一致（66/66）
+覆盖：7 条分支 × {成功 / 建目录失败 / 拷贝失败 / 写正文失败 / 压缩失败 / 写历史失败 / 抛异常}
+      win32 与 posix 分隔符、mdz 源需 rebase 与不需 rebase、4 类表单校验失败、
+      2 类无操作分支、不传参调用、页面信息缺失（抛错一致）、
+      打开文件成功/重复打开/非法文件名/未找到/未知扩展名/mdz 密码成功·取消·先错后成
+node --check 通过；eslint（@eslint/js recommended）0 error / 0 warning
+```
+
+刻意保留的原实现怪癖（未顺手修改，避免行为漂移）
+
+```text
+1. 覆盖保存 mdz 时 makeMdzDirectory 失败与 catch 分支都不弹 tip；catch 也不恢复 isListenFileChange
+2. mdz 流程中「写正文失败」「压缩失败」两条路径完全无任何处理（加载提示不关、isListenFileChange 不恢复）
+3. extractMdzToMediaDirAction 未检查 saveFileContent 返回值
+4. mdz 另存为的拷贝失败提示文案在已存在文件分支取 i18n，在新建文件分支与解包分支为硬编码 '保存失败！'
+5. 加密文件带 data 时直接落空（既非 B 也非 C 分支）
+```

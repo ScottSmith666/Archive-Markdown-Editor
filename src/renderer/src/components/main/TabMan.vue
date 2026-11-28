@@ -1,8 +1,12 @@
 <script setup>
 import {watch, ref, onMounted} from "vue";
-import {useStore} from 'vuex';
+import {useTabManStore} from "../../store/tab-man";
+import {useI18nStore} from "../../store/i18n";
+import {useSettingsManStore} from "../../store/settings-man";
 
-const store = useStore();
+const tabManStore = useTabManStore();
+const i18nStore = useI18nStore();
+const settingsManStore = useSettingsManStore();
 
 // data
 const showScroller = ref(false);
@@ -33,7 +37,7 @@ const rightSlide = () => {
 
 // watch
 watch(
-    () => store.state.tab.currentOpenedTabNumber,
+    () => tabManStore.currentOpenedTabNumber,
     (newVal, oldVal) => {
         let tabs = document.getElementById('tabs');
         let tabsTotalLength = tabs ? tabs.clientWidth : 0;
@@ -55,9 +59,9 @@ watch(
 </script>
 
 <template>
-    <div class="tab-man-main fonts" v-if="store.state.tab.tabList.size > 0" id="tabs-container"
-         @dblclick="store.commit('addTabPage', {'pageType': 'file',
-         'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false})">
+    <div class="tab-man-main fonts" v-if="tabManStore.tabList.size > 0" id="tabs-container"
+         @dblclick="tabManStore.addTabPage({'pageType': 'file',
+         'pageTitle': i18nStore.langPackage[settingsManStore.lang].tabBar.untitled, 'isExistFile': false})">
         <div v-if="showScroller" class="tab-scroller-sticky" @dblclick.stop="() => null">
             <div class="tab-scroller">
                 <div style="width: 10px;"></div>
@@ -68,12 +72,12 @@ watch(
         </div>
         <div class="block"></div>
         <TransitionGroup id="tabs" name="list" tag="div" style="display: flex; flex-direction: row;">
-            <template v-for="[pageId, tabObject] in store.state.tab.tabList" :key="pageId">
+            <template v-for="[pageId, tabObject] in tabManStore.tabList" :key="pageId">
                 <div
                     class="tab" :class="tabObject.get('focus') ? 'tab-activated' : ''"
-                    @click="store.commit('switchToCurrentTab', {'pageId': pageId})"
+                    @click="tabManStore.switchToCurrentTab({'pageId': pageId})"
                     @dblclick.stop="() => null"
-                    @click.middle="store.commit('closeTabPage', {'pageId': pageId, 'model': tabObject.get('monacoEditorModel')})"><!--鼠标中键点击关闭-->
+                    @click.middle="tabManStore.closeTabPage({'pageId': pageId, 'model': tabObject.get('monacoEditorModel')})"><!--鼠标中键点击关闭-->
                     <!--图标-->
                     <div class="tab-icon" v-if="tabObject.get('type') === 'welcome'">
                         <svg t="1773895753581" class="tab-icon" viewBox="0 0 1024 1024" version="1.1"
@@ -183,9 +187,9 @@ watch(
                     </div>
                     <!--关闭按钮，未hover in时，已保存是叉，未保存是圆；已hover in时，已保存和未保存都是叉-->
                     <div class="close-tab"
-                         @mouseenter="store.commit('changePropsOfTab', {'pageId': pageId, 'propName': 'hovered', 'propValue': true})"
-                         @mouseleave="store.commit('changePropsOfTab', {'pageId': pageId, 'propName': 'hovered', 'propValue': false})"
-                         @click.stop="store.commit('closeTabPage', {'pageId': pageId, 'model': tabObject.get('monacoEditorModel')})">
+                         @mouseenter="tabManStore.changePropsOfTab(pageId, 'hovered', true)"
+                         @mouseleave="tabManStore.changePropsOfTab(pageId, 'hovered', false)"
+                         @click.stop="tabManStore.closeTabPage({'pageId': pageId, 'model': tabObject.get('monacoEditorModel')})">
                         <!--@click.stop使得子元素点击不会触发父元素的方法-->
                         <div>{{ tabObject.get('saved') || tabObject.get('hovered') ? '×' : '●' }}</div>
                     </div>

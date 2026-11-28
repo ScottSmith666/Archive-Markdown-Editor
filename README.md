@@ -40,7 +40,7 @@ Using "file_name.mdz" as an example filename
 
 file_name.mdz
     └── mdz_contents/
-        ├── file_name.md
+        ├── content.md
         └── media_src/
                  └── media.jpg
                  └── media.mp4
@@ -51,9 +51,15 @@ file_name.mdz
 
 The folders `mdz_contents` and `media_src` have fixed names.
 
-The name of the mdz file must be exactly the same as the name of the md file contained within it.
+The Markdown file inside `mdz_contents` always has the fixed name `content.md`, no matter what the `.mdz` file itself is called.
 
 The names of the media files inside the `media_src` folder do not need to be fixed.
+
+> Because nothing inside the archive depends on the `.mdz` file name, you can freely rename a `.mdz` file (for example in your file manager) and it will still open correctly.
+>
+> Older `.mdz` files, whose inner Markdown file was named after the `.mdz` file, are still supported: Archive Markdown Editor opens that file as-is, and rewrites it as `content.md` the next time you save.
+
+When opening an `.mdz` file, Archive Markdown Editor extracts it into a hidden folder named `._mdz_content.<mdz file name>` next to the `.mdz` file; this folder is removed again once the document tab is closed. Since that folder name is derived from the **current** file name, renaming a `.mdz` file does not break its internal media links either.
 
 > ATTENTION: Archive Markdown Editor reads mdz files by decompressing them, so it will occupy 2 times or more of the storage space.
 

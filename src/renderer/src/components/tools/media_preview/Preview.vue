@@ -4,7 +4,14 @@ import {nextTick, onMounted, ref} from "vue";
 import {renderAsync} from "docx-preview";
 import Spreadsheet from "x-data-spreadsheet";
 import ZhCN from "x-data-spreadsheet/src/locale/zh-cn";
-import store from "../../../store";
+import {useI18nStore} from "../../../store/i18n";
+import {useSettingsManStore} from "../../../store/settings-man";
+import {useCommonExtsStore} from "../../../store/common-exts";
+import {toMediaUrl} from "../../../media-url.js";
+
+const i18nStore = useI18nStore();
+const settingsManStore = useSettingsManStore();
+const commonExtsStore = useCommonExtsStore();
 
 // 引入Prism
 // 导入需要的语言
@@ -97,7 +104,7 @@ onMounted(() => {
 <template>
     <div class="preview-container">
         <div class="pdf-preview" v-if="getExt().toLowerCase() === 'pdf'">
-            <iframe class="pdf-preview" :src="'file://' + encodeURI(props.mediaFilePath)"></iframe>
+            <iframe class="pdf-preview" :src="toMediaUrl(props.mediaFilePath)"></iframe>
         </div>
         <div class="docx-preview" v-else-if="getExt().toLowerCase() === 'docx'">
             <div id="docx-container"></div>
@@ -105,15 +112,15 @@ onMounted(() => {
         <div class="docx-preview" v-else-if="getExt().toLowerCase() === 'xlsx'">
             <div id="xlsx-container"></div>
         </div>
-        <div class="video-preview" v-else-if="store.state.exts.videoExts.includes(getExt().toLowerCase())">
+        <div class="video-preview" v-else-if="commonExtsStore.videoExts.includes(getExt().toLowerCase())">
             <video style="object-fit: contain; width: 100%;" controls>
-                <source :src="'file://' + encodeURI(props.mediaFilePath)"/>
+                <source :src="toMediaUrl(props.mediaFilePath)"/>
             </video>
         </div>
-        <div class="audio-preview" v-else-if="store.state.exts.audioExts.includes(getExt().toLowerCase())">
-            <audio style="width: 100%;" controls :src="'file://' + encodeURI(props.mediaFilePath)"></audio>
+        <div class="audio-preview" v-else-if="commonExtsStore.audioExts.includes(getExt().toLowerCase())">
+            <audio style="width: 100%;" controls :src="toMediaUrl(props.mediaFilePath)"></audio>
         </div>
-        <div class="image-preview" v-else-if="store.state.exts.imageExts.includes(getExt().toLowerCase())">
+        <div class="image-preview" v-else-if="commonExtsStore.imageExts.includes(getExt().toLowerCase())">
             <zoom-img
                 class="h-[30rem]"
                 zoom-type="drag"
@@ -122,7 +129,7 @@ onMounted(() => {
                 full-screen-mode
                 :show-zoom-btns="true"
                 :show-img-map="true"
-                :src="'file://' + encodeURI(props.mediaFilePath)"
+                :src="toMediaUrl(props.mediaFilePath)"
             />
         </div>
         <div class="cannot-preview" v-else>
@@ -136,9 +143,9 @@ onMounted(() => {
                         fill="#cccccc" p-id="4750" data-spm-anchor-id="a313x.search_index.0.i0.b2d83a81QSBJB7"
                         class="selected"></path>
                 </svg>
-                <div style="color: #cccccc; font-weight: bold;">{{ store.state.i18n.langPackage[store.state.settings.lang].toolsPage.preview.notDirectPreview[0] }}</div>
-                <div style="color: #cccccc; font-weight: bold;">{{ store.state.i18n.langPackage[store.state.settings.lang].toolsPage.preview.notDirectPreview[1] }}<span @click="previewAsText"
-                     style="color: var(--main-color); cursor: pointer;"><u>{{ store.state.i18n.langPackage[store.state.settings.lang].toolsPage.preview.notDirectPreview[2] }}</u></span>
+                <div style="color: #cccccc; font-weight: bold;">{{ i18nStore.langPackage[settingsManStore.lang].toolsPage.preview.notDirectPreview[0] }}</div>
+                <div style="color: #cccccc; font-weight: bold;">{{ i18nStore.langPackage[settingsManStore.lang].toolsPage.preview.notDirectPreview[1] }}<span @click="previewAsText"
+                     style="color: var(--main-color); cursor: pointer;"><u>{{ i18nStore.langPackage[settingsManStore.lang].toolsPage.preview.notDirectPreview[2] }}</u></span>
                 </div>
             </div>
             <div class="text-preview" v-else>

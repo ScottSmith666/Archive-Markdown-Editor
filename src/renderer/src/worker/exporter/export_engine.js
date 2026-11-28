@@ -1,7 +1,8 @@
 import MarkdownIt from "markdown-it";
 // 引入mdIt插件
 import markdownItRegex from "markdown-it-regex";
-import MarkdownItInjectLineNumbers from 'markdown-it-inject-linenumbers';
+// 本仓库自己维护的分支副本（扩充了打行号标记的块级范围），vendored 在 src/renderer/libs 下
+import MarkdownItInjectLineNumbers from '../../../libs/markdown-it-inject-linenumbers/index.js';
 import markdownItTextualUml from 'markdown-it-textual-uml';
 import MarkdownItClass from '@toycode/markdown-it-class';
 import markdownItTaskLists from 'markdown-it-task-lists';

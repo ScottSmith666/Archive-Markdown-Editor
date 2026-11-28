@@ -4,6 +4,7 @@ import {regExps, returnMediaElement} from "./get_media_skeleton.js";
 
 import morphdom from 'morphdom';
 import DOMPurify from "dompurify";
+import {purifyConfig} from "../../sanitize-config.js";
 
 import mermaid from 'mermaid';
 // 引入Prism
@@ -33,11 +34,15 @@ import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 import 'prismjs/themes/prism.css';
 
 import {nextTick, onMounted, ref, watch} from "vue";
-import {useStore} from 'vuex';
+import {useTabManStore} from "../../store/tab-man";
+import {useI18nStore} from "../../store/i18n";
+import {useSettingsManStore} from "../../store/settings-man";
 
 import {onBeforeRouteUpdate} from "vue-router";
 
-const store = useStore();
+const tabManStore = useTabManStore();
+const i18nStore = useI18nStore();
+const settingsManStore = useSettingsManStore();
 
 // props
 const props = defineProps({
@@ -88,7 +93,7 @@ const defaultMediaRender = mdIt.renderer.rules.image || function (tokens, idx, o
 mdIt.renderer.rules.image = function (tokens, idx, options, env, self) {
     const originalImageHTML = defaultMediaRender(tokens, idx, options, env, self);
     const regs = regExps();
-    let currentPageInfo = store.state.tab.tabList.get(store.state.tab.currentOpenedPageId);
+    let currentPageInfo = tabManStore.tabList.get(tabManStore.currentOpenedPageId);
     if (originalImageHTML.includes("?MUST_RENDER_MDZ?")) {  // 开始渲染mdz
         let res = JSON.parse(originalImageHTML);
         let url = res.url;
@@ -130,7 +135,7 @@ mdIt.renderer.rules.image = function (tokens, idx, options, env, self) {
 
 // 加载主题
 const loadViewerTheme = async () => {
-    const themeContent = await window.themesManPreload.getViewerTheme(store.state.settings.userSettings.ame_viewer_theme);
+    const themeContent = await window.themesManPreload.getViewerTheme(settingsManStore.userSettings.ame_viewer_theme);
     let styleTag;
     if (document.getElementById("viewer-theme-style")) {
         styleTag = document.getElementById("viewer-theme-style");
@@ -164,19 +169,16 @@ onBeforeRouteUpdate((to, from) => {
 const render = async (content) => {
     if (content === '') {
         content = '<div style="color: rgba(var(--main-color-R), var(--main-color-G), var(--main-color-B), 0.35);'
-            + ` user-select: none; font-weight: bold; font-size: 2rem; padding-top: 20px;">${store.state.i18n.langPackage[store.state.settings.lang].renderPlaceholder}</div>`;
+            + ` user-select: none; font-weight: bold; font-size: 2rem; padding-top: 20px;">${i18nStore.langPackage[settingsManStore.lang].renderPlaceholder}</div>`;
     }
 
     // apply render HTML content piece
     // 用markdown-it渲染成HTML字符串
     let rawHTMLStr = mdIt.render(content);
     // 然后用DOMPurify消毒
-    let purifiedHTMLStr = DOMPurify.sanitize(rawHTMLStr, {
-        ADD_TAGS: ['img', 'audio', 'video', 'source'],
-        ADD_ATTR: ['src', 'autoplay', 'loop'],
-        ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|ftp|file|blob|data):|[^&?#]*[./])/i,
-        ALLOW_UNKNOWN_PROTOCOLS: true
-    });
+    // 协议白名单等策略集中在 src/renderer/src/sanitize-config.js 里，
+    // 这里只负责把渲染出来的 HTML 字符串交给它净化
+    let purifiedHTMLStr = DOMPurify.sanitize(rawHTMLStr, purifyConfig);
     // 然后形成真实DOM
     let newDOM = document.createElement("div");
     newDOM.setAttribute("id", "viewer-content");
@@ -261,14 +263,14 @@ const displayViewerContextMenu = (event) => {
     const menuWidth = 200;
 
     let left;
-    if (store.state.settings.editorMode === 'preview') {
+    if (settingsManStore.editorMode === 'preview') {
         // 这是预览模式下的右键菜单位置判定
         left = `left: ${
             (event.clientX + menuWidth) <= (document.body.clientWidth - 20)
                 ? (event.clientX)
                 : (document.body.clientWidth - 40 - menuWidth)
         }px; `;
-    } else if (store.state.settings.editorMode === 'mix') {
+    } else if (settingsManStore.editorMode === 'mix') {
         // 这是混合模式下的右键菜单位置判定
         left = `left: ${
             (event.clientX + menuWidth) <= (document.body.clientWidth - 20)
@@ -342,7 +344,7 @@ const customClickEvents = (event) => {
     if (clickObject.dataset.typeFlag === "link") {
         window.openURLPreload.openURL(clickObject.dataset.href);
     } else if (clickObject.dataset.typeFlag === "file") {
-        localStorage.setItem(`${store.state.tab.currentOpenedPageId}-click-media-path`, clickObject.dataset.fileUrl);
+        localStorage.setItem(`${tabManStore.currentOpenedPageId}-click-media-path`, clickObject.dataset.fileUrl);
     }
 };
 
@@ -366,7 +368,7 @@ watch(
     }
 );
 
-watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get("isExistFile"), (newVal, oldVal) => {
+watch(() => tabManStore.tabList.get(tabManStore.currentOpenedPageId).get("isExistFile"), (newVal, oldVal) => {
     // 当新值和旧值不一样且新值为true时，肯定是另存为的时候，刷新渲染器，防止意外报错
     if (newVal === true && newVal !== oldVal) {
         render(props.mdPiece);
@@ -458,7 +460,7 @@ watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get
              :style="contextMenuPositionStyle">
             <div class="vc-menu-element" @click="copyInViewer">
                 <p>&nbsp;&nbsp;&nbsp;{{
-                        store.state.i18n.langPackage[store.state.settings.lang].contextMenu.inViewer.copy
+                        i18nStore.langPackage[settingsManStore.lang].contextMenu.inViewer.copy
                     }}</p>
             </div>
             <div v-if="props.enableToc" class="vc-menu-element"
@@ -469,7 +471,7 @@ watch(() => store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get
     </Transition>
 
     <div class="viewer-area fonts"
-         :class="store.state.settings.editorMode === 'preview' && (!props.enableDocumentMediaPath.isEnabled) ? 'viewer-upper' : ''"
+         :class="settingsManStore.editorMode === 'preview' && (!props.enableDocumentMediaPath.isEnabled) ? 'viewer-upper' : ''"
          id="viewer-container"
          tabindex="-1"
          v-bind="$attrs"

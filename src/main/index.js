@@ -6,9 +6,14 @@ import {mainWindow} from "./window";
 import os from "os";
 import fs from "fs";
 import {defaultViewerTheme} from "./themes/default-viewer-theme";
+import {registerMediaProtocolHandler, registerPrivilegedSchemes} from "./media-protocol";
 
 let Sqlite3;
 let tray;
+
+// 自定义协议必须在 app.whenReady() 之前声明为特权协议，否则窗口创建之后再注册不生效
+registerPrivilegedSchemes();
+
 if (!app.isPackaged) {
     // 在开发环境
     Sqlite3 = process.platform === 'openharmony'
@@ -135,6 +140,9 @@ if (!gotTheLock) {  // 当前打开多个实例
                 break;
             }
         }
+
+        // 协议处理器必须在创建窗口之前注册，否则首页与首屏媒体请求会直接失败
+        registerMediaProtocolHandler();
 
         main = mainWindow(Sqlite3, path.join(settings_dir_path, "ame.sqlite"));
 

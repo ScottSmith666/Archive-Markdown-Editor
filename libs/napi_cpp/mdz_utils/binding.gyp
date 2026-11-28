@@ -86,13 +86,13 @@
         }],
         ["OS=='linux'", {
           "conditions": [
-            ["target_arch=='x64'", {
-              "libraries": [ "../lib/linux/x64/libbit7z64.a" ]
-            }]
-#             ,
-#             ["target_arch=='arm64'", {
-#               "libraries": [ "" ]
+#             ["target_arch=='x64'", {
+#               "libraries": [ "../lib/linux/x64/libbit7z64.a" ]
 #             }]
+#             ,
+            ["target_arch=='arm64'", {
+              "libraries": [ "../lib/linux/arm64/libbit7z64.a" ]
+            }]
           ]
         }],
         ["OS=='mac'", {

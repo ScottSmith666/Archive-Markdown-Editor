@@ -1,7 +1,9 @@
 <script setup>
-import {useStore} from 'vuex';
+import {useI18nStore} from "../../store/i18n";
+import {useSettingsManStore} from "../../store/settings-man";
 
-const store = useStore();
+const i18nStore = useI18nStore();
+const settingsManStore = useSettingsManStore();
 </script>
 <template>
     <div class="element-in-center">
@@ -59,7 +61,7 @@ const store = useStore();
         <!--打开帮助快捷键提示-->
         <div class="container fonts">
             <div class="explain">
-                {{ store.state.i18n.langPackage[store.state.settings.lang].defaultPage.activateHotKey }}
+                {{ i18nStore.langPackage[settingsManStore.lang].defaultPage.activateHotKey }}
             </div>
             <div style="height: 10px;"></div>
             <div class="hotkeys-container">
@@ -71,7 +73,7 @@ const store = useStore();
             </div>
             <div style="height: 10px;"></div>
             <div class="explain">
-                {{ store.state.i18n.langPackage[store.state.settings.lang].defaultPage.motivation }}
+                {{ i18nStore.langPackage[settingsManStore.lang].defaultPage.motivation }}
             </div>
         </div>
     </div>

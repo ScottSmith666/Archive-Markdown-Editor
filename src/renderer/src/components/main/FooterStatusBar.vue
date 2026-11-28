@@ -1,7 +1,11 @@
 <script setup>
-import {useStore} from "vuex";
+import {useAmeLifecycleManStore} from "../../store/ame-lifecycle-man";
+import {useI18nStore} from "../../store/i18n";
+import {useSettingsManStore} from "../../store/settings-man";
 
-const store = useStore();
+const ameLifecycleManStore = useAmeLifecycleManStore();
+const i18nStore = useI18nStore();
+const settingsManStore = useSettingsManStore();
 
 const props = defineProps({
     exportType: {
@@ -24,7 +28,7 @@ const emit = defineEmits(['terminate-export']);
 <template>
 <div class="footer-container">
     <div class="footer-version fonts">
-        {{ store.state.i18n.langPackage[store.state.settings.lang].footerBar.version }}{{ store.state.lifecycle.appVersion }}
+        {{ i18nStore.langPackage[settingsManStore.lang].footerBar.version }}{{ ameLifecycleManStore.appVersion }}
     </div>
     <div v-if="props.isExporting" class="footer-export-loading fonts" @dblclick="emit('terminate-export')">
         <div>
@@ -71,7 +75,7 @@ const emit = defineEmits(['terminate-export']);
             </svg>
         </div>
         <div style="width: 5px;"></div>
-        <div>{{ store.state.i18n.langPackage[store.state.settings.lang].footerBar.exporting }}{{ props.exportType }}...{{ store.state.i18n.langPackage[store.state.settings.lang].footerBar.description }}</div>
+        <div>{{ i18nStore.langPackage[settingsManStore.lang].footerBar.exporting }}{{ props.exportType }}...{{ i18nStore.langPackage[settingsManStore.lang].footerBar.description }}</div>
     </div>
     <div class="footer-export-loading fonts" v-else></div>
 </div>

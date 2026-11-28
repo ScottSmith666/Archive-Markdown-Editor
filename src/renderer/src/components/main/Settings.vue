@@ -1,8 +1,12 @@
 <script setup>
-import {useStore} from 'vuex';
+import {useTabManStore} from "../../store/tab-man";
+import {useI18nStore} from "../../store/i18n";
+import {useSettingsManStore} from "../../store/settings-man";
 import {computed, ref} from "vue";
 
-const store = useStore();
+const tabManStore = useTabManStore();
+const i18nStore = useI18nStore();
+const settingsManStore = useSettingsManStore();
 
 /**
  * ----设置表----
@@ -38,107 +42,107 @@ const store = useStore();
 const showResetConfirm = ref(false);
 
 const ame_theme_color = computed({
-    get: () => store.state.settings.userSettings.ame_theme_color,
+    get: () => settingsManStore.userSettings.ame_theme_color,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['ame_theme_color', newValue]);
+        settingsManStore.changeUserSettings(['ame_theme_color', newValue]);
     }
 });
 
 const ame_theme_mode = computed({
-    get: () => store.state.settings.userSettings.ame_theme_mode,
+    get: () => settingsManStore.userSettings.ame_theme_mode,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['ame_theme_mode', newValue]);
+        settingsManStore.changeUserSettings(['ame_theme_mode', newValue]);
     }
 });
 
 const ame_viewer_theme = computed({
-    get: () => store.state.settings.userSettings.ame_viewer_theme,
+    get: () => settingsManStore.userSettings.ame_viewer_theme,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['ame_viewer_theme', newValue]);
+        settingsManStore.changeUserSettings(['ame_viewer_theme', newValue]);
     }
 });
 
 const ame_editor_theme = computed({
-    get: () => store.state.settings.userSettings.ame_editor_theme,
+    get: () => settingsManStore.userSettings.ame_editor_theme,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['ame_editor_theme', newValue]);
+        settingsManStore.changeUserSettings(['ame_editor_theme', newValue]);
     }
 });
 
 const editor_tab_size = computed({
-    get: () => store.state.settings.userSettings.editor_tab_size,
+    get: () => settingsManStore.userSettings.editor_tab_size,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['editor_tab_size', newValue]);
+        settingsManStore.changeUserSettings(['editor_tab_size', newValue]);
     }
 });
 
 const editor_font_size = computed({
-    get: () => store.state.settings.userSettings.editor_font_size,
+    get: () => settingsManStore.userSettings.editor_font_size,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['editor_font_size', newValue]);
+        settingsManStore.changeUserSettings(['editor_font_size', newValue]);
     }
 });
 
 const enable_line_num = computed({
-    get: () => store.state.settings.userSettings.enable_line_num,
+    get: () => settingsManStore.userSettings.enable_line_num,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['enable_line_num', newValue]);
+        settingsManStore.changeUserSettings(['enable_line_num', newValue]);
     }
 });
 
 const enable_code_fold = computed({
-    get: () => store.state.settings.userSettings.enable_code_fold,
+    get: () => settingsManStore.userSettings.enable_code_fold,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['enable_code_fold', newValue]);
+        settingsManStore.changeUserSettings(['enable_code_fold', newValue]);
     }
 });
 
 const enable_auto_wrap_line = computed({
-    get: () => store.state.settings.userSettings.enable_auto_wrap_line,
+    get: () => settingsManStore.userSettings.enable_auto_wrap_line,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['enable_auto_wrap_line', newValue]);
+        settingsManStore.changeUserSettings(['enable_auto_wrap_line', newValue]);
     }
 });
 
 const enable_auto_closure = computed({
-    get: () => store.state.settings.userSettings.enable_auto_closure,
+    get: () => settingsManStore.userSettings.enable_auto_closure,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['enable_auto_closure', newValue]);
+        settingsManStore.changeUserSettings(['enable_auto_closure', newValue]);
     }
 });
 
 const display_vertical_scrollbar = computed({
-    get: () => store.state.settings.userSettings.display_vertical_scrollbar,
+    get: () => settingsManStore.userSettings.display_vertical_scrollbar,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['display_vertical_scrollbar', newValue]);
+        settingsManStore.changeUserSettings(['display_vertical_scrollbar', newValue]);
     }
 });
 
 const display_horizon_scrollbar = computed({
-    get: () => store.state.settings.userSettings.display_horizon_scrollbar,
+    get: () => settingsManStore.userSettings.display_horizon_scrollbar,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['display_horizon_scrollbar', newValue]);
+        settingsManStore.changeUserSettings(['display_horizon_scrollbar', newValue]);
     }
 });
 
 const display_code_scale = computed({
-    get: () => store.state.settings.userSettings.display_code_scale,
+    get: () => settingsManStore.userSettings.display_code_scale,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['display_code_scale', newValue]);
+        settingsManStore.changeUserSettings(['display_code_scale', newValue]);
     }
 });
 
 const display_editor_animation = computed({
-    get: () => store.state.settings.userSettings.display_editor_animation,
+    get: () => settingsManStore.userSettings.display_editor_animation,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['display_editor_animation', newValue]);
+        settingsManStore.changeUserSettings(['display_editor_animation', newValue]);
     }
 });
 
 const render_mode = computed({
-    get: () => store.state.settings.userSettings.render_mode,
+    get: () => settingsManStore.userSettings.render_mode,
     set: (newValue) => {
-        store.commit('changeUserSettings', ['render_mode', newValue]);
+        settingsManStore.changeUserSettings(['render_mode', newValue]);
     }
 });
 </script>
@@ -150,7 +154,7 @@ const render_mode = computed({
                 <div class="title1-block"></div>
                 <div style="width: 8px"></div>
                 <h1>
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].settings.title }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].settings.title }}
                 </h1>
             </div>
 
@@ -169,14 +173,14 @@ const render_mode = computed({
                         fill="#FFFFFF" p-id="2384"></path>
                 </svg>
                 <div id="info-donate-explain" style="margin-left: 5px;">
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].settings.attention }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].settings.attention }}
                 </div>
             </div>
 
             <div class="title2">
                 <div class="title2-block"></div>
                 <div style="width: 8px"></div>
-                <h2>{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.mainCaption }}</h2>
+                <h2>{{ i18nStore.langPackage[settingsManStore.lang].settings.theme.mainCaption }}</h2>
             </div>
 
 <!--            <div class="settings-item">-->
@@ -190,7 +194,7 @@ const render_mode = computed({
 <!--                    </svg>-->
 <!--                </div>-->
 <!--                <div class="settings-content">-->
-<!--                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.themeColor }}</div>-->
+<!--                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.theme.subCaptions.themeColor }}</div>-->
 <!--                    <div style="height: 10px;"></div>-->
 <!--                    <input class="input" type="text" v-model="ame_theme_color" />-->
 <!--                </div>-->
@@ -208,11 +212,11 @@ const render_mode = computed({
 <!--                    </svg>-->
 <!--                </div>-->
 <!--                <div class="settings-content">-->
-<!--                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.themeMode }}</div>-->
+<!--                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.theme.subCaptions.themeMode }}</div>-->
 <!--                    <div style="height: 10px;"></div>-->
 <!--                    <select class="input" style="flex: 1; min-width: 150px;" v-model="ame_theme_mode">-->
-<!--                        <option value="light">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.themeModeOptions[0] }}</option>-->
-<!--                        <option value="dark">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.themeModeOptions[1] }}</option>-->
+<!--                        <option value="light">{{ i18nStore.langPackage[settingsManStore.lang].settings.theme.subCaptions.themeModeOptions[0] }}</option>-->
+<!--                        <option value="dark">{{ i18nStore.langPackage[settingsManStore.lang].settings.theme.subCaptions.themeModeOptions[1] }}</option>-->
 <!--                    </select>-->
 <!--                </div>-->
 <!--            </div>-->
@@ -229,7 +233,7 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.viewerThemes }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.theme.subCaptions.viewerThemes }}</div>
                     <div style="height: 10px;"></div>
                     <select class="input" style="flex: 1; min-width: 150px;" v-model="ame_viewer_theme">
                         <option value="default">default</option>
@@ -256,7 +260,7 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.editorThemes }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.theme.subCaptions.editorThemes }}</div>
                     <div style="height: 10px;"></div>
                     <select class="input" style="flex: 1; min-width: 150px;" v-model="ame_editor_theme">
                         <option value="vs">vs</option>
@@ -275,20 +279,20 @@ const render_mode = computed({
             </div>
             <div style="height: 15px;"></div>
 
-<!--            <div class="confirm-dialog-confirm-button" style="width: 200px;" @click="store.commit('addTabPage',-->
+<!--            <div class="confirm-dialog-confirm-button" style="width: 200px;" @click="tabManStore.addTabPage(-->
 <!--                {-->
 <!--                    'pageType': 'tools',-->
-<!--                    'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].toolsPage.mdzMediaMan.tabTitle,-->
+<!--                    'pageTitle': i18nStore.langPackage[settingsManStore.lang].toolsPage.mdzMediaMan.tabTitle,-->
 <!--                    'toolKind': 'themeEditor'-->
 <!--                });">-->
-<!--                {{ store.state.i18n.langPackage[store.state.settings.lang].settings.theme.subCaptions.customThemes }}-->
+<!--                {{ i18nStore.langPackage[settingsManStore.lang].settings.theme.subCaptions.customThemes }}-->
 <!--            </div>-->
 <!--            <div style="height: 15px;"></div>-->
 
             <div class="title2">
                 <div class="title2-block"></div>
                 <div style="width: 8px"></div>
-                <h2>{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.mainCaption }}</h2>
+                <h2>{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.mainCaption }}</h2>
             </div>
 
             <div class="settings-item">
@@ -302,7 +306,7 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.fontSize }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.fontSize }}</div>
                     <div style="height: 10px;"></div>
                     <input v-model="editor_font_size" class="input" type="number" min="10" max="100" />
                 </div>
@@ -320,7 +324,7 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.tabSize }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.tabSize }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="editor_tab_size" class="input" style="flex: 1; min-width: 150px;">
                         <option value="2">2</option>
@@ -343,11 +347,11 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.lineNum.title }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.lineNum.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="enable_line_num" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="on">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.lineNum.options.enable }}</option>
-                        <option value="off">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.lineNum.options.disable }}</option>
+                        <option value="on">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.lineNum.options.enable }}</option>
+                        <option value="off">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.lineNum.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -364,11 +368,11 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeFold.title }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.codeFold.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="enable_code_fold" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="1">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeFold.options.enable }}</option>
-                        <option value="0">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeFold.options.disable }}</option>
+                        <option value="1">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.codeFold.options.enable }}</option>
+                        <option value="0">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.codeFold.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -385,11 +389,11 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoWrap.title }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.autoWrap.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="enable_auto_wrap_line" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="on">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoWrap.options.enable }}</option>
-                        <option value="off">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoWrap.options.disable }}</option>
+                        <option value="on">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.autoWrap.options.enable }}</option>
+                        <option value="off">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.autoWrap.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -406,11 +410,11 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoClosure.title }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.autoClosure.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="enable_auto_closure" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="always">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoClosure.options.enable }}</option>
-                        <option value="never">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.autoClosure.options.disable }}</option>
+                        <option value="always">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.autoClosure.options.enable }}</option>
+                        <option value="never">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.autoClosure.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -427,12 +431,12 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.verticalScrollbarStatus.title }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.verticalScrollbarStatus.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="display_vertical_scrollbar" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="visible">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.verticalScrollbarStatus.options.always }}</option>
-                        <option value="auto">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.verticalScrollbarStatus.options.untilMouseIn }}</option>
-                        <option value="hidden">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.verticalScrollbarStatus.options.hidden }}</option>
+                        <option value="visible">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.verticalScrollbarStatus.options.always }}</option>
+                        <option value="auto">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.verticalScrollbarStatus.options.untilMouseIn }}</option>
+                        <option value="hidden">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.verticalScrollbarStatus.options.hidden }}</option>
                     </select>
                 </div>
             </div>
@@ -449,12 +453,12 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.horizonalScrollbarStatus.title }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.horizonalScrollbarStatus.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="display_horizon_scrollbar" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="visible">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.horizonalScrollbarStatus.options.always }}</option>
-                        <option value="auto">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.horizonalScrollbarStatus.options.untilMouseIn }}</option>
-                        <option value="hidden">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.horizonalScrollbarStatus.options.hidden }}</option>
+                        <option value="visible">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.horizonalScrollbarStatus.options.always }}</option>
+                        <option value="auto">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.horizonalScrollbarStatus.options.untilMouseIn }}</option>
+                        <option value="hidden">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.horizonalScrollbarStatus.options.hidden }}</option>
                     </select>
                 </div>
             </div>
@@ -471,11 +475,11 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeScale.title }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.codeScale.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="display_code_scale" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="1">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeScale.options.enable }}</option>
-                        <option value="0">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.codeScale.options.disable }}</option>
+                        <option value="1">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.codeScale.options.enable }}</option>
+                        <option value="0">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.codeScale.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -492,11 +496,11 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.editorAnimation.title }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.editorAnimation.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="display_editor_animation" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="1">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.editorAnimation.options.enable }}</option>
-                        <option value="0">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.editor.subCaptions.editorAnimation.options.disable }}</option>
+                        <option value="1">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.editorAnimation.options.enable }}</option>
+                        <option value="0">{{ i18nStore.langPackage[settingsManStore.lang].settings.editor.subCaptions.editorAnimation.options.disable }}</option>
                     </select>
                 </div>
             </div>
@@ -505,7 +509,7 @@ const render_mode = computed({
             <div class="title2">
                 <div class="title2-block"></div>
                 <div style="width: 8px"></div>
-                <h2>{{ store.state.i18n.langPackage[store.state.settings.lang].settings.render.mainCaption }}</h2>
+                <h2>{{ i18nStore.langPackage[settingsManStore.lang].settings.render.mainCaption }}</h2>
             </div>
             <div class="settings-item">
                 <div class="settings-icon">
@@ -518,11 +522,11 @@ const render_mode = computed({
                     </svg>
                 </div>
                 <div class="settings-content">
-                    <div class="settings-description">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.render.subCaptions.renderMode.title }}</div>
+                    <div class="settings-description">{{ i18nStore.langPackage[settingsManStore.lang].settings.render.subCaptions.renderMode.title }}</div>
                     <div style="height: 10px;"></div>
                     <select v-model="render_mode" class="input" style="flex: 1; min-width: 150px;">
-                        <option value="performance">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.render.subCaptions.renderMode.options.performance }}</option>
-                        <option value="quality">{{ store.state.i18n.langPackage[store.state.settings.lang].settings.render.subCaptions.renderMode.options.quality }}</option>
+                        <option value="performance">{{ i18nStore.langPackage[settingsManStore.lang].settings.render.subCaptions.renderMode.options.performance }}</option>
+                        <option value="quality">{{ i18nStore.langPackage[settingsManStore.lang].settings.render.subCaptions.renderMode.options.quality }}</option>
                     </select>
                 </div>
             </div>
@@ -530,17 +534,17 @@ const render_mode = computed({
             <div style="height: 15px;"></div>
             <div v-if="!showResetConfirm" class="confirm-dialog-confirm-button fonts" style="width: 70px;"
                  @click="showResetConfirm = true;">
-                {{ store.state.i18n.langPackage[store.state.settings.lang].settings.resetButton }}
+                {{ i18nStore.langPackage[settingsManStore.lang].settings.resetButton }}
             </div>
             <div
                 style="display: flex; flex-direction: row; justify-content: space-around; align-items: center;"
                 v-else>
-                <div>{{ store.state.i18n.langPackage[store.state.settings.lang].settings.confirmReset.question }}</div>
-                <div class="confirm-dialog-confirm-button" @click="store.commit('forceResetUserSettings'); showResetConfirm = false;">
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].settings.confirmReset.yes }}
+                <div>{{ i18nStore.langPackage[settingsManStore.lang].settings.confirmReset.question }}</div>
+                <div class="confirm-dialog-confirm-button" @click="settingsManStore.forceResetUserSettings(); showResetConfirm = false;">
+                    {{ i18nStore.langPackage[settingsManStore.lang].settings.confirmReset.yes }}
                 </div>
                 <div class="confirm-dialog-cancel-button" @click="showResetConfirm = false;">
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].settings.confirmReset.no }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].settings.confirmReset.no }}
                 </div>
             </div>
             <div style="height: 40px;"></div>

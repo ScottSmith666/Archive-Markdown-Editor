@@ -2,10 +2,12 @@
 import Viewer from "../workspace/Viewer.vue";
 import {onMounted, ref} from "vue";
 import {onBeforeRouteUpdate, useRoute} from "vue-router";
-import {useStore} from "vuex";
+import {useAmeLifecycleManStore} from "../../store/ame-lifecycle-man";
+import {useTabManStore} from "../../store/tab-man";
 
 const route = useRoute();
-const store = useStore();
+const ameLifecycleManStore = useAmeLifecycleManStore();
+const tabManStore = useTabManStore();
 
 const content = ref("正在加载中...");
 const rootPath = ref('');
@@ -23,7 +25,7 @@ const readDocument = async (docName) => {
                 kind: "tip",
                 tipLevel: "fail",
                 content: result.message,
-                showTimeSecond: store.lifecycle.tipDisplayTime
+                showTimeSecond: ameLifecycleManStore.tipDisplayTime
             });
         }
     } catch (e) {
@@ -32,14 +34,14 @@ const readDocument = async (docName) => {
             kind: "tip",
             tipLevel: "fail",
             content: `${e.name}: ${e.message}`,
-            showTimeSecond: store.lifecycle.tipDisplayTime
+            showTimeSecond: ameLifecycleManStore.tipDisplayTime
         });
     }
 };
 
 const expandPreviewDialog = () => {
     setTimeout(() => {
-        if (localStorage.getItem(`${store.state.tab.currentOpenedPageId}-click-media-path`)) {
+        if (localStorage.getItem(`${tabManStore.currentOpenedPageId}-click-media-path`)) {
             ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'preview'});
         }
     }, 400);

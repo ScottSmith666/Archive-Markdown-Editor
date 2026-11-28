@@ -25,7 +25,7 @@ mdz檔案結構：
 
 file_name.mdz
     └── mdz_contents/
-        ├── file_name.md
+        ├── content.md
         └── media_src/
                  └── media.jpg
                  └── media.mp4
@@ -36,9 +36,17 @@ file_name.mdz
 
 其中，`mdz_contents`、`media_src`這兩個資料夾是固定名稱
 
-mdz檔案名稱和內含的md檔案名稱需要一模一樣
+內含的md檔案固定命名為content.md，與外層mdz檔案叫什麼名字無關
 
 `media_src`資料夾內部的media檔案名稱沒有要求
+
+> [!tip]
+>
+> 由於壓縮檔內部不再有任何條目依賴mdz檔名，你可以放心地在檔案管理器裡重新命名.mdz檔案，它依然能被正常開啟。
+>
+> 早期版本的mdz檔案（內含的md檔名與mdz檔名一致）仍然受到支援：軟體會直接讀取那個md檔案，並在下次儲存時自動改寫為content.md。
+
+開啟mdz檔案時，Archive Markdown Editor會把它解壓縮到mdz檔案所在目錄下名為 `._mdz_content.<mdz檔名>` 的隱藏資料夾中，關閉該文件標籤頁後此資料夾會被清除。由於這個資料夾的名稱取自**當前**檔名，所以重新命名mdz檔案也不會弄丟包內多媒體的連結關係。
 
 > [!caution]
 >

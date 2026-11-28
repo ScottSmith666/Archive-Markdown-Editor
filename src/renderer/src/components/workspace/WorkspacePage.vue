@@ -2,9 +2,13 @@
 import { ref } from "vue";
 import Editor from "./Editor.vue";
 import Viewer from "./Viewer.vue";
-import { useStore } from 'vuex';
+import {useAmeLifecycleManStore} from "../../store/ame-lifecycle-man";
+import {useTabManStore} from "../../store/tab-man";
+import {useSettingsManStore} from "../../store/settings-man";
 
-const store = useStore();
+const ameLifecycleManStore = useAmeLifecycleManStore();
+const tabManStore = useTabManStore();
+const settingsManStore = useSettingsManStore();
 
 // data
 const parentPieceContent = ref("");
@@ -30,7 +34,7 @@ const handleGoToBottom = () => {
 
 const expandPreviewDialog = () => {
     setTimeout(() => {
-        if (localStorage.getItem(`${store.state.tab.currentOpenedPageId}-click-media-path`)) {
+        if (localStorage.getItem(`${tabManStore.currentOpenedPageId}-click-media-path`)) {
             ameLifecycleManStore.toggleModal({'wantToOpen': true, 'kind': 'preview'});
         }
     }, 400);
@@ -41,14 +45,14 @@ const expandPreviewDialog = () => {
     <div class="workspace-page">
         <!--Editor不能添加v-if，否则会出问题-->
         <Editor
-            :class="store.state.settings.editorMode === 'preview' ? 'editor-down' : ''"
-            :style="store.state.settings.editorMode === 'edit' ? 'width: 100%;' : ''"
+            :class="settingsManStore.editorMode === 'preview' ? 'editor-down' : ''"
+            :style="settingsManStore.editorMode === 'edit' ? 'width: 100%;' : ''"
             @update="updateParentData"
             @top="handleGoToTop"
             @bottom="handleGoToBottom"
         />
         <Viewer
-            v-if="store.state.settings.editorMode === 'mix' || store.state.settings.editorMode === 'preview'"
+            v-if="settingsManStore.editorMode === 'mix' || settingsManStore.editorMode === 'preview'"
             :md-piece="parentPieceContent"
             :start-line-number="parentFirstLineNumber"
             :middle-line-number="parentMiddleLineNumber"

@@ -51,7 +51,7 @@
 </div>
 </div>
 
-**版本 `1.2.6`** [检查更新<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://github.com/ScottSmith666/Archive-Markdown-Editor/releases)
+**版本 `1.2.7`** [检查更新<svg style="width: 1rem; height: 1rem" t="1775390893095" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4808" width="200" height="200"><path d="M522.88 224v85.312H277.312v469.312h469.376V533.12H832v288.192a42.688 42.688 0 0 1-42.688 42.688H234.688A42.688 42.688 0 0 1 192 821.312V266.624c0-23.552 19.072-42.624 42.688-42.624H522.88z m373.12-64v320l-129.92-129.856-223.936 224-60.288-60.288 223.936-224L576 160h320z" p-id="4809" data-spm-anchor-id="a313x.search_index.0.i0.55ec3a81jwRmPL" class="selected" fill="#42b883"></path></svg>](https://github.com/ScottSmith666/Archive-Markdown-Editor/releases)
 
 <u>Designed</u> and <u>developed</u> by **Scott Smith**
 
@@ -423,14 +423,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### [7. Vuex](https://vuex.vuejs.org/)
+### [7. Pinia](https://pinia.vuejs.org/)
 
 <svg class="logo" viewBox="0 0 128 128" width="24" height="24" data-v-e54a8a57=""><path fill="#42b883" d="M78.8,10L64,35.4L49.2,10H0l64,110l64-110C128,10,78.8,10,78.8,10z" data-v-e54a8a57=""></path><path fill="#35495e" d="M78.8,10L64,35.4L49.2,10H25.6L64,76l38.4-66H78.8z" data-v-e54a8a57=""></path></svg>
 
 ```text
 The MIT License (MIT)
 
-Copyright (c) 2015-present Evan You
+Copyright (c) 2019-present Eduardo San Martin Morote
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -439,16 +439,16 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
 
 ### [8. Vite](https://vite.dev/)
@@ -2454,9 +2454,65 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ---
 
-### [32. Incremental-DOM](https://google.github.io/incremental-dom/)
+### [32. Vue3-Zoomer](https://vue3-zoomer.vuedoo.org/)
 
-![]($DOCUMENT_MEDIA/1342004.png)
+<svg class="logo" viewBox="0 0 128 128" width="24" height="24" data-v-e54a8a57=""><path fill="#42b883" d="M78.8,10L64,35.4L49.2,10H0l64,110l64-110C128,10,78.8,10,78.8,10z" data-v-e54a8a57=""></path><path fill="#35495e" d="M78.8,10L64,35.4L49.2,10H25.6L64,76l38.4-66H78.8z" data-v-e54a8a57=""></path></svg>
+
+```text
+MIT License
+
+Copyright (c) 2024 Vue3-Zoomer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### [33. X-Data-Spreadsheet](https://github.com/myliang/x-spreadsheet)
+
+<svg class="logo" viewBox="0 0 24 24" width="24" height="24"><path fill="#35495e" d="M3 3h5.5v5.5H3zM9.25 3h5.5v5.5h-5.5zM15.5 3H21v5.5h-5.5zM3 9.25h5.5v5.5H3zM9.25 9.25h5.5v5.5h-5.5zM15.5 9.25H21v5.5h-5.5zM3 15.5h5.5V21H3zM9.25 15.5h5.5V21h-5.5zM15.5 15.5H21V21h-5.5z"></path></svg>
+
+```text
+MIT License
+
+Copyright (c) 2017 myliang
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### [34. Xlsx](https://sheetjs.com/)
+
+<svg class="logo" viewBox="0 0 24 24" width="24" height="24"><path fill="#35495e" d="M5 2h8l6 6v14H5z"></path><path fill="#42b883" d="M13 2l6 6h-6z"></path><path fill="#ffffff" d="M7.5 10h3v2h-3zM13.5 10h3v2h-3zM7.5 13h3v2h-3zM13.5 13h3v2h-3zM7.5 16h3v2h-3zM13.5 16h3v2h-3z"></path></svg>
 
 ```text
                                  Apache License
@@ -2639,7 +2695,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    APPENDIX: How to apply the Apache License to your work.
 
       To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
+      boilerplate notice, with the fields enclosed by brackets "{}"
       replaced with your own identifying information. (Don't include
       the brackets!)  The text should be enclosed in the appropriate
       comment syntax for the file format. We also recommend that a
@@ -2647,7 +2703,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright [yyyy] [name of copyright owner]
+   Copyright (C) 2012-present   SheetJS LLC
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -2662,14 +2718,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    limitations under the License.
 ```
 
-### [33. Markdown-It-Incremental-DOM](https://yhatt.github.io/markdown-it-incremental-dom/)
+### [35. Morphdom](https://github.com/patrick-steele-idem/morphdom)
 
-![]($DOCUMENT_MEDIA/3993388.jpg)
+<svg class="logo" viewBox="0 0 24 24" width="24" height="24"><path fill="#35495e" d="M2 3h10v10H2z"></path><path fill="#42b883" d="M12 12h10L12 22z"></path></svg>
 
 ```text
-MIT License
+The MIT License (MIT)
 
-Copyright (c) 2017-2018 Yuki Hattori (yukihattori1116@gmail.com)
+Copyright (c) Patrick Steele-Idem <pnidem@gmail.com> (psteeleidem.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -2678,16 +2734,16 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 ```
 
 # 鸣谢闭源软件 :globe_with_meridians:

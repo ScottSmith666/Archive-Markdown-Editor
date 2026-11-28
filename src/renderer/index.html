@@ -56,7 +56,10 @@
                 addMenu: [] // 移除将菜单绑定到公式上的渲染动作
             },
             skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'a'],
-            ignoreHtmlClass: 'code-editor',
+            // .mermaid 里放的是“图的源码”（mermaid按行解析它），只交给mermaid渲染。
+            // MathJax排版时会改写这些节点里的文本，改完mermaid就会报“Syntax error in text”，
+            // 所以按class排除掉（Viewer.vue里 mathJaxRender() 本来就排在 mermaidRender() 之前）。
+            ignoreHtmlClass: 'code-editor|mermaid',
             menuOptions: {
                 settings: {
                     speech: false,  // 禁用语音生成
@@ -66,6 +69,15 @@
         }
     };
 </script>
+<script>
+    // MathJax 4 把字体拆成了独立包，\mathbb 等动态字符集、\ce 化学式字体会在运行时
+    // 再去 cdn.jsdelivr.net 拉组件js和woff2，而且基址被组件内部写死，配置层改不动。
+    // 素材已经vendored在 libs/MathJax/fonts/ 下（和导出HTML用的是同一份），这里给出本地基址，
+    // 再由下面那个钩子把 MathJax 写进页面的 jsdelivr 地址改写成本地地址，app内预览即可完全离线。
+    // 不需要离线化时删掉这两行即可，页面回到 MathJax 默认行为。
+    window.__AME_MATHJAX_FONTS_BASE__ = "./libs/MathJax/fonts/";
+</script>
+<script src="./libs/MathJax/ame_mathjax_font_hook.js"></script>
 <script id="MathJax-script" async src="./libs/MathJax/tex-mml-chtml.js"></script>
 <script type="module" src="/src/main.js"></script>
 </body>

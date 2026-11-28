@@ -1,4 +1,4 @@
-import {dialog, ipcMain, shell, app, clipboard} from "electron";
+import {dialog, ipcMain, app, clipboard, nativeImage} from "electron";
 import {Dialogs} from "../dialogs";
 import path from "path";
 import fs from 'fs';
@@ -17,6 +17,7 @@ import {
 } from "./modules/common";
 import {appVersionIpc} from "./modules/appVersionIpc";
 import {exportIpc} from "./modules/exportIpc";
+import {openExternalSafe} from "../external-url";
 
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
@@ -48,6 +49,204 @@ if (!app.isPackaged) {
 }
 
 const dialogs = new Dialogs();
+
+// ===== Electron 45 剪贴板适配层 =====
+// Electron 45 起主进程 clipboard 改为「异步 + 基于 MIME」：
+//   clipboard.read() -> Promise<ClipboardItem[]>，item.types: string[]，item.getType(mime) -> Promise<Blob>
+// 旧的 availableFormats() / read(format) / readBuffer(format) / readImage() 已整体删除。
+// 平台私有格式可能以裸名（FileNameW）或 osclipboard 命名空间形式
+// （electron application/osclipboard;format="FileNameW"）出现在 item.types 里，这里两种都认。
+
+const OS_CLIPBOARD_FORMAT_PREFIX = "electron application/osclipboard;format=";
+
+// 把 item.types 里的键归一化成裸格式名（小写），便于跨平台比对
+const normalizedFormat = (type) => {
+    let lower = String(type).toLowerCase();
+    if (lower.startsWith(OS_CLIPBOARD_FORMAT_PREFIX)) {
+        lower = lower.slice(OS_CLIPBOARD_FORMAT_PREFIX.length).replace(/^"+|"+$/g, "");
+    }
+    return lower;
+};
+
+// 在候选格式名里，返回该条目实际暴露的那个 types 键（找不到返回空串）
+const pickFormat = (item, candidates) => {
+    const wanted = candidates.map((name) => name.toLowerCase());
+    for (const type of item.types) {
+        if (wanted.includes(normalizedFormat(type))) {
+            return type;
+        }
+    }
+    return "";
+};
+
+// 任一条目暴露了候选格式之一即为命中
+const hasFormat = (items, candidates) => {
+    const wanted = candidates.map((name) => name.toLowerCase());
+    return items.some((item) => item.types.some((type) => wanted.includes(normalizedFormat(type))));
+};
+
+// 按候选格式读取文本内容，读不到返回空串
+const readTextByFormats = async (item, candidates) => {
+    const type = pickFormat(item, candidates);
+    if (!type) {
+        return "";
+    }
+    try {
+        return await (await item.getType(type)).text();
+    } catch (e) {
+        return "";
+    }
+};
+
+// 按候选格式读取原始字节，读不到返回 null
+const readBufferByFormats = async (item, candidates) => {
+    const type = pickFormat(item, candidates);
+    if (!type) {
+        return null;
+    }
+    try {
+        return Buffer.from(await (await item.getType(type)).arrayBuffer());
+    } catch (e) {
+        return null;
+    }
+};
+
+// 遍历所有条目，返回第一个非空的文本
+const readFirstText = async (items, candidates) => {
+    for (const item of items) {
+        const text = await readTextByFormats(item, candidates);
+        if (text.trim() !== "") {
+            return text;
+        }
+    }
+    return "";
+};
+
+// 把 text/uri-list / public.file-url / x-special/gnome-copied-files 这类
+// 「一行一个 URI」的文本转成绝对路径数组；顺带丢掉空行、
+// RFC 2483 的 # 注释行，以及 gnome-copied-files 的首行动作标记（copy/cut）
+const uriListToPaths = (raw) => raw.split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line !== "" && !line.startsWith("#"))
+    .filter((line) => line.startsWith("file://"))
+    .map((line) => line.replace("file://", ""));
+
+// 各平台“在文件管理器里复制了文件”时暴露的私有格式（按优先级）
+const FILE_URL_FORMATS = {
+    win32: ["FileNameW", "FileGroupDescriptorW", "text/uri-list"],
+    darwin: ["public.file-url", "text/uri-list"],
+    linux: ["x-special/gnome-copied-files", "text/uri-list"],
+    openharmony: ["text/uri-list"],
+};
+const ALL_FILE_URL_FORMATS = Array.from(new Set(Object.values(FILE_URL_FORMATS).flat()));
+
+// ===== mdz 包格式常量与解包辅助层 =====
+// mdz 内部结构（名称全部固定，与外层 mdz 文件名无关，因此用文件管理器重命名 mdz 后依然能打开）：
+//   <mdz所在目录>/._mdz_content.<mdz文件名去ext>/mdz_contents/content.md    主 Markdown
+//   <mdz所在目录>/._mdz_content.<mdz文件名去ext>/mdz_contents/media_src/*   包内多媒体文件
+// 解包目录名由“当前”mdz 文件名派生，所以渲染端的 $MDZ_MEDIA 路径也跟随重命名自动生效。
+const pathExists = async (targetPath) => {
+    try {
+        await fs.promises.access(targetPath);
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
+
+const MDZ_WORK_DIR_PREFIX = "._mdz_content.";
+const MDZ_CONTENTS_DIR = "mdz_contents";
+const MDZ_MEDIA_DIR = "media_src";
+const MDZ_MAIN_MD_NAME = "content.md";
+const MDZ_STAGE_DIR = ".ame_mdz_stage";  // 解压暂存目录，仅解压瞬间存在，随后搬移并删除
+
+const mdzWorkDirPath = (dirPath, pureFileName) => dirPath + path.sep + MDZ_WORK_DIR_PREFIX + pureFileName;
+
+// 在解压结果里定位 mdz_contents 目录（包内可能带一层顶层目录，也可能不带）
+const findMdzContentsDir = async (rootPath) => {
+    const candidates = [path.join(rootPath, MDZ_CONTENTS_DIR)];
+    for (const entry of await fs.promises.readdir(rootPath, {withFileTypes: true})) {
+        if (entry.isDirectory()) {
+            candidates.push(path.join(rootPath, entry.name, MDZ_CONTENTS_DIR));
+        }
+    }
+    for (const candidate of candidates) {
+        try {
+            if ((await fs.promises.stat(candidate)).isDirectory()) return candidate;
+        } catch (e) {
+            // 该候选路径不存在，继续尝试下一个
+        }
+    }
+    return "";
+};
+
+// 定位包内主 md：优先固定名 content.md；为兼容历史 mdz 包（内部 md 名曾要求等于 mdz 文件名），
+// 回退取 mdz_contents 下第一个 .md 文件
+const findMdzMainMdPath = async (contentsDir) => {
+    const fixedPath = path.join(contentsDir, MDZ_MAIN_MD_NAME);
+    try {
+        if ((await fs.promises.stat(fixedPath)).isFile()) return fixedPath;
+    } catch (e) {
+        // 没有 content.md，走下面的历史包回退逻辑
+    }
+    const mdNames = (await fs.promises.readdir(contentsDir))
+        .filter((name) => name.toLowerCase().endsWith(".md"))
+        .sort();
+    if (mdNames.length === 0) {
+        // 文案沿用 strerror 风格的 "No such file or directory"，以命中上层 FILE_NOT_FOUND 判断
+        throw new Error(`ENOENT: No such file or directory, open '${fixedPath}'`);
+    }
+    return path.join(contentsDir, mdNames[0]);
+};
+
+// 解压 mdz 到暂存目录，并把内容根归一化到 "._mdz_content.<当前mdz文件名去ext>"，返回主 md 的真实路径
+const extractMdzContent = async (filePath, dirPath, pureFileName, password) => {
+    const workDir = mdzWorkDirPath(dirPath, pureFileName);
+    const stageDir = dirPath + path.sep + MDZ_STAGE_DIR;
+    await rm(stageDir, {recursive: true, force: true});
+    let contentRoot = "";
+    try {
+        await mdzUtils.genOrDecompressMdz(filePath, stageDir, "decompress", "", password);
+        const contentsDir = await findMdzContentsDir(stageDir);
+        contentRoot = contentsDir ? path.dirname(contentsDir) : "";
+    } catch (e) {
+        await rm(stageDir, {recursive: true, force: true});
+        throw e;
+    }
+    if (!contentRoot) {
+        await rm(stageDir, {recursive: true, force: true});
+        // 文案沿用 strerror 风格的 "No such file or directory"，以命中上层 FILE_NOT_FOUND 判断
+        throw new Error(`ENOENT: No such file or directory, open '${path.join(workDir, MDZ_CONTENTS_DIR)}'`);
+    }
+    try {
+        if (await pathExists(workDir)) {
+            // 工作目录已存在（可能含有尚未压缩进包的新导入媒体）：合并覆盖，不丢弃多余文件
+            await fs.promises.cp(contentRoot, workDir, {recursive: true});
+        } else {
+            await fs.promises.rename(contentRoot, workDir);
+        }
+    } finally {
+        await rm(stageDir, {recursive: true, force: true});
+    }
+    if (process.platform === "win32") {
+        // Windows平台运行 attrib +h "X:/path/to/folder" 命令隐藏文件夹
+        await exec(`attrib +h "${workDir}"`);
+    }
+    return await findMdzMainMdPath(path.join(workDir, MDZ_CONTENTS_DIR));
+};
+
+// 清理解包目录里遗留的历史主 md（旧格式内部 md 名等于 mdz 文件名），避免重新压缩后包内出现两份正文
+const removeStaleMdzMainMd = async (contentsDir) => {
+    try {
+        for (const name of await fs.promises.readdir(contentsDir)) {
+            if (name !== MDZ_MAIN_MD_NAME && name.toLowerCase().endsWith(".md")) {
+                await rm(path.join(contentsDir, name), {force: true});
+            }
+        }
+    } catch (e) {
+        // 清理失败不影响保存主流程
+    }
+};
 
 export const ipc = (Sqlite3, dbPath) => {
     const sqliteMan = new SqliteMan(Sqlite3, dbPath);
@@ -84,17 +283,11 @@ export const ipc = (Sqlite3, dbPath) => {
         let fileNameArray = fileName.split(".");
         fileNameArray.pop();
         let pureFileName = fileNameArray.join(".");
-        let realFilePathInMdz
-            = path.join(filePathArray.join(path.sep), `._mdz_content.${pureFileName}`, "mdz_contents", `${pureFileName}.md`);
-        let realDirPathInMdz = path.join(filePathArray.join(path.sep), `._mdz_content.${pureFileName}`);
 
         // 解压加密mdz文件并读取文件内容
         try {
-            await mdzUtils.genOrDecompressMdz(filePath, filePathArray.join(path.sep), "decompress", "", password);
-            if (process.platform === "win32") {
-                // Windows平台运行 attrib +h X:/path/to/folder 命令隐藏文件夹
-                await exec(`attrib +h "${realDirPathInMdz}"`);
-            }
+            let realFilePathInMdz
+                = await extractMdzContent(filePath, filePathArray.join(path.sep), pureFileName, password);
             let fileContent = await fs.promises.readFile(realFilePathInMdz, 'utf8');
             setOpenedFileHistory(sqliteMan, fileName, filePath, getNow());
             return {success: true, content: fileContent, name: fileName, path: filePath, encrypted: true};
@@ -129,28 +322,24 @@ export const ipc = (Sqlite3, dbPath) => {
         } else if (extensionTail === 'mdz') {
             // 不能直接读取，需要经历解压等步骤拿到真正的md文件路径
             // mdz文件（以/path/to/test.mdz为例）打开后的文件结构：
-            // ._mdz_content.test/    # 这里的文件夹名格式是："._mdz_content." + mdz文件名去掉ext
+            // ._mdz_content.test/    # 解包目录名格式："._mdz_content." + 当前mdz文件名去掉ext
             //          |             # 在posix平台，开头为“.”的文件和文件夹本身不可见（除非设置显示隐藏项目）
             //          V             # win32平台需要额外运行命令：attrib +h /path/to/._mdz_content.test 以使文件夹不可见
             //    mdz_contents/       # 这里的文件夹固定为“mdz_contents”
             //     |         |
             //     V         V
-            //  test.md  media_src/   # md文件名去掉ext == mdz文件名去掉ext，同级的文件夹固定为“media_src”
+            // content.md  media_src/ # 主md文件名固定为“content.md”（与外层mdz文件名无关），同级文件夹固定为“media_src”
             //               |
             //               V
             // *.jpg, *.mp4, *.mp3... # 固定在mdz文件内的多媒体文件，在mdz格式下，![...](path)语句括号内的path格式为：$MDZ_MEDIA/多媒体文件名
             //                        # 渲染器会将其自动解释为：/path/to/._mdz_content.test/mdz_contents/media_src/多媒体文件名
-            // 因此/path/to/test.mdz文件的实际文件路径是：/path/to/._mdz_content.test/mdz_contents/test.md
-            let realFilePathInMdz
-                = path.join(filePathArray.join(path.sep), `._mdz_content.${pureFileName}`, "mdz_contents", `${pureFileName}.md`);
-            let realDirPathInMdz = path.join(filePathArray.join(path.sep), `._mdz_content.${pureFileName}`);
+            // 因此/path/to/test.mdz文件的实际文件路径是：/path/to/._mdz_content.test/mdz_contents/content.md
+            // 包内条目名与解包目录名都不依赖打包时的文件名，故重命名mdz文件后仍可正常打开；
+            // 历史包（内部md名等于mdz文件名）由 extractMdzContent 归一化目录名 + findMdzMainMdPath 回退旧名继续支持
             // 解压mdz文件并读取文件内容
             try {
-                await mdzUtils.genOrDecompressMdz(filePath, filePathArray.join(path.sep), "decompress", "", "");
-                if (process.platform === "win32") {
-                    // Windows平台运行 attrib +h "X:/path/to/folder" 命令隐藏文件夹
-                    await exec(`attrib +h "${realDirPathInMdz}"`);
-                }
+                let realFilePathInMdz
+                    = await extractMdzContent(filePath, filePathArray.join(path.sep), pureFileName, "");
                 let fileContent = await fs.promises.readFile(realFilePathInMdz, 'utf8');
                 setOpenedFileHistory(sqliteMan, fileName, filePath, getNow());
                 return {success: true, content: fileContent, name: fileName, path: filePath, encrypted: false};
@@ -170,12 +359,12 @@ export const ipc = (Sqlite3, dbPath) => {
     });
 
     ipcMain.handle("make-mdz-directory", async (event, purePath, pureFileName) => {
+        const workDir = mdzWorkDirPath(purePath, pureFileName);
         try {
-            await fs.promises.mkdir(purePath + path.sep + "._mdz_content." + pureFileName + path.sep
-                + "mdz_contents" + path.sep + "media_src", {recursive: true});
+            await fs.promises.mkdir(path.join(workDir, MDZ_CONTENTS_DIR, MDZ_MEDIA_DIR), {recursive: true});
             if (process.platform === "win32") {
-                // Windows平台运行 attrib +h X:/path/to/folder 命令隐藏文件夹
-                await exec(`attrib +h "${purePath + path.sep + "._mdz_content." + pureFileName}"`);
+                // Windows平台运行 attrib +h "X:/path/to/folder" 命令隐藏文件夹
+                await exec(`attrib +h "${workDir}"`);
             }
             return {"success": true, "message": "创建文件夹成功"};
         } catch (e) {
@@ -222,8 +411,10 @@ export const ipc = (Sqlite3, dbPath) => {
     ipcMain.handle("save-file-content", async (event, purePath, pureFileName, content, ext) => {
         try {
             if (ext === "mdz") {
-                await fs.promises.writeFile(purePath + path.sep + "._mdz_content." + pureFileName + path.sep
-                    + "mdz_contents" + path.sep + pureFileName + ".md", content, 'utf8');
+                // 内部主md文件名固定为 content.md，不再要求与外层mdz文件名一致
+                const contentsDir = path.join(mdzWorkDirPath(purePath, pureFileName), MDZ_CONTENTS_DIR);
+                await fs.promises.writeFile(path.join(contentsDir, MDZ_MAIN_MD_NAME), content, 'utf8');
+                await removeStaleMdzMainMd(contentsDir);
             } else if (ext === "md" || ext === "txt") {
                 await fs.promises.writeFile(purePath + path.sep + pureFileName + `.${ext}`, content, 'utf8');
             }
@@ -239,7 +430,7 @@ export const ipc = (Sqlite3, dbPath) => {
             await rm(purePath + path.sep + pureFileName + ".mdz", {recursive: true, force: true});
             // 再压缩产生新的
             await mdzUtils.genOrDecompressMdz(
-                purePath + path.sep + "._mdz_content." + pureFileName,
+                mdzWorkDirPath(purePath, pureFileName),
                 purePath + path.sep + pureFileName + ".mdz",
                 "compress",
                 password,
@@ -331,7 +522,13 @@ export const ipc = (Sqlite3, dbPath) => {
     });
 
     ipcMain.handle("media-paster", async (event, errorMsg) => {
-        const formats = clipboard.availableFormats();
+        let items;
+        try {
+            items = await clipboard.read();
+        } catch (e) {
+            // 剪贴板不可用或无内容时按“没有可粘贴内容”处理，别把异常抛给编辑器
+            return "";
+        }
         let fileURLs, type;
         // 常见视频文件的扩展名
         const videoExts = ["mp4", "mov", "webm", "avi", "wmv", "flv", "mkv", "m4v", "mpeg", "ts"];
@@ -341,45 +538,50 @@ export const ipc = (Sqlite3, dbPath) => {
         const imageExts = ["jpg", "jpeg", "tif", "tiff", "gif", "bmp", "svg", "png", "webp"];
         // 优先检查是否存在文件专用格式
         // 只要存在，说明最近一次操作绝对是“复制了文件”
-        const isFile = formats.some(format =>
-            format === 'text/uri-list' ||  // Windows & HarmonyOS
-            format === 'public.file-url'  // macOS
-        ) || clipboard.read('x-special/gnome-copied-files').includes("file://");  // Linux（注意这个mime不是通用的，不同的发行版可能有不同的mime，后续开发注意补充）
+        const platformFormats = FILE_URL_FORMATS[process.platform] || ALL_FILE_URL_FORMATS;
+        let isFile = hasFormat(items, platformFormats);
+        if (!isFile) {
+            // 兜底：桌面环境五花八门，格式名没命中时，只要内容里出现 file:// 也算复制了文件
+            isFile = (await readFirstText(items, ALL_FILE_URL_FORMATS)).includes("file://");
+        }
         // 如果直接复制已有多媒体文件，则返回文件路径
         if (isFile) {
             if (process.platform === 'win32') {
                 // 必须优先检查 FileNameW 格式
-                // 注意：使用 readBuffer 并指定 ucs2 编码，以正确处理中文/特殊字符路径
-                const buffer = clipboard.readBuffer('FileNameW');
-                // Windows 剪贴板中的 MULTI_SZ 格式使用 UTF-16LE 编码 (ucs2)
-                const raw = buffer.toString('ucs2').replaceAll("\\", "/");
-                // 多个文件路径以 \0 分隔，结尾会有两个 \0，过滤掉空字符串即可
-                fileURLs = raw.split('\0').filter(p => p.length > 0);
+                // 它是 MULTI_SZ（UTF-16LE 编码），按 ucs2 解码才能正确处理中文/特殊字符路径
+                let fileNameBuffer = null;
+                for (const item of items) {
+                    fileNameBuffer = await readBufferByFormats(item, ["FileNameW"]);
+                    if (fileNameBuffer) {
+                        break;
+                    }
+                }
+                if (fileNameBuffer) {
+                    // 多个文件路径以 \0 分隔，结尾会有两个 \0，过滤掉空字符串即可
+                    const raw = fileNameBuffer.toString('ucs2').replaceAll("\\", "/");
+                    fileURLs = raw.split('\0').filter(p => p.length > 0);
+                } else {
+                    // 少数文件管理器只提供 text/uri-list
+                    fileURLs = uriListToPaths(await readFirstText(items, ["text/uri-list"]));
+                }
             } else if (process.platform === 'darwin') {
-                const raw = clipboard.read('public.file-url');
                 // macOS 复制多个文件时，路径通常以换行符 \n 分隔
-                fileURLs = raw.split('\n')
-                    .map(url => url.trim())
-                    .filter(url => url.startsWith('file://'))
-                    .map(url => {
-                        // 去掉 file:// 前缀，并对特殊字符（如空格、中文）进行 URL 解码
-                        return url.replace('file://', '');
-                    });
+                fileURLs = uriListToPaths(await readFirstText(items, ["public.file-url"]));
+                if (fileURLs.length === 0) {
+                    fileURLs = uriListToPaths(await readFirstText(items, ["text/uri-list"]));
+                }
             } else if (process.platform === 'linux') {
-                const raw = clipboard.read('x-special/gnome-copied-files');  // 注意补充
-                fileURLs = raw.split('\n')
-                    .map(url => url.trim())
-                    .filter(url => url.startsWith('file://'))
-                    .map(url => {
-                        return url.replace('file://', '');
-                    });
+                // 注意这个mime不是通用的，不同的发行版可能有不同的mime，后续开发注意补充
+                // 首行是 copy/cut 动作标记，uriListToPaths 会因为不以 file:// 开头而丢弃
+                fileURLs = uriListToPaths(await readFirstText(items, ["x-special/gnome-copied-files"]));
+                if (fileURLs.length === 0) {
+                    fileURLs = uriListToPaths(await readFirstText(items, ["text/uri-list"]));
+                }
             } else if (process.platform === 'openharmony') {
-                const raw = clipboard.read('text/uri-list');
-                fileURLs = raw.split('\n')
-                    .map(url => url.trim())
-                    .map(url => {
-                        return url.replace('file://', '');
-                    });
+                fileURLs = uriListToPaths(await readFirstText(items, ["text/uri-list"]));
+            } else {
+                // 未知平台：避免 fileURLs 为 undefined 时下面取 length 直接抛错
+                fileURLs = [];
             }
 
             let result = "";
@@ -402,15 +604,30 @@ export const ipc = (Sqlite3, dbPath) => {
                 }
             }
             return result;
-        } else {
-            const isImage = formats.some(format => format.includes('image'));
-            // 如果剪切版内为图片的具体内容，则返回base64编码的内容
-            if (isImage) {
-                const image = clipboard.readImage();
-                const imageURL = image.toDataURL();
-                return `![](${imageURL})`;
+        }
+        // 剪贴板内为图片的具体内容，则返回base64编码的内容
+        for (const item of items) {
+            const imageTypes = item.types.filter((format) => normalizedFormat(format).startsWith("image/"));
+            for (const imageType of imageTypes) {
+                let imageBuffer;
+                try {
+                    imageBuffer = Buffer.from(await (await item.getType(imageType)).arrayBuffer());
+                } catch (e) {
+                    continue;
+                }
+                if (imageBuffer.length === 0) {
+                    continue;
+                }
+                // 与旧的 clipboard.readImage().toDataURL() 保持一致：统一输出 PNG 的 data URL
+                const image = nativeImage.createFromBuffer(imageBuffer);
+                if (!image.isEmpty()) {
+                    return `![](${image.toDataURL()})`;
+                }
+                // nativeImage 解不出来（少见的位图容器）时，按原始 MIME 直接兜底
+                return `![](data:${normalizedFormat(imageType)};base64,${imageBuffer.toString("base64")})`;
             }
         }
+        return "";
     });
 
     ipcMain.handle("get-media-list-in-mdz", async (event, mediaHomePath) => {
@@ -459,7 +676,8 @@ export const ipc = (Sqlite3, dbPath) => {
     });
 
     ipcMain.on('open-url', (event, url) => {
-        shell.openExternal(url);
+        // URL 来自渲染端，源头是 markdown 正文里的链接，必须过协议白名单才能交给系统
+        openExternalSafe(url);
     });
 
     ipcMain.handle('get-system-lang', (event) => {

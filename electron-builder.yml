@@ -22,9 +22,8 @@ files:
   - '!utils/**'
   - '!test.js'
   # 然后是包含的文件
-  - 'node_modules/bindings/**'
-  - 'node_modules/file-uri-to-path/**'
-  - 'node_modules/better-sqlite3/build/Release/**'
+  # better-sqlite3 v13 起 gypfile:false，不再编译 build/，改为随包发布 prebuilds/<platform>-<arch>.node
+  - 'node_modules/better-sqlite3/prebuilds/**'
   - 'node_modules/better-sqlite3/lib/**'
   - 'node_modules/better-sqlite3/package.json'
   - 'node_modules/xlsx/bower.json'
@@ -39,12 +38,18 @@ files:
   - 'libs/napi_cpp/mdz_utils/index.js'
   - 'libs/napi_cpp/mdz_utils/index.d.ts'
   - 'libs/napi_cpp/mdz_utils/package.json'
+  # 导出HTML离线化：src/main/themes/export_assets.js 会把这些浏览器端构建
+  # 复制进导出目录的“导出文件名.media_dir”，生产包里必须带着（只进asar，无需解包）
+  - 'node_modules/prismjs/components/prism-*.min.js'
+  - 'node_modules/prismjs/plugins/*/prism-*.min.js'
+  - 'node_modules/prismjs/plugins/*/prism-*.min.css'
+  - 'node_modules/prismjs/themes/prism.min.css'
+  - 'node_modules/mermaid/dist/mermaid.min.js'
   - 'resources/**'
 asarUnpack:
   - 'resources/**'
-  - 'node_modules/bindings/**'
-  - 'node_modules/file-uri-to-path/**'
-  - 'node_modules/better-sqlite3/build/Release/**'
+  # 原生 .node 必须解包出 asar 才能被 dlopen
+  - 'node_modules/better-sqlite3/prebuilds/**'
   - 'node_modules/better-sqlite3/lib/**'
   - 'node_modules/better-sqlite3/package.json'
   - 'node_modules/xlsx/bower.json'
@@ -114,7 +119,6 @@ linux:
   icon: 'resources/icon.png'
   target:
     - AppImage
-    - snap
     - deb
   maintainer: scottsmith666.github.io
   category: Utility

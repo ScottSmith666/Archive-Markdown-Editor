@@ -1,11 +1,19 @@
 <script setup>
-import {useStore} from 'vuex';
+import {useTabManStore} from "../../store/tab-man";
+import {useHarmonyOSPermsStore} from "../../store/harmony-perms";
+import {useI18nStore} from "../../store/i18n";
+import {useSettingsManStore} from "../../store/settings-man";
+import {useFileManStore} from "../../store/file-man";
 import {computed, onMounted, ref} from "vue";
 import {onBeforeRouteUpdate} from "vue-router";
 import {useAmeLifecycleManStore} from "../../store/ame-lifecycle-man";
 
 const ameLifecycleManStore = useAmeLifecycleManStore();
-const store = useStore();
+const tabManStore = useTabManStore();
+const harmonyOSPermsStore = useHarmonyOSPermsStore();
+const i18nStore = useI18nStore();
+const settingsManStore = useSettingsManStore();
+const fileManStore = useFileManStore();
 
 // data
 const recentFileHistoryList = ref([]);
@@ -56,8 +64,8 @@ const deleteHistory = (hsId) => {
 };
 
 const openHistoryFile = (filePath, fileName) => {
-    store.dispatch('getHarmonyPerms');
-    store.dispatch('openFileFromHistoryAction', {
+    harmonyOSPermsStore.getHarmonyPerms();
+    fileManStore.openFileFromHistoryAction({
         'filePath': filePath,
         'fileName': fileName
     });
@@ -78,7 +86,7 @@ const sortHistory = computed(() => {
             <!--title-->
             <div class="title">Archive Markdown Editor</div>
             <!--subtitle-->
-            <div class="subtitle">{{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.subTitle }}</div>
+            <div class="subtitle">{{ i18nStore.langPackage[settingsManStore.lang].welcomePage.subTitle }}</div>
         </div>
         <div class="welcome-body">
             <div class="side">
@@ -89,7 +97,7 @@ const sortHistory = computed(() => {
                         <div class="block"></div>
                         <div style="width: 6px;"></div>
                         <div style="font-weight: bold; font-size: 1.3rem;" id="history">
-                            {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.start }}
+                            {{ i18nStore.langPackage[settingsManStore.lang].welcomePage.start }}
                         </div>
                     </div>
                 </div>
@@ -97,27 +105,27 @@ const sortHistory = computed(() => {
                 <div class="separator"></div>
                 <!--New File-->
                 <div
-                    @click="store.commit('addTabPage', {'pageType': 'file',
-                    'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.untitled, 'isExistFile': false});
-                    store.dispatch('getHarmonyPerms');"
+                    @click="tabManStore.addTabPage({'pageType': 'file',
+                    'pageTitle': i18nStore.langPackage[settingsManStore.lang].tabBar.untitled, 'isExistFile': false});
+                    harmonyOSPermsStore.getHarmonyPerms();"
                     class="options" id="new"><span class="options-icon">㊢</span>
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.new }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].welcomePage.startButtonGroup.new }}
                 </div>
                 <!--Open-->
-                <div class="options" id="open" @click="store.dispatch('activateOpenFileDialogAction'); store.dispatch('getHarmonyPerms');"><span
+                <div class="options" id="open" @click="fileManStore.activateOpenFileDialogAction(); harmonyOSPermsStore.getHarmonyPerms();"><span
                     class="options-icon">㊠</span>
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.open }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].welcomePage.startButtonGroup.open }}
                 </div>
                 <!--Open-->
                 <div
-                    @click="store.commit('addTabPage', {'pageType': 'settings',
-                    'pageTitle': store.state.i18n.langPackage[store.state.settings.lang].tabBar.settings, 'isExistFile': false})"
+                    @click="tabManStore.addTabPage({'pageType': 'settings',
+                    'pageTitle': i18nStore.langPackage[settingsManStore.lang].tabBar.settings, 'isExistFile': false})"
                     class="settings" id="settings"><span class="options-icon">㊕</span>
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.settings }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].welcomePage.startButtonGroup.settings }}
                 </div>
                 <!--Quit-->
                 <div class="options-quit" id="quit" @click="ameLifecycleManStore.quitApp()"><span class="options-icon">㊡</span>
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.startButtonGroup.exitAME }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].welcomePage.startButtonGroup.exitAME }}
                 </div>
 
                 <!--Powered-->
@@ -235,17 +243,17 @@ const sortHistory = computed(() => {
                     <div class="recent-file-title-body">
                         <div class="block"></div>
                         <div style="width: 6px;"></div>
-                        <div style="font-weight: bold; font-size: 1.3rem;" id="history">{{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.history.title }}</div>
+                        <div style="font-weight: bold; font-size: 1.3rem;" id="history">{{ i18nStore.langPackage[settingsManStore.lang].welcomePage.history.title }}</div>
                     </div>
                     <div id="clear" class="clear-all-history" v-if="recentFileHistoryList.length > 0" @click="deleteHistory('ALL')">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.history.clearButton }}
+                        {{ i18nStore.langPackage[settingsManStore.lang].welcomePage.history.clearButton }}
                     </div>
                 </div>
                 <!--Separator-->
                 <div class="separator"></div>
                 <!--Recent file unit-->
                 <template v-if="recentFileHistoryList.length === 0">
-                    <div style="color: #6a737d;" id="empty">{{ store.state.i18n.langPackage[store.state.settings.lang].welcomePage.history.describe }}</div>
+                    <div style="color: #6a737d;" id="empty">{{ i18nStore.langPackage[settingsManStore.lang].welcomePage.history.describe }}</div>
                 </template>
                 <template v-else>
                     <div class="recent-file-unit" v-for="(item, index) in sortHistory" :key="item.hsId">

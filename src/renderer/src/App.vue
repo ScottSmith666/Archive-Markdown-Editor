@@ -3,12 +3,20 @@ import {onMounted, ref} from "vue";
 import TabMan from "./components/main/TabMan.vue";
 import MenuBar from "./components/main/MenuBar.vue";
 import Preview from "./components/tools/media_preview/Preview.vue";
-import {useStore} from 'vuex';
+import {useTabManStore} from "./store/tab-man";
+import {useHarmonyOSPermsStore} from "./store/harmony-perms";
+import {useI18nStore} from "./store/i18n";
+import {useSettingsManStore} from "./store/settings-man";
+import {useFileManStore} from "./store/file-man";
 import FooterStatusBar from "./components/main/FooterStatusBar.vue";
 import {useAmeLifecycleManStore} from "./store/ame-lifecycle-man";
 import {useMainMenuManStore} from "./store/main-menu-man";
 
-const store = useStore();
+const tabManStore = useTabManStore();
+const harmonyOSPermsStore = useHarmonyOSPermsStore();
+const i18nStore = useI18nStore();
+const settingsManStore = useSettingsManStore();
+const fileManStore = useFileManStore();
 
 const ameLifecycleManStore = useAmeLifecycleManStore();
 const mainMenuManStore = useMainMenuManStore();
@@ -31,10 +39,10 @@ const setPasswordAgain = ref("");
 // mounted
 onMounted(async () => {
     // dispatch
-    await store.dispatch('initUserSettingsAction');  // 启动App时即加载user settings相关store变量
-    await store.dispatch('initOpenAppTab');  // 启动App时即加载标签页组件和相关store变量
-    await store.dispatch('setIsHarmonyOS');  // 检测是否是HarmonyOS
-    await store.dispatch('getAppVersion');  // 获得版本号
+    await settingsManStore.initUserSettingsAction();  // 启动App时即加载user settings相关store变量
+    await tabManStore.initOpenAppTab();  // 启动App时即加载标签页组件和相关store变量
+    await harmonyOSPermsStore.setIsHarmonyOS();  // 检测是否是HarmonyOS
+    await ameLifecycleManStore.getAppVersion();  // 获得版本号
 
     window.confirmPreload.onAskForClose(async () => {
         // 在这里获得关闭前窗口的大小和坐标
@@ -50,7 +58,7 @@ onMounted(async () => {
 
         // 遍历所有标签页查看是否存在未保存文件
         let isSaved = true;
-        for (let [key, value] of store.state.tab.tabList) {
+        for (let [key, value] of tabManStore.tabList) {
             if (!value.get('saved')) {
                 isSaved = false;
                 break;
@@ -68,7 +76,7 @@ onMounted(async () => {
     // 默认应用直接打开文件
     window.fileManPreload.defaultOpenFile((filePath) => {
         let fileName = filePath.split(/\\|\//).pop();
-        store.dispatch('openFileFromHistoryAction', {
+        fileManStore.openFileFromHistoryAction({
             'filePath': filePath,
             'fileName': fileName
         });
@@ -78,7 +86,7 @@ onMounted(async () => {
 // methods
 const getAllMdzFolderPaths = () => {
     let mdzPaths = [];
-    for (let [key, value] of store.state.tab.tabList) {
+    for (let [key, value] of tabManStore.tabList) {
         if (value.get('isExistFile') && value.get("path").split(".").pop() === "mdz") {
             let mdzPathParam = value.get("path").split("&").pop();
             let mdzPath = mdzPathParam.replace("filepath=", "");
@@ -98,8 +106,8 @@ const forceQuit = () => {
 }
 const getSavePathFromDialog = () => {
     window.fileManPreload.getSavePath(
-        store.state.i18n.langPackage[store.state.settings.lang].dialog.systemDialogChoosePath.title,
-        store.state.i18n.langPackage[store.state.settings.lang].dialog.systemDialogChoosePath.confirmButton
+        i18nStore.langPackage[settingsManStore.lang].dialog.systemDialogChoosePath.title,
+        i18nStore.langPackage[settingsManStore.lang].dialog.systemDialogChoosePath.confirmButton
     ).then(result => {
         if (result.success) {
             savePath.value = result.savePath;
@@ -114,17 +122,17 @@ const getSavePathFromDialog = () => {
 };
 
 const getFocusedMediaFilePath = () => {
-    return localStorage.getItem(`${store.state.tab.currentOpenedPageId}-click-media-path`);
+    return localStorage.getItem(`${tabManStore.currentOpenedPageId}-click-media-path`);
 }
 
 const closeMediaPreview = () => {
     ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'preview'});
-    localStorage.removeItem(`${store.state.tab.currentOpenedPageId}-click-media-path`);
+    localStorage.removeItem(`${tabManStore.currentOpenedPageId}-click-media-path`);
 };
 
 const saveMediaFile = (url) => {
     window.fileManPreload.saveFileInMdz(
-        `${store.state.i18n.langPackage[store.state.settings.lang].dialog.saveFileInMdz.title}`,
+        `${i18nStore.langPackage[settingsManStore.lang].dialog.saveFileInMdz.title}`,
         `${"file://" + url}`
     );
 };
@@ -135,7 +143,7 @@ const prepareExport = async (type) => {
             wantToOpen: true,
             kind: "tip",
             tipLevel: "fail",
-            content: store.state.i18n.langPackage[store.state.settings.lang].dialog.activeTip.cannotAddExportMission
+            content: i18nStore.langPackage[settingsManStore.lang].dialog.activeTip.cannotAddExportMission
         });
         return 0;
     }
@@ -143,8 +151,8 @@ const prepareExport = async (type) => {
     displayExporting.value = true;
     let planExportFolderAndName =  await window.exportPreload.getExportNameAndFolder(
         type,
-        store.state.i18n.langPackage[store.state.settings.lang].dialog.exportForm.saveAs,
-        store.state.i18n.langPackage[store.state.settings.lang].dialog.activeTip.cancelExport
+        i18nStore.langPackage[settingsManStore.lang].dialog.exportForm.saveAs,
+        i18nStore.langPackage[settingsManStore.lang].dialog.activeTip.cancelExport
     );  // 返回计划导出的文件路径
     if (planExportFolderAndName.success) {
         ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export'});
@@ -152,7 +160,7 @@ const prepareExport = async (type) => {
     } else {
         ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export'});
         displayExporting.value = false;
-        ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "info", content: planExportFolderAndName.message});
+        ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel: "info", content: planExportFolderAndName.message});
     }
 };
 
@@ -163,13 +171,13 @@ const forceTerminateWorker = () => {
     ameLifecycleManStore.autoTips({
         kind: "tip",
         tipLevel: "info",
-        content: store.state.i18n.langPackage[store.state.settings.lang].dialog.activeTip.cancelExport
+        content: i18nStore.langPackage[settingsManStore.lang].dialog.activeTip.cancelExport
     });
 };
 
 const exportTo = (type, exportFilePath) => {
     let originFileContent
-        = store.state.tab.tabList.get(store.state.tab.currentOpenedPageId).get('monacoEditorModel').getValue();
+        = tabManStore.tabList.get(tabManStore.currentOpenedPageId).get('monacoEditorModel').getValue();
     // 启动Worker执行任务
     exportWorker.value = new Worker(
         new URL(
@@ -185,7 +193,7 @@ const exportTo = (type, exportFilePath) => {
     let exportFolderPath = exportFilePathArray.join("/");
 
     // 拷贝一份Map，防止下面delete时直接删除原Map内容
-    let currentPageInfo = new Map(store.state.tab.tabList.get(store.state.tab.currentOpenedPageId));
+    let currentPageInfo = new Map(tabManStore.tabList.get(tabManStore.currentOpenedPageId));
     currentPageInfo.delete("monacoEditorModel");
     let currentPageInfoObject = Object.fromEntries(currentPageInfo);
     console.log("currentPageInfoObject = ", currentPageInfoObject);
@@ -213,9 +221,9 @@ const exportTo = (type, exportFilePath) => {
         );
         displayExporting.value = false;
         if (res.success) {
-            ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
+            ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel: "success", content: "导出成功/Export Successfully"});
         } else {
-            ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "fail", content: "导出失败/Export Failed"});
+            ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel: "fail", content: "导出失败/Export Failed"});
         }
     });
 
@@ -224,7 +232,7 @@ const exportTo = (type, exportFilePath) => {
         console.error(e);
         exportWorker.value.terminate();
         displayExporting.value = false;
-        ameLifecycleManStore.autoTips({kind: "tip", tipLevel: "fail", content: `导出失败/Export failed, ${e.name}`});
+        ameLifecycleManStore.autoTips({wantToOpen: true, kind: "tip", tipLevel: "fail", content: `导出失败/Export failed, ${e.name}`});
     };
 };
 
@@ -239,7 +247,7 @@ const vFocus = {
 <template>
     <Transition>
         <!--模态框背景-->
-        <div class="modal" v-if="store.state.lifecycle.showModal || store.state.tab.showConfirmModal"></div>
+        <div class="modal" v-if="ameLifecycleManStore.showModal || tabManStore.showConfirmModal"></div>
     </Transition>
 
     <!--模态框背景-输入密码专用-->
@@ -278,7 +286,7 @@ const vFocus = {
 
     <Transition>
         <!--加载提示-->
-        <div v-if="store.state.lifecycle.showLoading" class="fonts tip" id="circle-loading-modal">
+        <div v-if="ameLifecycleManStore.showLoading" class="fonts tip" id="circle-loading-modal">
             <div class="face-circle-loading" id="face-circle-loading">
                 <div class="window">
                     <div
@@ -329,7 +337,7 @@ const vFocus = {
                         </div>
                         <div style="width: 20px;"></div>
                         <div id="circle-loading-title" class="window-title fonts"
-                             style="color: #555555; font-size: 1em;">{{ store.state.lifecycle.loadingContent }}
+                             style="color: #555555; font-size: 1em;">{{ ameLifecycleManStore.loadingContent }}
                         </div>
                     </div>
                 </div>
@@ -339,13 +347,13 @@ const vFocus = {
 
     <Transition>
         <!--普通提示-->
-        <div v-if="store.state.lifecycle.showTip" class="fonts tip" id="circle-loading-modal">
+        <div v-if="ameLifecycleManStore.showTip" class="fonts tip" id="circle-loading-modal">
             <div class="face-circle-loading" id="face-circle-loading">
                 <div class="window">
                     <div
                         style="display: flex; flex-direction: row; align-items: center; -webkit-app-region: drag; width: 100%;">
                         <div class="ame-circle" style="height: 26px; width: 26px;">
-                            <svg v-if="store.state.lifecycle.tLevel === 'success'" style="width: 26px; height: 26px;"
+                            <svg v-if="ameLifecycleManStore.tLevel === 'success'" style="width: 26px; height: 26px;"
                                  t="1775527773905" class="icon" viewBox="0 0 1024 1024" version="1.1"
                                  xmlns="http://www.w3.org/2000/svg" p-id="4825" width="200" height="200">
                                 <path
@@ -353,14 +361,14 @@ const vFocus = {
                                     p-id="4826" data-spm-anchor-id="a313x.search_index.0.i0.73623a81mIlQ8V"
                                     class="selected" fill="#42b883"></path>
                             </svg>
-                            <svg v-else-if="store.state.lifecycle.tLevel === 'fail'" style="width: 26px; height: 26px;"
+                            <svg v-else-if="ameLifecycleManStore.tLevel === 'fail'" style="width: 26px; height: 26px;"
                                  t="1775527938245" class="icon" viewBox="0 0 1024 1024" version="1.1"
                                  xmlns="http://www.w3.org/2000/svg" p-id="5890" width="200" height="200">
                                 <path
                                     d="M512.697 75.445c-247.539 0-448.208 200.669-448.208 448.208 0 247.54 200.669 448.208 448.208 448.208 247.54 0 448.208-200.668 448.208-448.208 0-247.539-200.668-448.208-448.208-448.208zM690.686 657.208c12.265 12.274 12.265 32.171 0 44.427-12.283 12.274-32.171 12.274-44.453 0l-133.316-133.316-133.327 133.316c-12.274 12.274-32.161 12.274-44.445 0-12.265-12.256-12.265-32.153 0-44.427l133.335-133.353-133.335-133.317c-12.265-12.256-12.265-32.171 0-44.444 12.283-12.256 32.171-12.256 44.445 0l133.327 133.335 133.316-133.335c12.283-12.256 32.171-12.256 44.453 0 12.265 12.274 12.265 32.189 0 44.444l-133.335 133.317 133.335 133.353z"
                                     fill="#e7305b" p-id="5891"></path>
                             </svg>
-                            <svg v-else-if="store.state.lifecycle.tLevel === 'info'" style="width: 26px; height: 26px;"
+                            <svg v-else-if="ameLifecycleManStore.tLevel === 'info'" style="width: 26px; height: 26px;"
                                  t="1775536482406" class="icon" viewBox="0 0 1024 1024" version="1.1"
                                  xmlns="http://www.w3.org/2000/svg" p-id="4788" width="200" height="200">
                                 <path d="M0 0h1024v1024H0z" fill="#FFFFFF" p-id="4789"></path>
@@ -372,7 +380,7 @@ const vFocus = {
                         </div>
                         <div style="width: 20px;"></div>
                         <div id="circle-loading-title" class="window-title fonts"
-                             style="color: #555555; font-size: 1em;">{{ store.state.lifecycle.tipContent }}
+                             style="color: #555555; font-size: 1em;">{{ ameLifecycleManStore.tipContent }}
                         </div>
                     </div>
                 </div>
@@ -382,7 +390,7 @@ const vFocus = {
 
     <Transition>
         <!--确认提示（标签页关闭确认）-->
-        <div v-if="store.state.tab.showConfirm" class="confirm-dialog fonts">
+        <div v-if="tabManStore.showConfirm" class="confirm-dialog fonts">
             <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
                 <div style="width: 25px; height: 25px; margin-right: 6px;">
                     <svg style="width: 100%; height: 100%;" t="1775567305068" class="icon" viewBox="0 0 1315 1024"
@@ -394,14 +402,14 @@ const vFocus = {
                     </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.title }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.confirm.confirmCloseTab.title }}
                 </div>
             </div>
 
             <div style="height: 15px;"></div>
 
             <div style="font-weight: bold; color: #555555;">
-                {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.content }}
+                {{ i18nStore.langPackage[settingsManStore.lang].dialog.confirm.confirmCloseTab.content }}
             </div>
 
             <div style="height: 15px;"></div>
@@ -410,16 +418,16 @@ const vFocus = {
                 <!--按钮组-->
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts"
-                         @click="store.commit('confirmDialogInteractive', false)">
+                         @click="tabManStore.confirmDialogInteractive(false)">
                         {{
-                            store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.cancelButton
+                            i18nStore.langPackage[settingsManStore.lang].dialog.confirm.confirmCloseTab.cancelButton
                         }}
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts"
-                         @click="store.commit('confirmDialogInteractive', true)">
+                         @click="tabManStore.confirmDialogInteractive(true)">
                         {{
-                            store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmCloseTab.confirmButton
+                            i18nStore.langPackage[settingsManStore.lang].dialog.confirm.confirmCloseTab.confirmButton
                         }}
                     </div>
                 </div>
@@ -441,14 +449,14 @@ const vFocus = {
                     </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.title }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.confirm.confirmQuit.title }}
                 </div>
             </div>
 
             <div style="height: 15px;"></div>
 
             <div style="font-weight: bold; color: #555555;">
-                {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.content }}
+                {{ i18nStore.langPackage[settingsManStore.lang].dialog.confirm.confirmQuit.content }}
             </div>
 
             <div style="height: 15px;"></div>
@@ -460,13 +468,13 @@ const vFocus = {
                          @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'none'});
                          quitConfirmDialog = !quitConfirmDialog;">
                         {{
-                            store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.cancelButton
+                            i18nStore.langPackage[settingsManStore.lang].dialog.confirm.confirmQuit.cancelButton
                         }}
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" @click="forceQuit">
                         {{
-                            store.state.i18n.langPackage[store.state.settings.lang].dialog.confirm.confirmQuit.confirmButton
+                            i18nStore.langPackage[settingsManStore.lang].dialog.confirm.confirmQuit.confirmButton
                         }}
                     </div>
                 </div>
@@ -476,7 +484,7 @@ const vFocus = {
 
     <Transition>
         <!--另存为提示-->
-        <div v-if="store.state.lifecycle.showSaveAs" class="save-as-dialog fonts">
+        <div v-if="ameLifecycleManStore.showSaveAs" class="save-as-dialog fonts">
             <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
                 <div style="width: 25px; height: 25px; margin-right: 6px;">
                     <svg t="1775874212869" class="icon" style="width: 100%; height: 100%;" viewBox="0 0 1024 1024"
@@ -488,7 +496,7 @@ const vFocus = {
                     </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.title }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.title }}
                 </div>
             </div>
 
@@ -497,22 +505,22 @@ const vFocus = {
             <div style="display: flex; flex-direction: column; width: 100%;">
 
                 <div style="display: flex; flex-direction: row; width: 100%;">
-                    <input @input="store.state.file.saveAsError = ''" v-focus class="save-as-input" style="flex: 0.65; width: 0;"
-                           :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.saveNamePlaceholder"
+                    <input @input="fileManStore.saveAsError = ''" v-focus class="save-as-input" style="flex: 0.65; width: 0;"
+                           :placeholder="i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.saveNamePlaceholder"
                            v-model="saveName">
                     <div style="width: 15px;"></div>
-                    <select class="save-as-input" @input="store.state.file.saveAsError = ''" id="ext" name="ext" style="flex: 1; width: 0;" v-model="saveExt">
+                    <select class="save-as-input" @input="fileManStore.saveAsError = ''" id="ext" name="ext" style="flex: 1; width: 0;" v-model="saveExt">
                         <option value="mdz">
                             {{
-                                store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.mdz
+                                i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.selectOptions.mdz
                             }}
                         </option>
                         <option value="md">
-                            {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.md }}
+                            {{ i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.selectOptions.md }}
                         </option>
                         <option value="txt" selected>
                             {{
-                                store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.selectOptions.txt
+                                i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.selectOptions.txt
                             }}
                         </option>
                     </select>
@@ -521,13 +529,13 @@ const vFocus = {
                 <div style="height: 15px;"></div>
 
                 <div style="display: flex; flex-direction: row; width: 100%;">
-                    <input @input="store.state.file.saveAsError = ''" class="save-as-input" style="flex: 3; width: 0;"
-                           :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePathPlaceholder"
+                    <input @input="fileManStore.saveAsError = ''" class="save-as-input" style="flex: 3; width: 0;"
+                           :placeholder="i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.savePathPlaceholder"
                            v-model="savePath">
                     <div style="width: 15px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" style="width: 70px;"
                          @click="getSavePathFromDialog">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePathChooseButton }}
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.savePathChooseButton }}
                     </div>
                 </div>
 
@@ -537,24 +545,24 @@ const vFocus = {
                     <div style="display: flex; flex-direction: column; width: 100%;" v-if="saveExt === 'mdz'">
                         <div class="wrapper-info fonts-info info-border info-bg">
                             <div id="info-donate-explain" style="margin-left: 5px;">
-                                {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.attention }}
+                                {{ i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.attention }}
                             </div>
                         </div>
                         <div style="height: 15px;"></div>
-                        <input @input="store.state.file.saveAsError = ''" class="save-as-input" type="password"
-                               :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePasswordPlaceholder"
+                        <input @input="fileManStore.saveAsError = ''" class="save-as-input" type="password"
+                               :placeholder="i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.savePasswordPlaceholder"
                                v-model="setPassword">
                         <div style="height: 15px;"></div>
                         <input class="save-as-input" type="password"
-                               :placeholder="store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.savePasswordAgainPlaceholder"
+                               :placeholder="i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.savePasswordAgainPlaceholder"
                                v-model="setPasswordAgain">
                     </div>
                 </Transition>
             </div>
 
-            <template v-if="store.state.file.saveAsError !== ''">
+            <template v-if="fileManStore.saveAsError !== ''">
                 <div style="height: 15px;"></div>
-                <div style="font-weight: bold; color: red;">{{ store.state.file.saveAsError }}</div>
+                <div style="font-weight: bold; color: red;">{{ fileManStore.saveAsError }}</div>
             </template>
             <div style="height: 15px;"></div>
 
@@ -563,14 +571,14 @@ const vFocus = {
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="confirm-dialog-cancel-button fonts" style="width: 60px;"
                          @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'save-as'})">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.cancelButton }}
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.cancelButton }}
                     </div>
                     <div style="width: 10px;"></div>
                     <div class="confirm-dialog-confirm-button fonts" style="width: 60px;"
-                         @click="store.state.file.saveAsError = ''; store.dispatch('directSaveAction',
+                         @click="fileManStore.saveAsError = ''; fileManStore.directSaveAction(
                          [saveName, saveExt, savePath,
                          saveExt === 'mdz' ? setPassword : '', saveExt === 'mdz' ? setPasswordAgain : '']);">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.saveAs.confirmButton }}
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.saveAs.confirmButton }}
                     </div>
                 </div>
             </div>
@@ -579,14 +587,14 @@ const vFocus = {
 
     <Transition>
         <!--导出提示-->
-        <div v-show="store.state.lifecycle.showExport" class="save-as-dialog fonts">
+        <div v-show="ameLifecycleManStore.showExport" class="save-as-dialog fonts">
             <!--标题和关闭按钮-->
             <div class="dialog-title-bar">
                 <div class="title3">
                     <div class="title3-block"></div>
                     <div style="width: 8px"></div>
                     <div style="font-weight: bold; font-size: 1.2rem;">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.exportForm.title }}
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.exportForm.title }}
                     </div>
                 </div>
                 <div class="close" @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'export'});">
@@ -601,14 +609,14 @@ const vFocus = {
                     <div>
                         <svg style="width: 100px; height: 100px;" t="1785388154043" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6650" width="200" height="200"><path d="M89.088 59.392l62.464 803.84c1.024 12.288 9.216 22.528 20.48 25.6L502.784 993.28c6.144 2.048 12.288 2.048 18.432 0l330.752-104.448c11.264-4.096 19.456-14.336 20.48-25.6l62.464-803.84c1.024-17.408-12.288-31.744-29.696-31.744H118.784c-17.408 0-31.744 14.336-29.696 31.744z" fill="#FC490B" p-id="6651"></path><path d="M774.144 309.248h-409.6l12.288 113.664h388.096l-25.6 325.632-227.328 71.68-227.328-71.68-13.312-169.984h118.784v82.944l124.928 33.792 123.904-33.792 10.24-132.096H267.264L241.664 204.8h540.672z" fill="#FFFFFF" p-id="6652"></path></svg>
                     </div>
-                    <div>{{store.state.i18n.langPackage[store.state.settings.lang].dialog.exportForm.saveAs}}HTML</div>
+                    <div>{{i18nStore.langPackage[settingsManStore.lang].dialog.exportForm.saveAs}}HTML</div>
                 </div>
 <!--                <div style="width: 100px;"></div>-->
 <!--                <div class="export-option" @click="exportTo('pdf')">-->
 <!--                    <div>-->
 <!--                        <svg style="width: 100px; height: 100px;" t="1785388202606" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="8601" width="200" height="200"><path d="M179 64h468.5l223 225.5V935c0 13.807-11.193 25-25 25H179c-13.807 0-25-11.193-25-25V89c0-13.807 11.193-25 25-25z" fill="#FF4867" p-id="8602"></path><path d="M647.5 64v200.5c0 13.807 11.193 25 25 25h198L647.5 64z" fill="#FF97A9" p-id="8603"></path><path d="M691.919 812c-44.4 0-84.22-76.189-105.17-125.732-35.243-14.71-74.092-28.45-111.831-37.331-33.022 21.788-89.214 54.4-132.365 54.4-26.778 0-46.064-13.461-53.14-36.914-5.411-19.29-0.832-32.613 4.995-39.83 11.377-15.543 34.825-23.453 69.929-23.453 28.443 0 64.517 4.996 104.754 14.71 25.945-18.457 52.307-39.829 75.756-62.45-10.406-49.404-21.784-129.479 7.076-166.393 14.29-17.625 36.074-23.454 62.436-15.543 28.86 8.326 39.82 25.951 43.15 39.829 12.21 48.155-43.15 113.103-80.473 151.267 8.325 33.029 19.286 67.862 32.606 99.78 53.556 23.87 117.24 59.536 124.456 98.394 2.913 13.461-1.249 25.951-12.21 36.915-9.435 7.771-19.425 12.351-29.97 12.351zM652 728c9.768 21.74 19.081 32 23.99 32 0.76 0 1.823-0.333 3.341-1.664 1.822-1.996 1.822-3.327 1.518-4.547-1.012-5.713-9.262-15.085-28.849-25.789z m-281.922-88c-15.62 0-19.913 3.774-21.22 5.535-0.373 0.566-1.493 2.264-0.373 6.666 0.933 3.774 3.547 7.799 11.636 7.799 10.143 0 24.829-5.723 41.879-15.975-12.196-2.704-22.962-4.025-31.922-4.025zM523 620.582c9.333 2.6 19.01 5.951 28 9.418-3.264-8.551-5.898-17.449-8.13-26A629.121 629.121 0 0 1 523 620.582zM588.966 433c-3.32 0-5.649 1.229-7.745 3.511-6.173 7.783-6.872 27.386-2.097 52.489 18.111-19.427 27.953-37.275 25.507-46.813-0.35-1.404-1.398-5.676-9.842-8.134-2.33-0.702-4.076-1.053-5.823-1.053z" fill="#FFFFFF" p-id="8604"></path></svg>-->
 <!--                    </div>-->
-<!--                    <div>{{store.state.i18n.langPackage[store.state.settings.lang].dialog.exportForm.saveAs}}PDF</div>-->
+<!--                    <div>{{i18nStore.langPackage[settingsManStore.lang].dialog.exportForm.saveAs}}PDF</div>-->
 <!--                </div>-->
             </div>
         </div>
@@ -616,7 +624,7 @@ const vFocus = {
 
     <!--打赏-->
     <Transition>
-        <div v-if="store.state.lifecycle.showDonate" class="fonts donate">
+        <div v-if="ameLifecycleManStore.showDonate" class="fonts donate">
             <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
                 <div style="width: 25px; height: 25px; margin-right: 6px;">
                     <svg t="1761963431709" style="width: 100%; height: 100%;" class="icon" viewBox="0 0 1024 1024"
@@ -627,7 +635,7 @@ const vFocus = {
                     </svg>
                 </div>
                 <div id="donate-title" class="window-title fonts" style="color: #42b983; font-size: 1.4em">
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.donate.title }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.donate.title }}
                 </div>
             </div>
 
@@ -647,7 +655,7 @@ const vFocus = {
                         fill="#FFFFFF" p-id="2384"></path>
                 </svg>
                 <div id="info-donate-explain" style="margin-left: 5px;">
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.donate.info }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].dialog.donate.info }}
                 </div>
             </div>
 
@@ -662,7 +670,7 @@ const vFocus = {
                 <div style="display: flex; width: 100%; flex-direction: row; justify-content: flex-end;">
                     <div class="donate-close-button fonts"
                          @click="ameLifecycleManStore.toggleModal({'wantToOpen': false, 'kind': 'donate'})">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].dialog.donate.closeButton }}
+                        {{ i18nStore.langPackage[settingsManStore.lang].dialog.donate.closeButton }}
                     </div>
                 </div>
             </div>
@@ -671,14 +679,14 @@ const vFocus = {
 
     <!--预览文件-->
     <Transition>
-        <div v-if="store.state.lifecycle.showPreview" class="preview-dialog fonts">
+        <div v-if="ameLifecycleManStore.showPreview" class="preview-dialog fonts">
             <!--标题和关闭按钮-->
             <div class="dialog-title-bar">
                 <div class="title3">
                     <div class="title3-block"></div>
                     <div style="width: 8px"></div>
                     <div style="font-weight: bold; font-size: 1.2rem;">
-                        {{ store.state.i18n.langPackage[store.state.settings.lang].toolsPage.preview.title }}
+                        {{ i18nStore.langPackage[settingsManStore.lang].toolsPage.preview.title }}
                     </div>
                 </div>
                 <div class="close" @click="closeMediaPreview">
@@ -690,7 +698,7 @@ const vFocus = {
             <!--保存toolbar-->
             <div class="save-toolbar">
                 <div class="save-button" @click="saveMediaFile(getFocusedMediaFilePath())">
-                    {{ store.state.i18n.langPackage[store.state.settings.lang].toolsPage.preview.saveButton }}
+                    {{ i18nStore.langPackage[settingsManStore.lang].toolsPage.preview.saveButton }}
                 </div>
             </div>
         </div>

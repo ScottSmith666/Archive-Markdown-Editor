@@ -1,3 +1,5 @@
+import {decodeMediaPath, toMediaUrl} from "../../media-url.js";
+
 export const regExps = () => {
     return {
         imageBase64: /data:image\/(.*?);base64,/,
@@ -22,9 +24,9 @@ export const returnMediaElement = (isURL, kind, url, caption = "") => {
         }
     };
     if (kind === 'video') {
-        return `<video controls="controls"><source src="${isURL ? encodeURI(url) : ('file://' + url)}"></video>`;
+        return `<video controls="controls"><source src="${isURL ? encodeURI(url) : toMediaUrl(decodeMediaPath(url))}"></video>`;
     } else if (kind === 'audio') {
-        return `<audio style="width: 100%;" controls="controls" src="${isURL ? encodeURI(url) : ('file://' + url)}"></audio>`;
+        return `<audio style="width: 100%;" controls="controls" src="${isURL ? encodeURI(url) : toMediaUrl(decodeMediaPath(url))}"></audio>`;
     } else if (kind === 'file') {
         return `<div class="ame-custom-click" data-type-flag="file" data-file-url="` + decodeURI(url) + `" `
             + `style="cursor:pointer; display: flex; flex-direction: row; align-items: center; padding: 15px; `
@@ -46,7 +48,7 @@ export const returnMediaElement = (isURL, kind, url, caption = "") => {
             + `</path></svg></div><div style="width: 10px;"></div><div style="font-weight: bold; `
             + `color: #42b983;">${decodeURI(url.split(/\//).pop())}</div></div>`;
     } else if (kind === 'image') {
-        return `<img src="${isURL ? encodeURI(url) : ('file://' + url)}" alt="${caption}">`;
+        return `<img src="${isURL ? encodeURI(url) : toMediaUrl(decodeMediaPath(url))}" alt="${caption}">`;
     } else {
         return `<p style="color: red; font-weight: bold;">🚫${langOption[lang].unrecognizedFileFlag}${kind}</p>`;
     }
