@@ -292,3 +292,23 @@ EOF
 update-mime-database "$HOME/.local/share/mime"
 update-desktop-database "$HOME/.local/share/applications"
 ```
+
+## V. Acknowledgements
+
+### Vibe Coding Support
+
+> [!note]
+>
+> Starting from this version, a `Vibe Coding` workflow has been introduced into the development of AME.
+>
+> Special thanks to the open-source `Qwen3.8 Flash Next` large language model from Alibaba [https://qwen.ai/](https://qwen.ai/).
+>
+> Special thanks to `jesdga95` for open-sourcing the `Basalt` inference engine, which makes my smooth local deployment possible [https://github.com/jesdga95/basalt](https://github.com/jesdga95/basalt)
+>
+> ![jesdga95](https://github.com/ScottSmith666/Archive-Markdown-Editor/blob/main/document/media/jesdga95.jpeg)
+>
+> Special thanks to `yanmindi` for the `RTX Spark` porting work on `Basalt` [https://github.com/yanmindi/basalt-arm-sm121](https://github.com/yanmindi/basalt-arm-sm121)
+>
+> And special thanks to `dingzhao100`, who adapted it for `DGX Spark` on top of that work [https://github.com/dingzhao100/basalt-arm-sm121-dgxspark.git](https://github.com/dingzhao100/basalt-arm-sm121-dgxspark.git)
+>
+> The in-depth development of this project was carried out on a local deployment of the `NVFP4 DQ6_K` build of `Qwen3.8 Flash Next` on a `DGX Spark`.
